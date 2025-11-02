@@ -1,0 +1,44 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36202.13
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PetCenterAPI", "PetCenterAPI\PetCenterAPI.csproj", "{FCD0B572-26CF-4327-9EE4-EF51B666D600}"
+	ProjectSection(ProjectDependencies) = postProject
+		{5CF7109D-527E-44C0-941F-EEF31683284E} = {5CF7109D-527E-44C0-941F-EEF31683284E}
+		{D4020481-E84E-4F0A-9C39-D3D8A4F0606E} = {D4020481-E84E-4F0A-9C39-D3D8A4F0606E}
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PetCenterModels", "PetCenterModels\PetCenterModels.csproj", "{D4020481-E84E-4F0A-9C39-D3D8A4F0606E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PetCenterServices", "PetCenterServices\PetCenterServices.csproj", "{5CF7109D-527E-44C0-941F-EEF31683284E}"
+	ProjectSection(ProjectDependencies) = postProject
+		{D4020481-E84E-4F0A-9C39-D3D8A4F0606E} = {D4020481-E84E-4F0A-9C39-D3D8A4F0606E}
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{FCD0B572-26CF-4327-9EE4-EF51B666D600}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FCD0B572-26CF-4327-9EE4-EF51B666D600}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FCD0B572-26CF-4327-9EE4-EF51B666D600}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FCD0B572-26CF-4327-9EE4-EF51B666D600}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D4020481-E84E-4F0A-9C39-D3D8A4F0606E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D4020481-E84E-4F0A-9C39-D3D8A4F0606E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D4020481-E84E-4F0A-9C39-D3D8A4F0606E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D4020481-E84E-4F0A-9C39-D3D8A4F0606E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5CF7109D-527E-44C0-941F-EEF31683284E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5CF7109D-527E-44C0-941F-EEF31683284E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5CF7109D-527E-44C0-941F-EEF31683284E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5CF7109D-527E-44C0-941F-EEF31683284E}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {21E2BB92-0ACF-4D3D-848A-26729A445553}
+	EndGlobalSection
+EndGlobal
