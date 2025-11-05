@@ -8,19 +8,17 @@ using System.Threading.Tasks;
 
 namespace PetCenterModels.DBTables
 {
-    internal class Facility
+    public class Facility : BaseTableEntity
     {
-        [Key]
-        [JsonIgnore]
-        public int Id { get; set; }
-
+       
         [JsonIgnore]
         public int FranchiseId { get; set; }
 
         public string? Address { get; set; }
         public string? City { get; set; }
 
-        
+        [Phone]
+        public string? Contact {  get; set; }
 
     }
 }

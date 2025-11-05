@@ -9,12 +9,8 @@ using System.Threading.Tasks;
 
 namespace PetCenterModels.DBTables
 {
-    public class Franchise
-    {
-        [Key]
-        [JsonIgnore]
-        public int Id { get; set; }
-
+    public class Franchise : BaseTableEntity
+    {        
         [JsonIgnore]
         public int OwnerId { get; set; }
 

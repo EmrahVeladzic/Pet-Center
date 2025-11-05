@@ -9,12 +9,8 @@ using System.Threading.Tasks;
 
 namespace PetCenterModels.DBTables
 {
-    public class Listing
+    public class Listing : BaseTableEntity
     {
-        [Key]
-        [JsonIgnore]
-        public int Id { get; set; }
-
         public string? Name { get; set; }
 
         public string? Description { get; set; }

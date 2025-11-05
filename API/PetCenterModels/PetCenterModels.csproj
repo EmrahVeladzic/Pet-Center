@@ -7,7 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="SearchObjects\" />
     <Folder Include="Requests\" />
   </ItemGroup>
 
