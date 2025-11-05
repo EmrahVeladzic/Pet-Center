@@ -14,7 +14,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Controllers\" />
+    <ProjectReference Include="..\PetCenterModels\PetCenterModels.csproj" />
+    <ProjectReference Include="..\PetCenterServices\PetCenterServices.csproj" />
   </ItemGroup>
 
 </Project>

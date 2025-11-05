@@ -3,13 +3,19 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
-using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace PetCenterModels.DBTables
 {
-    public class Album : BaseTableEntity
+    public class BaseTableEntity
     {
-         public List<Image>? Images { get; set; }
+        [Key]
+        public int Id { get; set; }
+
+        public BaseTableEntity()
+        {
+            
+        }
+
     }
 }

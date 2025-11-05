@@ -8,12 +8,8 @@ using System.Threading.Tasks;
 
 namespace PetCenterModels.DBTables
 {
-    public class Image
+    public class Image : BaseTableEntity
     {
-        [Key]
-        [JsonIgnore]
-        public int Id { get; set; }
-
         public int Width { get; set; }
         public int Height { get; set; }
         public byte[]? Data { get; set; }
