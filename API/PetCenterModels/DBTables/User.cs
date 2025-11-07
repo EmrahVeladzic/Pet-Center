@@ -18,8 +18,7 @@ namespace PetCenterModels.DBTables
         [JsonIgnore]
         public Account? UserAccount { get; set; }
 
-        public string? FirstName { get; set; }
-        public string? LastName { get; set; }
+        public string? UserName { get; set; }
 
         [JsonIgnore]
         public int? ImageId { get; set; }

@@ -25,5 +25,8 @@ namespace PetCenterModels.DBTables
         [ForeignKey(nameof(LogoId))]
         public Image? Logo { get; set; }
 
+        [NotMapped]
+        public List<Facility>? Facilities { get; set; }
+
     }
 }

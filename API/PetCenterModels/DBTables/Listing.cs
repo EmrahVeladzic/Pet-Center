@@ -11,13 +11,13 @@ namespace PetCenterModels.DBTables
 {
     public class Listing : BaseTableEntity
     {
-        public string? Name { get; set; }
+        public string? ListingName { get; set; }
 
-        public string? Description { get; set; }
+        public string? ListingDescription { get; set; }
 
         [JsonIgnore]
-        public int ImagesId { get; set; }
-        [ForeignKey(nameof(ImagesId))]
+        public int AlbumId { get; set; }
+        [ForeignKey(nameof(AlbumId))]
         public Album? Images { get; set; }
 
 
