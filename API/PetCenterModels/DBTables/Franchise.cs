@@ -17,7 +17,7 @@ namespace PetCenterModels.DBTables
         [ForeignKey(nameof(OwnerId))]
         public User? Owner { get; set; }
 
-        public string? Name { get; set; }
+        public string? FranchiseName { get; set; }
 
         [JsonIgnore]
         public int? LogoId { get; set; }

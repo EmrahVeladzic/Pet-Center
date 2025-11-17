@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using PetCenterModels.DBTables;
 using PetCenterModels.SearchObjects;
+using PetCenterServices.Interfaces;
 
 namespace PetCenterAPI.Controllers
 {
@@ -10,20 +11,25 @@ namespace PetCenterAPI.Controllers
     [ApiController]
     public class ControllerTemplate<TEntity, TSearch> : ControllerBase where TEntity : BaseTableEntity where TSearch : BaseSearchObject
     {
+        private IBaseCRUDService<TEntity,TSearch> service;
+
+        public ControllerTemplate(IBaseCRUDService<TEntity,TSearch> s)
+        {
+            service = s;
+        }
+
         [Authorize]
         [HttpGet]
         public virtual async Task<IActionResult>Get([FromQuery] TSearch search)
-        {
-            await Task.CompletedTask;
-            return StatusCode(200);
+        {           
+            return StatusCode(200, await service.Get(search));
         }
 
         [Authorize]
         [HttpGet("{id}")]
         public virtual async Task<IActionResult> GetById(int id)
-        {
-            await Task.CompletedTask;
-            return StatusCode(200);
+        {            
+            return StatusCode(200, await service.GetById(id));
         }
 
 
@@ -31,7 +37,7 @@ namespace PetCenterAPI.Controllers
         [HttpPost]
         public virtual async Task<IActionResult> Post([FromBody] TEntity ent)
         {
-            await Task.CompletedTask;
+            await service.Post(ent);
             return StatusCode(201);
         }
 
@@ -40,7 +46,7 @@ namespace PetCenterAPI.Controllers
         [HttpPut]
         public virtual async Task<IActionResult> Put([FromBody] TEntity ent)
         {
-            await Task.CompletedTask;
+            await service.Put(ent);
             return StatusCode(200);
         }
 
@@ -49,7 +55,7 @@ namespace PetCenterAPI.Controllers
         [HttpDelete]
         public virtual async Task<IActionResult> Delete(int id)
         {
-            await Task.CompletedTask;
+            await service.Delete(id);
             return StatusCode(204);
         }
 
