@@ -11,6 +11,13 @@ namespace PetCenterServices.Services
 {
     public class BaseCRUDService<TEntity, TSearch> : IBaseCRUDService<TEntity,TSearch> where TEntity : BaseTableEntity where TSearch : BaseSearchObject
     {
+        protected PetCenterDBContext dbContext;
+
+        public BaseCRUDService(PetCenterDBContext ctx)
+        {
+            dbContext = ctx;
+        }
+
         public async Task<List<TEntity>>Get(TSearch search)
         {
             await Task.CompletedTask;

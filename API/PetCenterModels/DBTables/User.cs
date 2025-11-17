@@ -9,8 +9,10 @@ using System.Threading.Tasks;
 
 namespace PetCenterModels.DBTables
 {
+    [Table("User", Schema = "Person")]
     public class User : BaseTableEntity
-    {       
+    {
+        [Column("AccountID")]
         [JsonIgnore]
         public int AccountId { get; set; }
 
@@ -18,8 +20,10 @@ namespace PetCenterModels.DBTables
         [JsonIgnore]
         public Account? UserAccount { get; set; }
 
+        [Column("UserName")]
         public string? UserName { get; set; }
 
+        [Column("ImageID")]
         [JsonIgnore]
         public int? ImageId { get; set; }
 
