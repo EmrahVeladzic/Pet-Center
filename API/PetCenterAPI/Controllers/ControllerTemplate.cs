@@ -9,11 +9,11 @@ namespace PetCenterAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class ControllerTemplate<TEntity, TSearch> : ControllerBase where TEntity : BaseTableEntity where TSearch : BaseSearchObject
+    public class ControllerTemplate<TEntity, TSearch, TService> : ControllerBase where TEntity : BaseTableEntity where TSearch : BaseSearchObject where TService : IBaseCRUDService<TEntity,TSearch>
     {
-        private IBaseCRUDService<TEntity,TSearch> service;
+        protected readonly TService service;
 
-        public ControllerTemplate(IBaseCRUDService<TEntity,TSearch> s)
+        public ControllerTemplate(TService s)
         {
             service = s;
         }
@@ -27,7 +27,7 @@ namespace PetCenterAPI.Controllers
 
         [Authorize]
         [HttpGet("{id}")]
-        public virtual async Task<IActionResult> GetById(int id)
+        public virtual async Task<IActionResult> GetById([FromRoute]int id)
         {            
             return StatusCode(200, await service.GetById(id));
         }
@@ -53,7 +53,7 @@ namespace PetCenterAPI.Controllers
 
         [Authorize]
         [HttpDelete]
-        public virtual async Task<IActionResult> Delete(int id)
+        public virtual async Task<IActionResult> Delete([FromRoute]int id)
         {
             await service.Delete(id);
             return StatusCode(204);

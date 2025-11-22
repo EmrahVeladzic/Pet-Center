@@ -11,6 +11,8 @@ CREATE SCHEMA [Business]
 GO
 CREATE SCHEMA [Offer]
 GO
+CREATE SCHEMA [Pending]
+GO
 
 
 CREATE TABLE [File].[Album](
@@ -23,17 +25,17 @@ CREATE TABLE [File].[Image](
 	AlbumID INT FOREIGN KEY REFERENCES [File].[Album](ID),
 	Width INT NOT NULL,
 	Height INT NOT NULL,
-	Data VARBINARY(MAX) NOT NULL
+	ImageData VARBINARY(MAX) NOT NULL
 );
 GO
 	
 CREATE TABLE [Person].[Account](
 	ID INT IDENTITY(1,1) PRIMARY KEY,
-	Email VARCHAR(255),
-	Phone VARCHAR(30),
+	Contact VARCHAR(255) NOT NULL,
 	PasswordHash VARCHAR(44) NOT NULL,
 	PasswordSalt VARCHAR(24) NOT NULL,
-	AccessLevel TINYINT NOT NULL
+	AccessLevel TINYINT NOT NULL,
+	Verified BIT
 );
 GO
 
@@ -70,5 +72,14 @@ CREATE TABLE [Offer].[Listing](
 );
 GO
 
+CREATE TABLE [Pending].[Registration](
+	AccountID INT FOREIGN KEY REFERENCES [Person].[Account](ID) PRIMARY KEY,
+	Code INT NOT NULL,
+	Expiry DATETIME2 NOT NULL,
+	NextAttempt DATETIME2 NOT NULL
+);
+GO
+
 USE master 
 GO
+

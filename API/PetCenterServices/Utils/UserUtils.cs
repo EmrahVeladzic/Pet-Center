@@ -1,4 +1,5 @@
-﻿using System;
+﻿using PetCenterModels.DBTables;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -18,6 +19,16 @@ namespace PetCenterServices.Utils
             while (ctx.Users.Any(u => u.UserName == username));
 
             return username;
+        }
+
+        public static string GetRole(Access input)
+        {
+            switch (input)
+            {
+                case Access.Owner: return "Owner";
+                case Access.Admin: return "Admin";
+                default: return "User";
+            }
         }
 
     }

@@ -9,12 +9,15 @@ using System.Threading.Tasks;
 
 namespace PetCenterModels.DBTables
 {
+    [Table("Listing", Schema = "Offer")]
     public class Listing : BaseTableEntity
     {
+        [Column("ListingName")]
         public string? ListingName { get; set; }
-
+        [Column("ListingDescription")]
         public string? ListingDescription { get; set; }
 
+        [Column("AlbumID")]
         [JsonIgnore]
         public int AlbumId { get; set; }
         [ForeignKey(nameof(AlbumId))]

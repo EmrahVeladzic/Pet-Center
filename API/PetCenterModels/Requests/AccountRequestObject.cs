@@ -10,14 +10,10 @@ namespace PetCenterModels.Requests
 {
     public class AccountRequestObject
     {
-
-        [EmailAddress]
-        public string? Email { get; set; }
-        [Phone]
-        public string? PhoneNumber { get; set; }
+        [Required]
+        public string? Contact { get; set; }
         
         [Required]
         public string? Password { get; set; }
-
     }
 }

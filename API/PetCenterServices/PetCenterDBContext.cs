@@ -29,6 +29,7 @@ namespace PetCenterServices
         public DbSet<Facility> Facilities { get; set; }
         public DbSet<Franchise> Franchises { get;set; }
         public DbSet<Listing> Listings { get; set; }
+        public DbSet<Registration> Registrations { get; set; }
 
     }
 }
