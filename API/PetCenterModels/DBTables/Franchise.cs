@@ -9,16 +9,22 @@ using System.Threading.Tasks;
 
 namespace PetCenterModels.DBTables
 {
+    [Table("Franchise", Schema = "Business")]
     public class Franchise : BaseTableEntity
-    {        
+    {
+        [Column("OwnerID")]
         [JsonIgnore]
         public int OwnerId { get; set; }
 
+        
         [ForeignKey(nameof(OwnerId))]
+        [JsonIgnore]
         public User? Owner { get; set; }
 
+        [Column("FranchiseName")]
         public string? FranchiseName { get; set; }
 
+        [Column("LogoID")]
         [JsonIgnore]
         public int? LogoId { get; set; }
 

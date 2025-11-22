@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 
 namespace PetCenterModels.DBTables
 {
+    [Table("File", Schema = "Album")]
     public class Album : BaseTableEntity
     {
         [NotMapped]

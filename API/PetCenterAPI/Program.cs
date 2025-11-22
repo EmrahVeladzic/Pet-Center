@@ -53,6 +53,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 builder.Services.AddAuthorization();
 
+PetCenterServices.Utils.Crypto.Configuration = builder.Configuration;
 
 var app = builder.Build();
 
@@ -87,8 +88,7 @@ using (IServiceScope scope = app.Services.CreateScope())
         IConfigurationSection instance_owner = builder.Configuration.GetSection("InstanceOwner");
         AccountRequestObject owner_req = new AccountRequestObject()
         {
-            Email = instance_owner["Email"],
-            PhoneNumber = null,
+            Contact = instance_owner["Contact"],            
             Password = instance_owner["Password"],
         };
 

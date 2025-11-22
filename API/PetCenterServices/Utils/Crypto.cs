@@ -1,14 +1,21 @@
-﻿using System;
+﻿using Microsoft.Extensions.Configuration;
+using Microsoft.IdentityModel.Tokens;
+using PetCenterModels.DBTables;
+using System;
 using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
+using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
-using System.Security.Cryptography;
 
 namespace PetCenterServices.Utils
 {
     public static class Crypto
     {
+
+        public static IConfiguration Configuration { get; set; } = null!;
 
         public static string GenerateSalt()
         {
@@ -27,5 +34,34 @@ namespace PetCenterServices.Utils
         }
 
 
+        public static int GenerateCode()
+        {         
+            return RandomNumberGenerator.GetInt32(10000000, 100000000);
+        }
+
+ 
+        public static string GenerateJWT(User usr)
+        {
+            SymmetricSecurityKey key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration["Jwt:Key"]!));
+            SigningCredentials creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+            Claim[] claims = new[]
+            {
+                new Claim(ClaimTypes.Name, usr.UserName!),
+                new Claim(ClaimTypes.NameIdentifier, usr.Id.ToString()),
+                new Claim(ClaimTypes.Role, UserUtils.GetRole(usr.UserAccount!.AccessLevel)),
+                new Claim("verified", usr.UserAccount!.Verified ? "true" : "false")
+            };
+
+            JwtSecurityToken token = new JwtSecurityToken(
+                Configuration["Jwt:Issuer"],
+                Configuration["Jwt:Audience"],
+                claims,
+                expires: DateTime.UtcNow.AddHours(8),
+                signingCredentials: creds);
+
+            return new JwtSecurityTokenHandler().WriteToken(token);
+
+
+        }
     }
 }

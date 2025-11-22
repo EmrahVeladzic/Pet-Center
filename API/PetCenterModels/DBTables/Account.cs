@@ -19,13 +19,9 @@ namespace PetCenterModels.DBTables
     [Table("Account", Schema = "Person")]
     public class Account : BaseTableEntity
     {
-        [Column("Email")]
-        [EmailAddress]
-        public string? Email {  get; set; }
-
-        [Column("Phone")]
-        [Phone]
-        public string? PhoneNumber { get; set; }
+        [Column("Contact")]
+        [Required]
+        public string? Contact {  get; set; }       
 
         [Column("PasswordHash")]
         [JsonIgnore]
@@ -37,7 +33,12 @@ namespace PetCenterModels.DBTables
         public string? PasswordSalt { get; set; }
 
         [Column("AccessLevel")]
+        [JsonIgnore]
         public Access AccessLevel { get; set; }
+
+        [Column("Verified")]
+        [JsonIgnore]
+        public bool Verified { get; set; }
 
     }
 }
