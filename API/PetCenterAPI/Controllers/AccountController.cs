@@ -5,6 +5,7 @@ using PetCenterModels.DBTables;
 using PetCenterModels.Requests;
 using PetCenterModels.SearchObjects;
 using PetCenterServices.Interfaces;
+using System.Security.Claims;
 
 namespace PetCenterAPI.Controllers
 {
@@ -52,7 +53,7 @@ namespace PetCenterAPI.Controllers
                 if (string.IsNullOrEmpty(token))
                 {
 
-                    return StatusCode(401, "Wrong contact, and/or password");
+                    return StatusCode(401, "Wrong contact, and/or password.");
 
                 }
 
@@ -61,6 +62,24 @@ namespace PetCenterAPI.Controllers
             }
 
             return StatusCode(400, "Invalid contact, and/or password.");
+        }
+
+        [HttpPost("Verify/{code}")]
+        public async Task<IActionResult> Verify([FromRoute] int code)
+        {
+            int.TryParse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out int id);
+
+            if (id>0)
+            {           
+
+                await service.VerifyAccount(id, code);
+                if (await service.CheckAccountVerification(id))
+                {
+                    return StatusCode(200, "Verified.");
+                }
+
+            }
+            return StatusCode(401, "Verification failure.");
         }
 
     }
