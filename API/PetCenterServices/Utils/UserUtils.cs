@@ -1,6 +1,7 @@
 ﻿using PetCenterModels.DBTables;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -29,6 +30,12 @@ namespace PetCenterServices.Utils
                 case Access.Admin: return "Admin";
                 default: return "User";
             }
+        }
+
+        public static bool ValidateContact(string contact)
+        {
+            EmailAddressAttribute e = new();
+            return e.IsValid(contact);
         }
 
     }
