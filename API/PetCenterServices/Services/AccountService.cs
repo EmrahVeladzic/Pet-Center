@@ -69,14 +69,10 @@ namespace PetCenterServices.Services
                 return;
             }
 
-            EmailAddressAttribute e = new();
-            PhoneAttribute p = new();
-
-            if (!e.IsValid(req.Contact) && !p.IsValid(req.Contact))
+            if (!UserUtils.ValidateContact(req.Contact))
             {
                 return;
             }
-
 
 
             Account acc = new();
@@ -225,6 +221,71 @@ namespace PetCenterServices.Services
                 }
             }
 
+        }
+
+        public async Task DeleteAccount(int id)
+        {
+      
+            Account? acc = await dbContext.Accounts.FindAsync(id);
+
+            if (acc != null)
+            {
+                User? usr = await dbContext.Users.Include(u=>u.Image).FirstOrDefaultAsync(u => u.AccountId == id);
+
+                Registration? reg = await dbContext.Registrations.FirstOrDefaultAsync(r => r.AccountID == id);
+
+                if (reg != null)
+                {
+                    dbContext.Registrations.Remove(reg);
+                    await dbContext.SaveChangesAsync();
+                }
+
+                if (usr != null)
+                {
+                    if(usr.Image!= null)
+                    {
+                        dbContext.Images.Remove(usr.Image!);
+
+                        await dbContext.SaveChangesAsync();
+                    }                   
+
+                    dbContext.Users.Remove(usr!);
+
+                    await dbContext.SaveChangesAsync();
+
+                }
+
+                dbContext.Accounts.Remove(acc);
+
+                await dbContext.SaveChangesAsync();
+
+            }
+
+        }
+
+        public async Task<bool> CheckIsLastOwner(int id)
+        {
+            Account? acc = await dbContext.Accounts.FindAsync(id);
+            if (acc?.AccessLevel==Access.Owner)
+            {
+                int count = await dbContext.Accounts.CountAsync(a=>a.AccessLevel==Access.Owner);
+
+                if (count == 1)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        public async Task<bool> CheckIsAuthorizedToBan(int admin, int target)
+        {
+            Account? adm = await dbContext.Accounts.FindAsync(admin);
+            Account? tgt = await dbContext.Accounts.FindAsync(target);
+
+            return (adm != null && tgt != null && adm != tgt && adm.AccessLevel > tgt.AccessLevel);
+           
         }
     }
 }

@@ -20,7 +20,8 @@ namespace PetCenterServices.Interfaces
         public Task<bool> CheckAccountVerification(int id);
         public Task RequestAccountVerification(int id);
         public Task VerifyAccount(int id, int code);
-
+        public Task<bool> CheckIsLastOwner(int id);
+        public Task<bool> CheckIsAuthorizedToBan(int admin, int target);
 
     }
 }

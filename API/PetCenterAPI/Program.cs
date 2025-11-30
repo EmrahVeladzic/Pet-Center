@@ -121,6 +121,17 @@ using (IServiceScope scope = app.Services.CreateScope())
             Password = instance_owner["Password"],
         };
 
+        string? contact = Environment.GetEnvironmentVariable("INSTANCE_OWNER_CONTACT");
+        string? password = Environment.GetEnvironmentVariable("INSTANCE_OWNER_PASSWORD");
+
+        if (!string.IsNullOrEmpty(contact) && !string.IsNullOrEmpty(password)){
+
+            owner_req.Contact = contact;
+            owner_req.Password = password;
+
+        }
+
+
         await svc.Register(owner_req);
 
     }

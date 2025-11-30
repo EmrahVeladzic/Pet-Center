@@ -64,7 +64,24 @@ namespace PetCenterAPI.Controllers
             return StatusCode(400, "Invalid contact, and/or password.");
         }
 
+        [HttpGet ("RequestVerification")]
+        [Authorize]
+        public async Task<IActionResult> RequestVerification()
+        {
+            int.TryParse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out int id);
+            bool isVerified = User.Claims.FirstOrDefault(c => c.Type == "verified")?.Value?.Equals("true", StringComparison.OrdinalIgnoreCase) == true;
+
+            if (id > 0 && !isVerified)
+            {
+                await service.RequestAccountVerification(id);
+                return StatusCode(202, "Your code will be sent shortly.");
+            }
+
+            return StatusCode(400,"There is an issue with your request.");
+        }
+
         [HttpPost("Verify/{code}")]
+        [Authorize]
         public async Task<IActionResult> Verify([FromRoute] int code)
         {
             int.TryParse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out int id);
@@ -82,5 +99,39 @@ namespace PetCenterAPI.Controllers
             return StatusCode(401, "Verification failure.");
         }
 
+        [HttpDelete("DeleteAccount")]
+        [Authorize]
+        public async Task<IActionResult> DeleteAccount()
+        {
+            int.TryParse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out int id);
+
+            if (! await service.CheckIsLastOwner(id))
+            {
+                await service.Delete(id);
+                return StatusCode(204);
+            }
+
+            return StatusCode(403, "This action is not allowed.");
+            
+        }
+
+
+        [HttpDelete("Ban/{id}")]
+        [Authorize (Roles ="Owner,Admin")]
+        public async Task<IActionResult> Ban([FromRoute] int id)
+        {
+            int.TryParse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out int admin_id);
+
+            if (await service.CheckIsAuthorizedToBan(admin_id,id))
+            {
+                await service.Delete(id);
+                return StatusCode(204);
+            }
+
+            return StatusCode(401, "You are not authorized to ban this user.");
+           
+        }
+
     }
+
 }
