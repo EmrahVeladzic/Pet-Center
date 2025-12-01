@@ -24,4 +24,8 @@
     <PackageReference Include="System.Threading.Channels" Version="8.0.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\PetCenterShared\PetCenterShared.csproj" />
+  </ItemGroup>
+
 </Project>

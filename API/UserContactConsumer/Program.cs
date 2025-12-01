@@ -13,7 +13,9 @@ class Program
 
         EmailService email_service = new(configuration);
         ContactConsumer consumer = await ContactConsumer.CreateAsync(configuration, email_service);
-     
+
+        await consumer.StartListening();
+
         Thread.Sleep(Timeout.Infinite);
     }
 }
