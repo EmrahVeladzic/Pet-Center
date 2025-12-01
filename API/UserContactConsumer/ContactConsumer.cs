@@ -5,6 +5,9 @@ using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System.Text;
 using UserContactConsumer.Services;
+using PetCenterShared;
+using System.Text.Json;
+using System.ComponentModel.DataAnnotations;
 
 public class RabbitMQCfg
 {
@@ -102,12 +105,39 @@ public class ContactConsumer
 
     }
 
-    public void StartListening()
+    public async Task StartListening()
     {
         AsyncEventingBasicConsumer c = new(channel!);
+        AsyncEventingBasicConsumer consumer = new AsyncEventingBasicConsumer(channel!);
+
+        
+        consumer.ReceivedAsync += (channel, input) =>
+        {
+            byte[] body = input.Body.ToArray();
+            string json = Encoding.UTF8.GetString(body);
+            ConsumerMessage? msg = JsonSerializer.Deserialize<ConsumerMessage>(json);
+
+            if (msg != null && !string.IsNullOrWhiteSpace(msg.Contact))
+            {
+
+                EmailAddressAttribute attribute = new EmailAddressAttribute();
+                if (attribute.IsValid(msg.Contact)){
+
+                    email_service.SendEmail(msg.Contact, msg.Message, msg.Subject, msg.Name);
+
+                }
+
+            }
+
+            return Task.CompletedTask;
+
+        };
+
+        await channel!.BasicConsumeAsync(queue:rabbitmq!.queue!,autoAck:true,consumer:consumer);
+        
 
     }
 
-   
+
 
 }
