@@ -64,7 +64,7 @@ namespace PetCenterServices.Services
 
         public async Task Register(AccountRequestObject req)
         {
-            if (string.IsNullOrEmpty(req.Contact) || string.IsNullOrEmpty(req.Password))
+            if (string.IsNullOrWhiteSpace(req.Contact) || string.IsNullOrWhiteSpace(req.Password))
             {
                 return;
             }
@@ -119,12 +119,12 @@ namespace PetCenterServices.Services
         {
             Account? acc = null;
 
-            if (!string.IsNullOrEmpty(req.Contact))
+            if (!string.IsNullOrWhiteSpace(req.Contact))
             {
                 acc = await dbContext.Accounts.FirstOrDefaultAsync(a => a.Contact == req.Contact);
             }
 
-            if (acc != null && !string.IsNullOrEmpty(req.Password) && !string.IsNullOrEmpty(acc.PasswordSalt))
+            if (acc != null && !string.IsNullOrWhiteSpace(req.Password) && !string.IsNullOrWhiteSpace(acc.PasswordSalt))
             {               
                 
                 string login_pwd = Crypto.GenerateHash(req.Password, acc.PasswordSalt);
@@ -153,12 +153,12 @@ namespace PetCenterServices.Services
             if (acc != null)
             {
                
-                if (string.IsNullOrEmpty(req.Contact) || (acc.Contact != req.Contact && ! await dbContext.Accounts.AnyAsync(a => a.Contact == req.Contact && a.Id != id)))
+                if (string.IsNullOrWhiteSpace(req.Contact) || (acc.Contact != req.Contact && ! await dbContext.Accounts.AnyAsync(a => a.Contact == req.Contact && a.Id != id)))
                 {
                     acc.Contact = req.Contact;
                 }              
 
-                if (!string.IsNullOrEmpty(req.Password)&&!string.IsNullOrEmpty(acc.PasswordSalt))
+                if (!string.IsNullOrWhiteSpace(req.Password)&&!string.IsNullOrWhiteSpace(acc.PasswordSalt))
                 {
                     acc.PasswordHash = Utils.Crypto.GenerateHash(req.Password!, acc.PasswordSalt);
                 }
