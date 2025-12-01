@@ -20,7 +20,7 @@ namespace PetCenterAPI.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> Register([FromBody] AccountRequestObject req)
         {
-            if (!string.IsNullOrEmpty(req.Password) && (!string.IsNullOrEmpty(req.Contact))){
+            if (!string.IsNullOrWhiteSpace(req.Password) && (!string.IsNullOrWhiteSpace(req.Contact))){
 
                 if (!await service.CheckIfAccountExists(req))
                 {
@@ -45,12 +45,12 @@ namespace PetCenterAPI.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> LogIn([FromBody] AccountRequestObject req)
         {
-            if (!string.IsNullOrEmpty(req.Password) && (!string.IsNullOrEmpty(req.Contact)))
+            if (!string.IsNullOrWhiteSpace(req.Password) && (!string.IsNullOrWhiteSpace(req.Contact)))
             {
 
                 string? token = await service.LogIn(req);
 
-                if (string.IsNullOrEmpty(token))
+                if (string.IsNullOrWhiteSpace(token))
                 {
 
                     return StatusCode(401, "Wrong contact, and/or password.");

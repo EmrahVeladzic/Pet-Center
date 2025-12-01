@@ -124,7 +124,7 @@ using (IServiceScope scope = app.Services.CreateScope())
         string? contact = Environment.GetEnvironmentVariable("INSTANCE_OWNER_CONTACT");
         string? password = Environment.GetEnvironmentVariable("INSTANCE_OWNER_PASSWORD");
 
-        if (!string.IsNullOrEmpty(contact) && !string.IsNullOrEmpty(password)){
+        if (!string.IsNullOrWhiteSpace(contact) && !string.IsNullOrWhiteSpace(password)){
 
             owner_req.Contact = contact;
             owner_req.Password = password;
