@@ -54,7 +54,12 @@ namespace PetCenterServices.Services
             Account? current = await dbContext.Accounts.FindAsync(id);
             if (current != null)
             {
-                User usr = await dbContext.Users.Where(u=>u.AccountId == current.Id).FirstAsync();
+                User usr = await dbContext.Users.Include(u=>u.Image).Where(u=>u.AccountId == current.Id).FirstAsync();
+                if (usr.Image != null)
+                {
+                    dbContext.Images.Remove(usr.Image);
+                    await dbContext.SaveChangesAsync();
+                }
                 dbContext.Users.Remove(usr);
                 await dbContext.SaveChangesAsync();
                 dbContext.Accounts.Remove(current);
