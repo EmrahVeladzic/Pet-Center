@@ -279,13 +279,24 @@ namespace PetCenterServices.Services
             return false;
         }
 
-        public async Task<bool> CheckIsAuthorizedToBan(int admin, int target)
+        public async Task<bool> CheckIsAuthorizedToModify(int admin, int target)
         {
             Account? adm = await dbContext.Accounts.FindAsync(admin);
             Account? tgt = await dbContext.Accounts.FindAsync(target);
 
             return (adm != null && tgt != null && adm != tgt && adm.AccessLevel > tgt.AccessLevel);
            
+        }
+
+        public async Task SetRole(int id, Access role)
+        {
+            Account? acc = await dbContext.Accounts.FindAsync(id);
+            if (acc != null)
+            {
+                acc.AccessLevel = role;
+                await dbContext.SaveChangesAsync();
+            }
+
         }
     }
 }

@@ -21,7 +21,8 @@ namespace PetCenterServices.Interfaces
         public Task RequestAccountVerification(int id);
         public Task VerifyAccount(int id, int code);
         public Task<bool> CheckIsLastOwner(int id);
-        public Task<bool> CheckIsAuthorizedToBan(int admin, int target);
+        public Task<bool> CheckIsAuthorizedToModify(int admin, int target);
+        public Task SetRole(int id, Access role);
 
     }
 }

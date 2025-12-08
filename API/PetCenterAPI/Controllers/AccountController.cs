@@ -100,6 +100,22 @@ namespace PetCenterAPI.Controllers
             return StatusCode(401, "Verification failure.");
         }
 
+        [HttpPost("SetRole/{id}/{role}")]
+        [Authorize(Roles ="Owner")]
+        public async Task<IActionResult> SetRole([FromRoute] int id, [FromRoute] Access role)
+        {
+            int.TryParse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out int owner_id);
+
+            if(await service.CheckIsAuthorizedToModify(owner_id, id))
+            {
+                await service.SetRole(id, role);
+                return StatusCode(200, "Updated Role.");
+            }
+
+            return StatusCode(403, "This action is not allowed.");
+
+        }
+
         [HttpDelete("DeleteAccount")]
         [Authorize]
         public async Task<IActionResult> DeleteAccount()
@@ -123,7 +139,7 @@ namespace PetCenterAPI.Controllers
         {
             int.TryParse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out int admin_id);
 
-            if (await service.CheckIsAuthorizedToBan(admin_id,id))
+            if (await service.CheckIsAuthorizedToModify(admin_id,id))
             {
                 await service.Delete(id);
                 return StatusCode(204);
@@ -132,6 +148,8 @@ namespace PetCenterAPI.Controllers
             return StatusCode(401, "You are not authorized to ban this user.");
            
         }
+
+
 
     }
 
