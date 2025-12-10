@@ -15,14 +15,14 @@ namespace PetCenterServices.Interfaces
     {
         public Task Register(AccountRequestObject req);
         public Task<string?> LogIn(AccountRequestObject req);
-        public Task UpdateDetails(int id, AccountRequestObject req);
+        public Task UpdateDetails(Guid id, AccountRequestObject req);
         public Task<bool> CheckIfAccountExists(AccountRequestObject req);
-        public Task<bool> CheckAccountVerification(int id);
-        public Task RequestAccountVerification(int id);
-        public Task VerifyAccount(int id, int code);
-        public Task<bool> CheckIsLastOwner(int id);
-        public Task<bool> CheckIsAuthorizedToModify(int admin, int target);
-        public Task SetRole(int id, Access role);
+        public Task<bool> CheckAccountVerification(Guid id);
+        public Task RequestAccountVerification(Guid id);
+        public Task VerifyAccount(Guid id, int code);
+        public Task<bool> CheckIsLastOwner(Guid id);
+        public Task<bool> CheckIsAuthorizedToModify(Guid admin, Guid target);
+        public Task SetRole(Guid id, Access role);
 
     }
 }

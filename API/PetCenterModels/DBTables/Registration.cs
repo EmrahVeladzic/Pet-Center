@@ -14,7 +14,7 @@ namespace PetCenterModels.DBTables
     {
         [Key]
         [Column("AccountID")]
-        public int AccountID { get; set; }
+        public Guid AccountID { get; set; }
 
         [JsonIgnore]
         [ForeignKey(nameof(AccountID))]

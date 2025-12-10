@@ -47,7 +47,7 @@ namespace PetCenterServices.Utils
             Claim[] claims = new[]
             {
                 new Claim(ClaimTypes.Name, usr.UserName!),
-                new Claim(ClaimTypes.NameIdentifier, usr.Id.ToString()),
+                new Claim(ClaimTypes.NameIdentifier, usr.AccountId.ToString()),
                 new Claim(ClaimTypes.Role, UserUtils.GetRole(usr.UserAccount!.AccessLevel)),
                 new Claim("verified", usr.UserAccount!.Verified ? "true" : "false")
             };

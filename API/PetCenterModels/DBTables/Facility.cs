@@ -15,7 +15,7 @@ namespace PetCenterModels.DBTables
 
         [Column("FranchiseID")]
         [JsonIgnore]
-        public int FranchiseId { get; set; }
+        public Guid FranchiseId { get; set; }
 
         [Column("Address")]
         public string? Address { get; set; }
@@ -23,8 +23,7 @@ namespace PetCenterModels.DBTables
         [Column("City")]
         public string? City { get; set; }
 
-        [Column("Contact")]
-        [Phone]
+        [Column("Contact")]        
         public string? Contact {  get; set; }
 
     }
