@@ -28,7 +28,7 @@ namespace PetCenterServices.Services
             return await dbContext.Accounts.OrderBy(a=>a.Id).Skip(search.Page*50).Take(50).ToListAsync();
         }
 
-        public async Task<Account?> GetById(int id)
+        public async Task<Account?> GetById(Guid id)
         {
             return await dbContext.Accounts.FindAsync(id);
         }
@@ -49,7 +49,7 @@ namespace PetCenterServices.Services
             }
         }
 
-        public async Task Delete(int id)
+        public async Task Delete(Guid id)
         {
             Account? current = await dbContext.Accounts.FindAsync(id);
             if (current != null)
@@ -151,7 +151,7 @@ namespace PetCenterServices.Services
 
         }
 
-        public async Task UpdateDetails(int id, AccountRequestObject req)
+        public async Task UpdateDetails(Guid id, AccountRequestObject req)
         {
             Account? acc = await dbContext.Accounts.FindAsync(id);
 
@@ -177,7 +177,7 @@ namespace PetCenterServices.Services
             return await dbContext.Accounts.AnyAsync(a=>a.Contact == req.Contact);
         }
 
-        public async Task<bool> CheckAccountVerification(int id)
+        public async Task<bool> CheckAccountVerification(Guid id)
         {
             Account? acc = await dbContext.Accounts.FirstOrDefaultAsync(a=>a.Id==id);
 
@@ -191,7 +191,7 @@ namespace PetCenterServices.Services
             return acc.Verified;
         }
 
-        public async Task RequestAccountVerification(int id)
+        public async Task RequestAccountVerification(Guid id)
         {
             Registration? reg = await dbContext.Registrations.Include(r=>r.RelevantAccount).FirstOrDefaultAsync(r=>r.AccountID==id);
 
@@ -202,7 +202,7 @@ namespace PetCenterServices.Services
             }
         } 
 
-        public async Task VerifyAccount(int id, int code)
+        public async Task VerifyAccount(Guid id, int code)
         {
             Registration? reg = await dbContext.Registrations.Include(r => r.RelevantAccount).FirstOrDefaultAsync(r => r.AccountID == id);
 
@@ -228,7 +228,7 @@ namespace PetCenterServices.Services
 
         }
 
-        public async Task DeleteAccount(int id)
+        public async Task DeleteAccount(Guid id)
         {
       
             Account? acc = await dbContext.Accounts.FindAsync(id);
@@ -237,26 +237,13 @@ namespace PetCenterServices.Services
             {
                 User? usr = await dbContext.Users.Include(u=>u.Image).FirstOrDefaultAsync(u => u.AccountId == id);
 
-                Registration? reg = await dbContext.Registrations.FirstOrDefaultAsync(r => r.AccountID == id);
-
-                if (reg != null)
+                if (usr != null && usr.Image!=null)
                 {
-                    dbContext.Registrations.Remove(reg);
-                    await dbContext.SaveChangesAsync();
-                }
-
-                if (usr != null)
-                {
-                    if(usr.Image!= null)
-                    {
-                        dbContext.Images.Remove(usr.Image!);
-
-                        await dbContext.SaveChangesAsync();
-                    }                   
-
-                    dbContext.Users.Remove(usr!);
+                    
+                    dbContext.Images.Remove(usr.Image!);
 
                     await dbContext.SaveChangesAsync();
+                                       
 
                 }
 
@@ -268,7 +255,7 @@ namespace PetCenterServices.Services
 
         }
 
-        public async Task<bool> CheckIsLastOwner(int id)
+        public async Task<bool> CheckIsLastOwner(Guid id)
         {
             Account? acc = await dbContext.Accounts.FindAsync(id);
             if (acc?.AccessLevel==Access.Owner)
@@ -284,7 +271,7 @@ namespace PetCenterServices.Services
             return false;
         }
 
-        public async Task<bool> CheckIsAuthorizedToModify(int admin, int target)
+        public async Task<bool> CheckIsAuthorizedToModify(Guid admin, Guid target)
         {
             Account? adm = await dbContext.Accounts.FindAsync(admin);
             Account? tgt = await dbContext.Accounts.FindAsync(target);
@@ -293,7 +280,7 @@ namespace PetCenterServices.Services
            
         }
 
-        public async Task SetRole(int id, Access role)
+        public async Task SetRole(Guid id, Access role)
         {
             Account? acc = await dbContext.Accounts.FindAsync(id);
             if (acc != null)

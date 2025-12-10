@@ -12,10 +12,10 @@ namespace PetCenterServices.Interfaces
     {
 
         public Task<List<TEntity>> Get(TSearch search);
-        public Task<TEntity?> GetById(int id);
+        public Task<TEntity?> GetById(Guid id);
         public Task Post(TEntity ent);
         public Task Put(TEntity ent);
-        public Task Delete(int id);
+        public Task Delete(Guid id);
 
 
     }

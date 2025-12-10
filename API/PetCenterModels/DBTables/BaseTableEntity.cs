@@ -12,7 +12,7 @@ namespace PetCenterModels.DBTables
     {
         [Key]
         [Column("ID")]
-        public int Id { get; set; }
+        public Guid Id { get; set; }
 
         public BaseTableEntity()
         {

@@ -69,10 +69,10 @@ namespace PetCenterAPI.Controllers
         [Authorize]
         public async Task<IActionResult> RequestVerification()
         {
-            int.TryParse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out int id);
+            bool validGuid = Guid.TryParse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out Guid id);
             bool isVerified = User.Claims.FirstOrDefault(c => c.Type == "verified")?.Value?.Equals("true", StringComparison.OrdinalIgnoreCase) == true;
 
-            if (id > 0 && !isVerified)
+            if (validGuid && !isVerified)
             {
                 await service.RequestAccountVerification(id);
                 return StatusCode(202, "Your code will be sent shortly.");
@@ -85,9 +85,9 @@ namespace PetCenterAPI.Controllers
         [Authorize]
         public async Task<IActionResult> Verify([FromRoute] int code)
         {
-            int.TryParse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out int id);
+            bool validGuid = Guid.TryParse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out Guid id);
 
-            if (id>0)
+            if (validGuid)
             {           
 
                 await service.VerifyAccount(id, code);
@@ -102,11 +102,11 @@ namespace PetCenterAPI.Controllers
 
         [HttpPost("SetRole/{id}/{role}")]
         [Authorize(Roles ="Owner")]
-        public async Task<IActionResult> SetRole([FromRoute] int id, [FromRoute] Access role)
+        public async Task<IActionResult> SetRole([FromRoute] Guid id, [FromRoute] Access role)
         {
-            int.TryParse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out int owner_id);
+            bool validGuid = Guid.TryParse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out Guid owner_id);
 
-            if(await service.CheckIsAuthorizedToModify(owner_id, id))
+            if(validGuid && await service.CheckIsAuthorizedToModify(owner_id, id))
             {
                 await service.SetRole(id, role);
                 return StatusCode(200, "Updated Role.");
@@ -120,9 +120,9 @@ namespace PetCenterAPI.Controllers
         [Authorize]
         public async Task<IActionResult> DeleteAccount()
         {
-            int.TryParse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out int id);
+            bool validGuid = Guid.TryParse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out Guid id);
 
-            if (! await service.CheckIsLastOwner(id))
+            if (validGuid && !await service.CheckIsLastOwner(id))
             {
                 await service.Delete(id);
                 return StatusCode(204);
@@ -135,11 +135,11 @@ namespace PetCenterAPI.Controllers
 
         [HttpDelete("Ban/{id}")]
         [Authorize (Roles ="Owner,Admin")]
-        public async Task<IActionResult> Ban([FromRoute] int id)
+        public async Task<IActionResult> Ban([FromRoute] Guid id)
         {
-            int.TryParse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out int admin_id);
+            bool validGuid = Guid.TryParse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out Guid admin_id);
 
-            if (await service.CheckIsAuthorizedToModify(admin_id,id))
+            if (validGuid && await service.CheckIsAuthorizedToModify(admin_id,id))
             {
                 await service.Delete(id);
                 return StatusCode(204);

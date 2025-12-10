@@ -11,11 +11,11 @@ namespace PetCenterServices.Interfaces
 {
     public interface IUserService : IBaseCRUDService<User,UserSearchObject>
     {
-        public Task<bool> CheckIfUniqueUsername(int id, string username);
+        public Task<bool> CheckIfUniqueUsername(Guid id, string username);
 
-        public Task SetImage(int id, UserRequestObject req);
+        public Task SetImage(Guid id, UserRequestObject req);
 
-        public Task SetUsername(int id, UserRequestObject req);
+        public Task SetUsername(Guid id, UserRequestObject req);
 
 
 

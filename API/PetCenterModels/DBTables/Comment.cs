@@ -9,13 +9,14 @@ namespace PetCenterModels.DBTables
 {
     public class Comment : BaseTableEntity
     {
-        public int PosterID { get; set; }
+        public Guid? PosterID { get; set; }
         [ForeignKey(nameof(PosterID))]
         public User? Poster {  get; set; }
         public string? Message { get; set; }
         public DateTime PostDate { get; set; }
         public bool Edited { get; set; }
-        public int? ReplyingTo { get; set; }
+        public Guid? ReplyingTo { get; set; }
+        public Guid ThreadId { get; set; }
 
     }
 }

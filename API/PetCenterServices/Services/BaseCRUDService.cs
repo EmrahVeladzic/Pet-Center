@@ -24,7 +24,7 @@ namespace PetCenterServices.Services
             return new();
         }
 
-        public async Task<TEntity?>GetById(int id)
+        public async Task<TEntity?>GetById(Guid id)
         {
             await Task.CompletedTask;
             return null;
@@ -40,7 +40,7 @@ namespace PetCenterServices.Services
             await Task.CompletedTask;
         }
 
-        public async Task Delete(int id)
+        public async Task Delete(Guid id)
         {
             await Task.CompletedTask;
         }

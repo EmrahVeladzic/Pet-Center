@@ -27,7 +27,7 @@ namespace PetCenterAPI.Controllers
 
         [Authorize]
         [HttpGet("{id}")]
-        public virtual async Task<IActionResult> GetById([FromRoute]int id)
+        public virtual async Task<IActionResult> GetById([FromRoute]Guid id)
         {            
             return StatusCode(200, await service.GetById(id));
         }
@@ -53,7 +53,7 @@ namespace PetCenterAPI.Controllers
 
         [Authorize]
         [HttpDelete]
-        public virtual async Task<IActionResult> Delete([FromRoute]int id)
+        public virtual async Task<IActionResult> Delete([FromRoute]Guid id)
         {
             await service.Delete(id);
             return StatusCode(204);

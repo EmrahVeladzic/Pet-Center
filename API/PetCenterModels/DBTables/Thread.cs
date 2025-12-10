@@ -11,11 +11,14 @@ namespace PetCenterModels.DBTables
     {
         public string? Title { get; set; }
         public string? Description { get; set; }    
-        public int OriginalPosterId {  get; set; }
+        public Guid OriginalPosterId {  get; set; }
 
         [ForeignKey(nameof(OriginalPosterId))]
         public User? OriginalPoster { get; set; }
         public DateTime CreationTime { get; set; }
         public bool Edited { get; set; }
+
+        [NotMapped]
+        public List<Comment>? Comments { get; set; }
     }
 }

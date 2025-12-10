@@ -21,14 +21,14 @@ namespace PetCenterServices.Services
             dbContext = ctx;
         }
 
-        public async Task<bool> CheckIfUniqueUsername(int id, string username)
+        public async Task<bool> CheckIfUniqueUsername(Guid id, string username)
         {
             User? usr = await dbContext.Users.Where(u=>u.UserName!=null && u.UserName.Equals(username) && u.AccountId!=id && !string.IsNullOrWhiteSpace(username)).FirstOrDefaultAsync();
 
             return usr == null;
         }
 
-        public async Task Delete(int id)
+        public async Task Delete(Guid id)
         {
             User? usr = await dbContext.Users.Include(u=>u.Image).Where(u=>u.Id==id).FirstOrDefaultAsync();
 
@@ -64,7 +64,7 @@ namespace PetCenterServices.Services
             await dbContext.SaveChangesAsync();
         }
 
-        public async Task<User?> GetById(int id)
+        public async Task<User?> GetById(Guid id)
         {
             User? user = await dbContext.Users.FindAsync(id);
 
@@ -83,7 +83,7 @@ namespace PetCenterServices.Services
 
         }
 
-        public async Task SetImage(int id, UserRequestObject req)
+        public async Task SetImage(Guid id, UserRequestObject req)
         {
             User? usr = await dbContext.Users.Include(u => u.Image).Where(u => u.AccountId == id).FirstOrDefaultAsync();
 
@@ -117,7 +117,7 @@ namespace PetCenterServices.Services
         }
 
 
-        public async Task SetUsername(int id, UserRequestObject req)
+        public async Task SetUsername(Guid id, UserRequestObject req)
         {
             User? usr = await dbContext.Users.Where(u => u.AccountId == id).FirstOrDefaultAsync();
 
