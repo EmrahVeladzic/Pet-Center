@@ -1,0 +1,13 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace PetCenterModels.SearchObjects
+{
+    public class ImageSearchObject: BaseSearchObject
+    {
+        public string? ImageHash { get; set; }
+    }
+}

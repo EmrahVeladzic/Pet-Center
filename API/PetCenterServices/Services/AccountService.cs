@@ -67,7 +67,7 @@ namespace PetCenterServices.Services
             }
         }
 
-        public async Task Register(AccountRequestObject req)
+        public async Task Register(AccountRequestDTO req)
         {
             if (string.IsNullOrWhiteSpace(req.Contact) || string.IsNullOrWhiteSpace(req.Password))
             {
@@ -120,7 +120,7 @@ namespace PetCenterServices.Services
 
         }
 
-        public async Task<string?> LogIn(AccountRequestObject req)
+        public async Task<string?> LogIn(AccountRequestDTO req)
         {
             Account? acc = null;
 
@@ -151,7 +151,7 @@ namespace PetCenterServices.Services
 
         }
 
-        public async Task UpdateDetails(Guid id, AccountRequestObject req)
+        public async Task UpdateDetails(Guid id, AccountRequestDTO req)
         {
             Account? acc = await dbContext.Accounts.FindAsync(id);
 
@@ -172,7 +172,7 @@ namespace PetCenterServices.Services
             }
         }
 
-        public async Task<bool> CheckIfAccountExists(AccountRequestObject req)
+        public async Task<bool> CheckIfAccountExists(AccountRequestDTO req)
         {
             return await dbContext.Accounts.AnyAsync(a=>a.Contact == req.Contact);
         }

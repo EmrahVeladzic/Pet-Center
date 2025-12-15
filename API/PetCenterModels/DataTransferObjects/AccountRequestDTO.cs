@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace PetCenterModels.Requests
 {
-    public class AccountRequestObject
+    public class AccountRequestDTO
     {
         [Required]
         public string? Contact { get; set; }

@@ -115,8 +115,7 @@ using (IServiceScope scope = app.Services.CreateScope())
     {
 
         IConfigurationSection instance_owner = builder.Configuration.GetSection("InstanceOwner");
-        AccountRequestObject owner_req = new AccountRequestObject()
-        {
+        AccountRequestDTO owner_req = new AccountRequestDTO(){
             Contact = instance_owner["Contact"],            
             Password = instance_owner["Password"],
         };

@@ -19,7 +19,7 @@ namespace PetCenterAPI.Controllers
 
         [HttpPost("Register")]
         [AllowAnonymous]
-        public async Task<IActionResult> Register([FromBody] AccountRequestObject req)
+        public async Task<IActionResult> Register([FromBody] AccountRequestDTO req)
         {
             if (!string.IsNullOrWhiteSpace(req.Password) && (!string.IsNullOrWhiteSpace(req.Contact))){
 
@@ -44,7 +44,7 @@ namespace PetCenterAPI.Controllers
 
         [HttpPost("LogIn")]
         [AllowAnonymous]
-        public async Task<IActionResult> LogIn([FromBody] AccountRequestObject req)
+        public async Task<IActionResult> LogIn([FromBody] AccountRequestDTO req)
         {
             if (!string.IsNullOrWhiteSpace(req.Password) && (!string.IsNullOrWhiteSpace(req.Contact)))
             {

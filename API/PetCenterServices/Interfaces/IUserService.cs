@@ -13,9 +13,9 @@ namespace PetCenterServices.Interfaces
     {
         public Task<bool> CheckIfUniqueUsername(Guid id, string username);
 
-        public Task SetImage(Guid id, UserRequestObject req);
+        public Task SetImage(Guid id, UserRequestDTO req);
 
-        public Task SetUsername(Guid id, UserRequestObject req);
+        public Task SetUsername(Guid id, UserRequestDTO req);
 
 
 
