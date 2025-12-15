@@ -1,4 +1,5 @@
-﻿using System;
+﻿using PetCenterModels.DataTransferObjects;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -21,6 +22,25 @@ namespace PetCenterModels.DBTables
         [Column("AlbumID")]
         [JsonIgnore]
         public Guid? AlbumId { get; set; }
+
+
+        public Image(ImageDTO input)
+        {
+            Width=input.Width;
+            Height=input.Height;
+            AlbumId = input.AlbumInsertId;
+
+            string b64 = input.Data?.Replace("\r\n", "").Replace(" ", "") ?? ",TlVMTA==";
+            int comma = b64.IndexOf(",");
+            b64 = b64[(comma+1)..];
+            Data = Convert.FromBase64String(b64);
+
+            if (Encoding.UTF8.GetString(Data) == "NULL")
+            {
+                Data= null;
+            }
+
+        }
 
     }
 }

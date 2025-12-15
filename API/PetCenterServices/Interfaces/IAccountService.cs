@@ -13,10 +13,10 @@ namespace PetCenterServices.Interfaces
 {
     public interface IAccountService : IBaseCRUDService<Account,AccountSearchObject>
     {
-        public Task Register(AccountRequestObject req);
-        public Task<string?> LogIn(AccountRequestObject req);
-        public Task UpdateDetails(Guid id, AccountRequestObject req);
-        public Task<bool> CheckIfAccountExists(AccountRequestObject req);
+        public Task Register(AccountRequestDTO req);
+        public Task<string?> LogIn(AccountRequestDTO req);
+        public Task UpdateDetails(Guid id, AccountRequestDTO req);
+        public Task<bool> CheckIfAccountExists(AccountRequestDTO req);
         public Task<bool> CheckAccountVerification(Guid id);
         public Task RequestAccountVerification(Guid id);
         public Task VerifyAccount(Guid id, int code);

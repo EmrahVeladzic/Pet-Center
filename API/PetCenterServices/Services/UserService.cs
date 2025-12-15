@@ -23,7 +23,12 @@ namespace PetCenterServices.Services
 
         public async Task<bool> CheckIfUniqueUsername(Guid id, string username)
         {
-            User? usr = await dbContext.Users.Where(u=>u.UserName!=null && u.UserName.Equals(username) && u.AccountId!=id && !string.IsNullOrWhiteSpace(username)).FirstOrDefaultAsync();
+            if (string.IsNullOrWhiteSpace(username) || username.Equals("Null", StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+
+            User? usr = await dbContext.Users.Where(u=>u.UserName!=null && u.UserName.Equals(username) && u.AccountId!=id).FirstOrDefaultAsync();
 
             return usr == null;
         }
@@ -83,7 +88,7 @@ namespace PetCenterServices.Services
 
         }
 
-        public async Task SetImage(Guid id, UserRequestObject req)
+        public async Task SetImage(Guid id, UserRequestDTO req)
         {
             User? usr = await dbContext.Users.Include(u => u.Image).Where(u => u.AccountId == id).FirstOrDefaultAsync();
 
@@ -117,7 +122,7 @@ namespace PetCenterServices.Services
         }
 
 
-        public async Task SetUsername(Guid id, UserRequestObject req)
+        public async Task SetUsername(Guid id, UserRequestDTO req)
         {
             User? usr = await dbContext.Users.Where(u => u.AccountId == id).FirstOrDefaultAsync();
 

@@ -20,9 +20,13 @@ namespace PetCenterModels.DBTables
         [Column("AlbumID")]
         [JsonIgnore]
         public Guid? AlbumId { get; set; }
+
+       
         [ForeignKey(nameof(AlbumId))]
         public Album? Images { get; set; }
 
+        [NotMapped]
+        public List<Thread>? Threads { get; set; }
 
     }
 }

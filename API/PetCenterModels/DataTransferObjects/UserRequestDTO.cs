@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace PetCenterModels.Requests
 {
-    public class UserRequestObject
+    public class UserRequestDTO
     {
         public string? UserName { get; set; }
         public byte[]? Image { get; set; }
