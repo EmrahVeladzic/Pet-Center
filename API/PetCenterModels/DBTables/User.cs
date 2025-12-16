@@ -23,11 +23,11 @@ namespace PetCenterModels.DBTables
         [Column("UserName")]
         public string? UserName { get; set; }
 
-        [Column("ImageID")]
+        [Column("ProfilePictureID")]
         [JsonIgnore]
-        public Guid? ImageId { get; set; }
+        public Guid? PictureId { get; set; }
 
-        [ForeignKey(nameof(ImageId))]
-        public Image? Image { get; set; }
+        [ForeignKey(nameof(PictureId))]
+        public Album? Picture { get; set; }
     }
 }

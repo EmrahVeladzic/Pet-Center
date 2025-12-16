@@ -12,6 +12,13 @@ namespace PetCenterModels.DBTables
     [Table("File", Schema = "Album")]
     public class Album : BaseTableEntity
     {
+        [Column("Capacity")]
+        public byte Capacity { get; set; }
+
+        [Column("Reserved")]
+        public byte Reserved { get; set; }
+
+
         [NotMapped]
         public List<Image>? Images { get; set; }
     }

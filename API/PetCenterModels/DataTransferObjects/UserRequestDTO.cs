@@ -9,8 +9,6 @@ namespace PetCenterModels.Requests
     public class UserRequestDTO
     {
         public string? UserName { get; set; }
-        public byte[]? Image { get; set; }
-        public int? ImageWidth { get; set; }
-        public int? ImageHeight { get; set; }
+        
     }
 }

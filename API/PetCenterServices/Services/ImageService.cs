@@ -37,8 +37,16 @@ namespace PetCenterServices.Services
 
             if (img != null)
             {
-                dbContext.Images.Remove(img);
-                await dbContext.SaveChangesAsync();
+                Album? album = await dbContext.Albums.FindAsync(img.AlbumId);
+
+                if (album != null && album.Reserved>0)
+                {
+                    album.Reserved--;                       
+
+                    dbContext.Images.Remove(img);
+                    await dbContext.SaveChangesAsync();
+
+                }
 
             }
 
@@ -59,9 +67,15 @@ namespace PetCenterServices.Services
 
         public async Task Post(Image img)
         {
+            Album? album = await dbContext.Albums.FindAsync(img.AlbumId);
 
-            await dbContext.Images.AddAsync(img);
-            await dbContext.SaveChangesAsync();
+            if (album != null && album.Reserved<album.Capacity)
+            {
+                album.Reserved++;
+                await dbContext.Images.AddAsync(img);
+                await dbContext.SaveChangesAsync();
+
+            }
 
         }
 
@@ -71,6 +85,14 @@ namespace PetCenterServices.Services
 
             await Post(img);
 
+        }
+
+        public async Task<List<ImageDTO>> GetAlbumImages(Guid AlbumID)
+        {
+                return await dbContext.Images
+            .Where(i => i.AlbumId == AlbumID)
+            .Select(img => new ImageDTO(img))
+            .ToListAsync();
         }
     }
 }
