@@ -54,10 +54,10 @@ namespace PetCenterServices.Services
             Account? current = await dbContext.Accounts.FindAsync(id);
             if (current != null)
             {
-                User usr = await dbContext.Users.Include(u=>u.Image).Where(u=>u.AccountId == current.Id).FirstAsync();
-                if (usr.Image != null)
+                User usr = await dbContext.Users.Include(u=>u.Picture).Where(u=>u.AccountId == current.Id).FirstAsync();
+                if (usr.Picture != null)
                 {
-                    dbContext.Images.Remove(usr.Image);
+                    dbContext.Albums.Remove(usr.Picture);
                     await dbContext.SaveChangesAsync();
                 }
                 dbContext.Users.Remove(usr);
@@ -114,7 +114,7 @@ namespace PetCenterServices.Services
             User usr = new();
             usr.AccountId = acc.Id;
             usr.UserName = Utils.UserUtils.GenerateUsername(dbContext);
-            usr.ImageId = null;
+            usr.PictureId = null;
             await dbContext.Users.AddAsync(usr);
             await dbContext.SaveChangesAsync();
 
@@ -135,7 +135,7 @@ namespace PetCenterServices.Services
                 string login_pwd = Crypto.GenerateHash(req.Password, acc.PasswordSalt);
                 if (login_pwd == acc.PasswordHash)
                 {
-                    User? usr = await dbContext.Users.Include(u=>u.UserAccount).Include(u=>u.Image).FirstOrDefaultAsync(u=>u.AccountId == acc.Id);
+                    User? usr = await dbContext.Users.Include(u=>u.UserAccount).Include(u=>u.Picture).FirstOrDefaultAsync(u=>u.AccountId == acc.Id);
 
                     if (usr != null)
                     {
@@ -235,12 +235,12 @@ namespace PetCenterServices.Services
 
             if (acc != null)
             {
-                User? usr = await dbContext.Users.Include(u=>u.Image).FirstOrDefaultAsync(u => u.AccountId == id);
+                User? usr = await dbContext.Users.Include(u=>u.Picture).FirstOrDefaultAsync(u => u.AccountId == id);
 
-                if (usr != null && usr.Image!=null)
+                if (usr != null && usr.Picture!=null)
                 {
                     
-                    dbContext.Images.Remove(usr.Image!);
+                    dbContext.Albums.Remove(usr.Picture!);
 
                     await dbContext.SaveChangesAsync();
                                        

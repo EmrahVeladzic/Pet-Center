@@ -35,13 +35,13 @@ namespace PetCenterServices.Services
 
         public async Task Delete(Guid id)
         {
-            User? usr = await dbContext.Users.Include(u=>u.Image).Where(u=>u.Id==id).FirstOrDefaultAsync();
+            User? usr = await dbContext.Users.Include(u=>u.Picture).Where(u=>u.Id==id).FirstOrDefaultAsync();
 
             if (usr != null)
             {
-                if (usr.Image != null)
+                if (usr.Picture != null)
                 {
-                    dbContext.Images.Remove(usr.Image);
+                    dbContext.Albums.Remove(usr.Picture);
                     await dbContext.SaveChangesAsync();
                 }
 
@@ -75,7 +75,7 @@ namespace PetCenterServices.Services
 
             if (user != null)
             {
-                await dbContext.Entry(user).Reference(u => u.Image).LoadAsync();
+                await dbContext.Entry(user).Reference(u => u.Picture).LoadAsync();
             }
 
             return user;
@@ -84,44 +84,11 @@ namespace PetCenterServices.Services
         public async Task<List<User>> Get(UserSearchObject search)
         {
 
-            return await dbContext.Users.Include(u=>u.Image).Where(u=>u.UserName!.ToLower().Contains((search.UserName??"").ToLower())).Skip(search.Page*50).Take(50).ToListAsync();
+            return await dbContext.Users.Include(u=>u.Picture).Where(u=>u.UserName!.ToLower().Contains((search.UserName??"").ToLower())).Skip(search.Page*50).Take(50).ToListAsync();
 
         }
 
-        public async Task SetImage(Guid id, UserRequestDTO req)
-        {
-            User? usr = await dbContext.Users.Include(u => u.Image).Where(u => u.AccountId == id).FirstOrDefaultAsync();
-
-            if (usr != null)
-            {
-                if (usr.Image != null)
-                {
-                    dbContext.Images.Remove(usr.Image);
-                    await dbContext.SaveChangesAsync();
-                }
-
-                if (req.Image != null && req.ImageWidth!=null && req.ImageHeight!=null)
-                {
-                    Image img = new();
-
-                    img.Height = (int)req.ImageHeight!;
-                    img.Width = (int)req.ImageWidth!;
-
-                    img.Data = req.Image;
-                    await dbContext.Images.AddAsync(img);
-                    await dbContext.SaveChangesAsync();
-
-                    usr.ImageId = img.Id;
-                    await dbContext.SaveChangesAsync();
-
-
-                }
-
-            }
-
-        }
-
-
+       
         public async Task SetUsername(Guid id, UserRequestDTO req)
         {
             User? usr = await dbContext.Users.Where(u => u.AccountId == id).FirstOrDefaultAsync();

@@ -21,7 +21,7 @@ namespace PetCenterModels.DBTables
         public byte[]? Data { get; set; }
         [Column("AlbumID")]
         [JsonIgnore]
-        public Guid? AlbumId { get; set; }
+        public Guid AlbumId { get; set; }
 
 
         public Image(ImageDTO input)

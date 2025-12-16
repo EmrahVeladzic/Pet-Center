@@ -12,8 +12,8 @@ namespace PetCenterServices.Interfaces
     public interface IImageService : IBaseCRUDService<Image,BaseSearchObject>
     {
        
-        public Task UploadImage(ImageDTO req);        
+        public Task UploadImage(ImageDTO req);
 
-
+        public Task<List<ImageDTO>> GetAlbumImages(Guid Album);
     }
 }
