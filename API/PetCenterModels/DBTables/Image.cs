@@ -23,6 +23,10 @@ namespace PetCenterModels.DBTables
         [JsonIgnore]
         public Guid AlbumId { get; set; }
 
+        public Image()
+        {
+            
+        }
 
         public Image(ImageDTO input)
         {
