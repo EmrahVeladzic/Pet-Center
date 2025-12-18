@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace PetCenterModels.DBTables
 {
-    [Table("File", Schema = "Album")]
+    [Table("Album", Schema = "File")]
     public class Album : BaseTableEntity
     {
         [Column("Capacity")]
