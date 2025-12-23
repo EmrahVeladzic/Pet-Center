@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 namespace PetCenterModels.DBTables
 {
     [Table("Thread", Schema = "Communication")]
-    public class Thread : BaseTableEntity
+    public class DiscussionThread : BaseTableEntity
     {
         [Column("Title")]
         public string? Title { get; set; }
