@@ -10,9 +10,8 @@ using System.Threading.Tasks;
 namespace PetCenterModels.DBTables
 {
     [Table("Registration", Schema = "Pending")]
-    public class Registration
-    {
-        [Key]
+    public class Registration : BaseTableEntity
+    {       
         [Column("AccountID")]
         public Guid AccountID { get; set; }
 
