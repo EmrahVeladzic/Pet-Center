@@ -1,11 +1,10 @@
 services:
   mssql:
-    mem_limit: 2g
+    mem_limit: 4g
     image: mcr.microsoft.com/mssql/server:2022-latest
     container_name: mssql
     environment:
       - ACCEPT_EULA=Y    
-      - MSSQL_SA_PASSWORD=${SA_PASSWORD}
       - SA_PASSWORD=${SA_PASSWORD}
     ports:
       - "1433:1433"

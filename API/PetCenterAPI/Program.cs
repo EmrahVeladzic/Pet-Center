@@ -86,17 +86,20 @@ PetCenterServices.Utils.Crypto.Configuration = builder.Configuration;
 
 var app = builder.Build();
 
+
+app.UseRouting();
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+else
+{
+    app.UseHttpsRedirection();
+}
 
-
-app.UseRouting();
-
-app.UseHttpsRedirection();
 
 app.UseCors("DEFAULT");
 
