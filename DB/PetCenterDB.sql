@@ -184,21 +184,21 @@ CREATE TABLE [Service].[MedicalProcedureSpecification](
 	SexSpecific BIT,
 	Optional BIT NOT NULL,
 
-	CONSTRAINT FK_MedProcSpec_Procedure FOREIGN KEY (ProcedureID) REFERENCES [Service].[MedicalProcedure](ID) ON DELETE CASCADE,
-	CONSTRAINT FK_MedProcSpec_Kind FOREIGN KEY (KindID) REFERENCES [Animal].[Kind](ID) ON DELETE CASCADE,
-	CONSTRAINT FK_MedProcSpec_Breed FOREIGN KEY (BreedID) REFERENCES [Animal].[Breed](ID)
+	CONSTRAINT FK_MedProcedureSpecification_Procedure FOREIGN KEY (ProcedureID) REFERENCES [Service].[MedicalProcedure](ID) ON DELETE CASCADE,
+	CONSTRAINT FK_MedProcedureSpecification_Kind FOREIGN KEY (KindID) REFERENCES [Animal].[Kind](ID) ON DELETE CASCADE,
+	CONSTRAINT FK_MedProcedureSpecification_Breed FOREIGN KEY (BreedID) REFERENCES [Animal].[Breed](ID)
 );
 GO
 
-CREATE TABLE [Animal].[MedicalRecord](
+CREATE TABLE [Animal].[MedicalRecordEntry](
 	ID UNIQUEIDENTIFIER NOT NULL DEFAULT NEWSEQUENTIALID() PRIMARY KEY,
 	ProcedureID UNIQUEIDENTIFIER NOT NULL,
 	AnimalID UNIQUEIDENTIFIER NOT NULL,
 	Notes NVARCHAR(100) NOT NULL,
 	DatePerformed DATETIME2 NOT NULL,
 
-	CONSTRAINT FK_MedicalRecord_Procedure FOREIGN KEY (ProcedureID) REFERENCES [Service].[MedicalProcedure](ID) ON DELETE CASCADE,
-	CONSTRAINT FK_MedicalRecord_Animal FOREIGN KEY(AnimalID) REFERENCES [Animal].[Individual](ID) ON DELETE CASCADE
+	CONSTRAINT FK_MedicalRecordEntry_Procedure FOREIGN KEY (ProcedureID) REFERENCES [Service].[MedicalProcedure](ID) ON DELETE CASCADE,
+	CONSTRAINT FK_MedicalRecordEntry_Animal FOREIGN KEY(AnimalID) REFERENCES [Animal].[Individual](ID) ON DELETE CASCADE
 );
 GO
 

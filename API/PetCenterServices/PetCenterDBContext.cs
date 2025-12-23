@@ -30,6 +30,15 @@ namespace PetCenterServices
         public DbSet<Franchise> Franchises { get;set; }
         public DbSet<Listing> Listings { get; set; }
         public DbSet<Registration> Registrations { get; set; }
+        public DbSet<DiscussionThread> Threads {get; set;}
+        public DbSet<Comment> Comments {get; set;}
+        public DbSet<Kind> AnimalKinds {get; set;}
+        public DbSet<Breed> AnimalBreeds {get;set;}
+        public DbSet<Individual> IndividualAnimals {get;set;}
+        public DbSet<Procedure> MedicalProcedures {get;set;}
+        public DbSet<MedicalProcedureSpecification> MedicalProcedureSpecifications {get;set;}
+        public DbSet<MedicalRecordEntry> MedicalRecordEntries {get;set;}
+
 
     }
 }
