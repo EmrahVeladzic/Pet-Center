@@ -83,6 +83,23 @@ CREATE TABLE [Business].[Facility](
 );
 GO
 
+CREATE TABLE [Business].[FormTemplate](
+	ID UNIQUEIDENTIFIER NOT NULL DEFAULT NEWSEQUENTIALID() PRIMARY KEY,
+	FormDescription NVARCHAR(100) NOT NULL
+);
+GO
+
+CREATE TABLE [Business].[FormTemplateField](
+	ID UNIQUEIDENTIFIER NOT NULL DEFAULT NEWSEQUENTIALID() PRIMARY KEY,
+	FormTemplateID UNIQUEIDENTIFIER NOT NULL,
+	FormFieldDescription NVARCHAR(20) NOT NULL,
+	DataType TINYINT NOT NULL,
+	Optional BIT NOT NULL,
+
+	CONSTRAINT FK_FormTemplateField_FormTemplate FOREIGN KEY (FormTemplateID) REFERENCES [Business].[FormTemplate](ID) ON DELETE CASCADE
+);
+GO
+
 CREATE TABLE [Offer].[Listing](
 	ID UNIQUEIDENTIFIER NOT NULL DEFAULT NEWSEQUENTIALID() PRIMARY KEY,
 	ListingName NVARCHAR(50) NOT NULL,
@@ -130,6 +147,28 @@ CREATE TABLE [Pending].[Registration](
 	NextAttempt DATETIME2 NOT NULL,
 
 	CONSTRAINT FK_Registration_Account FOREIGN KEY (AccountID) REFERENCES [Person].[Account](ID) ON DELETE CASCADE
+);
+GO
+
+CREATE TABLE [Pending].[Form](
+	ID UNIQUEIDENTIFIER NOT NULL DEFAULT NEWSEQUENTIALID() PRIMARY KEY,
+	FormTemplateID UNIQUEIDENTIFIER NOT NULL,
+	UserID UNIQUEIDENTIFIER NOT NULL,
+	AlbumID UNIQUEIDENTIFIER NOT NULL,
+
+	CONSTRAINT FK_Form_User FOREIGN KEY (UserID) REFERENCES [Person].[User](ID) ON DELETE CASCADE,
+	CONSTRAINT FK_Form_FormTemplate FOREIGN KEY (FormTemplateID) REFERENCES [Business].[FormTemplate](ID) ON DELETE CASCADE
+);
+GO
+
+CREATE TABLE [Pending].[FormFieldEntry](
+	ID UNIQUEIDENTIFIER NOT NULL DEFAULT NEWSEQUENTIALID() PRIMARY KEY,
+	FormID UNIQUEIDENTIFIER NOT NULL,
+	FormTemplateFieldID UNIQUEIDENTIFIER NOT NULL,
+	Serialized VARCHAR(MAX) NOT NULL,
+
+	CONSTRAINT FK_FormFieldEntry_Form FOREIGN KEY (FormID) REFERENCES [Pending].[Form](ID) ON DELETE CASCADE,
+	CONSTRAINT FK_FormFieldEntry_FormTemplateField FOREIGN KEY (FormTemplateFieldID) REFERENCES [Business].[FormTemplateField](ID)
 );
 GO
 
@@ -200,6 +239,38 @@ CREATE TABLE [Animal].[MedicalRecordEntry](
 	CONSTRAINT FK_MedicalRecordEntry_Procedure FOREIGN KEY (ProcedureID) REFERENCES [Service].[MedicalProcedure](ID) ON DELETE CASCADE,
 	CONSTRAINT FK_MedicalRecordEntry_Animal FOREIGN KEY(AnimalID) REFERENCES [Animal].[Individual](ID) ON DELETE CASCADE
 );
+GO
+
+
+
+
+
+
+
+CREATE TRIGGER trg_delete_User
+ON [Person].[User]
+AFTER DELETE 
+AS
+BEGIN
+	SET NOCOUNT ON;
+
+    DELETE [A]
+    FROM [File].[Album] [A]
+    JOIN deleted [D] ON [A].ID = [D].AlbumID;
+END
+GO
+
+CREATE TRIGGER trg_delete_Form
+ON [Pending].[Form]
+AFTER DELETE 
+AS
+BEGIN
+	SET NOCOUNT ON;
+
+    DELETE [A]
+    FROM [File].[Album] [A]
+    JOIN deleted [D] ON [A].ID = [D].AlbumID;
+END
 GO
 
 USE master 

@@ -1,4 +1,5 @@
-﻿using PetCenterModels.DBTables;
+﻿using Microsoft.EntityFrameworkCore;
+using PetCenterModels.DBTables;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -10,16 +11,14 @@ namespace PetCenterServices.Utils
 {
     public static class UserUtils
     {
-        public static string GenerateUsername(PetCenterDBContext ctx)
+
+        private static readonly string[] Adjectives = { "Blue", "Happy", "Quick", "Silent", "Tiny", "Playful" };
+        private static readonly string[] Animals = { "Fox", "Bear", "Otter", "Panda", "Wolf", "Tiger" };
+
+        private static Random Rng = new();
+        public static async Task<string> GenerateUsername()
         {
-            string username;
-
-            do{
-                username = "User_" + Guid.NewGuid().ToString("N").Substring(0, 8);
-            }
-            while (ctx.Users.Any(u => u.UserName == username));
-
-            return username;
+            return $"{Adjectives[Rng.Next(Adjectives.Length)]}{Animals[Rng.Next(Animals.Length)]}{Rng.Next(100, 999)}";
         }
 
         public static string GetRole(Access input)
@@ -28,6 +27,8 @@ namespace PetCenterServices.Utils
             {
                 case Access.Owner: return "Owner";
                 case Access.Admin: return "Admin";
+                case Access.BusinessManager: return "Manager";
+                case Access.BusinessEmployee: return "Employee";
                 default: return "User";
             }
         }
