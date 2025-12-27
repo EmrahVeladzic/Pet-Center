@@ -12,7 +12,9 @@ namespace PetCenterModels.DBTables
     public enum Access : byte
     {
         Owner = 255,
-        Admin = 1,
+        Admin = 254,
+        BusinessManager = 2,
+        BusinessEmployee = 1,
         User = 0
     }
 

@@ -113,7 +113,7 @@ namespace PetCenterServices.Services
 
             User usr = new();
             usr.AccountId = acc.Id;
-            usr.UserName = Utils.UserUtils.GenerateUsername(dbContext);
+            usr.UserName = await Utils.UserUtils.GenerateUsername();
             usr.PictureId = null;
             await dbContext.Users.AddAsync(usr);
             await dbContext.SaveChangesAsync();
