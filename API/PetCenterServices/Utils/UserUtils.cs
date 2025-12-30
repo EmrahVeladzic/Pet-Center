@@ -18,7 +18,8 @@ namespace PetCenterServices.Utils
         private static Random Rng = new();
         public static async Task<string> GenerateUsername()
         {
-            return $"{Adjectives[Rng.Next(Adjectives.Length)]}{Animals[Rng.Next(Animals.Length)]}{Rng.Next(100, 999)}";
+            await Task.CompletedTask;
+            return $"{Adjectives[Rng.Next(Adjectives.Length)]}{Animals[Rng.Next(Animals.Length)]}{Rng.Next(100000000, 1000000000)}";
         }
 
         public static string GetRole(Access input)
@@ -33,11 +34,6 @@ namespace PetCenterServices.Utils
             }
         }
 
-        public static bool ValidateContact(string contact)
-        {
-            EmailAddressAttribute e = new();
-            return e.IsValid(contact);
-        }
-
+       
     }
 }

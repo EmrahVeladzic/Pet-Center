@@ -9,11 +9,8 @@ using System.Threading.Tasks;
 
 namespace PetCenterServices.Interfaces
 {
-    public interface IImageService : IBaseCRUDService<Image,BaseSearchObject>
+    public interface IImageService : IBaseCRUDService<Image,BaseSearchObject,ImageDTO,ImageDTO>
     {
        
-        public Task UploadImage(ImageDTO req);
-
-        public Task<List<ImageDTO>> GetAlbumImages(Guid Album);
     }
 }

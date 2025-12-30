@@ -21,5 +21,15 @@ namespace PetCenterModels.DBTables
 
         [NotMapped]
         public List<Image>? Images { get; set; }
+
+        public Album()
+        {
+            Reserved=0;
+        }
+        public Album(byte capacity = 1)
+        {
+            Capacity = capacity;
+            Reserved = 0;
+        }
     }
 }

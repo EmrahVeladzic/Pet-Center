@@ -3,6 +3,7 @@ using PetCenterModels.DataTransferObjects;
 using PetCenterModels.DBTables;
 using PetCenterModels.SearchObjects;
 using PetCenterServices.Interfaces;
+using PetCenterServices.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,17 +22,23 @@ namespace PetCenterServices.Services
         }
 
 
-        public async Task<Image?> GetById(Guid id)
-        {
-            return await dbContext.Images.FindAsync(id);
+        public async Task<ServiceOutput<ImageDTO>> GetById(Guid id)
+        {            
+            Image? img = await dbContext.Images.FindAsync(id);
+            if(img == null){
+            
+                return ServiceOutput<ImageDTO>.Error(HttpCode.NotFound,"No image with this ID exists.");
+            
+            }
+            return ServiceOutput<ImageDTO>.Success(new ImageDTO(img));           
         }
 
-        public async Task<List<Image>> Get(BaseSearchObject src)
+        public async Task<ServiceOutput<List<ImageDTO>>> Get(BaseSearchObject src)
         {
-            return await dbContext.Images.Skip(src.Page*50).Take(50).ToListAsync();
+            return ServiceOutput<List<ImageDTO>>.Success(await dbContext.Images.OrderBy(i=>i.Id).Skip(src.Page*src.PageSize).Take(src.PageSize).Select(img => new ImageDTO(img)).ToListAsync());
         }
 
-        public async Task Delete(Guid id)
+        public async Task<ServiceOutput<object>> Delete(Guid id)
         {
             Image? img = await dbContext.Images.FindAsync(id);
 
@@ -50,49 +57,72 @@ namespace PetCenterServices.Services
 
             }
 
+            return ServiceOutput<object>.Success(default,HttpCode.NoContent);
+
         }
 
-        public async Task Put(Image image)
+        public async Task<ServiceOutput<ImageDTO>> Put(ImageDTO image)
         {
-            Image? img = await dbContext.Images.FindAsync(image.Id);
+            Image? img = await dbContext.Images.FindAsync(image.ImageId);
 
             if (img != null)
             {
+                Image? newImage = image.ToEntity();
 
-                dbContext.Images.Entry(img).CurrentValues.SetValues(image);
-                await dbContext.SaveChangesAsync();
+                if (newImage != null)
+                {
+                    img.Data=newImage.Data;
+                    img.Width=newImage.Width;
+                    img.Height=newImage.Height;
+
+                    image.AlbumInsertId = img.AlbumId;                 
+                        
+                    await dbContext.SaveChangesAsync();
+
+                    return ServiceOutput<ImageDTO>.Success(image);
+
+                }
+
+                return ServiceOutput<ImageDTO>.Error(HttpCode.BadRequest,"Invalid image data.");
+
+               
             }
 
+            return ServiceOutput<ImageDTO>.Error(HttpCode.NotFound,"No image with this ID exists.");
         }
 
-        public async Task Post(Image img)
+        public async Task<ServiceOutput<ImageDTO>> Post(ImageDTO img)
         {
-            Album? album = await dbContext.Albums.FindAsync(img.AlbumId);
+            Album? album = await dbContext.Albums.FindAsync(img.AlbumInsertId);
 
-            if (album != null && album.Reserved<album.Capacity)
+            if (album != null )
             {
-                album.Reserved++;
-                await dbContext.Images.AddAsync(img);
-                await dbContext.SaveChangesAsync();
+
+                if (album.Reserved < album.Capacity)
+                {                   
+
+                    Image? newImage = img.ToEntity();
+
+                    if (newImage != null)
+                    {
+                        album.Reserved++;
+                        await dbContext.Images.AddAsync(newImage);
+                        await dbContext.SaveChangesAsync();
+                        img.ImageId=newImage.Id;
+                    
+                        return ServiceOutput<ImageDTO>.Success(img,HttpCode.Created);
+                    }
+
+                    return ServiceOutput<ImageDTO>.Error(HttpCode.BadRequest,"Invalid image data.");
+                }
+
+                return ServiceOutput<ImageDTO>.Error(HttpCode.Forbidden,"The selected album is full and cannot accept a new image.");
 
             }
 
-        }
+            return ServiceOutput<ImageDTO>.Error(HttpCode.NotFound,"No album with this ID exists.");
 
-        public async Task UploadImage(ImageDTO dto)
-        {
-            Image img = new(dto);
+        }   
 
-            await Post(img);
-
-        }
-
-        public async Task<List<ImageDTO>> GetAlbumImages(Guid AlbumID)
-        {
-                return await dbContext.Images
-            .Where(i => i.AlbumId == AlbumID)
-            .Select(img => new ImageDTO(img))
-            .ToListAsync();
-        }
     }
 }

@@ -14,37 +14,15 @@ namespace PetCenterModels.DBTables
     public class Image : BaseTableEntity
     {
         [Column("Width")]
-        public int Width { get; set; }
+        public short Width { get; set; }
         [Column("Height")]
-        public int Height { get; set; }
+        public short Height { get; set; }
         [Column("ImageData")]
-        public byte[]? Data { get; set; }
+        public string? Data { get; set; }
         [Column("AlbumID")]
         [JsonIgnore]
         public Guid AlbumId { get; set; }
 
-        public Image()
-        {
-            
-        }
-
-        public Image(ImageDTO input)
-        {
-            Width=input.Width;
-            Height=input.Height;
-            AlbumId = input.AlbumInsertId;
-
-            string b64 = input.Data?.Replace("\r\n", "").Replace(" ", "") ?? ",TlVMTA==";
-            int comma = b64.IndexOf(",");
-            b64 = b64[(comma+1)..];
-            Data = Convert.FromBase64String(b64);
-
-            if (Encoding.UTF8.GetString(Data) == "NULL")
-            {
-                Data= null;
-            }
-
-        }
-
+       
     }
 }

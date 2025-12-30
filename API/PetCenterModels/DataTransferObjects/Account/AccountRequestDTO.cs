@@ -5,15 +5,27 @@ using System.Linq;
 using System.Text;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
+using PetCenterModels.DBTables;
 
 namespace PetCenterModels.Requests
 {
-    public class AccountRequestDTO
+    public class AccountRequestDTO : IBaseRequestDTO
     {
+
+        [JsonIgnore]
+        public Guid Id {get; set;}
+
         [Required]
         public string? Contact { get; set; }
         
         [Required]
         public string? Password { get; set; }
+    
+
+        public bool Validate()
+        {
+            EmailAddressAttribute e = new();
+            return (e.IsValid(Contact)&& !string.IsNullOrWhiteSpace(Password));
+        }
     }
 }
