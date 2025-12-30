@@ -134,7 +134,7 @@ using (IServiceScope scope = app.Services.CreateScope())
         }
 
 
-        await svc.Register(owner_req);
+        await svc.Post(owner_req);
 
     }
 }

@@ -23,62 +23,36 @@ namespace PetCenterServices.Services
             dbContext = ctx;
         }
 
-        public async Task<List<Account>> Get(AccountSearchObject search)
+        public async Task<ServiceOutput<List<AccountResponseDTO>>> Get(AccountSearchObject search)
         {
-            return await dbContext.Accounts.OrderBy(a=>a.Id).Skip(search.Page*50).Take(50).ToListAsync();
+            return  ServiceOutput<List<AccountResponseDTO>>.Success(await dbContext.Accounts.OrderBy(a=>a.Id).Skip(search.Page*search.PageSize).Take(search.PageSize).Select(a=> new AccountResponseDTO(a)).ToListAsync());
         }
 
-        public async Task<Account?> GetById(Guid id)
+        public async Task<ServiceOutput<AccountResponseDTO>> GetById(Guid id)
         {
-            return await dbContext.Accounts.FindAsync(id);
-        }
+            Account? acc = await dbContext.Accounts.FindAsync(id);
 
-        public async Task Post(Account ent)
-        {
-            await dbContext.Accounts.AddAsync(ent);
-            await dbContext.SaveChangesAsync();
-        }
-
-        public async Task Put(Account ent)
-        {
-            Account? current = await dbContext.Accounts.FindAsync(ent.Id);
-            if (current != null)
-            {
-                dbContext.Accounts.Entry(current).CurrentValues.SetValues(ent);
-                await dbContext.SaveChangesAsync();
-            }
-        }
-
-        public async Task Delete(Guid id)
-        {
-            Account? current = await dbContext.Accounts.FindAsync(id);
-            if (current != null)
-            {
-                User usr = await dbContext.Users.Include(u=>u.Picture).Where(u=>u.AccountId == current.Id).FirstAsync();
-                if (usr.Picture != null)
-                {
-                    dbContext.Albums.Remove(usr.Picture);
-                    await dbContext.SaveChangesAsync();
-                }
-                dbContext.Users.Remove(usr);
-                await dbContext.SaveChangesAsync();
-                dbContext.Accounts.Remove(current);
-                await dbContext.SaveChangesAsync();
-            }
-        }
-
-        public async Task Register(AccountRequestDTO req)
-        {
-            if (string.IsNullOrWhiteSpace(req.Contact) || string.IsNullOrWhiteSpace(req.Password))
-            {
-                return;
+            if (acc == null) 
+            {               
+                return ServiceOutput<AccountResponseDTO>.Error(HttpCode.NotFound, "No account with this ID exists.");
             }
 
-            if (!UserUtils.ValidateContact(req.Contact))
-            {
-                return;
-            }
+            return  ServiceOutput<AccountResponseDTO>.Success(new AccountResponseDTO(acc));
+        }
 
+        public async Task<ServiceOutput<AccountResponseDTO>> Post(AccountRequestDTO req)
+        {
+            bool valid = req.Validate();
+            if (!valid)
+            {
+                return ServiceOutput<AccountResponseDTO>.Error(HttpCode.BadRequest,"Invalid request.");
+            }
+           
+            Account? existing = await dbContext.Accounts.FirstOrDefaultAsync(a=>a.Contact==req.Contact);
+            if (existing != null)
+            {
+                return ServiceOutput<AccountResponseDTO>.Error(HttpCode.Conflict,"An account with the specified contact already exists.");
+            }
 
             Account acc = new();
             acc.PasswordSalt = Utils.Crypto.GenerateSalt();
@@ -111,16 +85,80 @@ namespace PetCenterServices.Services
                 await dbContext.SaveChangesAsync();
             }
 
+            Album album = new();
+            await dbContext.Albums.AddAsync(album);
+            await dbContext.SaveChangesAsync();
+
             User usr = new();
             usr.AccountId = acc.Id;
             usr.UserName = await Utils.UserUtils.GenerateUsername();
-            usr.PictureId = null;
+            usr.PictureId = album.Id;
             await dbContext.Users.AddAsync(usr);
             await dbContext.SaveChangesAsync();
 
+            return ServiceOutput<AccountResponseDTO>.Success(new AccountResponseDTO(acc),HttpCode.Created);
         }
 
-        public async Task<string?> LogIn(AccountRequestDTO req)
+        public async Task<ServiceOutput<AccountResponseDTO>> Put(AccountRequestDTO req)
+        {      
+
+            Account? acc = await dbContext.Accounts.FindAsync(req.Id);
+
+            if (acc != null)
+            {
+
+                if (!string.IsNullOrEmpty(req.Contact))
+                {
+                    
+                    EmailAddressAttribute e = new();
+
+                    if (e.IsValid(req.Contact))
+                    {
+                        Account? existing = await dbContext.Accounts.FirstOrDefaultAsync(a=>a.Contact==req.Contact && a.Id!=req.Id);
+                        if (existing != null)
+                        {
+                            return ServiceOutput<AccountResponseDTO>.Error(HttpCode.Conflict,"An account with the specified contact already exists.");
+                        }
+
+                        acc.Contact = req.Contact;
+                    }
+
+                    else{
+
+                        return ServiceOutput<AccountResponseDTO>.Error(HttpCode.BadRequest,"Invalid contact.");
+
+                    }
+                }              
+                
+
+                if (!string.IsNullOrWhiteSpace(req.Password))
+                {
+                    acc.PasswordHash = Utils.Crypto.GenerateHash(req.Password!, acc.PasswordSalt!);
+                }
+
+                await dbContext.SaveChangesAsync();
+                
+
+                return ServiceOutput<AccountResponseDTO>.Success(new AccountResponseDTO(acc));
+
+            }
+
+            return  ServiceOutput<AccountResponseDTO>.Error(HttpCode.NotFound,"No account with this ID exists.");
+        }
+
+        public async Task <ServiceOutput<object>> Delete(Guid id)
+        {
+            Account? current = await dbContext.Accounts.FindAsync(id);
+            if (current != null)
+            {
+                dbContext.Accounts.Remove(current);
+                await dbContext.SaveChangesAsync();                
+            }
+
+            return ServiceOutput<object>.Success(default,HttpCode.NoContent);
+        }
+
+        public async Task<ServiceOutput<string>> LogIn(AccountRequestDTO req)
         {
             Account? acc = null;
 
@@ -140,37 +178,17 @@ namespace PetCenterServices.Services
                     if (usr != null)
                     {
 
-                        return Utils.Crypto.GenerateJWT(usr);
+                        return ServiceOutput<string>.Success(Utils.Crypto.GenerateJWT(usr));
 
                     }
 
                 }
             }
 
-            return null;
+            return ServiceOutput<string>.Error(HttpCode.Unauthorized,"Wrong Contact and/or password.");
 
         }
 
-        public async Task UpdateDetails(Guid id, AccountRequestDTO req)
-        {
-            Account? acc = await dbContext.Accounts.FindAsync(id);
-
-            if (acc != null)
-            {
-               
-                if (string.IsNullOrWhiteSpace(req.Contact) || (acc.Contact != req.Contact && ! await dbContext.Accounts.AnyAsync(a => a.Contact == req.Contact && a.Id != id)))
-                {
-                    acc.Contact = req.Contact;
-                }              
-
-                if (!string.IsNullOrWhiteSpace(req.Password)&&!string.IsNullOrWhiteSpace(acc.PasswordSalt))
-                {
-                    acc.PasswordHash = Utils.Crypto.GenerateHash(req.Password!, acc.PasswordSalt);
-                }
-                await dbContext.SaveChangesAsync();
-
-            }
-        }
 
         public async Task<bool> CheckIfAccountExists(AccountRequestDTO req)
         {
@@ -191,7 +209,7 @@ namespace PetCenterServices.Services
             return acc.Verified;
         }
 
-        public async Task RequestAccountVerification(Guid id)
+        public async Task<ServiceOutput<string>> RequestAccountVerification(Guid id)
         {
             Registration? reg = await dbContext.Registrations.Include(r=>r.RelevantAccount).FirstOrDefaultAsync(r=>r.AccountID==id);
 
@@ -200,9 +218,11 @@ namespace PetCenterServices.Services
                 reg.Code = Utils.Crypto.GenerateCode();
                 await dbContext.SaveChangesAsync();
             }
+
+            return  ServiceOutput<string>.Success("Your verification code will be sent shortly.");
         } 
 
-        public async Task VerifyAccount(Guid id, int code)
+        public async Task<ServiceOutput<string>> VerifyAccount(Guid id, int code)
         {
             Registration? reg = await dbContext.Registrations.Include(r => r.RelevantAccount).FirstOrDefaultAsync(r => r.AccountID == id);
 
@@ -217,41 +237,20 @@ namespace PetCenterServices.Services
                     dbContext.Registrations.Remove(reg);
                     await dbContext.SaveChangesAsync();
 
+                  
+
                 }
 
                 else
                 {
                     reg.NextAttempt = DateTime.UtcNow.AddMinutes(1);
                     await dbContext.SaveChangesAsync();
+
+                    return ServiceOutput<string>.Error(HttpCode.BadRequest,"Wrong verification code. Please try again in a minute.");
                 }
             }
 
-        }
-
-        public async Task DeleteAccount(Guid id)
-        {
-      
-            Account? acc = await dbContext.Accounts.FindAsync(id);
-
-            if (acc != null)
-            {
-                User? usr = await dbContext.Users.Include(u=>u.Picture).FirstOrDefaultAsync(u => u.AccountId == id);
-
-                if (usr != null && usr.Picture!=null)
-                {
-                    
-                    dbContext.Albums.Remove(usr.Picture!);
-
-                    await dbContext.SaveChangesAsync();
-                                       
-
-                }
-
-                dbContext.Accounts.Remove(acc);
-
-                await dbContext.SaveChangesAsync();
-
-            }
+            return ServiceOutput<string>.Success("Account verified.");
 
         }
 
@@ -280,14 +279,18 @@ namespace PetCenterServices.Services
            
         }
 
-        public async Task SetRole(Guid id, Access role)
+        public async Task<ServiceOutput<string>> SetRole(Guid id, Access role)
         {
             Account? acc = await dbContext.Accounts.FindAsync(id);
             if (acc != null)
             {
                 acc.AccessLevel = role;
                 await dbContext.SaveChangesAsync();
+
+                return ServiceOutput<string>.Success("Role updated.");
             }
+
+            return ServiceOutput<string>.Error(HttpCode.NotFound,"No account with this ID exists.");
 
         }
     }

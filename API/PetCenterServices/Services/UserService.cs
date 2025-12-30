@@ -3,6 +3,7 @@ using PetCenterModels.DBTables;
 using PetCenterModels.Requests;
 using PetCenterModels.SearchObjects;
 using PetCenterServices.Interfaces;
+using PetCenterServices.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,83 +22,64 @@ namespace PetCenterServices.Services
             dbContext = ctx;
         }
 
-        public async Task<bool> CheckIfUniqueUsername(Guid id, string username)
-        {
-            if (string.IsNullOrWhiteSpace(username) || username.Equals("Null", StringComparison.OrdinalIgnoreCase))
-            {
-                return false;
-            }
-
-            User? usr = await dbContext.Users.Where(u=>u.UserName!=null && u.UserName.Equals(username) && u.AccountId!=id).FirstOrDefaultAsync();
-
-            return usr == null;
+        public async Task<ServiceOutput<object>>Delete(Guid id)
+        {         
+            await Task.CompletedTask;
+            return ServiceOutput<object>.Error(HttpCode.NotImplemented,"Illegal endpoint.");
         }
 
-        public async Task Delete(Guid id)
+        public async Task<ServiceOutput<UserResponseDTO>> Put(UserRequestDTO ent)
         {
-            User? usr = await dbContext.Users.Include(u=>u.Picture).Where(u=>u.Id==id).FirstOrDefaultAsync();
 
-            if (usr != null)
+            bool valid = ent.Validate();
+            if (!valid)
             {
-                if (usr.Picture != null)
-                {
-                    dbContext.Albums.Remove(usr.Picture);
-                    await dbContext.SaveChangesAsync();
-                }
-
-                dbContext.Users.Remove(usr);
-                await dbContext.SaveChangesAsync();
+                return ServiceOutput<UserResponseDTO>.Error(HttpCode.BadRequest,"Invalid request.");
             }
-        }
 
-        public async Task Put(User ent)
-        {
             User? current = await dbContext.Users.FindAsync(ent.Id);
 
             if (current != null)
             {
-                dbContext.Users.Entry(current).CurrentValues.SetValues(ent);
+                current.UserName = ent.UserName;
                 await dbContext.SaveChangesAsync();
+
+                return ServiceOutput<UserResponseDTO>.Success(new UserResponseDTO(current));
 
             }
 
+            return ServiceOutput<UserResponseDTO>.Error(HttpCode.NotFound,"No user with this ID exists.");
+
         }
 
-        public async Task Post(User ent)
+        public async Task<ServiceOutput<UserResponseDTO>> Post(UserRequestDTO ent)
         {
-            await dbContext.Users.AddAsync(ent);
-            await dbContext.SaveChangesAsync();
+            await Task.CompletedTask;
+            return ServiceOutput<UserResponseDTO>.Error(HttpCode.NotImplemented,"Illegal endpoint.");
         }
 
-        public async Task<User?> GetById(Guid id)
+        public async Task<ServiceOutput<UserResponseDTO>> GetById(Guid id)
         {
             User? user = await dbContext.Users.FindAsync(id);
 
-            if (user != null)
-            {
-                await dbContext.Entry(user).Reference(u => u.Picture).LoadAsync();
+            if(user==null){
+                
+                return ServiceOutput<UserResponseDTO>.Error(HttpCode.NotFound,"No user with this ID exists.");
+                
             }
 
-            return user;
+            return ServiceOutput<UserResponseDTO>.Success(new UserResponseDTO(user));
+           
+            
         }
 
-        public async Task<List<User>> Get(UserSearchObject search)
+        public async Task<ServiceOutput<List<UserResponseDTO>>> Get(UserSearchObject search)
         {
 
-            return await dbContext.Users.Include(u=>u.Picture).Where(u=>u.UserName!.ToLower().Contains((search.UserName??"").ToLower())).Skip(search.Page*50).Take(50).ToListAsync();
+            return ServiceOutput<List<UserResponseDTO>>.Success(await dbContext.Users.Where(u=>u.UserName!.ToLower().Contains((search.UserName??"").ToLower())).Skip(search.Page*search.PageSize).Take(search.PageSize).Select(u=>new UserResponseDTO(u)).ToListAsync());
 
         }
 
        
-        public async Task SetUsername(Guid id, UserRequestDTO req)
-        {
-            User? usr = await dbContext.Users.Where(u => u.AccountId == id).FirstOrDefaultAsync();
-
-            if (usr != null)
-            {
-                usr.UserName = req.UserName;
-            }
-
-        }
     }
 }

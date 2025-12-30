@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace PetCenterModels.SearchObjects
 {
     public class ImageSearchObject: BaseSearchObject
-    {
-        public string? ImageHash { get; set; }
+    {      
+        public override int PageSize => 5;
     }
 }

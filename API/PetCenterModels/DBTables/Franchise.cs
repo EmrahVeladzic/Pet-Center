@@ -26,7 +26,7 @@ namespace PetCenterModels.DBTables
 
         [Column("LogoID")]
         [JsonIgnore]
-        public Guid? LogoId { get; set; }
+        public Guid LogoId { get; set; }
 
         [ForeignKey(nameof(LogoId))]
         public Album? Logo { get; set; }
