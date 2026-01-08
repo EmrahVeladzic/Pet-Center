@@ -16,10 +16,15 @@ namespace PetCenterServices.Utils
         private static readonly string[] Animals = { "Fox", "Bear", "Otter", "Panda", "Wolf", "Tiger" };
 
         private static Random Rng = new();
-        public static async Task<string> GenerateUsername()
+        public static async Task<string> GenerateUsername(PetCenterDBContext ctx)
         {
-            await Task.CompletedTask;
-            return $"{Adjectives[Rng.Next(Adjectives.Length)]}{Animals[Rng.Next(Animals.Length)]}{Rng.Next(100000000, 1000000000)}";
+            string output = "";
+            do
+            {
+               output = $"{Adjectives[Rng.Next(Adjectives.Length)]}{Animals[Rng.Next(Animals.Length)]}{Rng.Next(100000000, 1000000000)}";
+            }while(await ctx.Users.AnyAsync(u=>u.UserName==output));
+            
+            return output;
         }
 
         public static string GetRole(Access input)

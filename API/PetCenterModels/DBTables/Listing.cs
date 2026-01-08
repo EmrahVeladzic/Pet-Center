@@ -21,6 +21,13 @@ namespace PetCenterModels.DBTables
         [JsonIgnore]
         public Guid AlbumId { get; set; }
 
+        [Column("PosterID")]
+        public Guid? PosterId { get; set; }
+
+        [JsonIgnore]
+        [ForeignKey(nameof(PosterId))]
+        public User? Poster {  get; set; }
+
        
         [ForeignKey(nameof(AlbumId))]
         public Album? Images { get; set; }

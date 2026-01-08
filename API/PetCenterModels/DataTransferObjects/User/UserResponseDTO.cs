@@ -10,25 +10,23 @@ using PetCenterModels.DBTables;
 
 namespace PetCenterModels.Requests
 {
-    public class UserResponseDTO : IDeserializableResponseDTO<User>
+    public class UserResponseDTO : IBaseResponseDTO<User,UserResponseDTO>
     {        
+        public Guid? Id {get; set;}
         public string? UserName {get; set;}
 
         public Guid AlbumId {get; set;}
 
-        public UserResponseDTO(User? usr)
+        public static UserResponseDTO? FromEntity(User? usr)
         {
-            FromEntity(usr);
-        }
+            if (usr==null){return null;}
 
-        public void FromEntity(User? usr)
-        {
-            if (usr != null)
+            return new UserResponseDTO
             {
-                UserName = usr.UserName;
-
-                AlbumId = usr.PictureId;
-            }
+                Id=usr.Id,
+                UserName=usr.UserName,
+                AlbumId = usr.PictureId
+            };
         }
     }
 }

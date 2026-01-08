@@ -5,11 +5,13 @@ using PetCenterModels.DBTables;
 using PetCenterModels.Requests;
 using PetCenterModels.SearchObjects;
 using PetCenterServices.Interfaces;
+using PetCenterServices.Utils;
 using System.Security.Claims;
 
 
 namespace PetCenterAPI.Controllers
 {
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class AccountController : ControllerTemplate<Account,AccountSearchObject,AccountRequestDTO,AccountResponseDTO,IAccountService>
@@ -21,7 +23,17 @@ namespace PetCenterAPI.Controllers
         [AllowAnonymous]
         public override async Task<IActionResult> Post([FromBody] AccountRequestDTO req)
         {
+            req.Contact=req.Contact?.ToLower();
+            
+            ServiceOutput<object> cleared = await service.IsClearedToCreate(null,req);
+
+            if (!ServiceOutput<object>.IsSuccess(cleared))
+            {
+                return ResultConverter.Convert<object>(cleared);
+            }
+
             return ResultConverter.Convert<AccountResponseDTO>(await service.Post(req));
+            
         }
 
 
@@ -33,91 +45,52 @@ namespace PetCenterAPI.Controllers
         }
 
 
-        [HttpPut]
-        [Authorize]
-        public override async Task<IActionResult> Put([FromBody] AccountRequestDTO req)
+        [HttpPut("{id}")]
+        public override async Task<IActionResult> Put([FromRoute] Guid id, [FromBody] AccountRequestDTO req)
         {
-            bool validGuid = Guid.TryParse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out Guid id);
-            if (validGuid)
-            {
-                req.Id = id;
-                return ResultConverter.Convert<AccountResponseDTO>(await service.Put(req));
-            }
-            return StatusCode(400,"Invalid ID provided.");
+            req.Contact = req.Contact?.ToLower();
+            return await base.Put(id,req);
         }
 
+       
         [HttpGet ("RequestVerification")]
-        [Authorize]
+        [AllowUnverified]
         public async Task<IActionResult> RequestVerification()
         {
-            bool validGuid = Guid.TryParse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out Guid id);
-            if (validGuid)
+            if (TryGetUserId(out Guid id))
             {
                 return ResultConverter.Convert<string>(await service.RequestAccountVerification(id));
             }
-            return StatusCode(400,"Invalid ID provided.");
+            return StatusCode(401,"Invalid token.");
         }
 
+        
         [HttpPost("Verify/{code}")]
-        [Authorize]
+        [AllowUnverified]
         public async Task<IActionResult> Verify([FromRoute] int code)
         {
-            bool validGuid = Guid.TryParse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out Guid id);
-
-            if (validGuid)
+            if (TryGetUserId(out Guid id))
             {           
                 return ResultConverter.Convert<string>(await service.VerifyAccount(id,code));
             }
-            return StatusCode(400,"Invalid ID provided.");
+            return StatusCode(400,"Invalid token.");
         }
 
         [HttpPut("SetRole/{id}/{role}")]
         [Authorize(Roles ="Owner")]
         public async Task<IActionResult> SetRole([FromRoute] Guid id, [FromRoute] Access role)
         {
-            bool validGuid = Guid.TryParse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out Guid owner_id);
 
-            if(validGuid && await service.CheckIsAuthorizedToModify(owner_id, id))
+            if(TryGetUserId(out Guid owner_id))
             {
-                return ResultConverter.Convert<string>(await service.SetRole(id,role));
+                return ResultConverter.Convert<string>(await service.SetRole(owner_id,id,role));
             }
 
-            return StatusCode(403, "This action is not allowed.");
+            return StatusCode(401, "Invalid token.");
 
         }
 
-        [HttpDelete("{id}")]
-        [Authorize]
-        public override async Task<IActionResult> Delete([FromRoute]Guid id)
-        {
-            bool validGuid = Guid.TryParse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out Guid usr_id);
-
-            if (validGuid && !await service.CheckIsLastOwner(usr_id) && id==usr_id)
-            {
-                return ResultConverter.Convert<object>(await service.Delete(usr_id));
-            }
-
-            return StatusCode(403, "This action is not allowed.");
-            
-        }
-
-
-        [HttpDelete("Ban/{id}")]
-        [Authorize (Roles ="Owner,Admin")]
-        public async Task<IActionResult> Ban([FromRoute] Guid id)
-        {
-            bool validGuid = Guid.TryParse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out Guid admin_id);
-
-            if (validGuid && await service.CheckIsAuthorizedToModify(admin_id,id))
-            {
-                return ResultConverter.Convert<object>(await service.Delete(id));
-            }
-
-            return StatusCode(401, "You are not authorized to ban this user.");
-           
-        }
-
-
+   
 
     }
 

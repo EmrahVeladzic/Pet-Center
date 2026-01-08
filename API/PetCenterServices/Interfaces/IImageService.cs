@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace PetCenterServices.Interfaces
 {
-    public interface IImageService : IBaseCRUDService<Image,BaseSearchObject,ImageDTO,ImageDTO>
+    public interface IImageService : IBaseCRUDService<Image,ImageSearchObject,ImageDTO,ImageDTO>
     {
        
     }

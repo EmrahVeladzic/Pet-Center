@@ -18,6 +18,9 @@ namespace PetCenterModels.DBTables
         [Column("Reserved")]
         public byte Reserved { get; set; }
 
+        [Column("OwnerID")]
+        public Guid PosterID {get; set;}
+
 
         [NotMapped]
         public List<Image>? Images { get; set; }

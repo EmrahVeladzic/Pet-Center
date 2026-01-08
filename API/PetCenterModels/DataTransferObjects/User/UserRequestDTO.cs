@@ -10,14 +10,14 @@ namespace PetCenterModels.Requests
 {
     public class UserRequestDTO : IBaseRequestDTO
     {
-        public Guid Id {get;set;}
+        public Guid? Id {get;set;}
 
         public string? UserName { get; set; }
 
 
         public bool Validate()
         {
-            return (UserName==null || !string.IsNullOrWhiteSpace(UserName));           
+            return (!string.IsNullOrWhiteSpace(UserName));           
         }
         
     }
