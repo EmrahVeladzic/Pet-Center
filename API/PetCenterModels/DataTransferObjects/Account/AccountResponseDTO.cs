@@ -10,14 +10,10 @@ using PetCenterModels.DBTables;
 
 namespace PetCenterModels.Requests
 {
-    public class AccountResponseDTO : IDeserializableResponseDTO<Account>
+    public class AccountResponseDTO : IBaseResponseDTO<Account,AccountResponseDTO>
     {        
-        public AccountResponseDTO(Account? acc)
-        {
-            FromEntity(acc);
-        }
 
-        public Guid AccountId {get; set;}
+        public Guid? Id {get; set;}
 
         public string? Contact {get; set;}
 
@@ -25,15 +21,17 @@ namespace PetCenterModels.Requests
 
         public bool Verified {get; set;}
 
-        public void FromEntity(Account? acc)
+        public static AccountResponseDTO? FromEntity(Account? acc)
         {
-            if (acc != null)
+            if(acc==null){return null;}
+
+            return new AccountResponseDTO
             {
-                AccountId = acc.Id;
-                Contact = acc.Contact;
-                AccessLevel = acc.AccessLevel;
-                Verified = acc.Verified;
-            }
+                Id=acc.Id,
+                Contact = acc.Contact,
+                AccessLevel = acc.AccessLevel,
+                Verified = acc.Verified
+            };
         }
     }
 }

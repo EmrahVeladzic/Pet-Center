@@ -14,7 +14,9 @@ namespace PetCenterServices.Utils
         Forbidden = 403,
         NotFound = 404,
         Conflict = 409,
+        TooManyRequests = 429,
 
+        InternalError = 500,
         NotImplemented = 501
 
     }
@@ -31,7 +33,7 @@ namespace PetCenterServices.Utils
         public static ServiceOutput<T> Success(T? body, HttpCode code = HttpCode.OK) => new(code, body, null);
         public static ServiceOutput<T> Error(HttpCode code, string message) => new(code, default, message);
 
-        
+        public static bool IsSuccess(ServiceOutput<T> input){return (int)input.Code<400;}
 
         public ServiceOutput(HttpCode code, T? body = default, string? errorMessage = null)
 {

@@ -11,6 +11,7 @@ namespace PetCenterModels.Requests
 {
     public interface IBaseRequestDTO
     {             
+        public Guid? Id { get; set; }
         public bool Validate();
     }
 
@@ -19,12 +20,11 @@ namespace PetCenterModels.Requests
         public TEntity? ToEntity();
     }
 
-    public interface IBaseResponseDTO 
+    public interface IBaseResponseDTO<TEntity,TSelf>  where TEntity :BaseTableEntity where TSelf: IBaseResponseDTO<TEntity,TSelf>
     {       
-        
+        public Guid? Id {get; set;}
+        public static abstract TSelf? FromEntity(TEntity? entity);
+
     }
-    public interface IDeserializableResponseDTO<TEntity> : IBaseResponseDTO where TEntity: BaseTableEntity
-    {       
-        public void FromEntity(TEntity? entity);
-    }
+ 
 }

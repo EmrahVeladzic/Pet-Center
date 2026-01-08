@@ -12,30 +12,22 @@ using System.Threading.Tasks;
 
 namespace PetCenterServices.Services
 {
-    public class UserService : IUserService
+    public class UserService : BaseCRUDService<User,UserSearchObject,UserRequestDTO,UserResponseDTO>, IUserService
     {
-        protected PetCenterDBContext dbContext;
 
 
-        public UserService(PetCenterDBContext ctx)
+        public UserService(PetCenterDBContext ctx) : base(ctx)
         {
-            dbContext = ctx;
+            dbSet = ctx.Users;
         }
 
-        public async Task<ServiceOutput<object>>Delete(Guid id)
-        {         
-            await Task.CompletedTask;
-            return ServiceOutput<object>.Error(HttpCode.NotImplemented,"Illegal endpoint.");
+        public override Task<ServiceOutput<object>>Delete(Guid id)
+        {           
+            return Task.FromResult(ServiceOutput<object>.Error(HttpCode.NotImplemented,"Illegal endpoint."));
         }
 
-        public async Task<ServiceOutput<UserResponseDTO>> Put(UserRequestDTO ent)
+        public override async Task<ServiceOutput<UserResponseDTO>> Put(UserRequestDTO ent)
         {
-
-            bool valid = ent.Validate();
-            if (!valid)
-            {
-                return ServiceOutput<UserResponseDTO>.Error(HttpCode.BadRequest,"Invalid request.");
-            }
 
             User? current = await dbContext.Users.FindAsync(ent.Id);
 
@@ -44,7 +36,7 @@ namespace PetCenterServices.Services
                 current.UserName = ent.UserName;
                 await dbContext.SaveChangesAsync();
 
-                return ServiceOutput<UserResponseDTO>.Success(new UserResponseDTO(current));
+                return ServiceOutput<UserResponseDTO>.Success(UserResponseDTO.FromEntity(current));
 
             }
 
@@ -52,33 +44,41 @@ namespace PetCenterServices.Services
 
         }
 
-        public async Task<ServiceOutput<UserResponseDTO>> Post(UserRequestDTO ent)
+        public override Task<ServiceOutput<UserResponseDTO>> Post(UserRequestDTO ent)
         {
-            await Task.CompletedTask;
-            return ServiceOutput<UserResponseDTO>.Error(HttpCode.NotImplemented,"Illegal endpoint.");
+            return Task.FromResult(ServiceOutput<UserResponseDTO>.Error(HttpCode.NotImplemented,"Illegal endpoint."));
         }
 
-        public async Task<ServiceOutput<UserResponseDTO>> GetById(Guid id)
+        public override async Task<ServiceOutput<object>> IsClearedToUpdate(Guid? token_holder, UserRequestDTO resource)
         {
-            User? user = await dbContext.Users.FindAsync(id);
-
-            if(user==null){
-                
-                return ServiceOutput<UserResponseDTO>.Error(HttpCode.NotFound,"No user with this ID exists.");
-                
+            if (!resource.Validate())
+            {
+                return ServiceOutput<object>.Error(HttpCode.BadRequest,"Request validation failure.");
             }
 
-            return ServiceOutput<UserResponseDTO>.Success(new UserResponseDTO(user));
-           
-            
+            User? usr = await dbSet.FindAsync(resource.Id);
+
+            if (usr == null)
+            {
+                return ServiceOutput<object>.Error(HttpCode.NotFound,"The requested user does not exist.");
+
+            }
+
+            if (usr.AccountId != token_holder)
+            {
+                return ServiceOutput<object>.Error(HttpCode.Forbidden,"Token does not belong to user.");
+            }
+
+            User? existing = await dbSet.FirstOrDefaultAsync(u=>u.UserName==resource.UserName && u.Id!=resource.Id);
+
+            if (existing != null)
+            {
+                return ServiceOutput<object>.Error(HttpCode.Conflict,$"The username {resource.UserName} is already taken.");
+            }
+
+            return ServiceOutput<object>.Success(null,HttpCode.NoContent);
         }
 
-        public async Task<ServiceOutput<List<UserResponseDTO>>> Get(UserSearchObject search)
-        {
-
-            return ServiceOutput<List<UserResponseDTO>>.Success(await dbContext.Users.Where(u=>u.UserName!.ToLower().Contains((search.UserName??"").ToLower())).Skip(search.Page*search.PageSize).Take(search.PageSize).Select(u=>new UserResponseDTO(u)).ToListAsync());
-
-        }
 
        
     }

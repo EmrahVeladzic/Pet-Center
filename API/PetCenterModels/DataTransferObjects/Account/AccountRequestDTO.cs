@@ -11,9 +11,8 @@ namespace PetCenterModels.Requests
 {
     public class AccountRequestDTO : IBaseRequestDTO
     {
-
         [JsonIgnore]
-        public Guid Id {get; set;}
+        public Guid? Id {get; set;}
 
         [Required]
         public string? Contact { get; set; }

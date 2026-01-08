@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using PetCenterModels.Requests;
@@ -80,7 +81,16 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
-builder.Services.AddAuthorization();
+builder.Services.AddSingleton<IAuthorizationHandler, VerificationHandler>();
+
+builder.Services.AddAuthorization(options =>
+{
+    options.DefaultPolicy = new AuthorizationPolicyBuilder()
+        .AddRequirements(new VerificationRequirement())
+        .Build();
+
+    options.FallbackPolicy = options.DefaultPolicy;
+});
 
 PetCenterServices.Utils.Crypto.Configuration = builder.Configuration;
 

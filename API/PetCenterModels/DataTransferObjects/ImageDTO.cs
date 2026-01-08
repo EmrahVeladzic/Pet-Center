@@ -11,14 +11,14 @@ using System.Threading.Tasks;
 
 namespace PetCenterModels.DataTransferObjects
 {
-    public class ImageDTO : ISerializableRequestDTO<Image>, IDeserializableResponseDTO<Image>
+    public class ImageDTO : ISerializableRequestDTO<Image>, IBaseResponseDTO<Image,ImageDTO>
     {
         [JsonIgnore]
         public const short MaxDimension = 1024;
         [JsonIgnore]
         public const short MinDimension = 32;
         
-        public Guid ImageId {get; set;}
+        public Guid? Id {get; set;}
 
         [Required]
         public Guid AlbumInsertId { get; set; }
@@ -29,19 +29,17 @@ namespace PetCenterModels.DataTransferObjects
         [Required]
         public string? Data { get; set; } = null;
 
-        public ImageDTO(Image? img)
+        public static ImageDTO? FromEntity(Image? img)
         {
-            FromEntity(img);
-        }
-
-        public void FromEntity(Image? img)
-        {
-            if(img!=null){
-                AlbumInsertId = img.AlbumId;
-                Width = img.Width;
-                Height = img.Height;
-                Data = img.Data;
-            }
+            if(img==null){return null;}
+            return new ImageDTO
+            {
+                Id = img.Id,
+                AlbumInsertId=img.AlbumId,
+                Width = img.Width,
+                Height = img.Height,
+                Data = img.Data
+            };
         }
 
         public bool Validate()

@@ -16,7 +16,7 @@ namespace PetCenterModels.DBTables
         [Column("Contents")]
         public string? Description { get; set; }
         [Column("PosterID")]
-        public Guid OriginalPosterId {  get; set; }
+        public Guid? OriginalPosterId {  get; set; }
 
         [JsonIgnore]
         [ForeignKey(nameof(OriginalPosterId))]
@@ -32,7 +32,7 @@ namespace PetCenterModels.DBTables
         public bool Edited { get; set; }
 
         [Column("ListingID")]
-        public Guid ListingId { get; set; }
+        public Guid? ListingId { get; set; }
 
         [NotMapped]
         public List<Comment>? Comments { get; set; }
