@@ -15,7 +15,10 @@ public class VerificationHandler : AuthorizationHandler<VerificationRequirement>
         if (endpoint?.Metadata.GetMetadata<AllowUnverifiedAttribute>() != null)
         {
             if (context.User.Identity?.IsAuthenticated == true)
+            {
                 context.Succeed(requirement);
+            }
+                
             return Task.CompletedTask;
         }
         
@@ -24,6 +27,7 @@ public class VerificationHandler : AuthorizationHandler<VerificationRequirement>
             context.Succeed(requirement);
         }
 
+        context.Fail();
         return Task.CompletedTask;
     }
 }

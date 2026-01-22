@@ -58,7 +58,7 @@ namespace PetCenterAPI.Controllers
                     return ResultConverter.Convert<object>(cleared);
                 }
 
-                return ResultConverter.Convert<TResponse>(await service.Post(ent));
+                return ResultConverter.Convert<TResponse>(await service.Post(user_id,ent));
                               
                 
             }
@@ -80,7 +80,7 @@ namespace PetCenterAPI.Controllers
                 }
 
 
-                return ResultConverter.Convert<TResponse>(await service.Put(ent));
+                return ResultConverter.Convert<TResponse>(await service.Put(user_id,ent));
                               
                 
             }
@@ -101,7 +101,7 @@ namespace PetCenterAPI.Controllers
                     return ResultConverter.Convert<object>(cleared);
                 }
                
-                return ResultConverter.Convert<object>(await service.Delete(id));
+                return ResultConverter.Convert<object>(await service.Delete(user_id,id));
                               
                 
             }

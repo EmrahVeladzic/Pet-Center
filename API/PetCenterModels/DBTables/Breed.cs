@@ -6,6 +6,8 @@ using System.Linq;
 using System.Text;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
+using PetCenterServices;
 
 
 namespace PetCenterModels.DBTables
@@ -60,6 +62,13 @@ namespace PetCenterModels.DBTables
 
         [ForeignKey(nameof(AlbumId))]
         public Album? Album {get; set;}
+
+        public override async Task StageDeletion<T>(PetCenterDBContext ctx, DbSet<T> set)
+        {
+            if(await ctx.IndividualAnimals.Where(i=>i.BreedId==Id).ToListAsync() is List<Individual> i){foreach (Individual ind in i){await ind.StageDeletion<Individual>(ctx,ctx.IndividualAnimals);}}
+            if(await ctx.MedicalProcedureSpecifications.Where(m=>m.BreedId==Id).ToListAsync() is List<MedicalProcedureSpecification> m){foreach (MedicalProcedureSpecification med in m){await med.StageDeletion<MedicalProcedureSpecification>(ctx,ctx.MedicalProcedureSpecifications);}}
+            await base.StageDeletion(ctx, set);
+        }
 
     }
 }

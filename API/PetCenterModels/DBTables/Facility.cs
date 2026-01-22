@@ -6,6 +6,8 @@ using System.Linq;
 using System.Text;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
+using PetCenterServices;
 
 namespace PetCenterModels.DBTables
 {
@@ -17,8 +19,8 @@ namespace PetCenterModels.DBTables
         [JsonIgnore]
         public Guid FranchiseId { get; set; }
 
-        [Column("Address")]
-        public string? Address { get; set; }
+        [Column("Street")]
+        public string? Street { get; set; }
 
         [Column("City")]
         public string? City { get; set; }
@@ -26,5 +28,10 @@ namespace PetCenterModels.DBTables
         [Column("Contact")]        
         public string? Contact {  get; set; }
 
+        public override async Task StageDeletion<T>(PetCenterDBContext ctx, DbSet<T> set)
+        {
+            if(await ctx.ListingAvailable.Where(a=>a.FacilityId == Id).ToArrayAsync() is Available[] a){ctx.ListingAvailable.RemoveRange(a);}
+            await base.StageDeletion(ctx, set);
+        }
     }
 }

@@ -24,7 +24,7 @@ namespace PetCenterServices.Services
         }
 
        
-        public override async Task<ServiceOutput<AccountResponseDTO>> Post(AccountRequestDTO req)
+        public override async Task<ServiceOutput<AccountResponseDTO>> Post(Guid? token_holder,AccountRequestDTO req)
         {
               
             Account acc = new();
@@ -52,7 +52,7 @@ namespace PetCenterServices.Services
                 Registration reg = new();
                 reg.Expiry = DateTime.UtcNow.AddDays(7);
                 reg.NextAttempt = DateTime.UtcNow;
-                reg.AccountID = acc.Id;
+                reg.AccountId = acc.Id;
                 reg.Code = Crypto.GenerateCode();
                 await dbContext.Registrations.AddAsync(reg);
                 await dbContext.SaveChangesAsync();
@@ -73,7 +73,7 @@ namespace PetCenterServices.Services
             return ServiceOutput<AccountResponseDTO>.Success(AccountResponseDTO.FromEntity(acc),HttpCode.Created);
         }
 
-        public override async Task<ServiceOutput<AccountResponseDTO>> Put(AccountRequestDTO req)
+        public override async Task<ServiceOutput<AccountResponseDTO>> Put(Guid? token_holder,AccountRequestDTO req)
         {      
 
             Account? acc = await dbContext.Accounts.FindAsync(req.Id);
@@ -135,7 +135,7 @@ namespace PetCenterServices.Services
 
         public async Task<ServiceOutput<string>> RequestAccountVerification(Guid id)
         {
-            Registration? reg = await dbContext.Registrations.Include(r=>r.RelevantAccount).FirstOrDefaultAsync(r=>r.AccountID==id);
+            Registration? reg = await dbContext.Registrations.Include(r=>r.RelevantAccount).FirstOrDefaultAsync(r=>r.AccountId==id);
 
             if (reg != null)
             {
@@ -150,7 +150,7 @@ namespace PetCenterServices.Services
 
         public async Task<ServiceOutput<string>> VerifyAccount(Guid id, int code)
         {
-            Registration? reg = await dbContext.Registrations.Include(r => r.RelevantAccount).FirstOrDefaultAsync(r => r.AccountID == id);
+            Registration? reg = await dbContext.Registrations.Include(r => r.RelevantAccount).FirstOrDefaultAsync(r => r.AccountId == id);
 
             if(reg == null)
             {

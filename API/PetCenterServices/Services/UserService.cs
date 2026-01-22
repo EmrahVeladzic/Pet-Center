@@ -21,12 +21,12 @@ namespace PetCenterServices.Services
             dbSet = ctx.Users;
         }
 
-        public override Task<ServiceOutput<object>>Delete(Guid id)
+        public override Task<ServiceOutput<object>>Delete(Guid? token_holder,Guid id)
         {           
             return Task.FromResult(ServiceOutput<object>.Error(HttpCode.NotImplemented,"Illegal endpoint."));
         }
 
-        public override async Task<ServiceOutput<UserResponseDTO>> Put(UserRequestDTO ent)
+        public override async Task<ServiceOutput<UserResponseDTO>> Put(Guid? token_holder,UserRequestDTO ent)
         {
 
             User? current = await dbContext.Users.FindAsync(ent.Id);
@@ -44,7 +44,7 @@ namespace PetCenterServices.Services
 
         }
 
-        public override Task<ServiceOutput<UserResponseDTO>> Post(UserRequestDTO ent)
+        public override Task<ServiceOutput<UserResponseDTO>> Post(Guid? token_holder,UserRequestDTO ent)
         {
             return Task.FromResult(ServiceOutput<UserResponseDTO>.Error(HttpCode.NotImplemented,"Illegal endpoint."));
         }
@@ -79,7 +79,22 @@ namespace PetCenterServices.Services
             return ServiceOutput<object>.Success(null,HttpCode.NoContent);
         }
 
+        public override async Task<ServiceOutput<object>> IsClearedToDelete(Guid? token_holder, Guid resourceId)
+        {
+           User? usr = await dbContext.Users.FindAsync(resourceId);
+        
+            if(usr==null)
+            {
+                return ServiceOutput<object>.Error(HttpCode.NotFound,"The requested user does not exist.");
+            }
+        
+            if(usr.AccountId!=token_holder)
+            {
+                return ServiceOutput<object>.Error(HttpCode.Forbidden,"Token does not belong to user.");
+            }
 
+            return ServiceOutput<object>.Success(null,HttpCode.NoContent);
+        }
        
     }
 }

@@ -13,10 +13,10 @@ namespace PetCenterModels.DBTables
     public class Registration : BaseTableEntity
     {       
         [Column("AccountID")]
-        public Guid AccountID { get; set; }
+        public Guid AccountId { get; set; }
 
         [JsonIgnore]
-        [ForeignKey(nameof(AccountID))]
+        [ForeignKey(nameof(AccountId))]
         public Account? RelevantAccount { get; set; }
 
         [Column("Code")]

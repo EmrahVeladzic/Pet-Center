@@ -16,7 +16,7 @@ namespace PetCenterModels.DBTables
         public Guid FormId { get; set; }
 
         [Column("FormTemplateFieldID")]
-        public Guid FormTemplateId { get; set; }
+        public Guid FormTemplateFieldId { get; set; }
 
         [Column("Serialized")]
         public string? Serialized {get; set;}

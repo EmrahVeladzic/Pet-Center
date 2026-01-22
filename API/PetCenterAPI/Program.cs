@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using PetCenterModels.Requests;
@@ -96,6 +97,25 @@ PetCenterServices.Utils.Crypto.Configuration = builder.Configuration;
 
 var app = builder.Build();
 
+app.UseExceptionHandler(errorApp =>
+{
+    errorApp.Run(async context =>
+    {
+        var ex = context.Features
+        .Get<IExceptionHandlerFeature>()?
+        .Error;
+
+        if (app.Environment.IsDevelopment() && ex != null)
+        {
+            Console.WriteLine($"[ERROR] {ex.GetType().Name}: {ex.Message}");
+        }
+        
+
+        context.Response.StatusCode = 500;
+        await context.Response.WriteAsync("Internal server error");
+    });
+});
+
 
 app.UseRouting();
 
@@ -118,36 +138,55 @@ app.UseAuthentication();
 
 app.UseAuthorization();
 
-using (IServiceScope scope = app.Services.CreateScope())
+
+bool retry = true;
+while (retry)
 {
-    PetCenterDBContext ctx = scope.ServiceProvider.GetRequiredService<PetCenterDBContext>();
-    IAccountService svc = scope.ServiceProvider.GetRequiredService<IAccountService>();
-
-
-    if (!ctx.Accounts.Any())
+    try
     {
+        
 
-        IConfigurationSection instance_owner = builder.Configuration.GetSection("InstanceOwner");
-        AccountRequestDTO owner_req = new AccountRequestDTO(){
-            Contact = instance_owner["Contact"],            
-            Password = instance_owner["Password"],
-        };
+        using (IServiceScope scope = app.Services.CreateScope())
+        {
+            PetCenterDBContext ctx = scope.ServiceProvider.GetRequiredService<PetCenterDBContext>();
+            IAccountService svc = scope.ServiceProvider.GetRequiredService<IAccountService>();
+            
+                    
+                if (!ctx.Accounts.Any())
+                {
 
-        string? contact = Environment.GetEnvironmentVariable("INSTANCE_OWNER_CONTACT");
-        string? password = Environment.GetEnvironmentVariable("INSTANCE_OWNER_PASSWORD");
+                    IConfigurationSection instance_owner = builder.Configuration.GetSection("InstanceOwner");
+                    AccountRequestDTO owner_req = new AccountRequestDTO(){
+                        Contact = instance_owner["Contact"],            
+                        Password = instance_owner["Password"],
+                    };
 
-        if (!string.IsNullOrWhiteSpace(contact) && !string.IsNullOrWhiteSpace(password)){
+                    string? contact = Environment.GetEnvironmentVariable("INSTANCE_OWNER_CONTACT");
+                    string? password = Environment.GetEnvironmentVariable("INSTANCE_OWNER_PASSWORD");
 
-            owner_req.Contact = contact;
-            owner_req.Password = password;
+                    if (!string.IsNullOrWhiteSpace(contact) && !string.IsNullOrWhiteSpace(password)){
 
-        }
+                        owner_req.Contact = contact;
+                        owner_req.Password = password;
+
+                    }
 
 
-        await svc.Post(owner_req);
+                    await svc.Post(null,owner_req);
 
+                }
+
+            }
     }
+    catch
+    {
+        retry = true;
+        await Task.Delay(2500);
+    }
+
 }
+    
+
 
 
 
