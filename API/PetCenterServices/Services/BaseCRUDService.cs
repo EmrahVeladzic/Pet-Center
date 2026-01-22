@@ -44,7 +44,7 @@ namespace PetCenterServices.Services
             
         }
 
-        public virtual async Task<ServiceOutput<TResponse>> Post(TRequest req)
+        public virtual async Task<ServiceOutput<TResponse>> Post(Guid? token_holder,TRequest req)
         {
             bool valid = req.Validate();
             if (!valid)
@@ -68,7 +68,7 @@ namespace PetCenterServices.Services
 
         }
 
-        public virtual async Task<ServiceOutput<TResponse>> Put(TRequest req)
+        public virtual async Task<ServiceOutput<TResponse>> Put(Guid? token_holder,TRequest req)
         {      
 
             TEntity? ent = await dbSet.FindAsync(req.Id);
@@ -97,12 +97,12 @@ namespace PetCenterServices.Services
             return ServiceOutput<TResponse>.Error(HttpCode.NotFound,"No resource with this ID exists.");
         }
 
-        public virtual async Task <ServiceOutput<object>> Delete(Guid id)
+        public virtual async Task <ServiceOutput<object>> Delete(Guid? token_holder,Guid id)
         {
             TEntity? current = await dbSet.FindAsync(id);
             if (current != null)
             {
-                dbSet.Remove(current);
+                await current.StageDeletion<TEntity>(dbContext,dbSet);
                 await dbContext.SaveChangesAsync();                
             }
 

@@ -32,7 +32,7 @@ namespace PetCenterAPI.Controllers
                 return ResultConverter.Convert<object>(cleared);
             }
 
-            return ResultConverter.Convert<AccountResponseDTO>(await service.Post(req));
+            return ResultConverter.Convert<AccountResponseDTO>(await service.Post(null,req));
             
         }
 

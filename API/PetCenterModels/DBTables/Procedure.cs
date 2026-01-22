@@ -6,6 +6,8 @@ using System.Linq;
 using System.Text;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
+using PetCenterServices;
 
 
 namespace PetCenterModels.DBTables
@@ -18,6 +20,12 @@ namespace PetCenterModels.DBTables
         [Column("ProcedureDescription")]
         public string? Description {get; set;}
 
+        public override async Task StageDeletion<T>(PetCenterDBContext ctx, DbSet<T> set)
+        {
+            if(await ctx.MedicalProcedureSpecifications.Where(s=>s.ProcedureId == Id).ToArrayAsync() is MedicalProcedureSpecification[] s){ctx.MedicalProcedureSpecifications.RemoveRange(s);}
+            if(await ctx.MedicalRecordEntries.Where(m=>m.ProcedureId==Id).ToArrayAsync() is MedicalRecordEntry[] m){ctx.MedicalRecordEntries.RemoveRange(m);}
+            await base.StageDeletion(ctx, set);
+        }
 
     }
 }

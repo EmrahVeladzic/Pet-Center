@@ -18,19 +18,13 @@ namespace PetCenterModels.DBTables
         [ForeignKey(nameof(PosterId))]
         public User? Poster {  get; set; }
 
-        [NotMapped]
-        public string PosterName => Poster?.UserName ?? "Null";
-
         [Column("Contents")]
         public string? Message { get; set; }
         [Column("Creation")]
         public DateTime PostDate { get; set; }
-        [Column("Edited")]
-        public bool Edited { get; set; }
-        [Column("ParentCommentID")]
-        public Guid? ReplyingTo { get; set; }
-        [Column("ThreadID")]
-        public Guid ThreadId { get; set; }
+       
+        [Column("ListingID")]
+        public Guid ListingId { get; set; }
 
     }
 }

@@ -30,7 +30,6 @@ namespace PetCenterServices
         public DbSet<Franchise> Franchises { get;set; }
         public DbSet<Listing> Listings { get; set; }
         public DbSet<Registration> Registrations { get; set; }
-        public DbSet<DiscussionThread> Threads {get; set;}
         public DbSet<Comment> Comments {get; set;}
         public DbSet<Kind> AnimalKinds {get; set;}
         public DbSet<Breed> AnimalBreeds {get;set;}
@@ -39,6 +38,17 @@ namespace PetCenterServices
         public DbSet<MedicalProcedureSpecification> MedicalProcedureSpecifications {get;set;}
         public DbSet<MedicalRecordEntry> MedicalRecordEntries {get;set;}
 
+        public DbSet<FormTemplate> FormTemplates {get;set;}
+        public DbSet<FormTemplateField> FormTemplateFields {get;set;}
+        public DbSet<FormFieldEntry> FormFieldEntries {get;set;}
+        public DbSet<Form> Forms {get;set;}
+
+        public DbSet<Category> Categories { get; set; }
+        public DbSet<Item> Items { get; set; }
+
+        public DbSet<Wishlist> Wishlists {get;set;}
+
+        public DbSet<Available> ListingAvailable { get; set; }
 
     }
 }

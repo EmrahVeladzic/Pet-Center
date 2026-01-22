@@ -21,10 +21,6 @@ namespace PetCenterModels.DBTables
         [Column("OwnerID")]
         public Guid PosterID {get; set;}
 
-
-        [NotMapped]
-        public List<Image>? Images { get; set; }
-
         public Album()
         {
             Reserved=0;

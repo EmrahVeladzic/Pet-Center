@@ -20,7 +20,7 @@ namespace PetCenterServices.Services
             dbSet = ctx.Images;
         }
 
-        public override async Task<ServiceOutput<object>> Delete(Guid id)
+        public override async Task<ServiceOutput<object>> Delete(Guid? token_holder,Guid id)
         {
             Image? img = await dbContext.Images.FindAsync(id);
 
@@ -41,7 +41,7 @@ namespace PetCenterServices.Services
 
         }
 
-        public override async Task<ServiceOutput<ImageDTO>> Put(ImageDTO image)
+        public override async Task<ServiceOutput<ImageDTO>> Put(Guid? token_holder,ImageDTO image)
         {
             Image? img = await dbContext.Images.FindAsync(image.Id);
 
@@ -71,7 +71,7 @@ namespace PetCenterServices.Services
             return ServiceOutput<ImageDTO>.Error(HttpCode.NotFound,"No image with this ID exists.");
         }
 
-        public override async Task<ServiceOutput<ImageDTO>> Post(ImageDTO img)
+        public override async Task<ServiceOutput<ImageDTO>> Post(Guid? token_holder,ImageDTO img)
         {
             Album? album = await dbContext.Albums.FindAsync(img.AlbumInsertId);
 
