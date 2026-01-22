@@ -13,6 +13,12 @@ namespace PetCenterModels.DBTables
     [Table("Item",Schema ="Product")]
     public class Item : BaseTableEntity
     {
+        [Column("Title")]
+        public string? Title { get; set; }
+
+        [Column("AlbumID")]
+        public Guid? AlbumId { get; set; }
+
         [Column("CategoryID")]
         public Guid CategoryId { get; set; }
 

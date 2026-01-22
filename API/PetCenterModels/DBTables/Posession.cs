@@ -10,17 +10,18 @@ using PetCenterServices;
 
 namespace PetCenterModels.DBTables
 {
-    [Table("Available", Schema = "Offer")]
-    public class Available : BaseTableEntity
-    {   
-        [Column("ListingID")]
-        public Guid ListingId { get; set; }
+    [Table("Posession", Schema="Animal")]
+    public class Posession : BaseTableEntity
+    {
+        [Column("OwnerID")]
+        public Guid? OwnerId {get;set;}
 
-        [Column("FacilityID")]
-        public Guid FacilityId { get; set; }
+        [Column("ShelterID")]
+        public Guid? ShelterId {get;set;}
 
-        [Column("Stock")]
-        public short? Stock { get; set; }
+        public bool Owned {get;set;}
+
+
     }
     
 }

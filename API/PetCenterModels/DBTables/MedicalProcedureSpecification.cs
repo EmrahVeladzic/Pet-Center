@@ -36,12 +36,13 @@ namespace PetCenterModels.DBTables
             true=> "Male",
             false=> "Female",
             null => "Both"
-        };
-
-        
+        };        
 
         [Column("Optional")]
         public bool Optional {get; set;}
+
+        [Column("IntervalDays")]
+        public short? IntervalDays {get; set;}
 
     }
 }
