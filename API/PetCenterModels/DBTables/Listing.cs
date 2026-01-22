@@ -44,6 +44,9 @@ namespace PetCenterModels.DBTables
         [Column("Expiry")]
         public DateTime Expiry { get; set; }
 
+        [Column("Approved")]
+        public bool Approved { get; set; }
+
         [JsonIgnore]
         [ForeignKey(nameof(FranchiseId))]
         public Franchise? Business {  get; set; }
@@ -58,6 +61,9 @@ namespace PetCenterModels.DBTables
 
         public override async Task StageDeletion<T>(PetCenterDBContext ctx, DbSet<T> set)
         {
+            if(await ctx.AnimalListings.FirstOrDefaultAsync(a=>a.Id == Id) is AnimalListing al){ctx.AnimalListings.Remove(al);}
+            if(await ctx.ProductListings.FirstOrDefaultAsync(p=>p.Id == Id) is ProductListing pl){ctx.ProductListings.Remove(pl);}
+            if(await ctx.MedicalListings.FirstOrDefaultAsync(m=>m.Id == Id) is MedicalListing ml){ctx.MedicalListings.Remove(ml);}
             if(await ctx.ListingAvailable.Where(a=>a.ListingId == Id).ToArrayAsync() is Available[] a){ctx.ListingAvailable.RemoveRange(a);}
             if(await ctx.Comments.Where(c=>c.ListingId==Id).ToArrayAsync() is Comment[] c){ctx.Comments.RemoveRange(c);}
             await base.StageDeletion(ctx, set);

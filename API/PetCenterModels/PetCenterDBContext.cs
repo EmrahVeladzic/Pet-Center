@@ -50,5 +50,15 @@ namespace PetCenterServices
 
         public DbSet<Available> ListingAvailable { get; set; }
 
+        public DbSet<EmployeeRecord> EmployeeRecords {get;set;}
+
+        public DbSet<Posession> AnimalPosessionRecords {get;set;}
+
+        public DbSet<ProductListing> ProductListings {get;set;}
+
+        public DbSet<MedicalListing> MedicalListings {get;set;}
+
+        public DbSet<AnimalListing> AnimalListings {get;set;}
+
     }
 }

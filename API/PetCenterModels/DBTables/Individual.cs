@@ -36,6 +36,7 @@ namespace PetCenterModels.DBTables
 
         public override async Task StageDeletion<T>(PetCenterDBContext ctx, DbSet<T> set)
         {
+            if(await ctx.AnimalPosessionRecords.Where(p=>p.Id==Id).FirstOrDefaultAsync() is Posession p){ctx.AnimalPosessionRecords.Remove(p);}
             if(await ctx.MedicalRecordEntries.Where(m=>m.AnimalId==Id).ToArrayAsync() is MedicalRecordEntry[] m){ctx.MedicalRecordEntries.RemoveRange(m);}
             await base.StageDeletion(ctx, set);
         }
