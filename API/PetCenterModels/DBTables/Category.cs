@@ -22,6 +22,7 @@ namespace PetCenterModels.DBTables
         public override async Task StageDeletion<T>(PetCenterDBContext ctx, DbSet<T> set)
         {
             if(await ctx.Items.Where(i=>i.CategoryId==Id).ToListAsync() is List<Item> i){foreach(Item itm in i){await itm.StageDeletion<Item>(ctx,ctx.Items);}}
+            if(await ctx.UsageEstimates.Where(u=>u.CategoryId==Id).ToListAsync() is List<Usage> u){foreach(Usage use in u){await use.StageDeletion<Usage>(ctx,ctx.UsageEstimates);}}
             await base.StageDeletion(ctx, set);
         }
     }

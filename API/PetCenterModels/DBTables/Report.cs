@@ -10,15 +10,19 @@ using PetCenterServices;
 
 namespace PetCenterModels.DBTables
 {
-    [Table("Available", Schema = "Offer")]
-    public class Available : BaseTableEntity
-    {   
+    [Table("Report", Schema = "Communication")]
+    public class Report : ExpirableTableEntity
+    {
+
         [Column("ListingID")]
         public Guid ListingId { get; set; }
 
-        [Column("FacilityID")]
-        public Guid FacilityId { get; set; }
+        [Column("CommentID")]
+        public Guid? CommentId { get; set; }
+
+        [Column("Reason")]
+        public string? Reason { get; set; }
+
 
     }
-    
 }

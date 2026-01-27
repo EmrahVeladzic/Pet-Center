@@ -12,13 +12,10 @@ using PetCenterServices;
 namespace PetCenterModels.DBTables
 {
     [Table("Form", Schema = "Pending")]
-    public class Form : BaseTableEntity
+    public class Form : AlbumIncludingTableEntity
     {
         [Column("FormTemplateID")]
         public Guid FormTemplateId { get; set; }
-
-        [Column("Expiry")]
-        public DateTime Expiry {  get; set; }
 
         [JsonIgnore]
         [Column("UserID")]
@@ -27,19 +24,12 @@ namespace PetCenterModels.DBTables
         [ForeignKey(nameof(UserId))]
         public User? RelevantUser {get; set;}
 
-        [JsonIgnore]
-        [Column("AlbumID")]
-        public Guid AlbumId {get; set;}
-
-        [ForeignKey(nameof(AlbumId))]
-        public Album? Attachment {get; set;}
-
         [NotMapped]
         public List<FormFieldEntry>? Entries {get; set;}
 
         public override async Task StageDeletion<T>(PetCenterDBContext ctx, DbSet<T> set)
         {
-            if(await ctx.FormFieldEntries.Where(f=>f.FormId==Id).ToListAsync() is List<FormFieldEntry> f){foreach(FormFieldEntry ffe in f){await ffe.StageDeletion<FormFieldEntry>(ctx,ctx.FormFieldEntries);}}
+            if(await ctx.FormFieldEntries.Where(f=>f.FormId==Id).ToArrayAsync() is FormFieldEntry[] f){ctx.FormFieldEntries.RemoveRange(f);}
             await base.StageDeletion(ctx, set);
         }
     }

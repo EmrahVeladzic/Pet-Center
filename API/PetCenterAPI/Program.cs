@@ -112,7 +112,7 @@ app.UseExceptionHandler(errorApp =>
         
 
         context.Response.StatusCode = 500;
-        await context.Response.WriteAsync("Internal server error");
+        await context.Response.WriteAsync("Internal server error.");
     });
 });
 

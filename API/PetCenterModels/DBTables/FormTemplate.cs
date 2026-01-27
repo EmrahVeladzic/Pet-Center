@@ -23,7 +23,7 @@ namespace PetCenterModels.DBTables
         public override async Task StageDeletion<T>(PetCenterDBContext ctx, DbSet<T> set)
         {
             if(await ctx.Forms.Where(f=>f.FormTemplateId==Id).ToListAsync() is List<Form> f){foreach(Form frm in f){await frm.StageDeletion<Form>(ctx,ctx.Forms);}}
-            if(await ctx.FormTemplateFields.Where(t=>t.FormTemplateId==Id).ToArrayAsync() is FormTemplateField[] t){ctx.FormTemplateFields.RemoveRange(t);}
+            if(await ctx.FormTemplateFields.Where(t=>t.FormTemplateId==Id).ToListAsync() is List<FormTemplateField> t){foreach(FormTemplateField ftf in t){await ftf.StageDeletion<FormTemplateField>(ctx,ctx.FormTemplateFields);}}
             await base.StageDeletion(ctx, set);
         }
         

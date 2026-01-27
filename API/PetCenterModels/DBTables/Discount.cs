@@ -10,15 +10,14 @@ using PetCenterServices;
 
 namespace PetCenterModels.DBTables
 {
-    [Table("Available", Schema = "Offer")]
-    public class Available : BaseTableEntity
-    {   
+    public class Discount : ExpirableTableEntity
+    {
         [Column("ListingID")]
-        public Guid ListingId { get; set; }
+        public Guid? ListingId { get; set; }
 
-        [Column("FacilityID")]
-        public Guid FacilityId { get; set; }
+        [Column("PercentDiscount")]
+        public byte PercentDiscount { get; set; }
+
 
     }
-    
 }

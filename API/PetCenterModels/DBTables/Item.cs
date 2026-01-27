@@ -16,9 +16,6 @@ namespace PetCenterModels.DBTables
         [Column("Title")]
         public string? Title { get; set; }
 
-        [Column("AlbumID")]
-        public Guid? AlbumId { get; set; }
-
         [Column("CategoryID")]
         public Guid CategoryId { get; set; }
 
@@ -30,6 +27,12 @@ namespace PetCenterModels.DBTables
 
         [Column("MassGrams")]
         public int MassGrams { get; set; }
+
+        public override async Task StageDeletion<T>(PetCenterDBContext ctx, DbSet<T> set)
+        {
+            if(await ctx.ProductListings.Where(p=>p.ProductId==Id).ToListAsync() is List<ProductListing> p){foreach(ProductListing pl in p){await pl.StageDeletion<ProductListing>(ctx,ctx.ProductListings);}}
+            await base.StageDeletion(ctx, set);
+        }
 
     }
 }

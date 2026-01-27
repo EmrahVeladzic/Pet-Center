@@ -37,28 +37,27 @@ namespace PetCenterServices
         public DbSet<Procedure> MedicalProcedures {get;set;}
         public DbSet<MedicalProcedureSpecification> MedicalProcedureSpecifications {get;set;}
         public DbSet<MedicalRecordEntry> MedicalRecordEntries {get;set;}
-
         public DbSet<FormTemplate> FormTemplates {get;set;}
         public DbSet<FormTemplateField> FormTemplateFields {get;set;}
         public DbSet<FormFieldEntry> FormFieldEntries {get;set;}
         public DbSet<Form> Forms {get;set;}
-
         public DbSet<Category> Categories { get; set; }
         public DbSet<Item> Items { get; set; }
-
         public DbSet<Wishlist> Wishlists {get;set;}
-
+        public DbSet<Notification> Notifications {get;set;}
         public DbSet<Available> ListingAvailable { get; set; }
-
+        public DbSet<Announcement> Announcements {get;set;}
         public DbSet<EmployeeRecord> EmployeeRecords {get;set;}
-
-        public DbSet<Posession> AnimalPosessionRecords {get;set;}
-
+        public DbSet<Report> Reports {get;set;}
         public DbSet<ProductListing> ProductListings {get;set;}
-
         public DbSet<MedicalListing> MedicalListings {get;set;}
-
         public DbSet<AnimalListing> AnimalListings {get;set;}
+        public DbSet<Confirmation> Confirmations {get;set;}
+        public DbSet<Usage> UsageEstimates {get;set;}
+        public DbSet<Supplies> SupplyRecords {get;set;}
+        public DbSet<Discount> Discounts {get;set;}
+        public DbSet<LivingConditionField> LivingConditionFields {get;set;}
+        public DbSet<LivingConditionEntry> LivingConditionEntries {get;set;}
 
     }
 }

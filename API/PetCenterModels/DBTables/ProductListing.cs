@@ -20,6 +20,9 @@ namespace PetCenterModels.DBTables
         [ForeignKey(nameof(ProductId))]
         public Item? Product { get; set; }
 
+        [Column("PerListing")]
+        public byte PerListing {get; set;}
+
 
         public override async Task StageDeletion<T>(PetCenterDBContext ctx, DbSet<T> set)
         {

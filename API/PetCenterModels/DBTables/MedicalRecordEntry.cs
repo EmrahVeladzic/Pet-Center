@@ -20,9 +20,6 @@ namespace PetCenterModels.DBTables
         [Column("AnimalID")]
         public Guid AnimalId {get; set;}
 
-        [Column("Notes")]
-        public string? Notes {get; set;}
-
         [Column("DatePerformed")]
         public DateTime DatePerformed {get; set;}
 

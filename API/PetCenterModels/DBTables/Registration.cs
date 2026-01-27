@@ -12,7 +12,7 @@ using PetCenterServices;
 namespace PetCenterModels.DBTables
 {
     [Table("Registration", Schema = "Pending")]
-    public class Registration : BaseTableEntity
+    public class Registration : ExpirableTableEntity
     {       
         [Column("AccountID")]
         public Guid AccountId { get; set; }
@@ -23,9 +23,6 @@ namespace PetCenterModels.DBTables
 
         [Column("Code")]
         public int Code { get; set; }
-
-        [Column("Expiry")]
-        public DateTime Expiry {  get; set; }
 
 
         [Column("NextAttempt")]
