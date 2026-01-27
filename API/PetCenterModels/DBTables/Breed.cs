@@ -20,15 +20,8 @@ namespace PetCenterModels.DBTables
         Large = 2
     }
 
-    public enum AnimalDiet : byte
-    {
-        Herbivore = 0x1,
-        Carnivore = 0x2,
-        Omnivore = 0x3
-    }
-
     [Table("Breed",Schema ="Animal")]
-    public class Breed:BaseTableEntity
+    public class Breed:AlbumIncludingTableEntity
     {
         [Column("Title")]
         public string? Title {get; set;}
@@ -38,9 +31,6 @@ namespace PetCenterModels.DBTables
 
         [Column("Scale")]
         public AnimalScale Scale {get; set;}
-
-        [Column("Diet")]
-        public AnimalDiet Diet {get; set;}
 
         [Column("Investment")]
         public float Investment {get; set;}
@@ -57,11 +47,6 @@ namespace PetCenterModels.DBTables
         [Column("Cohabitation")]
         public float Cohabitation {get; set;}
 
-        [Column("AlbumID")]
-        public Guid AlbumId {get; set;}
-
-        [ForeignKey(nameof(AlbumId))]
-        public Album? Album {get; set;}
 
         public override async Task StageDeletion<T>(PetCenterDBContext ctx, DbSet<T> set)
         {

@@ -19,7 +19,7 @@ namespace PetCenterModels.DBTables
         public short Height { get; set; }
         [Column("ImageData")]
         public string? Data { get; set; }
-        [Column("AlbumID")]
+        [Column("OwningAlbumID")]
         [JsonIgnore]
         public Guid AlbumId { get; set; }
 

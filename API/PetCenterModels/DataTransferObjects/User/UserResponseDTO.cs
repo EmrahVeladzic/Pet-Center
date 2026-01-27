@@ -25,7 +25,7 @@ namespace PetCenterModels.Requests
             {
                 Id=usr.Id,
                 UserName=usr.UserName,
-                AlbumId = usr.PictureId
+                AlbumId = usr.AlbumId
             };
         }
     }

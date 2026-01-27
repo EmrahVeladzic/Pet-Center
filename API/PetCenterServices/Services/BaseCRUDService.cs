@@ -25,6 +25,14 @@ namespace PetCenterServices.Services
             dbSet = dbContext.Set<TEntity>();
         }
 
+        public virtual async Task<ServiceOutput<int>> Count(TSearch search)
+        {
+            int count = await dbSet.CountAsync();
+            int pageCount = (int)Math.Ceiling((double)count / search.PageSize);
+            return ServiceOutput<int>.Success(pageCount);
+        }
+
+
         public virtual async Task<ServiceOutput<List<TResponse>>> Get(TSearch search)
         {
             List<TEntity> entities = await dbSet.OrderBy(o=>o.Id).Skip(search.Page*search.PageSize).Take(search.PageSize).ToListAsync();

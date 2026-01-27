@@ -14,7 +14,7 @@ namespace PetCenterModels.DBTables
 {
 
     [Table("Individual",Schema ="Animal")]
-    public class Individual:BaseTableEntity
+    public class Individual:AlbumIncludingTableEntity
     {
         [Column("BreedID")]
         public Guid BreedId {get; set;}
@@ -25,19 +25,21 @@ namespace PetCenterModels.DBTables
         [Column("BirthDate")]
         public DateTime BirthDate {get; set;}
 
-        [Column("AlbumID")]
-        public Guid AlbumId {get; set;}
-
         [Column("Sex")]
-        public bool Sex {get; set;}
+        public bool Sex {get; set;}       
 
-        [ForeignKey(nameof(AlbumId))]
-        public Album? Album {get; set;}
+        [Column("OwnerID")]
+        public Guid? OwnerId {get;set;}
+
+        [Column("ShelterID")]
+        public Guid? ShelterId {get;set;}
+
+        public bool Owned {get;set;}
 
         public override async Task StageDeletion<T>(PetCenterDBContext ctx, DbSet<T> set)
         {
-            if(await ctx.AnimalPosessionRecords.Where(p=>p.Id==Id).FirstOrDefaultAsync() is Posession p){ctx.AnimalPosessionRecords.Remove(p);}
             if(await ctx.MedicalRecordEntries.Where(m=>m.AnimalId==Id).ToArrayAsync() is MedicalRecordEntry[] m){ctx.MedicalRecordEntries.RemoveRange(m);}
+            if(await ctx.AnimalListings.FirstOrDefaultAsync(a=>a.AnimalId==Id) is AnimalListing a){await a.StageDeletion<AnimalListing>(ctx,ctx.AnimalListings);}
             await base.StageDeletion(ctx, set);
         }
 

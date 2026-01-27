@@ -15,8 +15,7 @@ namespace PetCenterModels.DBTables
     {
         Owner = 255,
         Admin = 254,
-        BusinessManager = 2,
-        BusinessEmployee = 1,
+        BusinessAccount = 1,
         User = 0
     }
 

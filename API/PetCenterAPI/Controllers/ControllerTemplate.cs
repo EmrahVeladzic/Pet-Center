@@ -45,6 +45,12 @@ namespace PetCenterAPI.Controllers
         }
 
 
+        [HttpGet("count")]
+        public virtual async Task<IActionResult> Count([FromQuery] TSearch search)
+        {
+            return ResultConverter.Convert<int>(await service.Count(search));
+        }
+
     
         [HttpPost]
         public virtual async Task<IActionResult> Post([FromBody] TRequest ent)

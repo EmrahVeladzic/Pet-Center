@@ -12,7 +12,7 @@ using PetCenterServices;
 namespace PetCenterModels.DBTables
 {
     [Table("Franchise", Schema = "Business")]
-    public class Franchise : BaseTableEntity
+    public class Franchise : AlbumIncludingTableEntity
     {
         [Column("OwnerID")]
         [JsonIgnore]
@@ -26,13 +26,6 @@ namespace PetCenterModels.DBTables
         [Column("FranchiseName")]
         public string? FranchiseName { get; set; }
 
-        [Column("LogoID")]
-        [JsonIgnore]
-        public Guid LogoId { get; set; }
-
-        [ForeignKey(nameof(LogoId))]
-        public Album? Logo { get; set; }
-
         [Column("DefaultContact")]        
         public string? Contact {  get; set; }
 
@@ -41,10 +34,11 @@ namespace PetCenterModels.DBTables
 
         public override async Task StageDeletion<T>(PetCenterDBContext ctx, DbSet<T> set)
         {
-            if(await ctx.AnimalPosessionRecords.Where(p=>p.ShelterId==Id && p.Owned==false).ToListAsync() is List<Posession> p){foreach(Posession pos in p){Individual? ind = await ctx.IndividualAnimals.FindAsync(pos.Id); if(ind!=null){await ind.StageDeletion<Individual>(ctx,ctx.IndividualAnimals);}}}
+            if(await ctx.IndividualAnimals.Where(a=>a.ShelterId==Id && a.Owned==false).ToListAsync() is List<Individual> a){foreach(Individual ind in a){await ind.StageDeletion<Individual>(ctx,ctx.IndividualAnimals);}}
             if(await ctx.Listings.Where(l=>l.FranchiseId==Id).ToListAsync() is List<Listing> l){foreach(Listing lst in l){await lst.StageDeletion<Listing>(ctx,ctx.Listings);}}
             if(await ctx.EmployeeRecords.Where(e=>e.FranchiseId==Id).ToArrayAsync() is EmployeeRecord []e){ctx.EmployeeRecords.RemoveRange(e);}
             if(await ctx.Facilities.Where(f=>f.FranchiseId==Id).ToListAsync() is List<Facility> f){foreach(Facility fac in f){await fac.StageDeletion<Facility>(ctx,ctx.Facilities);}}
+            if(await ctx.Notifications.Where(n=>n.FranchiseId==Id).ToArrayAsync() is Notification[] n){ctx.Notifications.RemoveRange(n);}
             await base.StageDeletion(ctx, set);
         }
 

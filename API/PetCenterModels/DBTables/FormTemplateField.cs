@@ -11,15 +11,7 @@ using PetCenterServices;
 
 namespace PetCenterModels.DBTables
 {
-    public enum DataType : byte
-    {
-        String = 0,
-        Integer = 1,       
-        Double = 2,
-        Boolean = 3,
-        DateTime = 4
-    }
-
+  
     [Table("FormTemplateField", Schema = "Business")]
     public class FormTemplateField : BaseTableEntity
     {
@@ -29,15 +21,13 @@ namespace PetCenterModels.DBTables
         [Column("FormFieldDescription")]
         public string? Description {get; set;}
 
-        [Column("DataType")]
-        public DataType DataType {get; set;}
-       
+
         [Column("Optional")]
         public bool Optional {get; set;}
 
         public override async Task StageDeletion<T>(PetCenterDBContext ctx, DbSet<T> set)
         {
-            if(await ctx.FormFieldEntries.Where(f=>f.FormTemplateFieldId==Id).ToListAsync() is List<FormFieldEntry> f){foreach(FormFieldEntry ffe in f){await ffe.StageDeletion<FormFieldEntry>(ctx,ctx.FormFieldEntries);}}
+            if(await ctx.FormFieldEntries.Where(f=>f.FormTemplateFieldId==Id).ToArrayAsync() is FormFieldEntry[] f){ctx.FormFieldEntries.RemoveRange(f);}
             await base.StageDeletion(ctx, set);
         }
         

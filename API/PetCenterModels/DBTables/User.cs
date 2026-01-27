@@ -12,7 +12,7 @@ using PetCenterServices;
 namespace PetCenterModels.DBTables
 {
     [Table("User", Schema = "Person")]
-    public class User : BaseTableEntity
+    public class User : AlbumIncludingTableEntity
     {
         [Column("AccountID")]
         [JsonIgnore]
@@ -25,20 +25,15 @@ namespace PetCenterModels.DBTables
         [Column("UserName")]
         public string? UserName { get; set; }
 
-        [Column("ProfilePictureID")]
-        [JsonIgnore]
-        public Guid PictureId { get; set; }
-
-        [ForeignKey(nameof(PictureId))]
-        public Album? Picture { get; set; }
 
         public override async Task StageDeletion<T>(PetCenterDBContext ctx, DbSet<T> set)
         {
-            if(await ctx.AnimalPosessionRecords.Where(p=>p.OwnerId==Id && p.Owned==true).ToListAsync() is List<Posession> p){foreach(Posession pos in p){Individual? ind = await ctx.IndividualAnimals.FindAsync(pos.Id); if(ind!=null){await ind.StageDeletion<Individual>(ctx,ctx.IndividualAnimals);}}}
+            if(await ctx.Franchises.Where(f=>f.OwnerId==Id).ToListAsync() is List<Franchise> fr){foreach(Franchise fran in fr){await fran.StageDeletion<Franchise>(ctx,ctx.Franchises);}}
+            if(await ctx.IndividualAnimals.Where(a=>a.OwnerId==Id && a.Owned==true).ToListAsync() is List<Individual> a){foreach(Individual ind in a){await ind.StageDeletion<Individual>(ctx,ctx.IndividualAnimals);}}
             if(await ctx.Forms.Where(f=>f.UserId==Id).ToListAsync() is List<Form>f){foreach(Form frm in f){await frm.StageDeletion<Form>(ctx,ctx.Forms);}}
-            if(await ctx.Comments.Where(c=>c.PosterId==Id).ToArrayAsync() is Comment[] c){ctx.Comments.RemoveRange(c);}
-            if(await ctx.Wishlists.Where(w=>w.UserId==Id).ToArrayAsync() is Wishlist[] w){ctx.Wishlists.RemoveRange(w);}
+            if(await ctx.Comments.Where(c=>c.PosterId==Id).ToListAsync() is List<Comment> c){foreach(Comment com in c){await com.StageDeletion<Comment>(ctx,ctx.Comments);}}
             if(await ctx.EmployeeRecords.Where(e=>e.UserId==Id).ToArrayAsync() is EmployeeRecord []e){ctx.EmployeeRecords.RemoveRange(e);}
+            if(await ctx.Confirmations.Where(c=>c.UserId==Id).ToArrayAsync() is Confirmation[] con){ctx.Confirmations.RemoveRange(con);}
         }
     }
 }

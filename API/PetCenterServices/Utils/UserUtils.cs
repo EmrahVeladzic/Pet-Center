@@ -32,9 +32,8 @@ namespace PetCenterServices.Utils
             switch (input)
             {
                 case Access.Owner: return "Owner";
-                case Access.Admin: return "Admin";
-                case Access.BusinessManager: return "Manager";
-                case Access.BusinessEmployee: return "Employee";
+                case Access.Admin: return "Admin";                
+                case Access.BusinessAccount: return "Employee";
                 default: return "User";
             }
         }

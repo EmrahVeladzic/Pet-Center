@@ -21,7 +21,7 @@ namespace PetCenterModels.DBTables
     }
 
     [Table("Listing", Schema = "Offer")]
-    public class Listing : BaseTableEntity
+    public class Listing : AlbumIncludingTableEntity
     {
         [Column("ListingName")]
         public string? ListingName { get; set; }
@@ -34,15 +34,12 @@ namespace PetCenterModels.DBTables
         [Column("PriceMinor")]
         public long PriceMinor {get; set;}
 
-        [Column("AlbumID")]
-        [JsonIgnore]
-        public Guid AlbumId { get; set; }
 
         [Column("FranchiseID")]
         public Guid? FranchiseId { get; set; }
 
-        [Column("Expiry")]
-        public DateTime Expiry { get; set; }
+        [Column("Visible")]
+        public bool Visible { get; set; }
 
         [Column("Approved")]
         public bool Approved { get; set; }
@@ -51,9 +48,6 @@ namespace PetCenterModels.DBTables
         [ForeignKey(nameof(FranchiseId))]
         public Franchise? Business {  get; set; }
 
-       
-        [ForeignKey(nameof(AlbumId))]
-        public Album? Images { get; set; }
 
         [NotMapped]
         public List<Comment>? Comments { get; set; }
@@ -65,7 +59,10 @@ namespace PetCenterModels.DBTables
             if(await ctx.ProductListings.FirstOrDefaultAsync(p=>p.Id == Id) is ProductListing pl){ctx.ProductListings.Remove(pl);}
             if(await ctx.MedicalListings.FirstOrDefaultAsync(m=>m.Id == Id) is MedicalListing ml){ctx.MedicalListings.Remove(ml);}
             if(await ctx.ListingAvailable.Where(a=>a.ListingId == Id).ToArrayAsync() is Available[] a){ctx.ListingAvailable.RemoveRange(a);}
-            if(await ctx.Comments.Where(c=>c.ListingId==Id).ToArrayAsync() is Comment[] c){ctx.Comments.RemoveRange(c);}
+            if(await ctx.Comments.Where(c=>c.ListingId==Id).ToListAsync() is List<Comment> c){foreach(Comment comm in c){await comm.StageDeletion(ctx, ctx.Comments);}}
+            if(await ctx.Notifications.Where(n=>n.ListingId==Id).ToArrayAsync() is Notification[] n){ctx.Notifications.RemoveRange(n);}
+            if(await ctx.Reports.Where(r=>r.ListingId==Id).ToArrayAsync() is Report[] r){ctx.Reports.RemoveRange(r);}
+            if(await ctx.Confirmations.Where(cf=>cf.ListingId==Id).ToArrayAsync() is Confirmation[] cf){ctx.Confirmations.RemoveRange(cf);}
             await base.StageDeletion(ctx, set);
         }
 

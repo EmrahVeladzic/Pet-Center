@@ -10,18 +10,16 @@ using PetCenterServices;
 
 namespace PetCenterModels.DBTables
 {
-    [Table("Posession", Schema="Animal")]
-    public class Posession : BaseTableEntity
+    [Table("Confirmation", Schema = "Pending")]
+    public class Confirmation : ExpirableTableEntity
     {
-        [Column("OwnerID")]
-        public Guid? OwnerId {get;set;}
+        [Column("UserID")]
+        public Guid UserId { get; set; }
 
-        [Column("ShelterID")]
-        public Guid? ShelterId {get;set;}
+        [Column("ListingID")]
+        public Guid ListingId { get; set; }
 
-        public bool Owned {get;set;}
-
+     
 
     }
-    
 }
