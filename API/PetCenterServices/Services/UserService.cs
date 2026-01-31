@@ -21,10 +21,12 @@ namespace PetCenterServices.Services
             dbSet = ctx.Users;
         }
 
-        public override Task<ServiceOutput<object>>Delete(Guid? token_holder,Guid id)
-        {           
-            return Task.FromResult(ServiceOutput<object>.Error(HttpCode.NotImplemented,"Illegal endpoint."));
+        public override async Task<ServiceOutput<List<UserResponseDTO>>> Get(UserSearchObject search)
+        {
+            List<User> entities = await dbSet.Include(u=>u.UserAccount).Where(u=>u.UserAccount!=null && u.UserName!=null && u.UserName.ToLower().StartsWith(search.UserName.ToLower()) && ((search.BusinessRelated&&u.UserAccount.AccessLevel==Access.BusinessAccount) || (!search.BusinessRelated&&u.UserAccount.AccessLevel==Access.User))).OrderBy(u=>u.Id).Skip(search.Page*search.PageSize).Take(search.PageSize).ToListAsync();
+            return  ServiceOutput<List<UserResponseDTO>>.Success(entities.Select(e=>UserResponseDTO.FromEntity(e)!).ToList());
         }
+
 
         public override async Task<ServiceOutput<UserResponseDTO>> Put(Guid? token_holder,UserRequestDTO ent)
         {
@@ -47,6 +49,59 @@ namespace PetCenterServices.Services
         public override Task<ServiceOutput<UserResponseDTO>> Post(Guid? token_holder,UserRequestDTO ent)
         {
             return Task.FromResult(ServiceOutput<UserResponseDTO>.Error(HttpCode.NotImplemented,"Illegal endpoint."));
+        }
+
+        public async Task<ServiceOutput<string>> SetEmployee(Guid owner_id, Guid usr_id, Guid franchise_id, bool hire_fire)
+        {
+            User? usr =  await dbContext.Users.Include(u=>u.UserAccount).FirstOrDefaultAsync(u=>u.Id==usr_id);
+            User? owner = await dbContext.Users.FirstOrDefaultAsync(u=>u.AccountId==owner_id);
+            Franchise? franchise = await dbContext.Franchises.FindAsync(franchise_id);
+            EmployeeRecord? record = await dbContext.EmployeeRecords.FirstOrDefaultAsync(r=>r.UserId==usr_id && r.FranchiseId==franchise_id);
+
+            if(usr==null || owner==null || franchise==null || usr.UserAccount==null)
+            {
+                return ServiceOutput<string>.Error(HttpCode.NotFound,"One or more resources needed for this operation are missing.");
+            }
+
+            if (franchise.OwnerId != owner.Id)
+            {
+                return ServiceOutput<string>.Error(HttpCode.Forbidden,"The token holder does not own the specified franchise.");
+            }
+
+            if (usr.UserAccount.AccessLevel != Access.BusinessAccount)
+            {
+                return ServiceOutput<string>.Error(HttpCode.BadRequest,"The specified user is not eligible to be an employee.");
+            }
+
+            if (hire_fire)
+            {
+                if (record == null)
+                {
+                    EmployeeRecord newRecord = new EmployeeRecord
+                    {
+                        UserId = usr_id,
+                        FranchiseId = franchise_id,                       
+                    };
+
+                    await dbContext.EmployeeRecords.AddAsync(newRecord);
+                    await dbContext.SaveChangesAsync();
+                }
+
+                return ServiceOutput<string>.Success("Employee hired successfully.");
+            }
+            else
+            {
+                if(record!=null)
+                {
+                    dbContext.EmployeeRecords.Remove(record);
+                    await dbContext.SaveChangesAsync();
+                }
+
+                return ServiceOutput<string>.Success("Employee fired successfully.");
+            }
+
+         
+
         }
 
         public override async Task<ServiceOutput<object>> IsClearedToUpdate(Guid? token_holder, UserRequestDTO resource)

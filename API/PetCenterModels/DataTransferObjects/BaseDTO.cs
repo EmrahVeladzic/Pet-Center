@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
+using PetCenterModels.DataTransferObjects;
 using PetCenterModels.DBTables;
 
 namespace PetCenterModels.Requests
@@ -25,6 +26,11 @@ namespace PetCenterModels.Requests
         public Guid? Id {get; set;}
         public static abstract TSelf? FromEntity(TEntity? entity);
 
+    }
+    
+    public interface IAlbumCarryingDTO
+    {
+        public List<ImageDTO> Images { get; set; }
     }
  
 }

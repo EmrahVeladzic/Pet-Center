@@ -32,6 +32,8 @@ namespace PetCenterModels.DBTables
         [NotMapped]
         public List<Facility>? Facilities { get; set; }
 
+        public override byte AlbumCapacity => 1;
+
         public override async Task StageDeletion<T>(PetCenterDBContext ctx, DbSet<T> set)
         {
             if(await ctx.IndividualAnimals.Where(a=>a.ShelterId==Id && a.Owned==false).ToListAsync() is List<Individual> a){foreach(Individual ind in a){await ind.StageDeletion<Individual>(ctx,ctx.IndividualAnimals);}}

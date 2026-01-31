@@ -20,6 +20,30 @@ namespace PetCenterAPI.Controllers
         public ImageController(IImageService s):base(s) { }
 
 
+        [Authorize(Roles ="Owner,Admin")]
+        public override async Task<IActionResult> Get([FromQuery] ImageSearchObject search)
+        {
+            return await base.Get(search);
+        }
+
+        [HttpPost]
+        public override async Task<IActionResult> Post([FromBody] ImageDTO ent)
+        {
+            if(TryGetUserId(out Guid user_id))
+            {             
+
+                return ResultConverter.Convert<ImageDTO>(await service.Post(user_id,ent));              
+                
+            }
+            return StatusCode(401,"Invalid token.");           
+        }
+
+        [HttpPut("{id}")]
+        public override async Task<IActionResult> Put([FromRoute] Guid id, [FromBody] ImageDTO ent)
+        {
+            return ResultConverter.Convert<ImageDTO>(await service.Put(null,ent));
+        }
+
       
 
     }
