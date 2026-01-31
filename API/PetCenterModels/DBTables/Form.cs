@@ -23,6 +23,12 @@ namespace PetCenterModels.DBTables
 
         [ForeignKey(nameof(UserId))]
         public User? RelevantUser {get; set;}
+        
+        [Column("FranchiseName")]
+        public string? FranchiseName { get; set; }
+
+        [Column("DefaultContact")]
+        public string? DefaultContact { get; set; }
 
         [NotMapped]
         public List<FormFieldEntry>? Entries {get; set;}

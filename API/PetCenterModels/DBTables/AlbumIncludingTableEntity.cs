@@ -17,10 +17,14 @@ namespace PetCenterModels.DBTables
 
         [ForeignKey(nameof(AlbumId))]
         public Album? Album { get; set; }
+        
+        [NotMapped]
+        public virtual byte AlbumCapacity { get; set; } = 5;
+
 
         public override async Task StageDeletion<T>(PetCenterDBContext ctx, DbSet<T> set)
         {
-            if(await ctx.Albums.FindAsync(AlbumId) is Album album){await album.StageDeletion<Album>(ctx, ctx.Albums);}
+            if(await ctx.Albums.FindAsync(AlbumId) is Album album){ctx.Albums.Remove(album);}
             await base.StageDeletion<T>(ctx, set);
         }
 

@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using PetCenterModels.DataTransferObjects;
 using PetCenterModels.DBTables;
 using PetCenterModels.SearchObjects;
@@ -21,7 +22,7 @@ namespace PetCenterServices.Services
         }
 
         public override async Task<ServiceOutput<object>> Delete(Guid? token_holder,Guid id)
-        {
+        {        
             Image? img = await dbContext.Images.FindAsync(id);
 
             if (img != null)
@@ -34,130 +35,58 @@ namespace PetCenterServices.Services
                 }
 
                 dbContext.Images.Remove(img);
-                await dbContext.SaveChangesAsync();
+
+                using (IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync())
+                {
+                    try
+                    {
+                        await dbContext.SaveChangesAsync();
+                        await tx.CommitAsync();
+                    }
+                    catch
+                    {
+                        await tx.RollbackAsync();
+                        return ServiceOutput<object>.Error(HttpCode.InternalError,"Internal server error.");
+                    }
+                }
+
+
             }
 
             return ServiceOutput<object>.Success(default,HttpCode.NoContent);
 
         }
 
-        public override async Task<ServiceOutput<ImageDTO>> Put(Guid? token_holder,ImageDTO image)
+        public override Task<ServiceOutput<ImageDTO>> Put(Guid? token_holder,ImageDTO image)
         {
-            Image? img = await dbContext.Images.FindAsync(image.Id);
-
-            if (img != null)
-            {
-                Image? newImage = image.ToEntity();
-
-                if (newImage != null)
-                {
-                    img.Data=newImage.Data;
-                    img.Width=newImage.Width;
-                    img.Height=newImage.Height;
-
-                    image.AlbumInsertId = img.AlbumId;                 
-                        
-                    await dbContext.SaveChangesAsync();
-
-                    return ServiceOutput<ImageDTO>.Success(image);
-
-                }
-
-                return ServiceOutput<ImageDTO>.Error(HttpCode.BadRequest,"Invalid image data.");
-
-               
-            }
-
-            return ServiceOutput<ImageDTO>.Error(HttpCode.NotFound,"No image with this ID exists.");
+            return Task.FromResult(ServiceOutput<ImageDTO>.Error(HttpCode.NotImplemented,"Invalid action."));
         }
 
         public override async Task<ServiceOutput<ImageDTO>> Post(Guid? token_holder,ImageDTO img)
         {
-            Album? album = await dbContext.Albums.FindAsync(img.AlbumInsertId);
-
-            if (album != null )
+            ServiceOutput<ImageDTO> output;
+            using (IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync())
             {
-
-                if (album.Reserved < album.Capacity)
-                {                   
-
-                    Image? newImage = img.ToEntity();
-
-                    if (newImage != null)
-                    {
-                        album.Reserved++;
-                        await dbContext.Images.AddAsync(newImage);
-                        await dbContext.SaveChangesAsync();
-                        img.Id=newImage.Id;
-                    
-                        return ServiceOutput<ImageDTO>.Success(img,HttpCode.Created);
-                    }
-
-                    return ServiceOutput<ImageDTO>.Error(HttpCode.BadRequest,"Invalid image data.");
+                try
+                {
+                    output = await UploadImage(token_holder,img,dbContext);
+                    await tx.CommitAsync();
                 }
+                catch
+                {
+                    await tx.RollbackAsync();
+                    output = ServiceOutput<ImageDTO>.Error(HttpCode.InternalError,"Internal server error.");
 
-                return ServiceOutput<ImageDTO>.Error(HttpCode.Forbidden,"The selected album is full and cannot accept a new image.");
-
+                }
             }
 
-            return ServiceOutput<ImageDTO>.Error(HttpCode.NotFound,"No album with this ID exists.");
-
+            return output;
         }
 
 
         public override async Task<ServiceOutput<object>> IsClearedToCreate(Guid? token_holder, ImageDTO resource)
         {
-            if (!resource.Validate())
-            {
-                return ServiceOutput<object>.Error(HttpCode.BadRequest,"DTO validation failure.");
-            }
-            if(token_holder!=null){
-                Album? album = await dbContext.Albums.FindAsync(resource.AlbumInsertId);
-                if (album != null)
-                {
-                    if (album.PosterID == token_holder)
-                    {
-                        if (album.Reserved < album.Capacity)
-                        {
-                            if (resource.Id == null)
-                            {
-                                return ServiceOutput<object>.Success(null,HttpCode.NoContent);
-                            }
-                            return ServiceOutput<object>.Error(HttpCode.BadRequest,"Image ID was provided, but should be NULL."); 
-                        }                    
-                        return ServiceOutput<object>.Error(HttpCode.Conflict,"Album is already full.");
-                    }
-                    return ServiceOutput<object>.Error(HttpCode.Forbidden,"Token does not belong to the owner of this album.");
-                }
-                return ServiceOutput<object>.Error(HttpCode.NotFound,"Attempted to insert image into a non-existant album.");
-            }
-            return ServiceOutput<object>.Error(HttpCode.Unauthorized,"This action requires authorization");
-        }
-
-        public override async Task<ServiceOutput<object>> IsClearedToUpdate(Guid? token_holder, ImageDTO resource)
-        {
-            if (!resource.Validate())
-            {
-                return ServiceOutput<object>.Error(HttpCode.BadRequest,"DTO validation failure.");
-            }
-            if(token_holder!=null){
-                Album? album = await dbContext.Albums.FindAsync(resource.AlbumInsertId);
-                Image? image = await dbContext.Images.FindAsync(resource.Id);
-                if(album!=null && image != null)
-                {
-                    if (album.PosterID == token_holder)
-                    {
-                        if (image.AlbumId == album.Id)
-                        {
-                            return ServiceOutput<object>.Success(null,HttpCode.NoContent);
-                        }
-                        return ServiceOutput<object>.Error(HttpCode.BadRequest,"The requested image does not belong in this album.");
-                    }
-                    return ServiceOutput<object>.Error(HttpCode.Forbidden,"Token does not belong to the owner of this album.");
-                }
-                return ServiceOutput<object>.Error(HttpCode.NotFound,"One or more requested resources do not exist.");  
-            }
-            return ServiceOutput<object>.Error(HttpCode.Unauthorized,"This action requires authorization");
+            return await EvaluateUploadAttempt(token_holder, resource, dbContext);
         }
 
         public override async Task<ServiceOutput<object>> IsClearedToDelete(Guid? token_holder, Guid resourceId)
@@ -185,6 +114,73 @@ namespace PetCenterServices.Services
                 return ServiceOutput<object>.Success(null,HttpCode.NoContent);
             }
             return ServiceOutput<object>.Error(HttpCode.Unauthorized,"This action requires authorization");
+        }
+
+
+
+        public static async Task<ServiceOutput<object>> EvaluateUploadAttempt(Guid? token_holder, ImageDTO img, PetCenterDBContext ctx)
+        {
+
+            if (!img.Validate())
+            {
+                return ServiceOutput<object>.Error(HttpCode.BadRequest,"DTO validation failure.");
+            }
+
+            if(token_holder!=null){
+                Album? album = await ctx.Albums.FindAsync(img.AlbumInsertId);
+                if (album != null)
+                {
+                    if (album.PosterID == token_holder)
+                    {
+                        if (album.Reserved < album.Capacity)
+                        {
+                            if (img.Id == null)
+                            {
+                                return ServiceOutput<object>.Success(null,HttpCode.NoContent);
+                            }
+                            return ServiceOutput<object>.Error(HttpCode.BadRequest,"Image ID was provided, but should be NULL at this point."); 
+                        }                    
+                        return ServiceOutput<object>.Error(HttpCode.Conflict,"Album is already full.");
+                    }
+                    return ServiceOutput<object>.Error(HttpCode.Forbidden,"Token does not belong to the owner of this album.");
+                }
+                return ServiceOutput<object>.Error(HttpCode.NotFound,"Attempted to insert image into a non-existent album.");
+            }
+            return ServiceOutput<object>.Error(HttpCode.Unauthorized,"This action requires authorization");
+        }
+
+        public static async Task<ServiceOutput<ImageDTO>> UploadImage(Guid? token_holder,ImageDTO img, PetCenterDBContext ctx)
+        {
+            ServiceOutput<object> evaluation = await EvaluateUploadAttempt(token_holder, img, ctx);
+            if (!ServiceOutput<object>.IsSuccess(evaluation))
+            {
+                return ServiceOutput<ImageDTO>.Error(evaluation.Code,evaluation.ErrorMessage ?? "Unable to upload image.");
+            }
+
+            Album? album = await ctx.Albums.FindAsync(img.AlbumInsertId);
+
+            if (album != null )
+            {                                 
+
+                Image? newImage = img.ToEntity();
+
+                if (newImage != null)
+                {
+                    album.Reserved++;
+                    await ctx.Images.AddAsync(newImage);
+                    await ctx.SaveChangesAsync();
+                    img.Id=newImage.Id;
+                    
+                    return ServiceOutput<ImageDTO>.Success(ImageDTO.FromEntity(newImage),HttpCode.Created);
+                }
+
+                return ServiceOutput<ImageDTO>.Error(HttpCode.BadRequest,"Invalid image data.");
+               
+
+            }
+
+            return ServiceOutput<ImageDTO>.Error(HttpCode.NotFound,"No album with this ID exists.");
+
         }
 
 

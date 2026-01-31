@@ -26,14 +26,20 @@ namespace PetCenterAPI.Controllers
             return StatusCode(501,"Illegal endpoint.");
         }
 
-        [HttpDelete("{id}")]
-        public override async Task<IActionResult> Delete([FromRoute] Guid id)
+
+
+        [HttpGet("SetEmployee{usr_id}/{franchise_id}")]
+        [Authorize(Roles = "BusinessAccount")]
+        public async Task<IActionResult> SetEmployee([FromRoute] Guid usr_id, [FromRoute] Guid franchise_id, [FromQuery] bool hire_fire)
         {
-            await Task.CompletedTask;
-            return StatusCode(501,"Illegal endpoint.");
+            if(TryGetUserId(out Guid owner_id))
+            {
+                return ResultConverter.Convert<string>(await service.SetEmployee(owner_id,usr_id,franchise_id,hire_fire));
+            }
+            return StatusCode(401,"Invalid token.");  
         }
 
-
+       
     }
 
 }

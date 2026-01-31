@@ -19,6 +19,13 @@ namespace PetCenterAPI.Controllers
 
         public AccountController(IAccountService s):base(s) { }
 
+        [HttpGet]
+        [Authorize(Roles ="Owner,Admin")]
+        public override async Task<IActionResult>Get([FromQuery] AccountSearchObject search)
+        {           
+            return ResultConverter.Convert<List<AccountResponseDTO>>(await service.Get(search));
+        }
+
         [HttpPost]
         [AllowAnonymous]
         public override async Task<IActionResult> Post([FromBody] AccountRequestDTO req)

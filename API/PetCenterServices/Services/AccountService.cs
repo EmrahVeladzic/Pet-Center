@@ -211,6 +211,14 @@ namespace PetCenterServices.Services
                     return ServiceOutput<string>.Error(HttpCode.Forbidden,"This action is not allowed.");
                 }
 
+                User? usr = await dbContext.Users.FirstOrDefaultAsync(u=>u.AccountId==acc.Id);
+                if (usr == null)
+                {
+                    return ServiceOutput<string>.Error(HttpCode.InternalError,"Internal server error.");
+                }
+
+                await usr.StageDeletion<User>(dbContext,dbContext.Users);
+
                 acc.AccessLevel = role;
                 await dbContext.SaveChangesAsync();
 
