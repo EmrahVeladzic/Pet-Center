@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Metadata.Ecma335;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -57,11 +58,6 @@ namespace PetCenterServices.Services
 
         }
 
-        public override Task<ServiceOutput<ImageDTO>> Put(Guid? token_holder,ImageDTO image)
-        {
-            return Task.FromResult(ServiceOutput<ImageDTO>.Error(HttpCode.NotImplemented,"Invalid action."));
-        }
-
         public override async Task<ServiceOutput<ImageDTO>> Post(Guid? token_holder,ImageDTO img)
         {
             ServiceOutput<ImageDTO> output;
@@ -103,7 +99,11 @@ namespace PetCenterServices.Services
                         {
                             if (image.AlbumId == album.Id)
                             {
-                                return ServiceOutput<object>.Success(null,HttpCode.NoContent);
+                                if (!album.Locked)
+                                {                                  
+                                    return ServiceOutput<object>.Success(null,HttpCode.NoContent);
+                                }
+                                return ServiceOutput<object>.Error(HttpCode.BadRequest,"The requested album is locked and its contents cannot be altered.");
                             }
                             return ServiceOutput<object>.Error(HttpCode.BadRequest,"The requested image does not belong in this album.");
                         }
@@ -136,7 +136,11 @@ namespace PetCenterServices.Services
                         {
                             if (img.Id == null)
                             {
-                                return ServiceOutput<object>.Success(null,HttpCode.NoContent);
+                                if (!album.Locked)
+                                {
+                                    return ServiceOutput<object>.Success(null,HttpCode.NoContent);
+                                }
+                                return ServiceOutput<object>.Error(HttpCode.BadRequest,"The requested album is locked and its contents cannot be altered.");
                             }
                             return ServiceOutput<object>.Error(HttpCode.BadRequest,"Image ID was provided, but should be NULL at this point."); 
                         }                    
@@ -165,7 +169,7 @@ namespace PetCenterServices.Services
                 Image? newImage = img.ToEntity();
 
                 if (newImage != null)
-                {
+                {                   
                     album.Reserved++;
                     await ctx.Images.AddAsync(newImage);
                     await ctx.SaveChangesAsync();
@@ -184,5 +188,28 @@ namespace PetCenterServices.Services
         }
 
 
+        public static async Task<Guid> CreateAlbum(Guid? token_holder,PetCenterDBContext ctx, byte cap)
+        {
+            if (token_holder == null)
+            {
+                throw new InvalidOperationException();
+            }
+
+            Album alb = new(cap);
+            alb.PosterID = (Guid)token_holder;
+            await ctx.Albums.AddAsync(alb);
+            await ctx.SaveChangesAsync();
+            return alb.Id;
+        }
+
+        public static async Task ClearAlbum(Guid? token_holder, PetCenterDBContext ctx, Guid album_id)
+        {
+            Album? alb = await ctx.Albums.FindAsync(album_id);
+            if(alb==null || alb.PosterID!=token_holder || alb.Locked){return;}
+            await alb.StageDeletion<Album>(ctx,ctx.Albums);
+            await ctx.SaveChangesAsync();
+        }    
+
+       
     }
 }

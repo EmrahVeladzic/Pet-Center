@@ -16,6 +16,11 @@ namespace PetCenterModels.DBTables
         [Column("ID")]
         public Guid Id { get; set; }
 
+        [Column("CurrentVersion")]
+        [Timestamp]
+        public byte[] CurrentVersion { get; set; } = null!;
+
+
         public BaseTableEntity()
         {
             

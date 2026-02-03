@@ -18,16 +18,6 @@ namespace PetCenterAPI.Controllers
 
         public UserController(IUserService s):base(s) { }
 
-
-        [HttpPost]
-        public override async Task<IActionResult> Post([FromBody] UserRequestDTO ent)
-        {
-            await Task.CompletedTask;
-            return StatusCode(501,"Illegal endpoint.");
-        }
-
-
-
         [HttpGet("SetEmployee{usr_id}/{franchise_id}")]
         [Authorize(Roles = "BusinessAccount")]
         public async Task<IActionResult> SetEmployee([FromRoute] Guid usr_id, [FromRoute] Guid franchise_id, [FromQuery] bool hire_fire)

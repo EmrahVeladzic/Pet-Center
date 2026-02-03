@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using PetCenterModels.DBTables;
 using PetCenterModels.Requests;
 using PetCenterModels.SearchObjects;
@@ -6,6 +7,7 @@ using PetCenterServices.Interfaces;
 using PetCenterServices.Utils;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -35,10 +37,25 @@ namespace PetCenterServices.Services
 
             if (current != null)
             {
-                current.UserName = ent.UserName;
-                await dbContext.SaveChangesAsync();
+                using (IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync())
+                {
+                    try
+                    {
+                        current.UserName = ent.UserName;
+                        await dbContext.SaveChangesAsync();
+                        await tx.CommitAsync();
 
-                return ServiceOutput<UserResponseDTO>.Success(UserResponseDTO.FromEntity(current));
+                        return ServiceOutput<UserResponseDTO>.Success(UserResponseDTO.FromEntity(current));
+                        
+                    }
+                    catch
+                    {
+                        await tx.RollbackAsync();
+                        return ServiceOutput<UserResponseDTO>.Error(HttpCode.InternalError,"Internal server error.");
+                    }
+                }
+
+              
 
             }
 
@@ -53,54 +70,73 @@ namespace PetCenterServices.Services
 
         public async Task<ServiceOutput<string>> SetEmployee(Guid owner_id, Guid usr_id, Guid franchise_id, bool hire_fire)
         {
-            User? usr =  await dbContext.Users.Include(u=>u.UserAccount).FirstOrDefaultAsync(u=>u.Id==usr_id);
-            User? owner = await dbContext.Users.FirstOrDefaultAsync(u=>u.AccountId==owner_id);
-            Franchise? franchise = await dbContext.Franchises.FindAsync(franchise_id);
-            EmployeeRecord? record = await dbContext.EmployeeRecords.FirstOrDefaultAsync(r=>r.UserId==usr_id && r.FranchiseId==franchise_id);
 
-            if(usr==null || owner==null || franchise==null || usr.UserAccount==null)
+            using (IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync(IsolationLevel.Serializable))
             {
-                return ServiceOutput<string>.Error(HttpCode.NotFound,"One or more resources needed for this operation are missing.");
-            }
 
-            if (franchise.OwnerId != owner.Id)
-            {
-                return ServiceOutput<string>.Error(HttpCode.Forbidden,"The token holder does not own the specified franchise.");
-            }
-
-            if (usr.UserAccount.AccessLevel != Access.BusinessAccount)
-            {
-                return ServiceOutput<string>.Error(HttpCode.BadRequest,"The specified user is not eligible to be an employee.");
-            }
-
-            if (hire_fire)
-            {
-                if (record == null)
+                try
                 {
-                    EmployeeRecord newRecord = new EmployeeRecord
+                    User? usr =  await dbContext.Users.Include(u=>u.UserAccount).FirstOrDefaultAsync(u=>u.Id==usr_id);
+                    User? owner = await dbContext.Users.FirstOrDefaultAsync(u=>u.AccountId==owner_id);
+                    Franchise? franchise = await dbContext.Franchises.FindAsync(franchise_id);
+                    EmployeeRecord? record = await dbContext.EmployeeRecords.FirstOrDefaultAsync(r=>r.UserId==usr_id && r.FranchiseId==franchise_id);
+
+                    if(usr==null || owner==null || franchise==null || usr.UserAccount==null)
                     {
-                        UserId = usr_id,
-                        FranchiseId = franchise_id,                       
-                    };
+                        return ServiceOutput<string>.Error(HttpCode.NotFound,"One or more resources needed for this operation are missing.");
+                    }
 
-                    await dbContext.EmployeeRecords.AddAsync(newRecord);
-                    await dbContext.SaveChangesAsync();
+                    if (franchise.OwnerId != owner.Id)
+                    {
+                        return ServiceOutput<string>.Error(HttpCode.Forbidden,"The token holder does not own the specified franchise.");
+                    }
+
+                    if (usr.UserAccount.AccessLevel != Access.BusinessAccount)
+                    {
+                        return ServiceOutput<string>.Error(HttpCode.BadRequest,"The specified user is not eligible to be an employee.");
+                    }
+
+                    if (hire_fire)
+                    {
+                        if (record == null)
+                        {
+                            EmployeeRecord newRecord = new EmployeeRecord
+                            {
+                                UserId = usr_id,
+                                FranchiseId = franchise_id,                       
+                            };
+
+                            await dbContext.EmployeeRecords.AddAsync(newRecord);
+                            await dbContext.SaveChangesAsync();
+                            await tx.CommitAsync();
+                        }
+
+                        return ServiceOutput<string>.Success("Employee hired successfully.");
+                    }
+                    else
+                    {
+                        if(record!=null)
+                        {
+                            dbContext.EmployeeRecords.Remove(record);                            
+                            await dbContext.SaveChangesAsync();
+                            await tx.CommitAsync();
+                        }
+
+                        return ServiceOutput<string>.Success("Employee fired successfully.");
+                    }
+
+                            
                 }
-
-                return ServiceOutput<string>.Success("Employee hired successfully.");
-            }
-            else
-            {
-                if(record!=null)
+                catch
                 {
-                    dbContext.EmployeeRecords.Remove(record);
-                    await dbContext.SaveChangesAsync();
+                    
+                    await tx.RollbackAsync();
+                    return ServiceOutput<string>.Error(HttpCode.InternalError,"Internal server error.");
                 }
 
-                return ServiceOutput<string>.Success("Employee fired successfully.");
+
             }
 
-         
 
         }
 

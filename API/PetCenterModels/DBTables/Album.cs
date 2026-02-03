@@ -23,9 +23,17 @@ namespace PetCenterModels.DBTables
         [Column("OwnerID")]
         public Guid PosterID {get; set;}
 
+        [Column("Locked")]
+        public bool Locked {get; set;}
+
+        [NotMapped]
+        public List<Image>? Images;
+
         public Album()
         {
             Reserved=0;
+            Locked=false;
+            
         }
         public static byte MaxCapacity = 5;
 
@@ -34,6 +42,8 @@ namespace PetCenterModels.DBTables
             if(capacity>MaxCapacity){capacity=MaxCapacity;}
             Capacity = capacity;
             Reserved = 0;
+            Locked = false;
+            
         }
 
         public override async Task StageDeletion<T>(PetCenterDBContext ctx, DbSet<T> set)

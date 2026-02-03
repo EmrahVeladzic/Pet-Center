@@ -44,6 +44,12 @@ namespace PetCenterModels.DBTables
         [Column("Approved")]
         public bool Approved { get; set; }
 
+        [Column("Posted")]
+        public DateTime Posted {get; set;}
+
+        [Column("Updated")]
+        public bool Updated {get; set;}
+
         [JsonIgnore]
         [ForeignKey(nameof(FranchiseId))]
         public Franchise? Business {  get; set; }

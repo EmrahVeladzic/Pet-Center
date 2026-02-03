@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using PetCenterModels.DBTables;
 using PetCenterModels.Requests;
 using PetCenterModels.SearchObjects;
@@ -65,9 +66,23 @@ namespace PetCenterServices.Services
                 TEntity? ent = serializable.ToEntity();
 
                 if(ent!=null){
-                    await dbSet.AddAsync(ent);
-                    await dbContext.SaveChangesAsync();
-                    return ServiceOutput<TResponse>.Success(TResponse.FromEntity(ent),HttpCode.Created);
+
+                    using (IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync())
+                    {
+                        try
+                        {
+                            await dbSet.AddAsync(ent);
+                            await dbContext.SaveChangesAsync();
+                            await tx.CommitAsync();
+                            return ServiceOutput<TResponse>.Success(TResponse.FromEntity(ent),HttpCode.Created);
+                        }
+                        catch
+                        {
+                            await tx.RollbackAsync();
+                        }
+                    }
+
+                   
                 }     
 
             }
@@ -90,9 +105,26 @@ namespace PetCenterServices.Services
                     
                     if (overwrite != null)
                     {
-                        dbSet.Entry(ent).CurrentValues.SetValues(overwrite);
-                        await dbContext.SaveChangesAsync();
-                        return ServiceOutput<TResponse>.Success(TResponse.FromEntity(ent));
+
+
+                        using (IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync())
+                        {
+                            try
+                            {
+                                dbSet.Entry(ent).CurrentValues.SetValues(overwrite);
+                                await dbContext.SaveChangesAsync();
+                                await tx.CommitAsync();
+                                return ServiceOutput<TResponse>.Success(TResponse.FromEntity(ent));
+                               
+                            }
+                            catch
+                            {
+                                await tx.RollbackAsync();
+                            }
+                        }
+
+
+
                     }
                     
 
@@ -110,8 +142,24 @@ namespace PetCenterServices.Services
             TEntity? current = await dbSet.FindAsync(id);
             if (current != null)
             {
-                await current.StageDeletion<TEntity>(dbContext,dbSet);
-                await dbContext.SaveChangesAsync();                
+
+                using (IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync())
+                {
+                    try
+                    {
+                        await current.StageDeletion<TEntity>(dbContext,dbSet);
+                        await dbContext.SaveChangesAsync();                
+                        await tx.CommitAsync();
+                    }
+                    catch
+                    {
+                        await tx.RollbackAsync();
+                        return ServiceOutput<object>.Error(HttpCode.InternalError, "Internal server error.");
+
+                    }
+                }
+
+               
             }
 
             return ServiceOutput<object>.Success(default,HttpCode.NoContent);

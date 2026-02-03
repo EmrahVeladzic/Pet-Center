@@ -30,6 +30,9 @@ namespace PetCenterModels.DBTables
         [Column("DefaultContact")]
         public string? DefaultContact { get; set; }
 
+        [Column("Posted")]
+        public DateTime Posted {get; set;}
+
         [NotMapped]
         public List<FormFieldEntry>? Entries {get; set;}
 

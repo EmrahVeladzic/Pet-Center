@@ -41,11 +41,8 @@ namespace PetCenterServices.Services
             using (IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync())
             {
                 try
-                {
-                    Album alb = new(franch.AlbumCapacity);
-                    await dbContext.Albums.AddAsync(alb);
-                    await dbContext.SaveChangesAsync();
-                    franch.AlbumId = alb.Id;
+                {                    
+                    franch.AlbumId = await ImageService.CreateAlbum(token_holder,dbContext,franch.AlbumCapacity);
 
                     await dbSet.AddAsync(franch);
                     await dbContext.SaveChangesAsync();
