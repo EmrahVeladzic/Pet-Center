@@ -37,13 +37,6 @@ namespace PetCenterAPI.Controllers
             }
             return StatusCode(401,"Invalid token.");           
         }
-
-        [HttpPut("{id}")]
-        public override async Task<IActionResult> Put([FromRoute] Guid id, [FromBody] ImageDTO ent)
-        {
-            return ResultConverter.Convert<ImageDTO>(await service.Put(null,ent));
-        }
-
       
 
     }

@@ -28,9 +28,13 @@ namespace PetCenterModels.Requests
 
     }
     
-    public interface IAlbumCarryingDTO
+    public interface IAlbumCarryingDTO<TEntity,TSelf> : IBaseResponseDTO<TEntity,TSelf> where TEntity : AlbumIncludingTableEntity where TSelf : IBaseResponseDTO<TEntity,TSelf> 
     {
-        public List<ImageDTO> Images { get; set; }
+        public List<ImageDTO?>? Images { get; set; }
+
+        public Guid AlbumId {get; set;}
+
+        public new static abstract TSelf? FromEntity(TEntity? entity);
     }
  
 }
