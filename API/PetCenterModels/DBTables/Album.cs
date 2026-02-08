@@ -6,10 +6,12 @@ using System.Linq;
 using System.Text;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
+using PetCenterServices;
 
 namespace PetCenterModels.DBTables
 {
-    [Table("File", Schema = "Album")]
+    [Table("Album", Schema = "File")]
     public class Album : BaseTableEntity
     {
         [Column("Capacity")]
@@ -18,8 +20,37 @@ namespace PetCenterModels.DBTables
         [Column("Reserved")]
         public byte Reserved { get; set; }
 
+        [Column("OwnerID")]
+        public Guid PosterID {get; set;}
 
-        [NotMapped]
-        public List<Image>? Images { get; set; }
+        [Column("Locked")]
+        public bool Locked {get; set;}
+
+        [InverseProperty(nameof(Image.OwningAlbum))]
+        public List<Image> Images {get; set;} = new();
+
+        public Album()
+        {
+            Reserved=0;
+            Locked=false;
+            
+        }
+        public static byte MaxCapacity = 5;
+
+        public Album(byte capacity = 1)
+        {
+            if(capacity>MaxCapacity){capacity=MaxCapacity;}
+            Capacity = capacity;
+            Reserved = 0;
+            Locked = false;
+            
+        }
+
+        public override async Task StageDeletion<T>(PetCenterDBContext ctx, DbSet<T> set)
+        {
+            if(await ctx.Images.Where(i=>i.AlbumId==Id).ToArrayAsync() is Image[] i){ctx.Images.RemoveRange(i);}
+            Reserved = 0;
+        }
+
     }
 }

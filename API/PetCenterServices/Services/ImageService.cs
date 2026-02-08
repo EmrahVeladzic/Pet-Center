@@ -1,38 +1,29 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using PetCenterModels.DataTransferObjects;
 using PetCenterModels.DBTables;
 using PetCenterModels.SearchObjects;
 using PetCenterServices.Interfaces;
+using PetCenterServices.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Metadata.Ecma335;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace PetCenterServices.Services
 {
-    public class ImageService : IImageService
+    public class ImageService : BaseCRUDService<Image,ImageSearchObject,ImageDTO,ImageDTO>, IImageService
     {
-        protected PetCenterDBContext dbContext;
-
-        public ImageService(PetCenterDBContext ctx)
-        {
-             dbContext = ctx;
+        public ImageService(PetCenterDBContext ctx) : base(ctx)
+        {            
+            dbSet = ctx.Images;
         }
 
-
-        public async Task<Image?> GetById(Guid id)
-        {
-            return await dbContext.Images.FindAsync(id);
-        }
-
-        public async Task<List<Image>> Get(BaseSearchObject src)
-        {
-            return await dbContext.Images.Skip(src.Page*50).Take(50).ToListAsync();
-        }
-
-        public async Task Delete(Guid id)
-        {
+        public override async Task<ServiceOutput<object>> Delete(Guid? token_holder,Guid id)
+        {        
             Image? img = await dbContext.Images.FindAsync(id);
 
             if (img != null)
@@ -41,58 +32,184 @@ namespace PetCenterServices.Services
 
                 if (album != null && album.Reserved>0)
                 {
-                    album.Reserved--;                       
-
-                    dbContext.Images.Remove(img);
-                    await dbContext.SaveChangesAsync();
-
+                    album.Reserved--;                      
                 }
 
+                dbContext.Images.Remove(img);
+
+                using (IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync())
+                {
+                    try
+                    {
+                        await dbContext.SaveChangesAsync();
+                        await tx.CommitAsync();
+                    }
+                    catch
+                    {
+                        await tx.RollbackAsync();
+                        return ServiceOutput<object>.Error(HttpCode.InternalError,"Internal server error.");
+                    }
+                }
+
+
             }
+
+            return ServiceOutput<object>.Success(default,HttpCode.NoContent);
 
         }
 
-        public async Task Put(Image image)
+        public override async Task<ServiceOutput<ImageDTO>> Post(Guid? token_holder,ImageDTO img)
         {
-            Image? img = await dbContext.Images.FindAsync(image.Id);
-
-            if (img != null)
+            ServiceOutput<ImageDTO> output;
+            using (IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync())
             {
+                try
+                {
+                    output = await UploadImage(token_holder,img,dbContext);
+                    await tx.CommitAsync();
+                }
+                catch
+                {
+                    await tx.RollbackAsync();
+                    output = ServiceOutput<ImageDTO>.Error(HttpCode.InternalError,"Internal server error.");
 
-                dbContext.Images.Entry(img).CurrentValues.SetValues(image);
-                await dbContext.SaveChangesAsync();
+                }
             }
 
+            return output;
         }
 
-        public async Task Post(Image img)
-        {
-            Album? album = await dbContext.Albums.FindAsync(img.AlbumId);
 
-            if (album != null && album.Reserved<album.Capacity)
+        public override async Task<ServiceOutput<object>> IsClearedToCreate(Guid? token_holder, ImageDTO resource)
+        {
+            return await EvaluateUploadAttempt(token_holder, resource, dbContext);
+        }
+
+        public override async Task<ServiceOutput<object>> IsClearedToDelete(Guid? token_holder, Guid resourceId)
+        {
+            if (token_holder != null)
+            {                          
+                Image? image = await dbContext.Images.FindAsync(resourceId);
+                if (image != null)
+                {
+                    Album? album = await dbContext.Albums.FindAsync(image.AlbumId);
+                    if (album != null)
+                    {
+                        if (album.PosterID == token_holder)
+                        {
+                            if (image.AlbumId == album.Id)
+                            {
+                                if (!album.Locked)
+                                {                                  
+                                    return ServiceOutput<object>.Success(null,HttpCode.NoContent);
+                                }
+                                return ServiceOutput<object>.Error(HttpCode.BadRequest,"The requested album is locked and its contents cannot be altered.");
+                            }
+                            return ServiceOutput<object>.Error(HttpCode.BadRequest,"The requested image does not belong in this album.");
+                        }
+                        return ServiceOutput<object>.Error(HttpCode.Forbidden,"Token does not belong to the owner of this album.");
+                    }
+                    return ServiceOutput<object>.Error(HttpCode.InternalError,"Unexpected NULL when trying to find the image album.");
+                }
+                return ServiceOutput<object>.Success(null,HttpCode.NoContent);
+            }
+            return ServiceOutput<object>.Error(HttpCode.Unauthorized,"This action requires authorization");
+        }
+
+
+
+        public static async Task<ServiceOutput<object>> EvaluateUploadAttempt(Guid? token_holder, ImageDTO img, PetCenterDBContext ctx)
+        {
+
+            if (!img.Validate())
             {
-                album.Reserved++;
-                await dbContext.Images.AddAsync(img);
-                await dbContext.SaveChangesAsync();
+                return ServiceOutput<object>.Error(HttpCode.BadRequest,"DTO validation failure.");
+            }
+
+            if(token_holder!=null){
+                Album? album = await ctx.Albums.FindAsync(img.AlbumInsertId);
+                if (album != null)
+                {
+                    if (album.PosterID == token_holder)
+                    {
+                        if (album.Reserved < album.Capacity)
+                        {
+                            if (img.Id == null)
+                            {
+                                if (!album.Locked)
+                                {
+                                    return ServiceOutput<object>.Success(null,HttpCode.NoContent);
+                                }
+                                return ServiceOutput<object>.Error(HttpCode.BadRequest,"The requested album is locked and its contents cannot be altered.");
+                            }
+                            return ServiceOutput<object>.Error(HttpCode.BadRequest,"Image ID was provided, but should be NULL at this point."); 
+                        }                    
+                        return ServiceOutput<object>.Error(HttpCode.Conflict,"Album is already full.");
+                    }
+                    return ServiceOutput<object>.Error(HttpCode.Forbidden,"Token does not belong to the owner of this album.");
+                }
+                return ServiceOutput<object>.Error(HttpCode.NotFound,"Attempted to insert image into a non-existent album.");
+            }
+            return ServiceOutput<object>.Error(HttpCode.Unauthorized,"This action requires authorization");
+        }
+
+        public static async Task<ServiceOutput<ImageDTO>> UploadImage(Guid? token_holder,ImageDTO img, PetCenterDBContext ctx)
+        {
+            ServiceOutput<object> evaluation = await EvaluateUploadAttempt(token_holder, img, ctx);
+            if (!ServiceOutput<object>.IsSuccess(evaluation))
+            {
+                return ServiceOutput<ImageDTO>.Error(evaluation.Code,evaluation.ErrorMessage ?? "Unable to upload image.");
+            }
+
+            Album? album = await ctx.Albums.FindAsync(img.AlbumInsertId);
+
+            if (album != null )
+            {                                 
+
+                Image? newImage = img.ToEntity();
+
+                if (newImage != null)
+                {                   
+                    album.Reserved++;
+                    await ctx.Images.AddAsync(newImage);
+                    await ctx.SaveChangesAsync();
+                    img.Id=newImage.Id;
+                    
+                    return ServiceOutput<ImageDTO>.Success(ImageDTO.FromEntity(newImage),HttpCode.Created);
+                }
+
+                return ServiceOutput<ImageDTO>.Error(HttpCode.BadRequest,"Invalid image data.");
+               
 
             }
 
+            return ServiceOutput<ImageDTO>.Error(HttpCode.NotFound,"No album with this ID exists.");
+
         }
 
-        public async Task UploadImage(ImageDTO dto)
+
+        public static async Task<Guid> CreateAlbum(Guid? token_holder,PetCenterDBContext ctx, byte cap)
         {
-            Image img = new(dto);
+            if (token_holder == null)
+            {
+                throw new InvalidOperationException();
+            }
 
-            await Post(img);
-
+            Album alb = new(cap);
+            alb.PosterID = (Guid)token_holder;
+            await ctx.Albums.AddAsync(alb);
+            await ctx.SaveChangesAsync();
+            return alb.Id;
         }
 
-        public async Task<List<ImageDTO>> GetAlbumImages(Guid AlbumID)
+        public static async Task ClearAlbum(Guid? token_holder, PetCenterDBContext ctx, Guid album_id)
         {
-                return await dbContext.Images
-            .Where(i => i.AlbumId == AlbumID)
-            .Select(img => new ImageDTO(img))
-            .ToListAsync();
-        }
+            Album? alb = await ctx.Albums.FindAsync(album_id);
+            if(alb==null || alb.PosterID!=token_holder || alb.Locked){return;}
+            await alb.StageDeletion<Album>(ctx,ctx.Albums);
+            await ctx.SaveChangesAsync();
+        }    
+
+       
     }
 }

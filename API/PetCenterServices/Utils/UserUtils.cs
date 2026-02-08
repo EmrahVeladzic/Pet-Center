@@ -1,4 +1,5 @@
-﻿using PetCenterModels.DBTables;
+﻿using Microsoft.EntityFrameworkCore;
+using PetCenterModels.DBTables;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -10,16 +11,20 @@ namespace PetCenterServices.Utils
 {
     public static class UserUtils
     {
-        public static string GenerateUsername(PetCenterDBContext ctx)
+
+        private static readonly string[] Adjectives = { "Blue", "Happy", "Quick", "Silent", "Tiny", "Playful" };
+        private static readonly string[] Animals = { "Fox", "Bear", "Otter", "Panda", "Wolf", "Tiger" };
+
+        private static Random Rng = new();
+        public static async Task<string> GenerateUsername(PetCenterDBContext ctx)
         {
-            string username;
-
-            do{
-                username = "User_" + Guid.NewGuid().ToString("N").Substring(0, 8);
-            }
-            while (ctx.Users.Any(u => u.UserName == username));
-
-            return username;
+            string output = "";
+            do
+            {
+               output = $"{Adjectives[Rng.Next(Adjectives.Length)]}{Animals[Rng.Next(Animals.Length)]}{Rng.Next(100000000, 1000000000)}";
+            }while(await ctx.Users.AnyAsync(u=>u.UserName==output));
+            
+            return output;
         }
 
         public static string GetRole(Access input)
@@ -27,16 +32,12 @@ namespace PetCenterServices.Utils
             switch (input)
             {
                 case Access.Owner: return "Owner";
-                case Access.Admin: return "Admin";
+                case Access.Admin: return "Admin";                
+                case Access.BusinessAccount: return "Employee";
                 default: return "User";
             }
         }
 
-        public static bool ValidateContact(string contact)
-        {
-            EmailAddressAttribute e = new();
-            return e.IsValid(contact);
-        }
-
+       
     }
 }
