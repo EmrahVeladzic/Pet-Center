@@ -16,10 +16,10 @@ namespace PetCenterModels.DBTables
         public Guid AlbumId { get; set; }
 
         [ForeignKey(nameof(AlbumId))]
-        public Album? Album { get; set; }
+        public Album Album { get; set; } = null!;
         
         [NotMapped]
-        public virtual byte AlbumCapacity { get; set; } = 5;
+        public virtual byte AlbumCapacity { get; set; } = 1;
 
 
         public override async Task StageDeletion<T>(PetCenterDBContext ctx, DbSet<T> set)

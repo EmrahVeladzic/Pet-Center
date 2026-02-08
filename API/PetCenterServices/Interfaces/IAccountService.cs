@@ -19,5 +19,6 @@ namespace PetCenterServices.Interfaces
         public Task<ServiceOutput<string>> VerifyAccount(Guid id, int code);   
         public Task<ServiceOutput<string>> SetRole(Guid owner_id, Guid id, Access role);
 
+        
     }
 }

@@ -19,7 +19,7 @@ namespace PetCenterAPI.Controllers
 
         public ImageController(IImageService s):base(s) { }
 
-
+        [HttpGet]
         [Authorize(Roles ="Owner,Admin")]
         public override async Task<IActionResult> Get([FromQuery] ImageSearchObject search)
         {

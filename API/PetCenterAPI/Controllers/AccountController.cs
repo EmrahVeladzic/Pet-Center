@@ -30,7 +30,7 @@ namespace PetCenterAPI.Controllers
         [AllowAnonymous]
         public override async Task<IActionResult> Post([FromBody] AccountRequestDTO req)
         {
-            req.Contact=req.Contact?.ToLower();
+            req.Contact=req.Contact.ToLower();
             
             ServiceOutput<object> cleared = await service.IsClearedToCreate(null,req);
 
@@ -55,7 +55,7 @@ namespace PetCenterAPI.Controllers
         [HttpPut("{id}")]
         public override async Task<IActionResult> Put([FromRoute] Guid id, [FromBody] AccountRequestDTO req)
         {
-            req.Contact = req.Contact?.ToLower();
+            req.Contact = req.Contact.ToLower();
             return await base.Put(id,req);
         }
 

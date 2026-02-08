@@ -14,8 +14,8 @@ namespace PetCenterModels.Requests
 
         public Guid? CreationFormId { get; set; }
         public Guid? Id { get; set; }
-        public string FranchiseName { get; set; } = String.Empty;
-        public string Contact { get; set; } = String.Empty;
+        public string FranchiseName { get; set; } = string.Empty;
+        public string Contact { get; set; } = string.Empty;
 
         public bool Validate()
         {

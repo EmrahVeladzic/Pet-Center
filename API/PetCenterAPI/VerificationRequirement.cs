@@ -2,10 +2,13 @@ using Microsoft.AspNetCore.Authorization;
 
 public class VerificationHandler : AuthorizationHandler<VerificationRequirement>
 {
-    protected override Task HandleRequirementAsync(AuthorizationHandlerContext context, VerificationRequirement requirement)
+    protected override Task HandleRequirementAsync(
+        AuthorizationHandlerContext context,
+        VerificationRequirement requirement)
     {
-        Endpoint? endpoint = (context.Resource as HttpContext)?.GetEndpoint();        
-        
+        HttpContext? httpContext = context.Resource as HttpContext;
+        Endpoint? endpoint = httpContext?.GetEndpoint();
+
         if (endpoint?.Metadata.GetMetadata<IAllowAnonymous>() != null)
         {
             context.Succeed(requirement);
@@ -18,16 +21,15 @@ public class VerificationHandler : AuthorizationHandler<VerificationRequirement>
             {
                 context.Succeed(requirement);
             }
-                
             return Task.CompletedTask;
         }
-        
+
         if (context.User.HasClaim(c => c.Type == "verified" && c.Value == "true"))
         {
             context.Succeed(requirement);
+            return Task.CompletedTask;
         }
 
-        context.Fail();
         return Task.CompletedTask;
     }
 }

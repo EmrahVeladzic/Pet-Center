@@ -23,6 +23,8 @@ namespace PetCenterModels.DBTables
         [JsonIgnore]
         public Guid AlbumId { get; set; }
 
+        [ForeignKey(nameof(AlbumId))]
+        public Album OwningAlbum {get; set;} = null!;
        
     }
 }

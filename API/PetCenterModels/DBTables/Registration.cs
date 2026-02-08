@@ -19,7 +19,7 @@ namespace PetCenterModels.DBTables
 
         [JsonIgnore]
         [ForeignKey(nameof(AccountId))]
-        public Account? RelevantAccount { get; set; }
+        public Account RelevantAccount { get; set; } = null!;
 
         [Column("Code")]
         public int Code { get; set; }

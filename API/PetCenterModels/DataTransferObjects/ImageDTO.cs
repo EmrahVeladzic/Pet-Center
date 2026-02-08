@@ -14,9 +14,12 @@ namespace PetCenterModels.DataTransferObjects
     public class ImageDTO : ISerializableRequestDTO<Image>, IBaseResponseDTO<Image,ImageDTO>
     {
         [JsonIgnore]
-        public const short MaxDimension = 1024;
+        public const short MaxDimension = 512;
         [JsonIgnore]
         public const short MinDimension = 32;
+
+        [JsonIgnore]
+        public const int MaxSize = 204800;
         
         public Guid? Id {get; set;}
 
@@ -44,7 +47,7 @@ namespace PetCenterModels.DataTransferObjects
 
         public bool Validate()
         {
-            return(!string.IsNullOrWhiteSpace(Data)&&(Width >= MinDimension && Width<=MaxDimension)&&(Height>=MinDimension && Height<=MaxDimension));
+            return(!string.IsNullOrWhiteSpace(Data)&&(Width >= MinDimension && Width<=MaxDimension)&&(Height>=MinDimension && Height<=MaxDimension)&&Data.Length<MaxSize);
         }
 
         public Image? ToEntity()

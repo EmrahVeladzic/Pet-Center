@@ -16,7 +16,7 @@ namespace PetCenterModels.DBTables
     public class Kind:BaseTableEntity
     {
         [Column("Title")]
-        public string? Title {get; set;}
+        public string Title {get; set;} = string.Empty;
 
         public override async Task StageDeletion<T>(PetCenterDBContext ctx, DbSet<T> set)
         {

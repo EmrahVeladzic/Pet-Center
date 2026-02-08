@@ -9,6 +9,8 @@ namespace PetCenterModels.SearchObjects
 {
     public class FranchiseSearchObject : BaseSearchObject
     {
-        public string FranchiseName { get; set; } = String.Empty;
+        public Guid? RelatedUser {get; set;}
+        public bool owner_worker {get; set;}
+
     }
 }

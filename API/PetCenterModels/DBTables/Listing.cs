@@ -59,6 +59,9 @@ namespace PetCenterModels.DBTables
         public List<Comment>? Comments { get; set; }
 
 
+        public override byte AlbumCapacity =>5;
+
+
         public override async Task StageDeletion<T>(PetCenterDBContext ctx, DbSet<T> set)
         {
             if(await ctx.AnimalListings.FirstOrDefaultAsync(a=>a.Id == Id) is AnimalListing al){ctx.AnimalListings.Remove(al);}

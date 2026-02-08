@@ -24,7 +24,7 @@ namespace PetCenterModels.DBTables
     public class Breed:AlbumIncludingTableEntity
     {
         [Column("Title")]
-        public string? Title {get; set;}
+        public string Title {get; set;} = string.Empty;
 
         [Column("KindID")]
         public Guid KindId {get; set;}

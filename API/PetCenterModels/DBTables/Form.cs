@@ -22,19 +22,19 @@ namespace PetCenterModels.DBTables
         public Guid UserId { get; set; }
 
         [ForeignKey(nameof(UserId))]
-        public User? RelevantUser {get; set;}
+        public User RelevantUser {get; set;} = null!;
         
         [Column("FranchiseName")]
-        public string? FranchiseName { get; set; }
+        public string FranchiseName { get; set; } = string.Empty;
 
         [Column("DefaultContact")]
-        public string? DefaultContact { get; set; }
+        public string DefaultContact { get; set; } = string.Empty;
 
         [Column("Posted")]
         public DateTime Posted {get; set;}
 
-        [NotMapped]
-        public List<FormFieldEntry>? Entries {get; set;}
+        [InverseProperty(nameof(FormFieldEntry.RelevantForm))]
+        public List<FormFieldEntry> Entries {get; set;} = new();
 
         public override async Task StageDeletion<T>(PetCenterDBContext ctx, DbSet<T> set)
         {

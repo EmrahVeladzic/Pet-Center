@@ -13,7 +13,7 @@ namespace PetCenterModels.DBTables
     public class Discount : ExpirableTableEntity
     {
         [Column("ListingID")]
-        public Guid? ListingId { get; set; }
+        public Guid ListingId { get; set; }
 
         [Column("PercentDiscount")]
         public byte PercentDiscount { get; set; }

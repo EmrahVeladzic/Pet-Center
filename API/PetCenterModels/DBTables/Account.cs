@@ -43,9 +43,12 @@ namespace PetCenterModels.DBTables
         [JsonIgnore]
         public bool Verified { get; set; }
 
+        [InverseProperty(nameof(User.UserAccount))]
+        public User AccountUser {get; set;} = null!;
+
         public override async Task StageDeletion<T>(PetCenterDBContext ctx, DbSet<T> set)
         {
-            if(await ctx.Users.FirstOrDefaultAsync(u => u.AccountId == Id) is User u) {await u.StageDeletion<User>(ctx, ctx.Users);  ctx.Users.Remove(u);}
+            if(await ctx.Users.FindAsync(Id) is User u) {await u.StageDeletion<User>(ctx, ctx.Users);  ctx.Users.Remove(u);}
             if(await ctx.Albums.Where(a=>a.PosterID==Id).ToArrayAsync() is Album[]a){ctx.Albums.RemoveRange(a);}
             await base.StageDeletion<T>(ctx,set);
         }

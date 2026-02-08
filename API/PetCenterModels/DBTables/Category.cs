@@ -14,7 +14,7 @@ namespace PetCenterModels.DBTables
     public class Category : BaseTableEntity
     {
         [Column("Title")]
-        public string? Title { get; set; }
+        public string Title { get; set; } = string.Empty;
 
         [Column("Consumable")]
         public bool Consumable { get; set; }

@@ -26,17 +26,26 @@ namespace PetCenterServices.Services
             dbSet = dbContext.Set<TEntity>();
         }
 
-        public virtual async Task<ServiceOutput<int>> Count(TSearch search)
+        protected virtual IQueryable<TEntity> Filter(TSearch search)
         {
-            int count = await dbSet.CountAsync();
-            int pageCount = (int)Math.Ceiling((double)count / search.PageSize);
-            return ServiceOutput<int>.Success(pageCount);
+            return dbSet.OrderBy(o=>o.Id);
+        }
+
+        protected int GetPageCount(int count, int PageSize)
+        {
+            return (int)Math.Ceiling((double)count / PageSize);
+        }
+
+        public virtual async Task<ServiceOutput<int>> Count(TSearch search)
+        {       
+            IQueryable<TEntity> entities = Filter(search);   
+            return ServiceOutput<int>.Success(GetPageCount(await entities.CountAsync(),search.PageSize));
         }
 
 
         public virtual async Task<ServiceOutput<List<TResponse>>> Get(TSearch search)
         {
-            List<TEntity> entities = await dbSet.OrderBy(o=>o.Id).Skip(search.Page*search.PageSize).Take(search.PageSize).ToListAsync();
+            List<TEntity> entities = await Filter(search).Skip(search.Page*search.PageSize).Take(search.PageSize).ToListAsync();
             return  ServiceOutput<List<TResponse>>.Success(entities.Select(e=>TResponse.FromEntity(e)!).ToList());
         }
 

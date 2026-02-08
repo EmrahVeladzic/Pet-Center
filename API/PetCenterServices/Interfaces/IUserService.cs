@@ -12,6 +12,6 @@ namespace PetCenterServices.Interfaces
 {
     public interface IUserService : IBaseCRUDService<User,UserSearchObject,UserRequestDTO,UserResponseDTO>
     {         
-        public Task<ServiceOutput<string>> SetEmployee(Guid owner_id, Guid usr_id, Guid franchise_id, bool hire_fire); 
+        public Task<ServiceOutput<string>> SetEmployee(Guid caller_id, Guid usr_id, Guid franchise_id, bool add_remove); 
     }
 }

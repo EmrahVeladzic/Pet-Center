@@ -14,16 +14,12 @@ namespace PetCenterModels.DBTables
     [Table("User", Schema = "Person")]
     public class User : AlbumIncludingTableEntity
     {
-        [Column("AccountID")]
-        [JsonIgnore]
-        public Guid AccountId { get; set; }
 
-        [ForeignKey(nameof(AccountId))]
-        [JsonIgnore]
-        public Account? UserAccount { get; set; }
+        [ForeignKey(nameof(Id))]
+        public Account UserAccount { get; set; } = null!;
 
         [Column("UserName")]
-        public string? UserName { get; set; }
+        public string UserName { get; set; } = string.Empty;
 
 
         public override async Task StageDeletion<T>(PetCenterDBContext ctx, DbSet<T> set)

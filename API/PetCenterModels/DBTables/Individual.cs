@@ -20,7 +20,7 @@ namespace PetCenterModels.DBTables
         public Guid BreedId {get; set;}
 
         [Column("AnimalName")]
-        public string? Name {get; set;}
+        public string Name {get; set;} = string.Empty;
 
         [Column("BirthDate")]
         public DateTime BirthDate {get; set;}

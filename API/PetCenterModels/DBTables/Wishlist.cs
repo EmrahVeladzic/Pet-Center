@@ -18,7 +18,7 @@ namespace PetCenterModels.DBTables
         public Guid UserId { get; set; }
 
         [Column("Term")]
-        public string? Term { get; set; }
+        public string Term { get; set; } = string.Empty;
 
     }
 }

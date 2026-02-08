@@ -15,7 +15,7 @@ using System.Threading.Tasks;
 
 namespace PetCenterServices.Services
 {
-    public class FranchiseService : BaseCRUDService<Franchise,FranchiseSearchObject,FranchiseRequestDTO,FranchiseResponseDTO>, IFranchiseService    
+    public class FranchiseService : AlbumIncludingService<Franchise,FranchiseSearchObject,FranchiseRequestDTO,FranchiseResponseDTO>, IFranchiseService    
     {
 
         public FranchiseService(PetCenterDBContext ctx) : base(ctx)
@@ -23,6 +23,26 @@ namespace PetCenterServices.Services
             dbSet = ctx.Franchises;
         }
 
+        protected override IQueryable<Franchise> Filter(FranchiseSearchObject search)
+        {
+            IQueryable<Franchise> output = base.Filter(search);
+            
+            if (search.RelatedUser != null)
+            {
+                if (search.owner_worker)
+                {
+                    output = output.Where(f=>f.OwnerId==search.RelatedUser);
+                }
+                else
+                {
+                    IQueryable<Guid> records = dbContext.EmployeeRecords.Where(e=>e.UserId==search.RelatedUser).Select(e=>e.FranchiseId);
+                    output = output.Where(f=>records.Contains(f.Id));
+                }
+               
+                
+            }
+            return output;
+        }
 
         public override async Task<ServiceOutput<FranchiseResponseDTO>> Post(Guid? token_holder, FranchiseRequestDTO req)
         {
@@ -92,19 +112,14 @@ namespace PetCenterServices.Services
             {
                 return ServiceOutput<object>.Error(HttpCode.BadRequest,"DTO validation failed.");
             }
-
-            User? usr = await dbContext.Users.FirstOrDefaultAsync(u=>u.AccountId==token_holder);
-            if (usr == null)
-            {
-                return ServiceOutput<object>.Error(HttpCode.NotFound,"The account associated with the token does not exist.");
-            }
+         
             Franchise? fr = await dbSet.FindAsync(resource.Id);
             if(fr == null)
             {
                 return ServiceOutput<object>.Error(HttpCode.NotFound,"The requested franchise does not exist.");
 
             }
-            if (fr.OwnerId != usr.Id)
+            if (fr.OwnerId != token_holder)
             {
                 return ServiceOutput<object>.Error(HttpCode.Forbidden,"You do not own this franchise.");
             }
@@ -114,18 +129,13 @@ namespace PetCenterServices.Services
 
         public override async Task<ServiceOutput<object>> IsClearedToDelete(Guid? token_holder, Guid resourceId)
         {
-            User? usr = await dbContext.Users.FirstOrDefaultAsync(u=>u.AccountId==token_holder);
-            if (usr == null)
-            {
-                return ServiceOutput<object>.Error(HttpCode.NotFound,"The account associated with the token does not exist.");
-            }
             Franchise? fr = await dbSet.FindAsync(resourceId);
             if(fr == null)
             {
                 return ServiceOutput<object>.Error(HttpCode.NotFound,"The requested franchise does not exist.");
 
             }
-            if (fr.OwnerId != usr.Id)
+            if (fr.OwnerId != token_holder)
             {
                 return ServiceOutput<object>.Error(HttpCode.Forbidden,"You do not own this franchise.");
             }

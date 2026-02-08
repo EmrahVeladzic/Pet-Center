@@ -21,6 +21,11 @@ namespace PetCenterServices
             
         }
 
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+        }
+
 
         public DbSet<Account> Accounts { get; set; }
         public DbSet<User> Users { get; set; }

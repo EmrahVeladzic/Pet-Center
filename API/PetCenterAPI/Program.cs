@@ -3,10 +3,12 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using PetCenterModels.DBTables;
 using PetCenterModels.Requests;
 using PetCenterServices;
 using PetCenterServices.Interfaces;
 using PetCenterServices.Services;
+using PetCenterServices.Utils;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -59,6 +61,9 @@ builder.Services.AddSwaggerGen(cfg =>
 });
 
 builder.Services.AddScoped<IAccountService, AccountService>();
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IImageService, ImageService>();
+builder.Services.AddScoped<IFranchiseService, FranchiseService>();
 
 builder.Services.AddDbContext<PetCenterDBContext>(options =>
 {
@@ -145,6 +150,7 @@ while (retry)
     try
     {
         
+        retry = false;
 
         using (IServiceScope scope = app.Services.CreateScope())
         {
@@ -152,13 +158,13 @@ while (retry)
             IAccountService svc = scope.ServiceProvider.GetRequiredService<IAccountService>();
             
                     
-                if (!ctx.Accounts.Any())
+                if (!await ctx.Accounts.AnyAsync())
                 {
 
                     IConfigurationSection instance_owner = builder.Configuration.GetSection("InstanceOwner");
                     AccountRequestDTO owner_req = new AccountRequestDTO(){
-                        Contact = instance_owner["Contact"],            
-                        Password = instance_owner["Password"],
+                        Contact = instance_owner["Contact"]??"Null@example.com",            
+                        Password = instance_owner["Password"]??"Null",
                     };
 
                     string? contact = Environment.GetEnvironmentVariable("INSTANCE_OWNER_CONTACT");
@@ -173,8 +179,10 @@ while (retry)
 
 
                     await svc.Post(null,owner_req);
-
+                  
                 }
+
+                await Task.Delay(2500);
 
             }
     }

@@ -21,7 +21,7 @@ namespace PetCenterModels.DBTables
         public Guid? CommentId { get; set; }
 
         [Column("Reason")]
-        public string? Reason { get; set; }
+        public string Reason { get; set; } = string.Empty;
 
 
     }
