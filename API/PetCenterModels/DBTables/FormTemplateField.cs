@@ -19,7 +19,10 @@ namespace PetCenterModels.DBTables
         public Guid FormTemplateId { get; set; }
 
         [Column("FormFieldDescription")]
-        public string? Description {get; set;}
+        public string Description {get; set;} = string.Empty;
+
+        [ForeignKey(nameof(FormTemplateId))]
+        public FormTemplate Template {get; set;} = null!;
 
 
         [Column("Optional")]

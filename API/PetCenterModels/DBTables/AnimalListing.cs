@@ -18,7 +18,7 @@ namespace PetCenterModels.DBTables
         public Guid AnimalId {get; set;}
 
         [ForeignKey(nameof(AnimalId))]
-        public Individual? Animal { get; set; }
+        public Individual Animal { get; set; } = null!;
 
 
         public override async Task StageDeletion<T>(PetCenterDBContext ctx, DbSet<T> set)

@@ -26,8 +26,8 @@ namespace PetCenterModels.DBTables
         [Column("Locked")]
         public bool Locked {get; set;}
 
-        [NotMapped]
-        public List<Image>? Images;
+        [InverseProperty(nameof(Image.OwningAlbum))]
+        public List<Image> Images {get; set;} = new();
 
         public Album()
         {

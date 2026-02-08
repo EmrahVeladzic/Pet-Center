@@ -18,7 +18,7 @@ namespace PetCenterModels.DBTables
         
 
         [Column("ProcedureDescription")]
-        public string? Description {get; set;}
+        public string Description {get; set;} = string.Empty;
 
         public override async Task StageDeletion<T>(PetCenterDBContext ctx, DbSet<T> set)
         {

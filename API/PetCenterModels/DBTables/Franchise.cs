@@ -15,24 +15,20 @@ namespace PetCenterModels.DBTables
     public class Franchise : AlbumIncludingTableEntity
     {
         [Column("OwnerID")]
-        [JsonIgnore]
         public Guid OwnerId { get; set; }
 
         
         [ForeignKey(nameof(OwnerId))]
-        [JsonIgnore]
-        public User? Owner { get; set; }
+        public User Owner { get; set; } = null!;
 
         [Column("FranchiseName")]
-        public string? FranchiseName { get; set; }
+        public string FranchiseName { get; set; } = string.Empty;
 
         [Column("DefaultContact")]        
-        public string? Contact {  get; set; }
+        public string Contact {  get; set; } = string.Empty;
 
-        [NotMapped]
-        public List<Facility>? Facilities { get; set; }
-
-        public override byte AlbumCapacity => 1;
+        [InverseProperty(nameof(Facility.OwningFranchise))]
+        public List<Facility> Facilities { get; set; } = new();
 
         public override async Task StageDeletion<T>(PetCenterDBContext ctx, DbSet<T> set)
         {

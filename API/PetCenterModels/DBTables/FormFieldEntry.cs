@@ -19,7 +19,10 @@ namespace PetCenterModels.DBTables
         public Guid FormTemplateFieldId { get; set; }
 
         [Column("Serialized")]
-        public string? Serialized {get; set;}
+        public string Serialized {get; set;} = string.Empty;
+
+        [ForeignKey(nameof(FormId))]
+        public Form RelevantForm {get; set;} = null!;
 
     }
 }

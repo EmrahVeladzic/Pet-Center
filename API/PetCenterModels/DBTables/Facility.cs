@@ -19,14 +19,17 @@ namespace PetCenterModels.DBTables
         [JsonIgnore]
         public Guid FranchiseId { get; set; }
 
+        [ForeignKey(nameof(FranchiseId))]
+        public Franchise OwningFranchise {get; set;} = null!;
+
         [Column("Street")]
-        public string? Street { get; set; }
+        public string Street { get; set; } = string.Empty;
 
         [Column("City")]
-        public string? City { get; set; }
+        public string City { get; set; } = string.Empty;
 
         [Column("Contact")]        
-        public string? Contact {  get; set; }
+        public string Contact {  get; set; } = string.Empty;
 
         public override async Task StageDeletion<T>(PetCenterDBContext ctx, DbSet<T> set)
         {

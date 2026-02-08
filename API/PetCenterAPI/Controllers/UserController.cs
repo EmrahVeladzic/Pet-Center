@@ -20,11 +20,11 @@ namespace PetCenterAPI.Controllers
 
         [HttpGet("SetEmployee{usr_id}/{franchise_id}")]
         [Authorize(Roles = "BusinessAccount")]
-        public async Task<IActionResult> SetEmployee([FromRoute] Guid usr_id, [FromRoute] Guid franchise_id, [FromQuery] bool hire_fire)
+        public async Task<IActionResult> SetEmployee([FromRoute] Guid usr_id, [FromRoute] Guid franchise_id, [FromQuery] bool add_remove)
         {
-            if(TryGetUserId(out Guid owner_id))
+            if(TryGetUserId(out Guid caller_id))
             {
-                return ResultConverter.Convert<string>(await service.SetEmployee(owner_id,usr_id,franchise_id,hire_fire));
+                return ResultConverter.Convert<string>(await service.SetEmployee(caller_id,usr_id,franchise_id,add_remove));
             }
             return StatusCode(401,"Invalid token.");  
         }

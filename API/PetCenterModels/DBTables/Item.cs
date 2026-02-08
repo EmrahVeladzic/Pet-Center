@@ -14,7 +14,7 @@ namespace PetCenterModels.DBTables
     public class Item : BaseTableEntity
     {
         [Column("Title")]
-        public string? Title { get; set; }
+        public string Title { get; set; } = string.Empty;
 
         [Column("CategoryID")]
         public Guid CategoryId { get; set; }

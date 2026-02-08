@@ -17,8 +17,8 @@ namespace PetCenterModels.DBTables
         [Column("FormDescription")]
         public string? Description {get; set;}
 
-        [NotMapped]
-        public List<FormTemplateField>? Entries {get; set;}
+        [InverseProperty(nameof(FormTemplateField.Template))]
+        public List<FormTemplateField> Entries {get; set;} = new();
 
         public override async Task StageDeletion<T>(PetCenterDBContext ctx, DbSet<T> set)
         {

@@ -10,7 +10,6 @@ namespace PetCenterModels.SearchObjects
 {
     public class UserSearchObject :BaseSearchObject
     {
-        [Required]
         public string UserName { get; set; } = String.Empty;
 
         public bool BusinessRelated { get; set; }

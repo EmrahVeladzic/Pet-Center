@@ -15,14 +15,14 @@ namespace PetCenterModels.DBTables
     public class Comment : BaseTableEntity
     {
         [Column("PosterID")]
-        public Guid? PosterId { get; set; }
+        public Guid PosterId { get; set; }
 
         [JsonIgnore]
         [ForeignKey(nameof(PosterId))]
-        public User? Poster {  get; set; }
+        public User Poster {  get; set; } = null!;
 
         [Column("Contents")]
-        public string? Message { get; set; }
+        public string Message { get; set; } = string.Empty;
         [Column("Creation")]
         public DateTime PostDate { get; set; }
        

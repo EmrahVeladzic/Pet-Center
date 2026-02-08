@@ -15,10 +15,10 @@ namespace PetCenterModels.Requests
         public Guid? Id {get; set;}
 
         [Required]
-        public string? Contact { get; set; }
+        public string Contact { get; set; } = string.Empty;
         
         [Required]
-        public string? Password { get; set; }
+        public string Password { get; set; } = string.Empty;
     
 
         public bool Validate()

@@ -14,7 +14,7 @@ namespace PetCenterModels.DBTables
     public class LivingConditionField : BaseTableEntity
     {
         [Column("Title")]
-        public string? Title { get; set; }
+        public string Title { get; set; } = string.Empty;
 
         [Column("InvestmentEffect")]
         public float InvestmentEffect { get; set; }

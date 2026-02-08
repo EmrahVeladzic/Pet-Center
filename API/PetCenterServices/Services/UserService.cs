@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 
 namespace PetCenterServices.Services
 {
-    public class UserService : BaseCRUDService<User,UserSearchObject,UserRequestDTO,UserResponseDTO>, IUserService
+    public class UserService : AlbumIncludingService<User,UserSearchObject,UserRequestDTO,UserResponseDTO>, IUserService
     {
 
 
@@ -23,12 +23,17 @@ namespace PetCenterServices.Services
             dbSet = ctx.Users;
         }
 
-        public override async Task<ServiceOutput<List<UserResponseDTO>>> Get(UserSearchObject search)
-        {
-            List<User> entities = await dbSet.Include(u=>u.UserAccount).Where(u=>u.UserAccount!=null && u.UserName!=null && u.UserName.ToLower().StartsWith(search.UserName.ToLower()) && ((search.BusinessRelated&&u.UserAccount.AccessLevel==Access.BusinessAccount) || (!search.BusinessRelated&&u.UserAccount.AccessLevel==Access.User))).OrderBy(u=>u.Id).Skip(search.Page*search.PageSize).Take(search.PageSize).ToListAsync();
-            return  ServiceOutput<List<UserResponseDTO>>.Success(entities.Select(e=>UserResponseDTO.FromEntity(e)!).ToList());
-        }
 
+        protected override IQueryable<User> Filter(UserSearchObject search)
+        {
+            IQueryable<User> output = dbSet.Include(u=>u.UserAccount).OrderBy(u=>u.Id);
+            output = output.Where(u=>(search.BusinessRelated && u.UserAccount!.AccessLevel==Access.BusinessAccount)||(!search.BusinessRelated && u.UserAccount!.AccessLevel==Access.User));
+            if (!string.IsNullOrWhiteSpace(search.UserName))
+            {
+                output = output.Where(u=>u.UserName!.ToLower().StartsWith(search.UserName.ToLower()));
+            }
+            return output;
+        }
 
         public override async Task<ServiceOutput<UserResponseDTO>> Put(Guid? token_holder,UserRequestDTO ent)
         {
@@ -68,7 +73,7 @@ namespace PetCenterServices.Services
             return Task.FromResult(ServiceOutput<UserResponseDTO>.Error(HttpCode.NotImplemented,"Illegal endpoint."));
         }
 
-        public async Task<ServiceOutput<string>> SetEmployee(Guid owner_id, Guid usr_id, Guid franchise_id, bool hire_fire)
+        public async Task<ServiceOutput<string>> SetEmployee(Guid caller_id, Guid usr_id, Guid franchise_id, bool add_remove)
         {
 
             using (IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync(IsolationLevel.Serializable))
@@ -77,27 +82,36 @@ namespace PetCenterServices.Services
                 try
                 {
                     User? usr =  await dbContext.Users.Include(u=>u.UserAccount).FirstOrDefaultAsync(u=>u.Id==usr_id);
-                    User? owner = await dbContext.Users.FirstOrDefaultAsync(u=>u.AccountId==owner_id);
+                    User? owner = await dbContext.Users.FindAsync(caller_id);
                     Franchise? franchise = await dbContext.Franchises.FindAsync(franchise_id);
                     EmployeeRecord? record = await dbContext.EmployeeRecords.FirstOrDefaultAsync(r=>r.UserId==usr_id && r.FranchiseId==franchise_id);
 
                     if(usr==null || owner==null || franchise==null || usr.UserAccount==null)
                     {
+                        await tx.RollbackAsync();
                         return ServiceOutput<string>.Error(HttpCode.NotFound,"One or more resources needed for this operation are missing.");
                     }
 
-                    if (franchise.OwnerId != owner.Id)
+                    if (add_remove)
                     {
-                        return ServiceOutput<string>.Error(HttpCode.Forbidden,"The token holder does not own the specified franchise.");
-                    }
+                        if (franchise.OwnerId != owner.Id)
+                        {
+                            await tx.RollbackAsync();
+                            return ServiceOutput<string>.Error(HttpCode.Forbidden,"The token holder does not own the specified franchise.");
+                        }
 
-                    if (usr.UserAccount.AccessLevel != Access.BusinessAccount)
-                    {
-                        return ServiceOutput<string>.Error(HttpCode.BadRequest,"The specified user is not eligible to be an employee.");
-                    }
+                        if (usr.UserAccount.AccessLevel != Access.BusinessAccount)
+                        {
+                            await tx.RollbackAsync();
+                            return ServiceOutput<string>.Error(HttpCode.BadRequest,"The specified user is not eligible to be an employee.");
+                        }
 
-                    if (hire_fire)
-                    {
+                        if(caller_id == usr_id)
+                        {
+                            await tx.RollbackAsync();
+                            return ServiceOutput<string>.Error(HttpCode.BadRequest,"The owner of a franchise is already considered an employee.");
+                        }
+
                         if (record == null)
                         {
                             EmployeeRecord newRecord = new EmployeeRecord
@@ -115,6 +129,19 @@ namespace PetCenterServices.Services
                     }
                     else
                     {
+
+                        if (franchise.OwnerId == usr_id)
+                        {
+                            await tx.RollbackAsync();
+                            return ServiceOutput<string>.Error(HttpCode.BadRequest,"The owner of a franchise cannot remove themselves from the employee list.");
+                        }
+
+                        if (franchise.OwnerId != owner.Id && owner.Id!=usr_id)
+                        {
+                            await tx.RollbackAsync();
+                            return ServiceOutput<string>.Error(HttpCode.Forbidden,"You are not allowed to perform this operation.");
+                        }
+
                         if(record!=null)
                         {
                             dbContext.EmployeeRecords.Remove(record);                            
@@ -122,9 +149,9 @@ namespace PetCenterServices.Services
                             await tx.CommitAsync();
                         }
 
-                        return ServiceOutput<string>.Success("Employee fired successfully.");
+                        return ServiceOutput<string>.Success("Employee removed successfully.");
                     }
-
+                   
                             
                 }
                 catch
@@ -147,15 +174,7 @@ namespace PetCenterServices.Services
                 return ServiceOutput<object>.Error(HttpCode.BadRequest,"Request validation failure.");
             }
 
-            User? usr = await dbSet.FindAsync(resource.Id);
-
-            if (usr == null)
-            {
-                return ServiceOutput<object>.Error(HttpCode.NotFound,"The requested user does not exist.");
-
-            }
-
-            if (usr.AccountId != token_holder)
+            if (resource.Id != token_holder)
             {
                 return ServiceOutput<object>.Error(HttpCode.Forbidden,"Token does not belong to user.");
             }
@@ -171,15 +190,9 @@ namespace PetCenterServices.Services
         }
 
         public override async Task<ServiceOutput<object>> IsClearedToDelete(Guid? token_holder, Guid resourceId)
-        {
-           User? usr = await dbContext.Users.FindAsync(resourceId);
-        
-            if(usr==null)
-            {
-                return ServiceOutput<object>.Error(HttpCode.NotFound,"The requested user does not exist.");
-            }
-        
-            if(usr.AccountId!=token_holder)
+        {       
+            await Task.CompletedTask; 
+            if(resourceId!=token_holder)
             {
                 return ServiceOutput<object>.Error(HttpCode.Forbidden,"Token does not belong to user.");
             }

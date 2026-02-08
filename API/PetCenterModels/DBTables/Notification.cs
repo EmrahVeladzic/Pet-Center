@@ -20,13 +20,13 @@ namespace PetCenterModels.DBTables
         public Guid? FranchiseId { get; set; }
 
         [Column("Title")]
-        public string? Title { get; set; }
+        public string Title { get; set; } = string.Empty;
 
         [Column("Body")]
-        public string? Body { get; set; }
+        public string Body { get; set; } = string.Empty;
 
         [Column("ListingID")]
-        public Guid ListingId { get; set; }
+        public Guid? ListingId { get; set; }
 
       
 

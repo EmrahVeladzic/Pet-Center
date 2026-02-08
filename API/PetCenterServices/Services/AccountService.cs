@@ -25,7 +25,16 @@ namespace PetCenterServices.Services
             dbSet = ctx.Accounts;
         }
 
-       
+        protected override IQueryable<Account> Filter(AccountSearchObject search)
+        {
+            IQueryable<Account> output = base.Filter(search);
+            if (search.Role != null)
+            {
+                output = output.Where(a=>a.AccessLevel==search.Role);
+            }
+            return output;
+        }
+
         public override async Task<ServiceOutput<AccountResponseDTO>> Post(Guid? token_holder,AccountRequestDTO req)
         {
               
@@ -64,16 +73,12 @@ namespace PetCenterServices.Services
                         await dbContext.Registrations.AddAsync(reg);
                         await dbContext.SaveChangesAsync();
                     }
-
-                    Album album = new(1);  
-                    album.PosterID=acc.Id;          
-                    await dbContext.Albums.AddAsync(album);
-                    await dbContext.SaveChangesAsync();
-
+                   
                     User usr = new();
-                    usr.AccountId = acc.Id;
+
+                    usr.AlbumId = await ImageService.CreateAlbum(acc.Id,dbContext,usr.AlbumCapacity);  
+                    usr.Id = acc.Id;
                     usr.UserName = await Utils.UserUtils.GenerateUsername(dbContext);
-                    usr.AlbumId = album.Id;
                     await dbContext.Users.AddAsync(usr);
                     await dbContext.SaveChangesAsync();
 
@@ -144,7 +149,7 @@ namespace PetCenterServices.Services
                 string login_pwd = Crypto.GenerateHash(req.Password!, acc.PasswordSalt);
                 if (login_pwd == acc.PasswordHash)
                 {
-                    User? usr = await dbContext.Users.Include(u=>u.UserAccount).Include(u=>u.Album).FirstOrDefaultAsync(u=>u.AccountId == acc.Id);
+                    User? usr = await dbContext.Users.Include(u=>u.UserAccount).Include(u=>u.Album).FirstOrDefaultAsync(u=>u.Id == acc.Id);
 
                     if (usr != null)
                     {
@@ -152,6 +157,8 @@ namespace PetCenterServices.Services
                         return ServiceOutput<string>.Success(Utils.Crypto.GenerateJWT(usr));
 
                     }
+
+                    return ServiceOutput<string>.Error(HttpCode.InternalError,"Account exists, but the user data for it is missing.");
 
                 }
             }
@@ -207,7 +214,7 @@ namespace PetCenterServices.Services
                         await tx.CommitAsync();
 
 
-                        User? usr = await dbContext.Users.Include(u=>u.UserAccount).Include(u=>u.Album).FirstOrDefaultAsync(u=>u.AccountId == id);
+                        User? usr = await dbContext.Users.Include(u=>u.UserAccount).Include(u=>u.Album).FirstOrDefaultAsync(u=>u.Id == id);
 
                         if (usr != null)
                         {
@@ -262,7 +269,7 @@ namespace PetCenterServices.Services
                             return ServiceOutput<string>.Error(HttpCode.Forbidden,"This action is not allowed.");
                         }
 
-                        User? usr = await dbContext.Users.FirstOrDefaultAsync(u=>u.AccountId==acc.Id);
+                        User? usr = await dbContext.Users.FindAsync(id);
                         if (usr == null)
                         {
                             return ServiceOutput<string>.Error(HttpCode.InternalError,"Internal server error.");

@@ -18,7 +18,7 @@ namespace PetCenterModels.DBTables
         public Guid ProductId {get; set;}
 
         [ForeignKey(nameof(ProductId))]
-        public Item? Product { get; set; }
+        public Item Product { get; set; } = null!;
 
         [Column("PerListing")]
         public byte PerListing {get; set;}
