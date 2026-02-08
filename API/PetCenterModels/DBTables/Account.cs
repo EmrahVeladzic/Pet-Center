@@ -6,13 +6,16 @@ using System.Linq;
 using System.Text;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
+using PetCenterServices;
 
 namespace PetCenterModels.DBTables
 {
     public enum Access : byte
     {
         Owner = 255,
-        Admin = 1,
+        Admin = 254,
+        BusinessAccount = 1,
         User = 0
     }
 
@@ -39,6 +42,16 @@ namespace PetCenterModels.DBTables
         [Column("Verified")]
         [JsonIgnore]
         public bool Verified { get; set; }
+
+        [InverseProperty(nameof(User.UserAccount))]
+        public User AccountUser {get; set;} = null!;
+
+        public override async Task StageDeletion<T>(PetCenterDBContext ctx, DbSet<T> set)
+        {
+            if(await ctx.Users.FindAsync(Id) is User u) {await u.StageDeletion<User>(ctx, ctx.Users);  ctx.Users.Remove(u);}
+            if(await ctx.Albums.Where(a=>a.PosterID==Id).ToArrayAsync() is Album[]a){ctx.Albums.RemoveRange(a);}
+            await base.StageDeletion<T>(ctx,set);
+        }
 
     }
 }

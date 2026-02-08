@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
+using PetCenterServices;
 
 namespace PetCenterModels.DBTables
 {
@@ -12,25 +15,25 @@ namespace PetCenterModels.DBTables
     public class Comment : BaseTableEntity
     {
         [Column("PosterID")]
-        public Guid? PosterId { get; set; }
+        public Guid PosterId { get; set; }
 
         [JsonIgnore]
         [ForeignKey(nameof(PosterId))]
-        public User? Poster {  get; set; }
-
-        [NotMapped]
-        public string PosterName => Poster?.UserName ?? "Null";
+        public User Poster {  get; set; } = null!;
 
         [Column("Contents")]
-        public string? Message { get; set; }
+        public string Message { get; set; } = string.Empty;
         [Column("Creation")]
         public DateTime PostDate { get; set; }
-        [Column("Edited")]
-        public bool Edited { get; set; }
-        [Column("ParentCommentID")]
-        public Guid? ReplyingTo { get; set; }
-        [Column("ThreadID")]
-        public Guid ThreadId { get; set; }
+       
+        [Column("ListingID")]
+        public Guid ListingId { get; set; }
+
+        public override async Task StageDeletion<T>(PetCenterDBContext ctx, DbSet<T> set)
+        {
+            if(await ctx.Reports.Where(r=>r.CommentId==Id).ToArrayAsync() is Report[] r){ctx.Reports.RemoveRange(r);}
+            await base.StageDeletion(ctx, set);
+        }
 
     }
 }

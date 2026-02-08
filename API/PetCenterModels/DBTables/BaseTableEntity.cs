@@ -5,6 +5,8 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
+using PetCenterServices;
 
 namespace PetCenterModels.DBTables
 {
@@ -14,9 +16,20 @@ namespace PetCenterModels.DBTables
         [Column("ID")]
         public Guid Id { get; set; }
 
+        [Column("CurrentVersion")]
+        [Timestamp]
+        public byte[] CurrentVersion { get; set; } = null!;
+
+
         public BaseTableEntity()
         {
             
+        }
+
+        public virtual async Task StageDeletion<T>(PetCenterDBContext ctx, DbSet<T> set) where T: BaseTableEntity
+        {
+            set.Remove((T)this);
+            await Task.CompletedTask;
         }
 
     }
