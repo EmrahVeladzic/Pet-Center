@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using PetCenterModels.DBTables;
-using PetCenterModels.Requests;
+using PetCenterModels.DataTransferObjects;
 using PetCenterModels.SearchObjects;
 using PetCenterServices.Interfaces;
 using PetCenterServices.Utils;
@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 
 namespace PetCenterServices.Services
 {
-    public class UserService : AlbumIncludingService<User,UserSearchObject,UserRequestDTO,UserResponseDTO>, IUserService
+    public class UserService : BaseCRUDService<User,UserSearchObject,UserRequestDTO,UserResponseDTO>, IUserService
     {
 
 

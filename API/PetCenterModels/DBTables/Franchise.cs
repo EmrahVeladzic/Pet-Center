@@ -12,7 +12,7 @@ using PetCenterServices;
 namespace PetCenterModels.DBTables
 {
     [Table("Franchise", Schema = "Business")]
-    public class Franchise : AlbumIncludingTableEntity
+    public class Franchise : BaseTableEntity
     {
         [Column("OwnerID")]
         public Guid OwnerId { get; set; }

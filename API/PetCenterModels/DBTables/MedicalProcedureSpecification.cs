@@ -17,6 +17,9 @@ namespace PetCenterModels.DBTables
         [Column("ProcedureID")]
         public Guid ProcedureId {get; set;}
 
+        [ForeignKey(nameof(ProcedureId))]
+        public Procedure MedicalProcedure {get; set;} = null!;
+
         [Column("KindID")]
         public Guid KindId {get; set;}
 

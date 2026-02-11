@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using PetCenterModels.DBTables;
 using PetCenterModels.SearchObjects;
 using PetCenterServices.Interfaces;
-using PetCenterModels.Requests;
+using PetCenterModels.DataTransferObjects;
 using PetCenterServices.Utils;
 using System.Security.Claims;
 

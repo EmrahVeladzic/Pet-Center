@@ -8,8 +8,14 @@ using System.Threading.Tasks;
 using PetCenterModels.DataTransferObjects;
 using PetCenterModels.DBTables;
 
-namespace PetCenterModels.Requests
+namespace PetCenterModels.DataTransferObjects
 {
+    public interface IGeneratedSubDTO
+    {
+        public string Title {get; set;}
+        public string Body {get; set;}
+    }
+
     public interface IBaseRequestDTO
     {             
         public Guid? Id { get; set; }
@@ -23,6 +29,8 @@ namespace PetCenterModels.Requests
 
     public interface IBaseResponseDTO<TEntity,TSelf>  where TEntity :BaseTableEntity where TSelf: IBaseResponseDTO<TEntity,TSelf>
     {       
+        public List<NoteSubDTO>? Notes {get; set;}
+
         public Guid? Id {get; set;}
         public static abstract TSelf? FromEntity(TEntity? entity);
 

@@ -16,8 +16,9 @@ namespace PetCenterModels.DBTables
     {
         Service = 0,
         Product = 1,
-        Pet = 2,
-        Medical = 3
+        Consumable = 2,
+        Pet = 3,
+        Medical = 4
     }
 
     [Table("Listing", Schema = "Offer")]
@@ -71,7 +72,6 @@ namespace PetCenterModels.DBTables
             if(await ctx.Comments.Where(c=>c.ListingId==Id).ToListAsync() is List<Comment> c){foreach(Comment comm in c){await comm.StageDeletion(ctx, ctx.Comments);}}
             if(await ctx.Notifications.Where(n=>n.ListingId==Id).ToArrayAsync() is Notification[] n){ctx.Notifications.RemoveRange(n);}
             if(await ctx.Reports.Where(r=>r.ListingId==Id).ToArrayAsync() is Report[] r){ctx.Reports.RemoveRange(r);}
-            if(await ctx.Confirmations.Where(cf=>cf.ListingId==Id).ToArrayAsync() is Confirmation[] cf){ctx.Confirmations.RemoveRange(cf);}
             await base.StageDeletion(ctx, set);
         }
 

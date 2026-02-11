@@ -17,6 +17,9 @@ namespace PetCenterModels.DBTables
         [Column("UserID")]
         public Guid UserId { get; set; }
 
+        [ForeignKey(nameof(UserId))]
+        public User RelevantUser {get; set;} = null!;
+
         [Column("Term")]
         public string Term { get; set; } = string.Empty;
 

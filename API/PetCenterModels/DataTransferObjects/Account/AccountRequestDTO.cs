@@ -7,7 +7,7 @@ using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using PetCenterModels.DBTables;
 
-namespace PetCenterModels.Requests
+namespace PetCenterModels.DataTransferObjects
 {
     public class AccountRequestDTO : IBaseRequestDTO
     {
