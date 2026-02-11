@@ -1,6 +1,6 @@
 ﻿using PetCenterModels.DBTables;
 using PetCenterModels.SearchObjects;
-using PetCenterModels.Requests;
+using PetCenterModels.DataTransferObjects;
 using System;
 using System.Collections.Generic;
 using System.Linq;

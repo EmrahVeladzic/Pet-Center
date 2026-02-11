@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using PetCenterModels.DBTables;
-using PetCenterModels.Requests;
+using PetCenterModels.DataTransferObjects;
 using PetCenterModels.SearchObjects;
 using PetCenterServices.Interfaces;
 using PetCenterServices.Utils;
@@ -76,7 +76,7 @@ namespace PetCenterServices.Services
                    
                     User usr = new();
 
-                    usr.AlbumId = await ImageService.CreateAlbum(acc.Id,dbContext,usr.AlbumCapacity);  
+                   
                     usr.Id = acc.Id;
                     usr.UserName = await Utils.UserUtils.GenerateUsername(dbContext);
                     await dbContext.Users.AddAsync(usr);
@@ -149,7 +149,7 @@ namespace PetCenterServices.Services
                 string login_pwd = Crypto.GenerateHash(req.Password!, acc.PasswordSalt);
                 if (login_pwd == acc.PasswordHash)
                 {
-                    User? usr = await dbContext.Users.Include(u=>u.UserAccount).Include(u=>u.Album).FirstOrDefaultAsync(u=>u.Id == acc.Id);
+                    User? usr = await dbContext.Users.Include(u=>u.UserAccount).FirstOrDefaultAsync(u=>u.Id == acc.Id);
 
                     if (usr != null)
                     {
@@ -214,7 +214,7 @@ namespace PetCenterServices.Services
                         await tx.CommitAsync();
 
 
-                        User? usr = await dbContext.Users.Include(u=>u.UserAccount).Include(u=>u.Album).FirstOrDefaultAsync(u=>u.Id == id);
+                        User? usr = await dbContext.Users.Include(u=>u.UserAccount).FirstOrDefaultAsync(u=>u.Id == id);
 
                         if (usr != null)
                         {

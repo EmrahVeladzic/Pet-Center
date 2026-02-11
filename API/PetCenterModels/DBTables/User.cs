@@ -12,7 +12,7 @@ using PetCenterServices;
 namespace PetCenterModels.DBTables
 {
     [Table("User", Schema = "Person")]
-    public class User : AlbumIncludingTableEntity
+    public class User : BaseTableEntity
     {
 
         [ForeignKey(nameof(Id))]
@@ -21,6 +21,8 @@ namespace PetCenterModels.DBTables
         [Column("UserName")]
         public string UserName { get; set; } = string.Empty;
 
+        [InverseProperty(nameof(Individual.Owner))]
+        public List<Individual> OwnedAnimals {get; set;} = new();
 
         public override async Task StageDeletion<T>(PetCenterDBContext ctx, DbSet<T> set)
         {
@@ -29,7 +31,6 @@ namespace PetCenterModels.DBTables
             if(await ctx.Forms.Where(f=>f.UserId==Id).ToListAsync() is List<Form>f){foreach(Form frm in f){await frm.StageDeletion<Form>(ctx,ctx.Forms);}}
             if(await ctx.Comments.Where(c=>c.PosterId==Id).ToListAsync() is List<Comment> c){foreach(Comment com in c){await com.StageDeletion<Comment>(ctx,ctx.Comments);}}
             if(await ctx.EmployeeRecords.Where(e=>e.UserId==Id).ToArrayAsync() is EmployeeRecord []e){ctx.EmployeeRecords.RemoveRange(e);}
-            if(await ctx.Confirmations.Where(c=>c.UserId==Id).ToArrayAsync() is Confirmation[] con){ctx.Confirmations.RemoveRange(con);}
         }
     }
 }

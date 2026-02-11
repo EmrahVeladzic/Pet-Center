@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using PetCenterModels.DBTables;
-using PetCenterModels.Requests;
+using PetCenterModels.DataTransferObjects;
 using PetCenterModels.SearchObjects;
 using PetCenterServices.Interfaces;
 using PetCenterServices.Utils;
@@ -15,7 +15,7 @@ using System.Threading.Tasks;
 
 namespace PetCenterServices.Services
 {
-    public class FranchiseService : AlbumIncludingService<Franchise,FranchiseSearchObject,FranchiseRequestDTO,FranchiseResponseDTO>, IFranchiseService    
+    public class FranchiseService : BaseCRUDService<Franchise,FranchiseSearchObject,FranchiseRequestDTO,FranchiseResponseDTO>, IFranchiseService    
     {
 
         public FranchiseService(PetCenterDBContext ctx) : base(ctx)
@@ -61,9 +61,7 @@ namespace PetCenterServices.Services
             using (IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync())
             {
                 try
-                {                    
-                    franch.AlbumId = await ImageService.CreateAlbum(token_holder,dbContext,franch.AlbumCapacity);
-
+                {                   
                     await dbSet.AddAsync(franch);
                     await dbContext.SaveChangesAsync();
                     await tx.CommitAsync();

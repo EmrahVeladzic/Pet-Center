@@ -9,16 +9,13 @@ using PetCenterModels.DataTransferObjects;
 using PetCenterModels.DBTables;
 
 
-namespace PetCenterModels.Requests
+namespace PetCenterModels.DataTransferObjects
 {
-    public class UserResponseDTO : IAlbumCarryingDTO<User,UserResponseDTO>
+    public class UserResponseDTO : IBaseResponseDTO<User,UserResponseDTO>
     {        
         public Guid? Id {get; set;}
         public string? UserName {get; set;}
-
-        public Guid AlbumId {get; set;}
-
-        public List<ImageDTO?>? Images { get; set; }
+        public List<NoteSubDTO>? Notes {get; set;}
 
         public static UserResponseDTO? FromEntity(User? usr)
         {
@@ -28,8 +25,7 @@ namespace PetCenterModels.Requests
             {
                 Id=usr.Id,
                 UserName=usr.UserName,
-                AlbumId = usr.AlbumId,
-                Images = usr.Album?.Images?.Select(img=>ImageDTO.FromEntity(img)).ToList()
+               
             };
         }
     }

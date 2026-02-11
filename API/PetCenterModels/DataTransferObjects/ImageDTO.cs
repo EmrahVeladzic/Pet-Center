@@ -1,6 +1,6 @@
 ﻿using Microsoft.VisualBasic;
 using PetCenterModels.DBTables;
-using PetCenterModels.Requests;
+using PetCenterModels.DataTransferObjects;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -31,6 +31,8 @@ namespace PetCenterModels.DataTransferObjects
         public short Height { get; set; } = 0;
         [Required]
         public string? Data { get; set; } = null;
+
+        public List<NoteSubDTO>? Notes {get; set;}
 
         public static ImageDTO? FromEntity(Image? img)
         {

@@ -14,10 +14,17 @@ namespace PetCenterModels.DBTables
 {
 
     [Table("Individual",Schema ="Animal")]
-    public class Individual:AlbumIncludingTableEntity
+    public class Individual:BaseTableEntity
     {
+
+        [Column("AnimalIdentity")]
+        public Guid AnimalIdentity {get; set;} = Guid.NewGuid();
+
         [Column("BreedID")]
         public Guid BreedId {get; set;}
+
+        [ForeignKey(nameof(BreedId))]
+        public Breed AnimalBreed {get; set;} = null!;
 
         [Column("AnimalName")]
         public string Name {get; set;} = string.Empty;
@@ -31,8 +38,14 @@ namespace PetCenterModels.DBTables
         [Column("OwnerID")]
         public Guid? OwnerId {get;set;}
 
+        [ForeignKey(nameof(OwnerId))]
+        public User Owner {get; set;} = null!;
+
         [Column("ShelterID")]
         public Guid? ShelterId {get;set;}
+
+        [ForeignKey(nameof(ShelterId))]
+        public Franchise Shelter {get; set;} = null!;
 
         public bool Owned {get;set;}
 

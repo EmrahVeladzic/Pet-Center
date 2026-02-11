@@ -13,13 +13,24 @@ namespace PetCenterModels.DBTables
     [Table("Supplies", Schema = "Person")]
     public class Supplies : BaseTableEntity
     {
+       
         [Column("UserID")]
         public Guid UserId { get; set; }
 
         [Column("ConsumableID")]
-        public Guid ConsumableId { get; set; }
+        public Guid CategoryId {get; set;}
+
+        [ForeignKey(nameof(CategoryId))]
+        public Category ConsumableCategory {get; set;} = null!;
+
+        [Column("KindID")]
+        public Guid KindId {get; set;}
+
+        [ForeignKey(nameof(KindId))]
+        public Kind KindDetails {get; set;} = null!;
 
         [Column("MassGrams")]
-        public int MassGrams { get; set; }
+        public int MassGrams {get; set;}
+
     }
 }
