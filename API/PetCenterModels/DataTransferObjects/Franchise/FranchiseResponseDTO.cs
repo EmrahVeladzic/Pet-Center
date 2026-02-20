@@ -24,6 +24,8 @@ namespace PetCenterModels.DataTransferObjects
 
         public List<NoteSubDTO>? Notes {get; set;}
 
+        public bool? Owned {get; set;} = null;
+
         public static FranchiseResponseDTO? FromEntity(Franchise? model)
         {
             if(model==null){return null;}
@@ -34,6 +36,22 @@ namespace PetCenterModels.DataTransferObjects
                 FranchiseName = model.FranchiseName,
                 Contact = model.Contact,
             };
+        }
+
+
+        public static FranchiseResponseDTO? FromEntity(Franchise? model, bool owned)
+        {
+            if(model==null){return null;}
+
+            return new FranchiseResponseDTO
+            {
+                Id = model.Id,
+                FranchiseName = model.FranchiseName,
+                Contact = model.Contact,  
+                Owned = owned             
+            };
+
+          
         }
     }
 

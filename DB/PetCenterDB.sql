@@ -85,7 +85,9 @@ CREATE TABLE [Business].[Facility](
     FranchiseID UNIQUEIDENTIFIER NOT NULL FOREIGN KEY REFERENCES [Business].[Franchise](ID),
     City NVARCHAR(100) NOT NULL,
     Street NVARCHAR(150) NOT NULL,
-    Contact VARCHAR(255)
+    Contact VARCHAR(255),
+
+    CONSTRAINT UQ_Facilities_City_Street_Franchise UNIQUE (City, Street, FranchiseID)
 );
 GO
 
@@ -171,7 +173,7 @@ CREATE TABLE [Animal].[Breed](
     AlbumID UNIQUEIDENTIFIER NOT NULL FOREIGN KEY REFERENCES [File].[Album](ID),
 
 	CONSTRAINT UQ_Breed_Album UNIQUE (AlbumID),
-    CONSTRAINT UQ_Breed_Title UNIQUE (Title)
+    CONSTRAINT UQ_Breed_Title_Kind UNIQUE (Title, KindID)
 );
 GO
 
@@ -309,7 +311,8 @@ CREATE TABLE [Offer].[Wishlist](
     UserID UNIQUEIDENTIFIER NOT NULL,
     Term NVARCHAR(25) NOT NULL,
 
-    CONSTRAINT FK_Wishlist_User FOREIGN KEY(UserID) REFERENCES [Person].[User](ID) ON DELETE CASCADE
+    CONSTRAINT FK_Wishlist_User FOREIGN KEY(UserID) REFERENCES [Person].[User](ID) ON DELETE CASCADE,
+    CONSTRAINT UQ_Wishlist_User_Term UNIQUE (Term, UserID)
 );
 GO
 

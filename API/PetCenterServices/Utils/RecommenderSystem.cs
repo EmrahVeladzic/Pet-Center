@@ -13,7 +13,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace PetCenterServices.Utils
+namespace PetCenterServices.Recommender
 {
 
     public class RecommenderSystem : IRecommenderSystem
@@ -41,8 +41,8 @@ namespace PetCenterServices.Utils
             ProductListing? listing = await ctx.ProductListings.Include(l=>l.Product).FirstOrDefaultAsync(l=>l.Id == discount.ListingId);
             if (listing != null && listing.Product!=null)
             {
-                string ProductTitle = listing.Product.Title.ToLower();
-                List<Wishlist> wishlists = await ctx.Wishlists.Include(w=>w.RelevantUser).ThenInclude(r=>r.OwnedAnimals).ThenInclude(o=>o.AnimalBreed).Where(w=>ProductTitle.Contains(w.Term.ToLower())).ToListAsync();
+                string ProductTitle = listing.Product.Title.ToLowerInvariant();
+                List<Wishlist> wishlists = await ctx.Wishlists.Include(w=>w.RelevantUser).ThenInclude(r=>r.OwnedAnimals).ThenInclude(o=>o.AnimalBreed).Where(w=>ProductTitle.Contains(w.Term.ToLowerInvariant())).ToListAsync();
                 wishlists = wishlists.Where(w=>w.RelevantUser!=null && w.RelevantUser.OwnedAnimals.Any(o=>o.AnimalBreed!=null && o.AnimalBreed.KindId==listing.Product.TargetKind && (listing.Product.TargetScale==null||listing.Product.TargetScale==o.AnimalBreed.Scale))).ToList();
 
 
@@ -148,11 +148,11 @@ namespace PetCenterServices.Utils
 
             for(int k = 0; k<kinds.Count; k++)
             {
-                string kind_title =kinds[k].Title.ToLower();
+                string kind_title =kinds[k].Title.ToLowerInvariant();
                                  
                 for(int s = 0; s<supplies.Count; s++)
                 {
-                    int daily_usage = await UserUtils.GetTotalDailyUsageForCategory(ctx,supplies[s].CategoryId,kinds[k].Id,Animals.Where(a=>a.AnimalBreed.KindId==kinds[k].Id).ToList());
+                    int daily_usage = await Utils.UserUtils.GetTotalDailyUsageForCategory(ctx,supplies[s].CategoryId,kinds[k].Id,Animals.Where(a=>a.AnimalBreed.KindId==kinds[k].Id).ToList());
                     if(daily_usage>0 && supplies[s].MassGrams / daily_usage < 7)
                     {
                         items.Add($"{supplies[s].ConsumableCategory.Title} for {kind_title}");

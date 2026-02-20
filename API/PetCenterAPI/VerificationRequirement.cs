@@ -7,6 +7,13 @@ public class VerificationHandler : AuthorizationHandler<VerificationRequirement>
         VerificationRequirement requirement)
     {
         HttpContext? httpContext = context.Resource as HttpContext;
+
+        if (httpContext == null)
+        {
+            context.Fail();
+            return Task.CompletedTask;
+        }
+
         Endpoint? endpoint = httpContext?.GetEndpoint();
 
         if (endpoint?.Metadata.GetMetadata<IAllowAnonymous>() != null)
@@ -15,7 +22,7 @@ public class VerificationHandler : AuthorizationHandler<VerificationRequirement>
             return Task.CompletedTask;
         }
 
-        if (endpoint?.Metadata.GetMetadata<AllowUnverifiedAttribute>() != null)
+        else if (endpoint?.Metadata.GetMetadata<AllowUnverifiedAttribute>() != null)
         {
             if (context.User.Identity?.IsAuthenticated == true)
             {
@@ -24,10 +31,14 @@ public class VerificationHandler : AuthorizationHandler<VerificationRequirement>
             return Task.CompletedTask;
         }
 
-        if (context.User.HasClaim(c => c.Type == "verified" && c.Value == "true"))
+        else if (context.User.HasClaim(c => c.Type == "verified" && string.Equals(c.Value, "true", StringComparison.OrdinalIgnoreCase)))
         {
             context.Succeed(requirement);
             return Task.CompletedTask;
+        }
+
+        else{
+            context.Fail();
         }
 
         return Task.CompletedTask;

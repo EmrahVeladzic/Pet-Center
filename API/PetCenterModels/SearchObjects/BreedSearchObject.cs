@@ -4,12 +4,12 @@ using System.Linq;
 using System.Text;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
+using PetCenterModels.DBTables;
 
 namespace PetCenterModels.SearchObjects
 {
-    public class FranchiseSearchObject : BaseSearchObject
+    public class BreedSearchObject : BaseSearchObject
     {
-        public Guid? RelatedUser {get; set;} = null;
-
+        public Guid KindId { get; set; } = Guid.Empty;
     }
 }

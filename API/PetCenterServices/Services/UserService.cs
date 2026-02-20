@@ -24,18 +24,28 @@ namespace PetCenterServices.Services
         }
 
 
-        protected override IQueryable<User> Filter(UserSearchObject search)
+        protected override IQueryable<User> Filter(Guid token_holder, UserSearchObject search)
         {
             IQueryable<User> output = dbSet.Include(u=>u.UserAccount).OrderBy(u=>u.Id);
-            output = output.Where(u=>(search.BusinessRelated && u.UserAccount!.AccessLevel==Access.BusinessAccount)||(!search.BusinessRelated && u.UserAccount!.AccessLevel==Access.User));
+
+            if (search.AuthoritySpecifier == Access.BusinessAccount)
+            {
+                output = output.Where(u=>u.UserAccount.AccessLevel==Access.BusinessAccount);
+            }
+
             if (!string.IsNullOrWhiteSpace(search.UserName))
             {
-                output = output.Where(u=>u.UserName!.ToLower().StartsWith(search.UserName.ToLower()));
+                output = output.Where(u=>u.UserName!.ToLowerInvariant().StartsWith(search.UserName.ToLowerInvariant()));
+            }
+
+            if (search.EmployedBy != null)
+            {
+                output = output.Where(u=> dbContext.EmployeeRecords.Any(e=>e.UserId==u.Id && e.FranchiseId==search.EmployedBy));
             }
             return output;
         }
 
-        public override async Task<ServiceOutput<UserResponseDTO>> Put(Guid? token_holder,UserRequestDTO ent)
+        public override async Task<ServiceOutput<UserResponseDTO>> Put(Guid token_holder,UserRequestDTO ent)
         {
 
             User? current = await dbContext.Users.FindAsync(ent.Id);
@@ -68,7 +78,7 @@ namespace PetCenterServices.Services
 
         }
 
-        public override Task<ServiceOutput<UserResponseDTO>> Post(Guid? token_holder,UserRequestDTO ent)
+        public override Task<ServiceOutput<UserResponseDTO>> Post(Guid token_holder,UserRequestDTO ent)
         {
             return Task.FromResult(ServiceOutput<UserResponseDTO>.Error(HttpCode.NotImplemented,"Illegal endpoint."));
         }
@@ -167,7 +177,7 @@ namespace PetCenterServices.Services
 
         }
 
-        public override async Task<ServiceOutput<object>> IsClearedToUpdate(Guid? token_holder, UserRequestDTO resource)
+        public override async Task<ServiceOutput<object>> IsClearedToUpdate(Guid token_holder, UserRequestDTO resource)
         {
             if (!resource.Validate())
             {
@@ -189,7 +199,7 @@ namespace PetCenterServices.Services
             return ServiceOutput<object>.Success(null,HttpCode.NoContent);
         }
 
-        public override async Task<ServiceOutput<object>> IsClearedToDelete(Guid? token_holder, Guid resourceId)
+        public override async Task<ServiceOutput<object>> IsClearedToDelete(Guid token_holder, Guid resourceId)
         {       
             await Task.CompletedTask; 
             if(resourceId!=token_holder)
@@ -198,6 +208,42 @@ namespace PetCenterServices.Services
             }
 
             return ServiceOutput<object>.Success(null,HttpCode.NoContent);
+        }
+
+
+
+        public async Task<ServiceOutput<string>> SetWishlistTerm(Guid usr_id, string term, bool add_remove)
+        {
+            term = term.ToLowerInvariant();
+            Wishlist? existing = await dbContext.Wishlists.FirstOrDefaultAsync(w=>w.UserId==usr_id && w.Term==term);
+
+
+            if (add_remove)
+            {
+                if(existing == null)
+                {
+                    Wishlist newEntry = new Wishlist
+                    {
+                        UserId = usr_id,
+                        Term = term
+                    };
+
+                    await dbContext.Wishlists.AddAsync(newEntry);
+                    await dbContext.SaveChangesAsync();
+                }
+                return ServiceOutput<string>.Success("Term added to wishlist.");
+            }
+            else
+            {
+                if (existing != null)
+                {
+                    dbContext.Wishlists.Remove(existing);
+                    await dbContext.SaveChangesAsync();
+                }
+                return ServiceOutput<string>.Success("Term removed from wishlist.");
+            }
+
+            
         }
        
     }

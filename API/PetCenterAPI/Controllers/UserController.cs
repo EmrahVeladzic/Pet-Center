@@ -18,11 +18,10 @@ namespace PetCenterAPI.Controllers
 
         public UserController(IUserService s):base(s) { }
 
-        [HttpGet("{id}")]
-        public override async Task<IActionResult> GetById([FromRoute] Guid id)
+        [NonAction]
+        public override Task<IActionResult> GetById(Guid id)
         {
-            await Task.CompletedTask;
-            return StatusCode(501,"Invalid action.");
+            throw new NotSupportedException();
         }
 
         [HttpGet("me")]
@@ -30,13 +29,13 @@ namespace PetCenterAPI.Controllers
         {
             if(TryGetUserId(out Guid user_id))
             {
-                return ResultConverter.Convert<UserResponseDTO>(await service.GetById(user_id));
+                return ResultConverter.Convert<UserResponseDTO>(await service.GetById(user_id,user_id));
             }
             return StatusCode(401,"Invalid token.");  
         }
 
 
-        [HttpPut("SetEmployee{usr_id}/{franchise_id}")]
+        [HttpPut("SetEmployee/{usr_id}/{franchise_id}")]
         [Authorize(Roles = "BusinessAccount")]
         public async Task<IActionResult> SetEmployee([FromRoute] Guid usr_id, [FromRoute] Guid franchise_id, [FromQuery] bool add_remove)
         {
@@ -47,6 +46,17 @@ namespace PetCenterAPI.Controllers
             return StatusCode(401,"Invalid token.");  
         }
 
+
+        [HttpPut("SetTerm/{term}")]
+        [Authorize(Roles = "User")]
+        public async Task<IActionResult> SetWishlistTerm([FromRoute] string term, [FromQuery] bool add_remove)
+        {
+            if(TryGetUserId(out Guid caller_id))
+            {
+                return ResultConverter.Convert<string>(await service.SetWishlistTerm(caller_id,term,add_remove));
+            }
+            return StatusCode(401,"Invalid token.");  
+        }
        
     }
 

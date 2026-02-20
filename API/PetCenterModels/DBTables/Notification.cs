@@ -14,10 +14,10 @@ namespace PetCenterModels.DBTables
     public class Notification : ExpirableTableEntity
     {
         [Column("UserID")]
-        public Guid UserId { get; set; }
+        public Guid UserId { get; set; } = Guid.Empty;
 
         [Column("FranchiseID")]
-        public Guid? FranchiseId { get; set; }
+        public Guid? FranchiseId { get; set; } = null;
 
         [Column("Title")]
         public string Title { get; set; } = string.Empty;
@@ -26,7 +26,7 @@ namespace PetCenterModels.DBTables
         public string Body { get; set; } = string.Empty;
 
         [Column("ListingID")]
-        public Guid? ListingId { get; set; }
+        public Guid? ListingId { get; set; } = null;
 
       
 
