@@ -22,7 +22,7 @@ namespace PetCenterServices.Services
             dbSet = ctx.Images;
         }
 
-        public override async Task<ServiceOutput<object>> Delete(Guid? token_holder,Guid id)
+        public override async Task<ServiceOutput<object>> Delete(Guid token_holder,Guid id)
         {        
             Image? img = await dbContext.Images.FindAsync(id);
 
@@ -58,7 +58,7 @@ namespace PetCenterServices.Services
 
         }
 
-        public override async Task<ServiceOutput<ImageDTO>> Post(Guid? token_holder,ImageDTO img)
+        public override async Task<ServiceOutput<ImageDTO>> Post(Guid token_holder,ImageDTO img)
         {
             ServiceOutput<ImageDTO> output;
             using (IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync())
@@ -80,45 +80,43 @@ namespace PetCenterServices.Services
         }
 
 
-        public override async Task<ServiceOutput<object>> IsClearedToCreate(Guid? token_holder, ImageDTO resource)
+        public override async Task<ServiceOutput<object>> IsClearedToCreate(Guid token_holder, ImageDTO resource)
         {
             return await EvaluateUploadAttempt(token_holder, resource, dbContext);
         }
 
-        public override async Task<ServiceOutput<object>> IsClearedToDelete(Guid? token_holder, Guid resourceId)
+        public override async Task<ServiceOutput<object>> IsClearedToDelete(Guid token_holder, Guid resourceId)
         {
-            if (token_holder != null)
-            {                          
-                Image? image = await dbContext.Images.FindAsync(resourceId);
-                if (image != null)
+                                      
+            Image? image = await dbContext.Images.FindAsync(resourceId);
+            if (image != null)
+            {
+                Album? album = await dbContext.Albums.FindAsync(image.AlbumId);
+                if (album != null)
                 {
-                    Album? album = await dbContext.Albums.FindAsync(image.AlbumId);
-                    if (album != null)
+                    if (album.PosterID == token_holder)
                     {
-                        if (album.PosterID == token_holder)
+                        if (image.AlbumId == album.Id)
                         {
-                            if (image.AlbumId == album.Id)
-                            {
-                                if (!album.Locked)
-                                {                                  
-                                    return ServiceOutput<object>.Success(null,HttpCode.NoContent);
-                                }
-                                return ServiceOutput<object>.Error(HttpCode.BadRequest,"The requested album is locked and its contents cannot be altered.");
+                            if (!album.Locked)
+                            {                                  
+                                return ServiceOutput<object>.Success(null,HttpCode.NoContent);
                             }
-                            return ServiceOutput<object>.Error(HttpCode.BadRequest,"The requested image does not belong in this album.");
+                            return ServiceOutput<object>.Error(HttpCode.BadRequest,"The requested album is locked and its contents cannot be altered.");
                         }
-                        return ServiceOutput<object>.Error(HttpCode.Forbidden,"Token does not belong to the owner of this album.");
+                        return ServiceOutput<object>.Error(HttpCode.BadRequest,"The requested image does not belong in this album.");
                     }
-                    return ServiceOutput<object>.Error(HttpCode.InternalError,"Unexpected NULL when trying to find the image album.");
+                    return ServiceOutput<object>.Error(HttpCode.Forbidden,"Token does not belong to the owner of this album.");
                 }
-                return ServiceOutput<object>.Success(null,HttpCode.NoContent);
+                return ServiceOutput<object>.Error(HttpCode.InternalError,"Unexpected NULL when trying to find the image album.");
             }
-            return ServiceOutput<object>.Error(HttpCode.Unauthorized,"This action requires authorization");
+            return ServiceOutput<object>.Success(null,HttpCode.NoContent);
+        
         }
 
 
 
-        public static async Task<ServiceOutput<object>> EvaluateUploadAttempt(Guid? token_holder, ImageDTO img, PetCenterDBContext ctx)
+        public static async Task<ServiceOutput<object>> EvaluateUploadAttempt(Guid token_holder, ImageDTO img, PetCenterDBContext ctx)
         {
 
             if (!img.Validate())
@@ -126,34 +124,33 @@ namespace PetCenterServices.Services
                 return ServiceOutput<object>.Error(HttpCode.BadRequest,"DTO validation failure.");
             }
 
-            if(token_holder!=null){
-                Album? album = await ctx.Albums.FindAsync(img.AlbumInsertId);
-                if (album != null)
+            
+            Album? album = await ctx.Albums.FindAsync(img.AlbumInsertId);
+            if (album != null)
+            {
+                if (album.PosterID == token_holder)
                 {
-                    if (album.PosterID == token_holder)
+                    if (album.Reserved < album.Capacity)
                     {
-                        if (album.Reserved < album.Capacity)
+                        if (img.Id == null)
                         {
-                            if (img.Id == null)
+                            if (!album.Locked)
                             {
-                                if (!album.Locked)
-                                {
-                                    return ServiceOutput<object>.Success(null,HttpCode.NoContent);
-                                }
-                                return ServiceOutput<object>.Error(HttpCode.BadRequest,"The requested album is locked and its contents cannot be altered.");
+                                return ServiceOutput<object>.Success(null,HttpCode.NoContent);
                             }
-                            return ServiceOutput<object>.Error(HttpCode.BadRequest,"Image ID was provided, but should be NULL at this point."); 
-                        }                    
-                        return ServiceOutput<object>.Error(HttpCode.Conflict,"Album is already full.");
-                    }
-                    return ServiceOutput<object>.Error(HttpCode.Forbidden,"Token does not belong to the owner of this album.");
+                            return ServiceOutput<object>.Error(HttpCode.BadRequest,"The requested album is locked and its contents cannot be altered.");
+                        }
+                        return ServiceOutput<object>.Error(HttpCode.BadRequest,"Image ID was provided, but should be NULL at this point."); 
+                    }                    
+                    return ServiceOutput<object>.Error(HttpCode.Conflict,"Album is already full.");
                 }
-                return ServiceOutput<object>.Error(HttpCode.NotFound,"Attempted to insert image into a non-existent album.");
+                return ServiceOutput<object>.Error(HttpCode.Forbidden,"Token does not belong to the owner of this album.");
             }
-            return ServiceOutput<object>.Error(HttpCode.Unauthorized,"This action requires authorization");
+            return ServiceOutput<object>.Error(HttpCode.NotFound,"Attempted to insert image into a non-existent album.");
+            
         }
 
-        public static async Task<ServiceOutput<ImageDTO>> UploadImage(Guid? token_holder,ImageDTO img, PetCenterDBContext ctx)
+        public static async Task<ServiceOutput<ImageDTO>> UploadImage(Guid token_holder,ImageDTO img, PetCenterDBContext ctx)
         {
             ServiceOutput<object> evaluation = await EvaluateUploadAttempt(token_holder, img, ctx);
             if (!ServiceOutput<object>.IsSuccess(evaluation))
@@ -188,13 +185,8 @@ namespace PetCenterServices.Services
         }
 
 
-        public static async Task<Guid> CreateAlbum(Guid? token_holder,PetCenterDBContext ctx, byte cap)
+        public static async Task<Guid> CreateAlbum(Guid token_holder,PetCenterDBContext ctx, byte cap)
         {
-            if (token_holder == null)
-            {
-                throw new InvalidOperationException();
-            }
-
             Album alb = new(cap);
             alb.PosterID = (Guid)token_holder;
             await ctx.Albums.AddAsync(alb);
@@ -202,7 +194,7 @@ namespace PetCenterServices.Services
             return alb.Id;
         }
 
-        public static async Task ClearAlbum(Guid? token_holder, PetCenterDBContext ctx, Guid album_id)
+        public static async Task ClearAlbum(Guid token_holder, PetCenterDBContext ctx, Guid album_id)
         {
             Album? alb = await ctx.Albums.FindAsync(album_id);
             if(alb==null || alb.PosterID!=token_holder || alb.Locked){return;}

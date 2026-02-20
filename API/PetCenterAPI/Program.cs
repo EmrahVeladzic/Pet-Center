@@ -10,6 +10,7 @@ using PetCenterServices.Interfaces;
 using PetCenterServices.Services;
 using PetCenterServices.Utils;
 using System.Text;
+using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -64,6 +65,9 @@ builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IImageService, ImageService>();
 builder.Services.AddScoped<IFranchiseService, FranchiseService>();
+builder.Services.AddScoped<IFacilityService, FacilityService>();
+builder.Services.AddScoped<IKindService, KindService>();
+
 
 builder.Services.AddDbContext<PetCenterDBContext>(options =>
 {
@@ -92,6 +96,8 @@ builder.Services.AddSingleton<IAuthorizationHandler, VerificationHandler>();
 builder.Services.AddAuthorization(options =>
 {
     options.DefaultPolicy = new AuthorizationPolicyBuilder()
+        .RequireAuthenticatedUser()
+        .RequireRole("Admin", "Owner", "Employee", "User")
         .AddRequirements(new VerificationRequirement())
         .Build();
 
@@ -106,18 +112,28 @@ app.UseExceptionHandler(errorApp =>
 {
     errorApp.Run(async context =>
     {
-        var ex = context.Features
+        Exception? ex = context.Features
         .Get<IExceptionHandlerFeature>()?
         .Error;
 
-        if (app.Environment.IsDevelopment() && ex != null)
+        if (ex != null)
         {
-            Console.WriteLine($"[ERROR] {ex.GetType().Name}: {ex.Message}");
+            if (app.Environment.IsDevelopment())
+            {
+                Console.WriteLine($"[ERROR] {ex.GetType().Name}: {ex.Message}");
+            }
+
+            if(ex is NotImplementedException)
+            {
+                context.Response.StatusCode = 501;
+                await context.Response.WriteAsync(JsonSerializer.Serialize(new { error = "Invalid action." }));
+                return;
+            }
+
         }
-        
 
         context.Response.StatusCode = 500;
-        await context.Response.WriteAsync("Internal server error.");
+        await context.Response.WriteAsync(JsonSerializer.Serialize(new { error = "Internal server error." }));
     });
 });
 
@@ -178,7 +194,7 @@ while (retry)
                     }
 
 
-                    await svc.Post(null,owner_req);
+                    await svc.Post(Guid.Empty,owner_req);
                   
                 }
 

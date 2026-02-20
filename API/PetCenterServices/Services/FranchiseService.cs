@@ -23,28 +23,32 @@ namespace PetCenterServices.Services
             dbSet = ctx.Franchises;
         }
 
-        protected override IQueryable<Franchise> Filter(FranchiseSearchObject search)
+        protected override IQueryable<Franchise> Filter(Guid token_holder, FranchiseSearchObject search)
         {
-            IQueryable<Franchise> output = base.Filter(search);
+            IQueryable<Franchise> output = base.Filter(token_holder,search);
+
+            if (search.AuthoritySpecifier == Access.BusinessAccount)
+            {
+                search.RelatedUser = token_holder;
+            }
             
             if (search.RelatedUser != null)
             {
-                if (search.owner_worker)
-                {
-                    output = output.Where(f=>f.OwnerId==search.RelatedUser);
-                }
-                else
-                {
-                    IQueryable<Guid> records = dbContext.EmployeeRecords.Where(e=>e.UserId==search.RelatedUser).Select(e=>e.FranchiseId);
-                    output = output.Where(f=>records.Contains(f.Id));
-                }
-               
+
+                IQueryable<Guid> records = dbContext.EmployeeRecords.Where(e=>e.UserId==search.RelatedUser).Select(e=>e.FranchiseId);
+                output = output.Where(f=>records.Contains(f.Id)||f.OwnerId==search.RelatedUser);
                 
             }
             return output;
         }
 
-        public override async Task<ServiceOutput<FranchiseResponseDTO>> Post(Guid? token_holder, FranchiseRequestDTO req)
+        public override async Task<ServiceOutput<List<FranchiseResponseDTO>>> Get(Guid token_holder, FranchiseSearchObject search)
+        {
+            List<Franchise> entities = await Filter(token_holder,search).Skip(search.Page*search.PageSize).Take(search.PageSize).ToListAsync();
+            return ServiceOutput<List<FranchiseResponseDTO>>.Success(entities.Select(e=>FranchiseResponseDTO.FromEntity(e, search.RelatedUser != null && e.OwnerId == search.RelatedUser)!).ToList());
+        }
+
+        public override async Task<ServiceOutput<FranchiseResponseDTO>> Post(Guid token_holder, FranchiseRequestDTO req)
         {
             Form? frm = await dbContext.Forms.FindAsync(req.CreationFormId);
             if (frm == null)
@@ -57,12 +61,22 @@ namespace PetCenterServices.Services
             franch.Contact=frm.DefaultContact;
             franch.FranchiseName = frm.FranchiseName;
 
+            Notification notif = new()
+            {
+                UserId = frm.UserId,
+                Title = "Franchise Approval",
+                Body = $"Your franchise \"{franch.FranchiseName}\" has been approved.",
+                Expiry = DateTime.UtcNow.AddDays(7)
+            };
+
 
             using (IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync())
             {
                 try
-                {                   
+                {                 
+                    await dbContext.Notifications.AddAsync(notif);
                     await dbSet.AddAsync(franch);
+                    await frm.StageDeletion<Form>(dbContext,dbContext.Forms);
                     await dbContext.SaveChangesAsync();
                     await tx.CommitAsync();
                 }
@@ -79,7 +93,7 @@ namespace PetCenterServices.Services
 
         }
 
-        public override async Task<ServiceOutput<FranchiseResponseDTO>> Put(Guid? token_holder, FranchiseRequestDTO req)
+        public override async Task<ServiceOutput<FranchiseResponseDTO>> Put(Guid token_holder, FranchiseRequestDTO req)
         {
             Franchise? franch = await dbSet.FindAsync(req.Id);
             if(franch==null){return ServiceOutput<FranchiseResponseDTO>.Error(HttpCode.NotFound,"Franchise does not exist.");}
@@ -104,7 +118,7 @@ namespace PetCenterServices.Services
 
         }
 
-        public override async Task<ServiceOutput<object>> IsClearedToUpdate(Guid? token_holder, FranchiseRequestDTO resource)
+        public override async Task<ServiceOutput<object>> IsClearedToUpdate(Guid token_holder, FranchiseRequestDTO resource)
         {
             if (!resource.Validate())
             {
@@ -125,7 +139,7 @@ namespace PetCenterServices.Services
 
         }
 
-        public override async Task<ServiceOutput<object>> IsClearedToDelete(Guid? token_holder, Guid resourceId)
+        public override async Task<ServiceOutput<object>> IsClearedToDelete(Guid token_holder, Guid resourceId)
         {
             Franchise? fr = await dbSet.FindAsync(resourceId);
             if(fr == null)

@@ -27,13 +27,13 @@ namespace PetCenterServices.Services
            return dbSet.Include(e=>e.Album).ThenInclude(a=>a!.Images);
         }
 
-        protected override IQueryable<TEntity> Filter(TSearch search)
+        protected override IQueryable<TEntity> Filter(Guid token_holder, TSearch search)
         {
             return WithAlbum().OrderBy(o=>o.Id);
         }
 
 
-        public override async Task<ServiceOutput<TResponse>> GetById(Guid id)
+        public override async Task<ServiceOutput<TResponse>> GetById(Guid token_holder, Guid id)
         {
             TEntity? entity = await WithAlbum().FirstOrDefaultAsync(e=>e.Id==id);
 

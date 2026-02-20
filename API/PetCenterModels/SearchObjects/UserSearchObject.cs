@@ -12,6 +12,7 @@ namespace PetCenterModels.SearchObjects
     {
         public string UserName { get; set; } = String.Empty;
 
-        public bool BusinessRelated { get; set; }
+        public Guid? EmployedBy {get; set;} = null;
+
     }
 }

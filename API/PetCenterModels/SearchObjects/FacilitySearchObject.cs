@@ -7,9 +7,11 @@ using System.Threading.Tasks;
 
 namespace PetCenterModels.SearchObjects
 {
-    public class FranchiseSearchObject : BaseSearchObject
+    public class FacilitySearchObject : BaseSearchObject
     {
-        public Guid? RelatedUser {get; set;} = null;
+        
+        public Guid FranchiseId {get; set;} = Guid.Empty;
 
+        public Guid? ServesListing {get; set;} = null;
     }
 }

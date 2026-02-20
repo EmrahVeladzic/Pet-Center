@@ -25,6 +25,22 @@ namespace PetCenterAPI.Controllers
 
         }
 
+        protected Access SpecifySearchAuthority()
+        {
+            if (User.IsInRole("Admin")||User.IsInRole("Owner"))
+            {
+                return Access.Admin;
+            }
+            else if (User.IsInRole("Employee"))
+            {
+                return Access.BusinessAccount;
+            }
+            else
+            {
+                return Access.User;
+            }
+        }
+
         public ControllerTemplate(TService s)
         {
             service = s;
@@ -33,22 +49,40 @@ namespace PetCenterAPI.Controllers
        
         [HttpGet]
         public virtual async Task<IActionResult>Get([FromQuery] TSearch search)
-        {           
-            return ResultConverter.Convert<List<TResponse>>(await service.Get(search));
+        {  
+            if (TryGetUserId(out Guid id))
+            {
+                search.AuthoritySpecifier = SpecifySearchAuthority();
+                return ResultConverter.Convert<List<TResponse>>(await service.Get(id,search));
+            }
+            return StatusCode(401,"Invalid token.");         
+            
         }
 
   
         [HttpGet("{id}")]
         public virtual async Task<IActionResult> GetById([FromRoute]Guid id)
-        {            
-            return ResultConverter.Convert<TResponse>(await service.GetById(id));
+        {     
+            
+            if (TryGetUserId(out Guid usr_id))
+            {
+                return ResultConverter.Convert<TResponse>(await service.GetById(usr_id,id));
+            }
+            return StatusCode(401,"Invalid token.");          
+            
         }
 
 
         [HttpGet("count")]
         public virtual async Task<IActionResult> Count([FromQuery] TSearch search)
         {
-            return ResultConverter.Convert<int>(await service.Count(search));
+
+            if (TryGetUserId(out Guid id))
+            {
+                  return ResultConverter.Convert<int>(await service.Count(id,search));
+            }
+            return StatusCode(401,"Invalid token.");   
+          
         }
 
     

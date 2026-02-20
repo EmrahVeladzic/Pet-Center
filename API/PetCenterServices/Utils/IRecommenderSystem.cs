@@ -12,7 +12,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace PetCenterServices.Utils
+namespace PetCenterServices.Recommender
 {
 
     public class PetCenterVector5

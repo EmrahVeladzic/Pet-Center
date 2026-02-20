@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,15 +8,12 @@ using PetCenterModels.DBTables;
 
 namespace PetCenterModels.SearchObjects
 {
-    public class BaseSearchObject
+    public class CategorySearchObject : BaseSearchObject
     {
-        public int Page { get; set; }
+        public bool? Consumable { get; set; } = null;
 
         [JsonIgnore]
-        public virtual int PageSize {get;} = 25;
+        public override int PageSize {get;} = int.MaxValue;
 
-
-        [JsonIgnore]
-        public Access AuthoritySpecifier {get; set;} = Access.User;
     }
 }

@@ -26,7 +26,7 @@ namespace PetCenterServices.Services
             dbSet = dbContext.Set<TEntity>();
         }
 
-        protected virtual IQueryable<TEntity> Filter(TSearch search)
+        protected virtual IQueryable<TEntity> Filter(Guid token_holder, TSearch search)
         {
             return dbSet.OrderBy(o=>o.Id);
         }
@@ -36,20 +36,20 @@ namespace PetCenterServices.Services
             return (int)Math.Ceiling((double)count / PageSize);
         }
 
-        public virtual async Task<ServiceOutput<int>> Count(TSearch search)
+        public virtual async Task<ServiceOutput<int>> Count(Guid token_holder, TSearch search)
         {       
-            IQueryable<TEntity> entities = Filter(search);   
+            IQueryable<TEntity> entities = Filter(token_holder,search);   
             return ServiceOutput<int>.Success(GetPageCount(await entities.CountAsync(),search.PageSize));
         }
 
 
-        public virtual async Task<ServiceOutput<List<TResponse>>> Get(TSearch search)
+        public virtual async Task<ServiceOutput<List<TResponse>>> Get(Guid token_holder, TSearch search)
         {
-            List<TEntity> entities = await Filter(search).Skip(search.Page*search.PageSize).Take(search.PageSize).ToListAsync();
+            List<TEntity> entities = await Filter(token_holder,search).Skip(search.Page*search.PageSize).Take(search.PageSize).ToListAsync();
             return  ServiceOutput<List<TResponse>>.Success(entities.Select(e=>TResponse.FromEntity(e)!).ToList());
         }
 
-        public virtual async Task<ServiceOutput<TResponse>> GetById(Guid id)
+        public virtual async Task<ServiceOutput<TResponse>> GetById(Guid token_holder,Guid id)
         {
             TEntity? entity = await dbSet.FindAsync(id);
 
@@ -62,7 +62,7 @@ namespace PetCenterServices.Services
             
         }
 
-        public virtual async Task<ServiceOutput<TResponse>> Post(Guid? token_holder,TRequest req)
+        public virtual async Task<ServiceOutput<TResponse>> Post(Guid token_holder,TRequest req)
         {
             bool valid = req.Validate();
             if (!valid)
@@ -100,7 +100,7 @@ namespace PetCenterServices.Services
 
         }
 
-        public virtual async Task<ServiceOutput<TResponse>> Put(Guid? token_holder,TRequest req)
+        public virtual async Task<ServiceOutput<TResponse>> Put(Guid token_holder,TRequest req)
         {      
 
             TEntity? ent = await dbSet.FindAsync(req.Id);
@@ -146,7 +146,7 @@ namespace PetCenterServices.Services
             return ServiceOutput<TResponse>.Error(HttpCode.NotFound,"No resource with this ID exists.");
         }
 
-        public virtual async Task <ServiceOutput<object>> Delete(Guid? token_holder,Guid id)
+        public virtual async Task <ServiceOutput<object>> Delete(Guid token_holder,Guid id)
         {
             TEntity? current = await dbSet.FindAsync(id);
             if (current != null)
@@ -174,17 +174,17 @@ namespace PetCenterServices.Services
             return ServiceOutput<object>.Success(default,HttpCode.NoContent);
         }
 
-        public virtual Task<ServiceOutput<object>> IsClearedToCreate(Guid? token_holder, TRequest resource)
+        public virtual Task<ServiceOutput<object>> IsClearedToCreate(Guid token_holder, TRequest resource)
         {
             return Task.FromResult(ServiceOutput<object>.Error(HttpCode.NotImplemented,"Invalid action."));
         }
 
-        public virtual Task<ServiceOutput<object>> IsClearedToUpdate(Guid? token_holder, TRequest resource)
+        public virtual Task<ServiceOutput<object>> IsClearedToUpdate(Guid token_holder, TRequest resource)
         {
             return Task.FromResult(ServiceOutput<object>.Error(HttpCode.NotImplemented,"Invalid action."));
         }
 
-        public virtual Task<ServiceOutput<object>> IsClearedToDelete(Guid? token_holder, Guid resourceId)
+        public virtual Task<ServiceOutput<object>> IsClearedToDelete(Guid token_holder, Guid resourceId)
         {
             return Task.FromResult(ServiceOutput<object>.Error(HttpCode.NotImplemented,"Invalid action."));
         }

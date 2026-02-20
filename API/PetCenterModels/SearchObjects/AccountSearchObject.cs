@@ -11,7 +11,7 @@ namespace PetCenterModels.SearchObjects
     public class AccountSearchObject : BaseSearchObject
     {
         
-        public Access? Role {get; set;}
+        public Access? Role {get; set;} = null;
 
     }
 }
