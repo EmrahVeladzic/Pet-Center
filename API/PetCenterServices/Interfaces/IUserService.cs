@@ -15,5 +15,9 @@ namespace PetCenterServices.Interfaces
         public Task<ServiceOutput<string>> SetEmployee(Guid caller_id, Guid usr_id, Guid franchise_id, bool add_remove); 
     
         public Task<ServiceOutput<string>> SetWishlistTerm(Guid usr_id, string term, bool add_remove);
+    
+        public Task<ServiceOutput<string>> AddAnnouncement(string body, bool user_visible, bool business_visible, int expiry);
+
+        public Task<ServiceOutput<string>> RemoveAnnouncement(Guid announcement_id);
     }
 }

@@ -43,7 +43,7 @@ namespace PetCenterServices.Recommender
             {
                 string ProductTitle = listing.Product.Title.ToLowerInvariant();
                 List<Wishlist> wishlists = await ctx.Wishlists.Include(w=>w.RelevantUser).ThenInclude(r=>r.OwnedAnimals).ThenInclude(o=>o.AnimalBreed).Where(w=>ProductTitle.Contains(w.Term.ToLowerInvariant())).ToListAsync();
-                wishlists = wishlists.Where(w=>w.RelevantUser!=null && w.RelevantUser.OwnedAnimals.Any(o=>o.AnimalBreed!=null && o.AnimalBreed.KindId==listing.Product.TargetKind && (listing.Product.TargetScale==null||listing.Product.TargetScale==o.AnimalBreed.Scale))).ToList();
+                wishlists = wishlists.Where(w=>w.RelevantUser!=null && w.RelevantUser.OwnedAnimals.Any(o=>o.AnimalBreed!=null && (listing.Product.TargetKind==null ||o.AnimalBreed.KindId==listing.Product.TargetKind) && (listing.Product.TargetScale==null||listing.Product.TargetScale==o.AnimalBreed.Scale))).ToList();
 
 
                 int progress = 0;

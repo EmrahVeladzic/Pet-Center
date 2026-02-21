@@ -30,7 +30,10 @@ namespace PetCenterModels.DBTables
         public Kind KindDetails {get; set;} = null!;
 
         [Column("MassGrams")]
-        public int MassGrams {get; set;}
+        public int MassGrams {get; set;} = 0;
+
+        [Column("Evaluated")]
+        public DateTime Evaluated {get; set;} = DateTime.UtcNow;
 
     }
 }

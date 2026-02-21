@@ -245,6 +245,65 @@ namespace PetCenterServices.Services
 
             
         }
+
+
+        public async Task<ServiceOutput<string>> AddAnnouncement(string body, bool user_visible, bool business_visible, int expiry)
+        {
+            if (string.IsNullOrWhiteSpace(body))
+            {
+                return ServiceOutput<string>.Error(HttpCode.BadRequest,"Announcement body cannot be empty.");
+            }
+
+            Announcement? existing = await dbContext.Announcements.FirstOrDefaultAsync(a=>a.Body.ToLowerInvariant()==body.ToLowerInvariant() && a.UserVisible==user_visible && a.BusinessVisible==business_visible);
+            if (existing != null)
+            {
+                existing.Expiry = DateTime.UtcNow.AddDays(expiry);             
+                await dbContext.SaveChangesAsync();
+                return ServiceOutput<string>.Success("Announcement lifespan updated successfully.");
+            }
+           
+            Announcement newAnnouncement = new Announcement
+            {
+                Body = body,
+                UserVisible = user_visible,
+                BusinessVisible = business_visible,
+                Expiry = DateTime.UtcNow.AddDays(expiry)
+            };
+
+            try
+            {
+                await dbContext.Announcements.AddAsync(newAnnouncement);
+                await dbContext.SaveChangesAsync();
+            }
+            catch
+            {
+                return ServiceOutput<string>.Error(HttpCode.InternalError,"Internal server error.");
+            }
+
+            return ServiceOutput<string>.Success("Announcement added successfully.");
+        }
+
+
+        public async Task<ServiceOutput<string>> RemoveAnnouncement(Guid announcement_id)
+        {
+            Announcement? existing = await dbContext.Announcements.FindAsync(announcement_id);
+
+            if (existing != null)
+            {
+                try
+                {
+                    dbContext.Announcements.Remove(existing);
+                    await dbContext.SaveChangesAsync();
+                }
+                catch
+                {
+                    return ServiceOutput<string>.Error(HttpCode.InternalError,"Internal server error.");
+                }
+                
+            }
+
+            return ServiceOutput<string>.Success("Announcement removed successfully.");
+        }
        
     }
 }
