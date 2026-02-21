@@ -57,6 +57,25 @@ namespace PetCenterAPI.Controllers
             }
             return StatusCode(401,"Invalid token.");  
         }
+
+
+        [HttpPost("Announcement")]
+        [Authorize(Roles = "Owner,Admin")]
+        public async Task<IActionResult> AddAnnouncement([FromBody] string announcement, [FromQuery] bool user_visible, [FromQuery] bool business_visible, [FromQuery]  int days_valid = 7)
+        {
+            return ResultConverter.Convert<string>(await service.AddAnnouncement(announcement,user_visible,business_visible,days_valid));
+        }
+        
+        [HttpDelete("Announcement/{announcement_id}")]
+        [Authorize(Roles = "Owner,Admin")]
+        public async Task<IActionResult> RemoveAnnouncement([FromRoute] Guid announcement_id)
+        {
+            
+            return ResultConverter.Convert<string>(await service.RemoveAnnouncement(announcement_id));
+             
+        }
+        
+
        
     }
 

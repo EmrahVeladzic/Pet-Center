@@ -13,6 +13,6 @@ namespace PetCenterModels.DBTables
     public class ExpirableTableEntity : BaseTableEntity
     {
         [Column("Expiry")]
-        public DateTime Expiry { get; set;}   
+        public DateTime Expiry { get; set;} = DateTime.UtcNow.AddDays(3);
     }
 }

@@ -54,7 +54,7 @@ namespace PetCenterServices.Services
             {
                 return ServiceOutput<object>.Error(HttpCode.BadRequest,"DTO validation failed.");
             }
-            if(await dbSet.AnyAsync(k=>k.Title.ToLowerInvariant()==resource.Title.ToLowerInvariant()))
+            if(await dbSet.AnyAsync(k=>k.Title.ToLowerInvariant()==resource.Title.ToLowerInvariant()&& k.Id!=resource.Id))
             {
                 return ServiceOutput<object>.Error(HttpCode.Conflict,"A kind with this title already exists.");
             }
@@ -64,6 +64,7 @@ namespace PetCenterServices.Services
 
         public override async Task<ServiceOutput<object>> IsClearedToDelete(Guid token_holder, Guid resourceId)
         {           
+            await Task.CompletedTask;
             return ServiceOutput<object>.Success(null,HttpCode.OK);
         }
 

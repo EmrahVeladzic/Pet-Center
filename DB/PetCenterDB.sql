@@ -102,7 +102,9 @@ GO
 CREATE TABLE [Business].[FormTemplate](
     ID UNIQUEIDENTIFIER NOT NULL DEFAULT NEWSEQUENTIALID() PRIMARY KEY,
     CurrentVersion ROWVERSION NOT NULL,
-    FormDescription NVARCHAR(100) NOT NULL
+    FormDescription NVARCHAR(100) NOT NULL,
+
+    CONSTRAINT UQ_FormTemplate_Description UNIQUE (FormDescription)
 );
 GO
 
@@ -111,7 +113,9 @@ CREATE TABLE [Business].[FormTemplateField](
     CurrentVersion ROWVERSION NOT NULL,
     FormTemplateID UNIQUEIDENTIFIER NOT NULL FOREIGN KEY REFERENCES [Business].[FormTemplate](ID),
     FormFieldDescription NVARCHAR(50) NOT NULL,
-    Optional BIT NOT NULL
+    Optional BIT NOT NULL,
+
+    CONSTRAINT UQ_FormTemplateField_Description UNIQUE (FormFieldDescription, FormTemplateID)
 );
 GO
 
@@ -240,7 +244,9 @@ CREATE TABLE [Product].[Item](
     CategoryID UNIQUEIDENTIFIER NOT NULL FOREIGN KEY REFERENCES [Product].[Category](ID),
     TargetKind UNIQUEIDENTIFIER FOREIGN KEY REFERENCES [Animal].[Kind](ID),
     TargetScale TINYINT,
-    MassGrams INT
+    MassGrams INT,
+
+    CONSTRAINT UQ_Item_Title_Kind_Scale UNIQUE (Title,TargetKind,TargetScale)
 );
 GO
 
@@ -333,10 +339,12 @@ GO
 CREATE TABLE [Communication].[Announcement](
     ID UNIQUEIDENTIFIER NOT NULL DEFAULT NEWSEQUENTIALID() PRIMARY KEY,
     CurrentVersion ROWVERSION NOT NULL,
-    RoleSpecific TINYINT,
-    Title NVARCHAR(50) NOT NULL,
-    Body NVARCHAR(255) NOT NULL,
-    Expiry DATETIME2 NOT NULL
+    UserVisible BIT NOT NULL,
+    BusinessVisible BIT NOT NULL,
+    AnnouncementBody NVARCHAR(255) NOT NULL,
+    Expiry DATETIME2 NOT NULL,
+
+    CONSTRAINT UQ_Announcement_User_Business UNIQUE (AnnouncementBody, UserVisible, BusinessVisible)
 );
 GO
 
@@ -346,7 +354,11 @@ CREATE TABLE [Communication].[Report](
     CommentID UNIQUEIDENTIFIER FOREIGN KEY REFERENCES [Communication].[Comment](ID),
     ListingID UNIQUEIDENTIFIER NOT NULL FOREIGN KEY REFERENCES [Offer].[Listing](ID),
     Reason NVARCHAR(100) NOT NULL,
-    Expiry DATETIME2 NOT NULL
+    Expiry DATETIME2 NOT NULL,
+    ReporterID UNIQUEIDENTIFIER NOT NULL FOREIGN KEY REFERENCES [Person].[User](ID),
+
+    CONSTRAINT UQ_Report_Listing_Comment UNIQUE (ListingID, CommentID),
+    CONSTRAINT UQ_Report_Reporter_Listing UNIQUE (ReporterID, ListingID)
 );
 GO
 
@@ -404,6 +416,7 @@ CREATE TABLE [Person].[Supplies](
     ConsumableID UNIQUEIDENTIFIER NOT NULL,
     KindID UNIQUEIDENTIFIER NOT NULL,
     MassGrams INT NOT NULL,
+    Evaluated DATETIME2 NOT NULL,
 
     CONSTRAINT FK_Supplies_Kind FOREIGN KEY (KindID) REFERENCES [Animal].[Kind](ID) ON DELETE CASCADE,
     CONSTRAINT FK_Supplies_User FOREIGN KEY (UserID) REFERENCES [Person].[User](ID) ON DELETE CASCADE,

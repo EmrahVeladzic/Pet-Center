@@ -31,6 +31,7 @@ namespace PetCenterModels.DBTables
             if(await ctx.Forms.Where(f=>f.UserId==Id).ToListAsync() is List<Form>f){foreach(Form frm in f){await frm.StageDeletion<Form>(ctx,ctx.Forms);}}
             if(await ctx.Comments.Where(c=>c.PosterId==Id).ToListAsync() is List<Comment> c){foreach(Comment com in c){await com.StageDeletion<Comment>(ctx,ctx.Comments);}}
             if(await ctx.EmployeeRecords.Where(e=>e.UserId==Id).ToArrayAsync() is EmployeeRecord []e){ctx.EmployeeRecords.RemoveRange(e);}
+            if(await ctx.Reports.Where(r=>r.ReporterId==Id).ToArrayAsync() is Report[] r){ctx.Reports.RemoveRange(r);}
         }
     }
 }
