@@ -8,9 +8,41 @@ using System.Linq;
 using System.Text;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
+using System.Data.Common;
 
 namespace PetCenterModels.DataTransferObjects
 {
+
+    public class UsageSubDTO : IBaseResponseDTO<Usage, UsageSubDTO>
+    {
+        public Guid? Id {get; set;}
+
+        public List<NoteSubDTO>? Notes {get; set;} = null;
+
+        public Guid CategoryId {get; set;}
+        public Guid KindId {get; set;}
+
+        public AnimalScale? ScaleSpecific {get; set;} = null;
+
+        public int AverageDailyAmountGrams {get; set;}
+        
+
+        public static UsageSubDTO? FromEntity(Usage? usage)
+        {
+            if(usage==null){return null;}
+            return new UsageSubDTO
+            {
+                Id=usage.Id,
+                CategoryId=usage.CategoryId,
+                KindId=usage.KindId,
+                ScaleSpecific=usage.ScaleSpecific,
+                AverageDailyAmountGrams=usage.AverageDailyAmountGrams
+            };
+
+        }
+
+
+    }
     public class CategoryDTO : ISerializableRequestDTO<Category>, IBaseResponseDTO<Category,CategoryDTO>
     {
        
@@ -22,6 +54,7 @@ namespace PetCenterModels.DataTransferObjects
 
         public bool Consumable { get; set; } = false;
 
+        public List<UsageSubDTO?>? UsageSpecifics {get; set;} = null;
 
         public static CategoryDTO? FromEntity(Category? entity)
         {
@@ -30,7 +63,8 @@ namespace PetCenterModels.DataTransferObjects
             {
                 Id = entity.Id,
                 Title = entity.Title,
-                Consumable = entity.Consumable
+                Consumable = entity.Consumable,
+                UsageSpecifics = entity.UsageSpecifics.Select(u=>UsageSubDTO.FromEntity(u)).ToList()
             };
         }
 

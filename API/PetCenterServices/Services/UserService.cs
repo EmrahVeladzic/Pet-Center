@@ -237,7 +237,7 @@ namespace PetCenterServices.Services
             {
                 if (existing != null)
                 {
-                    dbContext.Wishlists.Remove(existing);
+                    await existing.StageDeletion<Wishlist>(dbContext,dbContext.Wishlists);
                     await dbContext.SaveChangesAsync();
                 }
                 return ServiceOutput<string>.Success("Term removed from wishlist.");
@@ -292,7 +292,7 @@ namespace PetCenterServices.Services
             {
                 try
                 {
-                    dbContext.Announcements.Remove(existing);
+                    await existing.StageDeletion<Announcement>(dbContext,dbContext.Announcements);
                     await dbContext.SaveChangesAsync();
                 }
                 catch

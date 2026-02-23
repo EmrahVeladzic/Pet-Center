@@ -101,7 +101,7 @@ namespace PetCenterServices.Services
             FormTemplateField? formTemplateField = await dbContext.FormTemplateFields.FindAsync(fieldId);
             if(formTemplateField!=null)
             {
-                dbContext.FormTemplateFields.Remove(formTemplateField);
+                await formTemplateField.StageDeletion<FormTemplateField>(dbContext,dbContext.FormTemplateFields);
                 await dbContext.SaveChangesAsync();
             }
             

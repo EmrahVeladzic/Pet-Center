@@ -208,8 +208,8 @@ namespace PetCenterServices.Services
                     
                     if (reg.Code == code) { 
 
-                        reg.RelevantAccount.Verified = true;            
-                        dbContext.Registrations.Remove(reg);
+                        reg.RelevantAccount.Verified = true;    
+                        await reg.StageDeletion<Registration>(dbContext,dbContext.Registrations);        
                         await dbContext.SaveChangesAsync();
                         await tx.CommitAsync();
 
