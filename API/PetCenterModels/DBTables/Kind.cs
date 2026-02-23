@@ -23,7 +23,7 @@ namespace PetCenterModels.DBTables
             if(await ctx.AnimalBreeds.Where(b=>b.KindId==Id).ToListAsync() is List<Breed> b){foreach(Breed br in b){await br.StageDeletion<Breed>(ctx,ctx.AnimalBreeds);}}
             if(await ctx.MedicalProcedureSpecifications.Where(m=>m.KindId==Id).ToListAsync() is List<MedicalProcedureSpecification> m){foreach (MedicalProcedureSpecification med in m){await med.StageDeletion<MedicalProcedureSpecification>(ctx,ctx.MedicalProcedureSpecifications);}}
             if(await ctx.Items.Where(i=>i.TargetKind==Id).ToListAsync() is List<Item> i){foreach(Item itm in i){await itm.StageDeletion<Item>(ctx,ctx.Items);}}
-            if(await ctx.UsageEstimates.Where(u=>u.KindId==Id).ToListAsync() is List<Usage> u){foreach(Usage us in u){await us.StageDeletion<Usage>(ctx,ctx.UsageEstimates);}}
+            if(await ctx.UsageEstimates.Where(u=>u.KindId==Id).ToArrayAsync() is Usage[] u){ctx.RemoveRange(u);}
             await base.StageDeletion(ctx, set);
         }
     }

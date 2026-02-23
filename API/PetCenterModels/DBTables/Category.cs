@@ -19,10 +19,13 @@ namespace PetCenterModels.DBTables
         [Column("Consumable")]
         public bool Consumable { get; set; }
 
+        [InverseProperty(nameof(Usage.ProductCategory))]
+        public List<Usage> UsageSpecifics {get; set;} = new();
+
         public override async Task StageDeletion<T>(PetCenterDBContext ctx, DbSet<T> set)
         {
             if(await ctx.Items.Where(i=>i.CategoryId==Id).ToListAsync() is List<Item> i){foreach(Item itm in i){await itm.StageDeletion<Item>(ctx,ctx.Items);}}
-            if(await ctx.UsageEstimates.Where(u=>u.CategoryId==Id).ToListAsync() is List<Usage> u){foreach(Usage use in u){await use.StageDeletion<Usage>(ctx,ctx.UsageEstimates);}}
+            if(await ctx.UsageEstimates.Where(u=>u.CategoryId==Id).ToArrayAsync() is Usage[] u){ctx.UsageEstimates.RemoveRange(u);}
             await base.StageDeletion(ctx, set);
         }
     }

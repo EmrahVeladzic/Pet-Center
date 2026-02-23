@@ -69,7 +69,7 @@ builder.Services.AddScoped<IFacilityService, FacilityService>();
 builder.Services.AddScoped<IKindService, KindService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IFormTemplateService,FormTemplateService>();
-
+builder.Services.AddScoped<ILivingConditionFieldService,LivingconditionFieldService>();
 
 builder.Services.AddDbContext<PetCenterDBContext>(options =>
 {

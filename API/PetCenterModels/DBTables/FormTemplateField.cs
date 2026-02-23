@@ -28,6 +28,8 @@ namespace PetCenterModels.DBTables
         [Column("Optional")]
         public bool Optional {get; set;}
 
+        
+
         public override async Task StageDeletion<T>(PetCenterDBContext ctx, DbSet<T> set)
         {
             if(await ctx.FormFieldEntries.Where(f=>f.FormTemplateFieldId==Id).ToArrayAsync() is FormFieldEntry[] f){ctx.FormFieldEntries.RemoveRange(f);}

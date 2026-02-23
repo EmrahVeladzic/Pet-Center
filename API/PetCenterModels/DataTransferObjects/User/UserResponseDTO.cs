@@ -11,6 +11,36 @@ using PetCenterModels.DBTables;
 
 namespace PetCenterModels.DataTransferObjects
 {
+
+    public class SuppliesSubDTO : IBaseResponseDTO<Supplies,SuppliesSubDTO>
+    {
+        public Guid? Id {get; set;}
+
+        public Guid KindId {get; set;}
+
+        public Guid ConsumableId {get; set;}
+
+        public List<NoteSubDTO>? Notes {get; set;} = null;
+
+        public static SuppliesSubDTO? FromEntity(Supplies? supplies)
+        {
+            if(supplies==null || supplies.KindDetails==null || supplies.ConsumableCategory==null){return null;}
+            SuppliesSubDTO output = new();
+
+            output.Id=supplies.Id;
+            output.KindId=supplies.KindId;
+            output.ConsumableId=supplies.CategoryId;
+
+            output.Notes=new();
+            
+            NoteSubDTO note = new();
+            note.Title = $"{supplies.KindDetails.Title} - {supplies.ConsumableCategory.Title}";
+            note.Body = $"Approximately {supplies.MassGrams}g left.";
+            output.Notes.Add(note);
+
+            return output;
+        }
+    }
     public class UserResponseDTO : IBaseResponseDTO<User,UserResponseDTO>
     {        
         public Guid? Id {get; set;}

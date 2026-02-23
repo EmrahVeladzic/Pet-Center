@@ -44,9 +44,10 @@ namespace PetCenterServices.Utils
             animals = animals.Where(a=>a.AnimalBreed!=null && a.AnimalBreed.KindId==KindId).ToList();
 
             foreach(Individual animal in animals)
-            {
-                
-                output += await ctx.UsageEstimates.Where(u=>u.CategoryId==CategoryId && u.KindId==animal.AnimalBreed.KindId && (u.ScaleSpecific==animal.AnimalBreed.Scale||u.ScaleSpecific==null)).Select(u=>u.AverageDailyAmountGrams).FirstOrDefaultAsync();
+            {             
+                output +=  await ctx.UsageEstimates
+                .Where(u => u.CategoryId == CategoryId && u.KindId == animal.AnimalBreed.KindId &&(u.ScaleSpecific == animal.AnimalBreed.Scale || u.ScaleSpecific == null))
+                .OrderByDescending(u => u.ScaleSpecific != null).Select(u => u.AverageDailyAmountGrams).FirstOrDefaultAsync();
             }
 
             return output;

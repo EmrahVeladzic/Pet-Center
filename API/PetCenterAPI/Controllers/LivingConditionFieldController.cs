@@ -13,10 +13,10 @@ namespace PetCenterAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class CategoryController : ControllerTemplate<Category,CategorySearchObject,CategoryDTO,CategoryDTO,ICategoryService>
+    public class LivingConditionFieldController : ControllerTemplate<LivingConditionField,LivingConditionSearchObject,LivingConditionFieldDTO,LivingConditionFieldDTO,ILivingConditionFieldService>
     {
 
-        public CategoryController(ICategoryService s):base(s) { }
+        public LivingConditionFieldController(ILivingConditionFieldService s):base(s) { }
 
         [NonAction]
         public override Task<IActionResult> GetById(Guid id)
@@ -26,7 +26,7 @@ namespace PetCenterAPI.Controllers
 
         [Authorize(Roles = "Admin,Owner")]
         [HttpPut("{id}")]
-        public override Task<IActionResult> Put([FromRoute] Guid id, [FromBody] CategoryDTO ent)
+        public override Task<IActionResult> Put([FromRoute] Guid id, [FromBody] LivingConditionFieldDTO ent)
         {
             return base.Put(id, ent);
         }
@@ -40,29 +40,29 @@ namespace PetCenterAPI.Controllers
 
         [Authorize(Roles = "Admin,Owner")]
         [HttpPost]
-        public override Task<IActionResult> Post([FromBody] CategoryDTO ent)
+        public override Task<IActionResult> Post([FromBody] LivingConditionFieldDTO ent)
         {
             return base.Post(ent);
         }
 
         [Authorize(Roles ="User")]
-        [HttpPut("Supplies/{consumable_id}/{kind_id}")]
-        public async Task<IActionResult> TrackSupplies([FromRoute]Guid consumable_id, [FromRoute]Guid kind_id,[FromQuery]int mass_grams=0)
+        [HttpPut("Entry/{field_id}")]
+        public async Task<IActionResult> TrackSupplies([FromRoute]Guid field_id, [FromQuery] bool answer)
         {
             if(TryGetUserId(out Guid user_id))
             {
-                return ResultConverter.Convert<SuppliesSubDTO>(await service.TrackSupplies(user_id,consumable_id,kind_id,mass_grams));
+                return ResultConverter.Convert<LivingConditionEntrySubDTO>(await service.AddEntry(user_id,field_id,answer));
             }
             return StatusCode(401,"Invalid token.");
         }
 
         [Authorize(Roles ="User")]
-        [HttpDelete("Supplies/{entry_id}")]
+        [HttpDelete("Entry/{entry_id}")]
         public async Task<IActionResult> TrackSupplies([FromRoute]Guid entry_id)
         {
             if(TryGetUserId(out Guid user_id))
             {
-                return ResultConverter.Convert<object>(await service.StopTracking(user_id,entry_id));
+                return ResultConverter.Convert<object>(await service.RemoveEntry(user_id,entry_id));
             }
             return StatusCode(401,"Invalid token.");
         }

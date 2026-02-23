@@ -13,6 +13,11 @@ namespace PetCenterServices.Interfaces
 {
     public interface ICategoryService : IBaseCRUDService<Category,CategorySearchObject,CategoryDTO,CategoryDTO>
     {
+        public Task<ServiceOutput<SuppliesSubDTO>> TrackSupplies(Guid user_id, Guid ConsumableId, Guid KindId, int InitialMass);
+        public Task<ServiceOutput<object>> StopTracking(Guid user_id, Guid SupplyId);
+        
+        public Task<ServiceOutput<UsageSubDTO>> SetUsageEstimate(Guid CategoryId, Guid KindId, AnimalScale? scale, int daily_amount);
+        public Task<ServiceOutput<object>> RemoveUsageEstimate(Guid id);
         
     }
 }
