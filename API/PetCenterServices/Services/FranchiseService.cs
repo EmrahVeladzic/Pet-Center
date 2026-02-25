@@ -23,9 +23,9 @@ namespace PetCenterServices.Services
             dbSet = ctx.Franchises;
         }
 
-        protected override IQueryable<Franchise> Filter(Guid token_holder, FranchiseSearchObject search)
+        protected override async Task<IQueryable<Franchise>> Filter(Guid token_holder, FranchiseSearchObject search)
         {
-            IQueryable<Franchise> output = base.Filter(token_holder,search);
+            IQueryable<Franchise> output = await base.Filter(token_holder,search);
 
             if (search.AuthoritySpecifier == Access.BusinessAccount)
             {
@@ -44,7 +44,8 @@ namespace PetCenterServices.Services
 
         public override async Task<ServiceOutput<List<FranchiseResponseDTO>>> Get(Guid token_holder, FranchiseSearchObject search)
         {
-            List<Franchise> entities = await Filter(token_holder,search).Skip(search.Page*search.PageSize).Take(search.PageSize).ToListAsync();
+            IQueryable<Franchise> query = await Filter(token_holder,search);
+            List<Franchise> entities = await query.Skip(search.Page*search.PageSize).Take(search.PageSize).ToListAsync();
             return ServiceOutput<List<FranchiseResponseDTO>>.Success(entities.Select(e=>FranchiseResponseDTO.FromEntity(e, search.RelatedUser != null && e.OwnerId == search.RelatedUser)!).ToList());
         }
 

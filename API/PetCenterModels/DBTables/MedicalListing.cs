@@ -20,6 +20,10 @@ namespace PetCenterModels.DBTables
         [ForeignKey(nameof(ProcedureId))]
         public Procedure Procedure { get; set; } = null!;
 
+
+        [ForeignKey(nameof(Id))]
+        public Listing Base {get; set;} = null!;
+
         public override async Task StageDeletion<T>(PetCenterDBContext ctx, DbSet<T> set)
         {
             if(await ctx.Listings.FirstOrDefaultAsync(l=>l.Id==Id) is Listing l){await l.StageDeletion(ctx, ctx.Listings);}

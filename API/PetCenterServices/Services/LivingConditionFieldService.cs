@@ -23,10 +23,11 @@ namespace PetCenterServices.Services
             dbSet = ctx.LivingConditionFields;
         }
 
-        protected override IQueryable<LivingConditionField> Filter(Guid token_holder, LivingConditionSearchObject search)
+        protected override Task<IQueryable<LivingConditionField>> Filter(Guid token_holder, LivingConditionSearchObject search)
         {
-            return dbSet.Include(l=>l.Entries.Where(e=>e.UserId==token_holder).Take(1)).OrderBy(o=>o.Id);
-
+           
+            IQueryable<LivingConditionField> query = dbSet.Include(l=>l.Entries.Where(e=>e.UserId==token_holder).Take(1)).OrderBy(o=>o.Id);
+            return Task.FromResult(query);
         }
         
         public override async Task<ServiceOutput<object>> IsClearedToCreate(Guid token_holder, LivingConditionFieldDTO resource)
@@ -63,10 +64,10 @@ namespace PetCenterServices.Services
           
         }
 
-        public override async Task<ServiceOutput<object>> IsClearedToDelete(Guid token_holder, Guid resourceId)
+        public override  Task<ServiceOutput<object>> IsClearedToDelete(Guid token_holder, Guid resourceId)
         {           
-            await Task.CompletedTask;
-            return ServiceOutput<object>.Success(null,HttpCode.OK);
+            
+            return Task.FromResult<ServiceOutput<object>>(ServiceOutput<object>.Success(null,HttpCode.OK));
         }
 
         public async Task<ServiceOutput<LivingConditionEntrySubDTO>> AddEntry(Guid user_id, Guid field_id, bool answer)

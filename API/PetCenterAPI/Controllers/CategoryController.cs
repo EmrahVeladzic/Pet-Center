@@ -45,6 +45,20 @@ namespace PetCenterAPI.Controllers
             return base.Post(ent);
         }
 
+        [Authorize(Roles ="Admin,Owner")]
+        [HttpPut("Usage/{consumable_id}/{kind_id}")]
+        public async Task<IActionResult> TrackSupplies([FromRoute]Guid consumable_id, [FromRoute]Guid kind_id,[FromQuery] AnimalScale? scale,[FromQuery]int mass_grams=0)
+        {
+            return ResultConverter.Convert<UsageSubDTO>(await service.SetUsageEstimate(consumable_id,kind_id,scale,mass_grams));   
+        }
+
+        [Authorize(Roles ="Admin,Owner")]
+        [HttpDelete("Usage/{entry_id}")]
+        public async Task<IActionResult> RemoveUsageEstimate([FromRoute]Guid entry_id)
+        {            
+            return ResultConverter.Convert<object>(await service.RemoveUsageEstimate(entry_id)); 
+        }
+
         [Authorize(Roles ="User")]
         [HttpPut("Supplies/{consumable_id}/{kind_id}")]
         public async Task<IActionResult> TrackSupplies([FromRoute]Guid consumable_id, [FromRoute]Guid kind_id,[FromQuery]int mass_grams=0)
@@ -58,7 +72,7 @@ namespace PetCenterAPI.Controllers
 
         [Authorize(Roles ="User")]
         [HttpDelete("Supplies/{entry_id}")]
-        public async Task<IActionResult> TrackSupplies([FromRoute]Guid entry_id)
+        public async Task<IActionResult> StopTrackingSupplyRecord([FromRoute]Guid entry_id)
         {
             if(TryGetUserId(out Guid user_id))
             {

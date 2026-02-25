@@ -23,9 +23,9 @@ namespace PetCenterServices.Services
             dbSet = ctx.FormTemplates;
         }
 
-        protected override IQueryable<FormTemplate> Filter(Guid token_holder, FormTemplateSearchObject search)
+        protected override async Task<IQueryable<FormTemplate>> Filter(Guid token_holder, FormTemplateSearchObject search)
         {
-            IQueryable<FormTemplate> query = base.Filter(token_holder, search);
+            IQueryable<FormTemplate> query = await base.Filter(token_holder, search);
             query = query.Include(ft => ft.Entries);
             return query;
         }
@@ -60,10 +60,10 @@ namespace PetCenterServices.Services
           
         }
 
-        public override async Task<ServiceOutput<object>> IsClearedToDelete(Guid token_holder, Guid resourceId)
+        public override Task<ServiceOutput<object>> IsClearedToDelete(Guid token_holder, Guid resourceId)
         {           
-            await Task.CompletedTask;
-            return ServiceOutput<object>.Success(null,HttpCode.OK);
+            
+            return Task.FromResult<ServiceOutput<object>>(ServiceOutput<object>.Success(null,HttpCode.OK));
         }
 
         public async Task<ServiceOutput<FormTemplateFieldDTO>> SetField(FormTemplateFieldDTO field)

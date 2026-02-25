@@ -29,7 +29,7 @@ namespace PetCenterModels.DBTables
         public AnimalScale? TargetScale { get; set; }
 
         [Column("MassGrams")]
-        public int MassGrams { get; set; }
+        public int? MassGrams { get; set; }
 
         public override async Task StageDeletion<T>(PetCenterDBContext ctx, DbSet<T> set)
         {

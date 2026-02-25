@@ -15,7 +15,7 @@ namespace PetCenterModels.DataTransferObjects
 
         public Guid? Id {get; set;}
 
-        public string? Contact {get; set;}
+        public string Contact {get; set;} = string.Empty;
 
         public Access AccessLevel {get; set;}
 

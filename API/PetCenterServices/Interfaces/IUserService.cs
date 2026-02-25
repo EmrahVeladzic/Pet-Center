@@ -16,8 +16,12 @@ namespace PetCenterServices.Interfaces
     
         public Task<ServiceOutput<string>> SetWishlistTerm(Guid usr_id, string term, bool add_remove);
     
-        public Task<ServiceOutput<string>> AddAnnouncement(string body, bool user_visible, bool business_visible, int expiry);
+        public Task<ServiceOutput<AnnouncementSubDTO>> AddAnnouncement(string body, bool user_visible, bool business_visible, int expiry);
 
         public Task<ServiceOutput<string>> RemoveAnnouncement(Guid announcement_id);
+
+        public Task<ServiceOutput<NotificationSubDTO>> AddNotification(string title, string body, Guid user_id, Guid? franchise_id, Guid? listing_id, int expiry);
+
+        public Task<ServiceOutput<string>> RemoveNotification(Guid announcement_id);
     }
 }

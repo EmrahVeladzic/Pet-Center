@@ -47,6 +47,12 @@ namespace PetCenterServices.Recommender
                     Cohabitation -= entry.Field.CohabitationEffect;
                 }
             }
+
+            Investment = Math.Clamp(Investment,0.0f,1.0f);
+            Territory = Math.Clamp(Territory,0.0f,1.0f);
+            Pricing = Math.Clamp(Pricing,0.0f,1.0f);
+            Longevity = Math.Clamp(Longevity,0.0f,1.0f);
+            Cohabitation = Math.Clamp(Cohabitation,0.0f,1.0f);
         }
         
     }

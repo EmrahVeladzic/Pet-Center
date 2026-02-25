@@ -59,9 +59,14 @@ namespace PetCenterModels.DBTables
         [NotMapped]
         public List<Comment>? Comments { get; set; }
 
+        [ForeignKey(nameof(Id))]
+        public AnimalListing? AnimalExtension {get; set;} = null;
 
-        public override byte AlbumCapacity =>5;
+        [ForeignKey(nameof(Id))]
+        public ProductListing? ProductExtension {get; set;} = null;
 
+        [ForeignKey(nameof(Id))]
+        public MedicalListing? MedicalExtension {get; set;} = null;
 
         public override async Task StageDeletion<T>(PetCenterDBContext ctx, DbSet<T> set)
         {

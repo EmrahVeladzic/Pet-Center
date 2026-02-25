@@ -23,15 +23,15 @@ namespace PetCenterServices.Services
             dbSet = ctx.Facilities;
         }
 
-        protected override IQueryable<Facility> Filter(Guid token_holder, FacilitySearchObject search)
+        protected override Task<IQueryable<Facility>> Filter(Guid token_holder, FacilitySearchObject search)
         {
             IQueryable<Facility> output = dbSet.Where(f=>f.FranchiseId==search.FranchiseId);
             if (search.ServesListing != null)
             {
                 output = output.Where(f=>dbContext.ListingAvailable.Any(a=>a.ListingId == search.ServesListing && a.FacilityId == f.Id));
             }
-         
-            return output;
+            
+            return Task.FromResult<IQueryable<Facility>>(output);
         }
 
         public override async Task<ServiceOutput<object>> IsClearedToCreate(Guid token_holder, FacilityDTO resource)

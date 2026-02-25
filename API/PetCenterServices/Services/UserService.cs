@@ -24,7 +24,7 @@ namespace PetCenterServices.Services
         }
 
 
-        protected override IQueryable<User> Filter(Guid token_holder, UserSearchObject search)
+        protected override Task<IQueryable<User>> Filter(Guid token_holder, UserSearchObject search)
         {
             IQueryable<User> output = dbSet.Include(u=>u.UserAccount).OrderBy(u=>u.Id);
 
@@ -42,7 +42,7 @@ namespace PetCenterServices.Services
             {
                 output = output.Where(u=> dbContext.EmployeeRecords.Any(e=>e.UserId==u.Id && e.FranchiseId==search.EmployedBy));
             }
-            return output;
+            return Task.FromResult(output);
         }
 
         public override async Task<ServiceOutput<UserResponseDTO>> Put(Guid token_holder,UserRequestDTO ent)
@@ -199,15 +199,14 @@ namespace PetCenterServices.Services
             return ServiceOutput<object>.Success(null,HttpCode.NoContent);
         }
 
-        public override async Task<ServiceOutput<object>> IsClearedToDelete(Guid token_holder, Guid resourceId)
-        {       
-            await Task.CompletedTask; 
+        public override Task<ServiceOutput<object>> IsClearedToDelete(Guid token_holder, Guid resourceId)
+        {                   
             if(resourceId!=token_holder)
             {
-                return ServiceOutput<object>.Error(HttpCode.Forbidden,"Token does not belong to user.");
+                return Task.FromResult(ServiceOutput<object>.Error(HttpCode.Forbidden,"Token does not belong to user."));
             }
 
-            return ServiceOutput<object>.Success(null,HttpCode.NoContent);
+            return Task.FromResult(ServiceOutput<object>.Success(null,HttpCode.NoContent));
         }
 
 
@@ -247,11 +246,11 @@ namespace PetCenterServices.Services
         }
 
 
-        public async Task<ServiceOutput<string>> AddAnnouncement(string body, bool user_visible, bool business_visible, int expiry)
+        public async Task<ServiceOutput<AnnouncementSubDTO>> AddAnnouncement(string body, bool user_visible, bool business_visible, int expiry)
         {
             if (string.IsNullOrWhiteSpace(body))
             {
-                return ServiceOutput<string>.Error(HttpCode.BadRequest,"Announcement body cannot be empty.");
+                return ServiceOutput<AnnouncementSubDTO>.Error(HttpCode.BadRequest,"Announcement body cannot be empty.");
             }
 
             Announcement? existing = await dbContext.Announcements.FirstOrDefaultAsync(a=>a.Body.ToLowerInvariant()==body.ToLowerInvariant() && a.UserVisible==user_visible && a.BusinessVisible==business_visible);
@@ -259,7 +258,7 @@ namespace PetCenterServices.Services
             {
                 existing.Expiry = DateTime.UtcNow.AddDays(expiry);             
                 await dbContext.SaveChangesAsync();
-                return ServiceOutput<string>.Success("Announcement lifespan updated successfully.");
+                return ServiceOutput<AnnouncementSubDTO>.Success(AnnouncementSubDTO.FromEntity(existing));
             }
            
             Announcement newAnnouncement = new Announcement
@@ -277,10 +276,10 @@ namespace PetCenterServices.Services
             }
             catch
             {
-                return ServiceOutput<string>.Error(HttpCode.InternalError,"Internal server error.");
+                return ServiceOutput<AnnouncementSubDTO>.Error(HttpCode.InternalError,"Internal server error.");
             }
 
-            return ServiceOutput<string>.Success("Announcement added successfully.");
+            return ServiceOutput<AnnouncementSubDTO>.Success(AnnouncementSubDTO.FromEntity(newAnnouncement),HttpCode.Created);
         }
 
 
@@ -303,6 +302,66 @@ namespace PetCenterServices.Services
             }
 
             return ServiceOutput<string>.Success("Announcement removed successfully.");
+        }
+
+        public async Task<ServiceOutput<NotificationSubDTO>> AddNotification(string title, string body, Guid user_id, Guid? franchise_id, Guid? listing_id, int expiry)
+        {
+            if (string.IsNullOrWhiteSpace(body)||string.IsNullOrWhiteSpace(title))
+            {
+                return ServiceOutput<NotificationSubDTO>.Error(HttpCode.BadRequest,"Notification title and body cannot be empty.");
+            }
+
+            Notification? existing = await dbContext.Notifications.FirstOrDefaultAsync(a=>a.Body.ToLowerInvariant()==body.ToLowerInvariant() && a.Title.ToLowerInvariant()==title.ToLowerInvariant() && a.UserId==user_id && a.ListingId == listing_id && a.FranchiseId==franchise_id);
+            if (existing != null)
+            {
+                existing.Expiry = DateTime.UtcNow.AddDays(expiry);             
+                await dbContext.SaveChangesAsync();
+                return ServiceOutput<NotificationSubDTO>.Success(NotificationSubDTO.FromEntity(existing));
+            }
+           
+            Notification newNotification = new Notification
+            {
+                Body = body,
+                Title = title,
+                UserId=user_id,
+                ListingId=listing_id,
+                FranchiseId=franchise_id,
+                Expiry = DateTime.UtcNow.AddDays(expiry)
+            };
+
+            try
+            {
+                await dbContext.Notifications.AddAsync(newNotification);
+                await dbContext.SaveChangesAsync();
+            }
+            catch
+            {
+                return ServiceOutput<NotificationSubDTO>.Error(HttpCode.InternalError,"Internal server error.");
+            }
+
+            return ServiceOutput<NotificationSubDTO>.Success(NotificationSubDTO.FromEntity(newNotification),HttpCode.Created);
+        }
+
+
+        public async Task<ServiceOutput<string>> RemoveNotification(Guid announcement_id)
+        {
+            Notification? existing = await dbContext.Notifications.FindAsync(announcement_id);
+
+            if (existing != null)
+            {
+                try
+                {
+                    await existing.StageDeletion<Notification>(dbContext,dbContext.Notifications);
+                    await dbContext.SaveChangesAsync();
+                }
+                catch
+                {
+                    return ServiceOutput<string>.Error(HttpCode.InternalError,"Internal server error.");
+                }
+                
+            }
+
+            return ServiceOutput<string>.Success("Notification removed successfully.");
         }
        
     }
