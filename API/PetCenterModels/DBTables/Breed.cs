@@ -29,6 +29,9 @@ namespace PetCenterModels.DBTables
         [Column("KindID")]
         public Guid KindId {get; set;}
 
+        [ForeignKey(nameof(KindId))]
+        public Kind AnimalKind {get; set;} = null!;
+
         [Column("Scale")]
         public AnimalScale Scale {get; set;}
 

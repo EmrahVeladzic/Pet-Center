@@ -343,9 +343,9 @@ namespace PetCenterServices.Services
         }
 
 
-        public async Task<ServiceOutput<string>> RemoveNotification(Guid announcement_id)
+        public async Task<ServiceOutput<string>> RemoveNotification(Guid notification_id)
         {
-            Notification? existing = await dbContext.Notifications.FindAsync(announcement_id);
+            Notification? existing = await dbContext.Notifications.FindAsync(notification_id);
 
             if (existing != null)
             {

@@ -20,6 +20,8 @@ namespace PetCenterModels.DataTransferObjects
 
         public string Title {get; set;} = string.Empty;
 
+        public List<BreedDTO> Breeds {get; set;} = new();
+
 
         public static KindDTO? FromEntity(Kind? entity)
         {
@@ -27,7 +29,9 @@ namespace PetCenterModels.DataTransferObjects
             return new KindDTO
             {
                 Id = entity.Id,
-                Title = entity.Title
+                Title = entity.Title,
+                Breeds=entity.Breeds.Select(b=>BreedDTO.FromEntity(b)!).ToList()
+
             };
         }
 

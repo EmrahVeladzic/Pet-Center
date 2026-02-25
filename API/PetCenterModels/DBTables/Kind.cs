@@ -18,6 +18,9 @@ namespace PetCenterModels.DBTables
         [Column("Title")]
         public string Title {get; set;} = string.Empty;
 
+        [InverseProperty(nameof(Breed.AnimalKind))]
+        public List<Breed> Breeds {get; set;} = new();
+
         public override async Task StageDeletion<T>(PetCenterDBContext ctx, DbSet<T> set)
         {
             if(await ctx.AnimalBreeds.Where(b=>b.KindId==Id).ToListAsync() is List<Breed> b){foreach(Breed br in b){await br.StageDeletion<Breed>(ctx,ctx.AnimalBreeds);}}
