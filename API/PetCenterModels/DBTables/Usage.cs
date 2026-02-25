@@ -24,5 +24,13 @@ namespace PetCenterModels.DBTables
 
         [Column("AverageDailyAmountGrams")]
         public int AverageDailyAmountGrams {get;set;}
+
+        [ForeignKey(nameof(CategoryId))]
+        public Category ProductCategory {get; set;} = null!;
+
+        [ForeignKey(nameof(KindId))]
+        public Kind AnimalKind {get; set;} = null!;
+
+        
     }
 }

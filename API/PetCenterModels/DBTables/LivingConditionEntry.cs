@@ -19,6 +19,9 @@ namespace PetCenterModels.DBTables
         [Column("LivingConditionFieldID")]
         public Guid LivingConditionFieldID { get; set; }
 
+        [ForeignKey(nameof(LivingConditionFieldID))]
+        public LivingConditionField Field {get; set;} = null!;
+
         [Column("Answer")]
         public bool Answer { get; set; }
     }

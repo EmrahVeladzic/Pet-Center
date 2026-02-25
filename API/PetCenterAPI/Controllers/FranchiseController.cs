@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using PetCenterModels.DBTables;
-using PetCenterModels.Requests;
+using PetCenterModels.DataTransferObjects;
 using PetCenterModels.SearchObjects;
 using PetCenterServices.Interfaces;
 using PetCenterServices.Utils;
@@ -23,14 +23,15 @@ namespace PetCenterAPI.Controllers
         [Authorize(Roles = "Owner,Admin")]
         public override async Task<IActionResult> Post([FromBody] FranchiseRequestDTO ent)
         {
-            return ResultConverter.Convert<FranchiseResponseDTO>(await service.Post(null,ent));
+            ent.Contact = ent.Contact.ToLowerInvariant();
+            return ResultConverter.Convert<FranchiseResponseDTO>(await service.Post(Guid.Empty,ent));
         }
 
-        [HttpPut]
+        [HttpPut("{id}")]
         [Authorize(Roles ="Employee")]
         public override async Task<IActionResult> Put([FromRoute] Guid id, [FromBody] FranchiseRequestDTO ent)
         {
-            ent.Contact= ent.Contact.ToLower();
+            ent.Contact= ent.Contact.ToLowerInvariant();
             return await base.Put(id, ent);
         }
 

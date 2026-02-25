@@ -15,7 +15,7 @@ namespace PetCenterModels.DBTables
     public class FormTemplate : BaseTableEntity
     {
         [Column("FormDescription")]
-        public string? Description {get; set;}
+        public string Description {get; set;} = string.Empty;
 
         [InverseProperty(nameof(FormTemplateField.Template))]
         public List<FormTemplateField> Entries {get; set;} = new();

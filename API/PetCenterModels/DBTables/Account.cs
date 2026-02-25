@@ -24,16 +24,16 @@ namespace PetCenterModels.DBTables
     {
         [Column("Contact")]
         [Required]
-        public string? Contact {  get; set; }       
+        public string Contact {  get; set; } = string.Empty;   
 
         [Column("PasswordHash")]
         [JsonIgnore]
         [Required]
-        public string? PasswordHash { get; set; }
+        public string PasswordHash { get; set; } = string.Empty;
 
         [Column("PasswordSalt")]
         [JsonIgnore]
-        public string? PasswordSalt { get; set; }
+        public string PasswordSalt { get; set; } = string.Empty;
 
         [Column("AccessLevel")]
         [JsonIgnore]

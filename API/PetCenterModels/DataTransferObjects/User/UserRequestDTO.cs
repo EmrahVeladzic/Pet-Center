@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using PetCenterModels.DataTransferObjects;
 using PetCenterModels.DBTables;
 
-namespace PetCenterModels.Requests
+namespace PetCenterModels.DataTransferObjects
 {
     public class UserRequestDTO : IBaseRequestDTO
     {

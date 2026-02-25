@@ -18,7 +18,10 @@ namespace PetCenterModels.DBTables
         public Guid ListingId { get; set; }
 
         [Column("CommentID")]
-        public Guid? CommentId { get; set; }
+        public Guid? CommentId { get; set; } = null;
+
+        [Column("ReporterID")]
+        public Guid ReporterId { get; set; }
 
         [Column("Reason")]
         public string Reason { get; set; } = string.Empty;

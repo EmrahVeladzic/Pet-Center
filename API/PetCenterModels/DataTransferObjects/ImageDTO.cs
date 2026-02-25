@@ -1,6 +1,6 @@
 ﻿using Microsoft.VisualBasic;
 using PetCenterModels.DBTables;
-using PetCenterModels.Requests;
+using PetCenterModels.DataTransferObjects;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -21,16 +21,18 @@ namespace PetCenterModels.DataTransferObjects
         [JsonIgnore]
         public const int MaxSize = 204800;
         
-        public Guid? Id {get; set;}
+        public Guid? Id {get; set;} = null;
 
         [Required]
-        public Guid AlbumInsertId { get; set; }
+        public Guid AlbumInsertId { get; set; } = Guid.Empty;
         [Required]
         public short Width { get; set; } = 0;
         [Required]
         public short Height { get; set; } = 0;
         [Required]
         public string? Data { get; set; } = null;
+
+        public List<NoteSubDTO>? Notes {get; set;} = null;
 
         public static ImageDTO? FromEntity(Image? img)
         {
@@ -47,7 +49,7 @@ namespace PetCenterModels.DataTransferObjects
 
         public bool Validate()
         {
-            return(!string.IsNullOrWhiteSpace(Data)&&(Width >= MinDimension && Width<=MaxDimension)&&(Height>=MinDimension && Height<=MaxDimension)&&Data.Length<MaxSize);
+            return(!string.IsNullOrWhiteSpace(Data)&&(Width >= MinDimension && Width<=MaxDimension)&&(Height>=MinDimension && Height<=MaxDimension)&&Data.Length<MaxSize&&!(AlbumInsertId==Guid.Empty));
         }
 
         public Image? ToEntity()

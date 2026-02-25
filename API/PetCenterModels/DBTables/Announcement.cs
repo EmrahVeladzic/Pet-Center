@@ -13,14 +13,15 @@ namespace PetCenterModels.DBTables
     [Table("Announcement", Schema = "Communication")]
     public class Announcement : ExpirableTableEntity
     {
-        [Column("RoleSpecific")]
-        public Access? RoleSpecific { get; set; }
-
-        [Column("Title")]
-        public string Title { get; set; } = string.Empty;
-
-        [Column("Body")]
+        
+        [Column("AnnouncementBody")]
         public string Body { get; set; } = string.Empty;
+
+        [Column("UserVisible")]
+        public bool UserVisible { get; set; } = false;
+
+        [Column("BusinessVisible")]
+        public bool BusinessVisible { get; set; } = false;
      
     }
 }
