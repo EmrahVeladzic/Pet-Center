@@ -1,14 +1,19 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-[ApiController]
-[Route("/")]
-public class HealthController : ControllerBase
+namespace PetCenterAPI.Controllers
 {
-    [AllowAnonymous]
-    [HttpGet]
-    public IActionResult Get() 
+   
+    [ApiController]
+    [Route("/")]
+    public class HealthController : ControllerBase
     {
-        return StatusCode(200,"PetCenterAPI is running!");
+        [AllowAnonymous]
+        [HttpGet]
+        public IActionResult Get() 
+        {
+            return StatusCode(200,"PetCenterAPI is running!");
+        }
     }
+
 }

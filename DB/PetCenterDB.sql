@@ -33,8 +33,7 @@ CREATE TABLE [Person].[Account](
     AccessLevel TINYINT NOT NULL,
     Verified BIT NOT NULL,
 
-    CONSTRAINT UQ_Contact UNIQUE (Contact)
-    
+    CONSTRAINT UQ_Contact UNIQUE (Contact) 
 );
 GO
 
@@ -44,7 +43,7 @@ CREATE TABLE [File].[Album](
     Capacity TINYINT NOT NULL,
     Reserved TINYINT NOT NULL,
     Locked BIT NOT NULL,
-	OwnerID UNIQUEIDENTIFIER NOT NULL FOREIGN KEY REFERENCES [Person].[Account](ID)	
+	OwnerID UNIQUEIDENTIFIER FOREIGN KEY REFERENCES [Person].[Account](ID)	
 );
 GO  
     
@@ -64,10 +63,8 @@ CREATE TABLE [Person].[User](
     ID UNIQUEIDENTIFIER NOT NULL PRIMARY KEY FOREIGN KEY REFERENCES [Person].[Account](ID),
     CurrentVersion ROWVERSION NOT NULL,   
     UserName NVARCHAR(50) NOT NULL,
-    AlbumID UNIQUEIDENTIFIER NOT NULL FOREIGN KEY REFERENCES [File].[Album](ID),
 
     CONSTRAINT UQ_UserName UNIQUE (UserName),
-	CONSTRAINT UQ_User_Album UNIQUE (AlbumID)
 );
 GO
 
@@ -76,10 +73,9 @@ CREATE TABLE [Business].[Franchise](
     CurrentVersion ROWVERSION NOT NULL,
     OwnerID UNIQUEIDENTIFIER NOT NULL FOREIGN KEY REFERENCES [Person].[User](ID),
     FranchiseName NVARCHAR(50) NOT NULL,
-    AlbumID UNIQUEIDENTIFIER NOT NULL FOREIGN KEY REFERENCES [File].[Album](ID),
     DefaultContact VARCHAR(255) NOT NULL,
 
-	CONSTRAINT UQ_Franchise_Album UNIQUE (AlbumID)
+    CONSTRAINT UQ_Franchise_Owner UNIQUE(OwnerID,FranchiseName)
 );
 GO
 
@@ -89,7 +85,9 @@ CREATE TABLE [Business].[Facility](
     FranchiseID UNIQUEIDENTIFIER NOT NULL FOREIGN KEY REFERENCES [Business].[Franchise](ID),
     City NVARCHAR(100) NOT NULL,
     Street NVARCHAR(150) NOT NULL,
-    Contact VARCHAR(255)
+    Contact VARCHAR(255),
+
+    CONSTRAINT UQ_Facilities_City_Street_Franchise UNIQUE (City, Street, FranchiseID)
 );
 GO
 
@@ -97,14 +95,18 @@ CREATE TABLE [Business].[EmployeeRecord](
     ID UNIQUEIDENTIFIER NOT NULL DEFAULT NEWSEQUENTIALID() PRIMARY KEY,
     CurrentVersion ROWVERSION NOT NULL,
     UserID UNIQUEIDENTIFIER NOT NULL FOREIGN KEY REFERENCES [Person].[User](ID),
-    FranchiseID UNIQUEIDENTIFIER NOT NULL FOREIGN KEY REFERENCES [Business].[Franchise](ID)
+    FranchiseID UNIQUEIDENTIFIER NOT NULL FOREIGN KEY REFERENCES [Business].[Franchise](ID),
+
+    CONSTRAINT UQ_EmployeeRecord_User_Franchise UNIQUE(FranchiseID,UserID)
 );
 GO
 
 CREATE TABLE [Business].[FormTemplate](
     ID UNIQUEIDENTIFIER NOT NULL DEFAULT NEWSEQUENTIALID() PRIMARY KEY,
     CurrentVersion ROWVERSION NOT NULL,
-    FormDescription NVARCHAR(100) NOT NULL
+    FormDescription NVARCHAR(100) NOT NULL,
+
+    CONSTRAINT UQ_FormTemplate_Description UNIQUE (FormDescription)
 );
 GO
 
@@ -113,7 +115,9 @@ CREATE TABLE [Business].[FormTemplateField](
     CurrentVersion ROWVERSION NOT NULL,
     FormTemplateID UNIQUEIDENTIFIER NOT NULL FOREIGN KEY REFERENCES [Business].[FormTemplate](ID),
     FormFieldDescription NVARCHAR(50) NOT NULL,
-    Optional BIT NOT NULL
+    Optional BIT NOT NULL,
+
+    CONSTRAINT UQ_FormTemplateField_Description UNIQUE (FormFieldDescription, FormTemplateID)
 );
 GO
 
@@ -174,31 +178,46 @@ CREATE TABLE [Animal].[Breed](
     Cohabitation REAL NOT NULL,
     AlbumID UNIQUEIDENTIFIER NOT NULL FOREIGN KEY REFERENCES [File].[Album](ID),
 
+    CONSTRAINT CK_Breed_Stats
+    CHECK (
+        (Investment>=0 AND Territory>=0 AND Pricing>=0 AND Longevity>=0 AND Cohabitation>=0)
+        AND
+        (Investment<=1 AND Territory<=1 AND Pricing<=1 AND Longevity<=1 AND Cohabitation<=1)
+    ),
+
 	CONSTRAINT UQ_Breed_Album UNIQUE (AlbumID),
-    CONSTRAINT UQ_Breed_Title UNIQUE (Title)
+    CONSTRAINT UQ_Breed_Title_Kind UNIQUE (Title, KindID)
 );
 GO
 
 CREATE TABLE [Animal].[Individual](
     ID UNIQUEIDENTIFIER NOT NULL DEFAULT NEWSEQUENTIALID() PRIMARY KEY,
     CurrentVersion ROWVERSION NOT NULL,
+    AnimalIdentity UNIQUEIDENTIFIER NOT NULL,
     BreedID UNIQUEIDENTIFIER NOT NULL FOREIGN KEY REFERENCES [Animal].[Breed](ID),
     AnimalName NVARCHAR(50) NOT NULL,
     BirthDate DATETIME2 NOT NULL,
-    AlbumID UNIQUEIDENTIFIER NOT NULL FOREIGN KEY REFERENCES [File].[Album](ID),
     Sex BIT NOT NULL,
     OwnerID UNIQUEIDENTIFIER FOREIGN KEY REFERENCES [Person].[User](ID),
     ShelterID UNIQUEIDENTIFIER FOREIGN KEY REFERENCES [Business].[Franchise](ID),
     Owned BIT NOT NULL,
 
-	CONSTRAINT UQ_Individual_Album UNIQUE (AlbumID)
+    CONSTRAINT CK_Individual_OwnedConsistency
+    CHECK (
+        (Owned = 1 AND OwnerID IS NOT NULL AND ShelterID IS NULL)
+        OR
+        (Owned = 0 AND OwnerID IS NULL AND ShelterID IS NOT NULL)
+    )
+
 );
 GO
 
 CREATE TABLE [Service].[MedicalProcedure](
     ID UNIQUEIDENTIFIER NOT NULL DEFAULT NEWSEQUENTIALID() PRIMARY KEY,
     CurrentVersion ROWVERSION NOT NULL,
-    ProcedureDescription NVARCHAR(100) NOT NULL
+    ProcedureDescription NVARCHAR(25) NOT NULL,
+
+    CONSTRAINT UQ_Procedure_Description UNIQUE (ProcedureDescription)
 );
 GO
 
@@ -211,8 +230,31 @@ CREATE TABLE [Service].[MedicalProcedureSpecification](
     ApproximateAgeDays INT,
     SexSpecific BIT,
     Optional BIT NOT NULL,
-    IntervalDays SMALLINT
+    IntervalDays SMALLINT,
+
+    CONSTRAINT CK_Specification_Interval_Age
+    CHECK (
+        (ApproximateAgeDays IS NULL OR ApproximateAgeDays>=0)
+        AND
+        (IntervalDays IS NULL OR IntervalDays >=0)
+    )
+
 );
+GO
+
+CREATE UNIQUE INDEX UX_MedSpec_NullSex
+ON [Service].[MedicalProcedureSpecification](ProcedureID, KindID, BreedID)
+WHERE SexSpecific IS NULL;
+GO
+
+CREATE UNIQUE INDEX UX_MedSpec_Male
+ON [Service].[MedicalProcedureSpecification](ProcedureID, KindID, BreedID)
+WHERE SexSpecific = 1;
+GO
+
+CREATE UNIQUE INDEX UX_MedSpec_Female
+ON [Service].[MedicalProcedureSpecification](ProcedureID, KindID, BreedID)
+WHERE SexSpecific = 0;
 GO
 
 CREATE TABLE [Animal].[MedicalRecordEntry](
@@ -237,18 +279,34 @@ GO
 CREATE TABLE [Product].[Item](
     ID UNIQUEIDENTIFIER NOT NULL DEFAULT NEWSEQUENTIALID() PRIMARY KEY,
     CurrentVersion ROWVERSION NOT NULL,
-    Title NVARCHAR(50) NOT NULL,
+    Title NVARCHAR(75) NOT NULL,
     CategoryID UNIQUEIDENTIFIER NOT NULL FOREIGN KEY REFERENCES [Product].[Category](ID),
     TargetKind UNIQUEIDENTIFIER FOREIGN KEY REFERENCES [Animal].[Kind](ID),
     TargetScale TINYINT,
-    MassGrams INT
+    MassGrams INT,
+
+    CONSTRAINT CK_Item_Mass
+    CHECK (
+        (MassGrams IS NULL OR MassGrams>=0)
+    ),
+
+    CONSTRAINT CK_Item_KindConsistency
+    CHECK (
+        (TargetKind IS NULL AND TargetScale IS NULL)
+        OR
+        (TargetKind IS NOT NULL)
+    ),
+
+    CONSTRAINT UQ_Item_Title UNIQUE (Title)
+
 );
 GO
+
 
 CREATE TABLE [Offer].[Listing](
     ID UNIQUEIDENTIFIER NOT NULL DEFAULT NEWSEQUENTIALID() PRIMARY KEY,
     CurrentVersion ROWVERSION NOT NULL,
-    ListingName NVARCHAR(50) NOT NULL,
+    ListingName NVARCHAR(75) NOT NULL,
     ListingDescription NVARCHAR(500) NOT NULL,
     FranchiseID UNIQUEIDENTIFIER NOT NULL FOREIGN KEY REFERENCES [Business].[Franchise](ID),
     AlbumID UNIQUEIDENTIFIER NOT NULL FOREIGN KEY REFERENCES [File].[Album](ID),
@@ -259,8 +317,13 @@ CREATE TABLE [Offer].[Listing](
     Posted DATETIME2 NOT NULL,
     Updated BIT NOT NULL,
     
+    CONSTRAINT CK_Listing_Pricing
+    CHECK (
+        PriceMinor>=0
+    ),
 
-	CONSTRAINT UQ_Listing_Album UNIQUE (AlbumID)
+	CONSTRAINT UQ_Listing_Album UNIQUE (AlbumID),
+    CONSTRAINT UQ_Listing_Franchise_Title UNIQUE (FranchiseID,ListingName)
 );
 GO
 
@@ -268,7 +331,9 @@ CREATE TABLE [Offer].[Available](
     ID UNIQUEIDENTIFIER NOT NULL DEFAULT NEWSEQUENTIALID() PRIMARY KEY,
     CurrentVersion ROWVERSION NOT NULL,
     ListingID UNIQUEIDENTIFIER NOT NULL FOREIGN KEY REFERENCES [Offer].[Listing](ID),
-    FacilityID UNIQUEIDENTIFIER NOT NULL FOREIGN KEY REFERENCES [Business].[Facility](ID)
+    FacilityID UNIQUEIDENTIFIER NOT NULL FOREIGN KEY REFERENCES [Business].[Facility](ID),
+
+    CONSTRAINT UQ_Available_Listing_Facility UNIQUE (ListingID,FacilityID)
 );
 GO
 
@@ -276,7 +341,12 @@ CREATE TABLE [Offer].[ProductListing](
     ID UNIQUEIDENTIFIER NOT NULL PRIMARY KEY FOREIGN KEY REFERENCES [Offer].[Listing](ID),
     CurrentVersion ROWVERSION NOT NULL,
     ProductID UNIQUEIDENTIFIER NOT NULL FOREIGN KEY REFERENCES [Product].[Item](ID),
-    PerListing TINYINT NOT NULL
+    PerListing TINYINT NOT NULL,
+
+    CONSTRAINT CK_ProductListing_PerListing
+    CHECK (
+        PerListing>0
+    )
 );
 GO
 
@@ -299,10 +369,12 @@ GO
 CREATE TABLE [Communication].[Comment](
     ID UNIQUEIDENTIFIER NOT NULL DEFAULT NEWSEQUENTIALID() PRIMARY KEY,
     CurrentVersion ROWVERSION NOT NULL,
-    Contents NVARCHAR(1000) NOT NULL,
+    Contents NVARCHAR(150) NOT NULL,
     PosterID UNIQUEIDENTIFIER NOT NULL FOREIGN KEY REFERENCES [Person].[User](ID),
-    Creation DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME(),
-    ListingID UNIQUEIDENTIFIER NOT NULL FOREIGN KEY REFERENCES [Offer].[Listing](ID)
+    Creation DATETIME2 NOT NULL,
+    ListingID UNIQUEIDENTIFIER NOT NULL FOREIGN KEY REFERENCES [Offer].[Listing](ID),
+
+    CONSTRAINT UQ_Comment_Poster_Listing UNIQUE(ListingID,PosterID)
 );
 GO
 
@@ -310,9 +382,10 @@ CREATE TABLE [Offer].[Wishlist](
     ID UNIQUEIDENTIFIER NOT NULL DEFAULT NEWSEQUENTIALID() PRIMARY KEY,
     CurrentVersion ROWVERSION NOT NULL,
     UserID UNIQUEIDENTIFIER NOT NULL,
-    Term NVARCHAR(50) NOT NULL,
+    Term NVARCHAR(25) NOT NULL,
 
-    CONSTRAINT FK_Wishlist_User FOREIGN KEY(UserID) REFERENCES [Person].[User](ID) ON DELETE CASCADE
+    CONSTRAINT FK_Wishlist_User FOREIGN KEY(UserID) REFERENCES [Person].[User](ID) ON DELETE CASCADE,
+    CONSTRAINT UQ_Wishlist_User_Term UNIQUE (Term, UserID)
 );
 GO
 
@@ -333,10 +406,12 @@ GO
 CREATE TABLE [Communication].[Announcement](
     ID UNIQUEIDENTIFIER NOT NULL DEFAULT NEWSEQUENTIALID() PRIMARY KEY,
     CurrentVersion ROWVERSION NOT NULL,
-    RoleSpecific TINYINT,
-    Title NVARCHAR(50) NOT NULL,
-    Body NVARCHAR(255) NOT NULL,
-    Expiry DATETIME2 NOT NULL
+    UserVisible BIT NOT NULL,
+    BusinessVisible BIT NOT NULL,
+    AnnouncementBody NVARCHAR(255) NOT NULL,
+    Expiry DATETIME2 NOT NULL,
+
+    CONSTRAINT UQ_Announcement_User_Business UNIQUE (AnnouncementBody, UserVisible, BusinessVisible)
 );
 GO
 
@@ -345,18 +420,31 @@ CREATE TABLE [Communication].[Report](
     CurrentVersion ROWVERSION NOT NULL,
     CommentID UNIQUEIDENTIFIER FOREIGN KEY REFERENCES [Communication].[Comment](ID),
     ListingID UNIQUEIDENTIFIER NOT NULL FOREIGN KEY REFERENCES [Offer].[Listing](ID),
-    Reason NVARCHAR(100) NOT NULL,
-    Expiry DATETIME2 NOT NULL
+    Reason NVARCHAR(250) NOT NULL,
+    Expiry DATETIME2 NOT NULL,
+    ReporterID UNIQUEIDENTIFIER NOT NULL FOREIGN KEY REFERENCES [Person].[User](ID),
+
+    CONSTRAINT UQ_Report_Listing_Comment UNIQUE (ListingID, CommentID),
+    CONSTRAINT UQ_Report_Reporter_Listing UNIQUE (ReporterID, ListingID)
 );
 GO
 
 CREATE TABLE [Animal].[Usage](
     ID UNIQUEIDENTIFIER NOT NULL DEFAULT NEWSEQUENTIALID() PRIMARY KEY,
     CurrentVersion ROWVERSION NOT NULL,
-    KindID UNIQUEIDENTIFIER NOT NULL FOREIGN KEY REFERENCES [Animal].[Kind](ID),
+    KindID UNIQUEIDENTIFIER NOT NULL,
     ScaleSpecific TINYINT,
-    CategoryID UNIQUEIDENTIFIER NOT NULL FOREIGN KEY REFERENCES [Product].[Category](ID),
-    AverageDailyAmountGrams INT NOT NULL
+    CategoryID UNIQUEIDENTIFIER NOT NULL,
+    AverageDailyAmountGrams INT NOT NULL,
+
+    CONSTRAINT CK_Usage_DailyAmount
+    CHECK(
+        AverageDailyAmountGrams>=0
+    ),
+
+    CONSTRAINT FK_Usage_Kind FOREIGN KEY(KindID) REFERENCES [Animal].[Kind](ID) ON DELETE CASCADE,
+    CONSTRAINT FK_Usage_Category FOREIGN KEY(CategoryID) REFERENCES [Product].[Category](ID) ON DELETE CASCADE,
+    CONSTRAINT UQ_Usage_Kind_Scale_Category UNIQUE(KindID,ScaleSpecific,CategoryID)
 );
 GO
 
@@ -370,6 +458,13 @@ CREATE TABLE [Person].[LivingConditionField](
     LongevityEffect REAL NOT NULL DEFAULT 0,
     CohabitationEffect REAL NOT NULL DEFAULT 0,
 
+    CONSTRAINT CK_LivingConditionField_Effect
+    CHECK (
+        (InvestmentEffect>=-1 AND TerritoryEffect>=-1 AND PricingEffect>=-1 AND LongevityEffect>=-1 AND CohabitationEffect>=-1)
+        AND
+        (InvestmentEffect<=1 AND TerritoryEffect<=1 AND PricingEffect<=1 AND LongevityEffect<=1 AND CohabitationEffect<=1)
+    ),
+
     CONSTRAINT UQ_LivingConditionField_Title UNIQUE (Title)
 );
 GO
@@ -382,16 +477,8 @@ CREATE TABLE [Animal].[LivingConditionEntry](
     Answer BIT NOT NULL,
 
     CONSTRAINT FK_LivingConditionEntry_User FOREIGN KEY (UserID) REFERENCES [Person].[User](ID) ON DELETE CASCADE,
-    CONSTRAINT FK_LivingConditionEntry_Field FOREIGN KEY (LivingConditionFieldID) REFERENCES [Person].[LivingConditionField](ID) ON DELETE CASCADE
-);
-GO
-
-CREATE TABLE [Pending].[Confirmation](
-    ID UNIQUEIDENTIFIER NOT NULL DEFAULT NEWSEQUENTIALID() PRIMARY KEY,
-    CurrentVersion ROWVERSION NOT NULL,
-    UserID UNIQUEIDENTIFIER NOT NULL FOREIGN KEY REFERENCES [Person].[User](ID),
-    ListingID UNIQUEIDENTIFIER NOT NULL FOREIGN KEY REFERENCES [Offer].[Listing](ID),
-    Expiry DATETIME2 NOT NULL
+    CONSTRAINT FK_LivingConditionEntry_Field FOREIGN KEY (LivingConditionFieldID) REFERENCES [Person].[LivingConditionField](ID) ON DELETE CASCADE,
+    CONSTRAINT UQ_LivingConditionEntry_Field_User UNIQUE(UserID,LivingConditionFieldID)
 );
 GO
 
@@ -402,6 +489,7 @@ CREATE TABLE [Offer].[Discount](
     PercentDiscount TINYINT NOT NULL,
     Expiry DATETIME2 NOT NULL,
 
+    CONSTRAINT UQ_Discount_Listing UNIQUE(ListingID),
     CONSTRAINT FK_Discount_Listing FOREIGN KEY (ListingID) REFERENCES [Offer].[Listing](ID) ON DELETE CASCADE
 );
 GO
@@ -411,9 +499,18 @@ CREATE TABLE [Person].[Supplies](
     CurrentVersion ROWVERSION NOT NULL,
     UserID UNIQUEIDENTIFIER NOT NULL,
     ConsumableID UNIQUEIDENTIFIER NOT NULL,
+    KindID UNIQUEIDENTIFIER NOT NULL,
     MassGrams INT NOT NULL,
+    Evaluated DATETIME2 NOT NULL,
 
+    CONSTRAINT CK_Supplies_Mass
+    CHECK(
+        MassGrams>=0
+    ),
+
+    CONSTRAINT FK_Supplies_Kind FOREIGN KEY (KindID) REFERENCES [Animal].[Kind](ID) ON DELETE CASCADE,
     CONSTRAINT FK_Supplies_User FOREIGN KEY (UserID) REFERENCES [Person].[User](ID) ON DELETE CASCADE,
-    CONSTRAINT FK_Supplies_Consumable FOREIGN KEY (ConsumableID) REFERENCES [Product].[Category](ID) ON DELETE CASCADE
+    CONSTRAINT FK_Supplies_Consumable FOREIGN KEY (ConsumableID) REFERENCES [Product].[Category](ID) ON DELETE CASCADE,
+    CONSTRAINT UQ_Supplies_User_Kind_Consumable UNIQUE(UserId,ConsumableID,KindID)
 );
 GO

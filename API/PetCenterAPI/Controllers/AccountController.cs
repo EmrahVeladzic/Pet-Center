@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using PetCenterModels.DBTables;
-using PetCenterModels.Requests;
+using PetCenterModels.DataTransferObjects;
 using PetCenterModels.SearchObjects;
 using PetCenterServices.Interfaces;
 using PetCenterServices.Utils;
@@ -23,23 +23,29 @@ namespace PetCenterAPI.Controllers
         [Authorize(Roles ="Owner,Admin")]
         public override async Task<IActionResult>Get([FromQuery] AccountSearchObject search)
         {           
-            return ResultConverter.Convert<List<AccountResponseDTO>>(await service.Get(search));
+            return await base.Get(search);
+        }
+
+        [NonAction]
+        public override Task<IActionResult> GetById(Guid id)
+        {
+            throw new NotSupportedException();
         }
 
         [HttpPost]
         [AllowAnonymous]
         public override async Task<IActionResult> Post([FromBody] AccountRequestDTO req)
         {
-            req.Contact=req.Contact.ToLower();
+            req.Contact=req.Contact.ToLowerInvariant();
             
-            ServiceOutput<object> cleared = await service.IsClearedToCreate(null,req);
+            ServiceOutput<object> cleared = await service.IsClearedToCreate(Guid.Empty,req);
 
             if (!ServiceOutput<object>.IsSuccess(cleared))
             {
                 return ResultConverter.Convert<object>(cleared);
             }
 
-            return ResultConverter.Convert<AccountResponseDTO>(await service.Post(null,req));
+            return ResultConverter.Convert<AccountResponseDTO>(await service.Post(Guid.Empty,req));
             
         }
 
@@ -48,6 +54,7 @@ namespace PetCenterAPI.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> LogIn([FromBody] AccountRequestDTO req)
         {
+            req.Contact=req.Contact.ToLowerInvariant();
             return ResultConverter.Convert<string>(await service.LogIn(req));
         }
 
@@ -55,7 +62,7 @@ namespace PetCenterAPI.Controllers
         [HttpPut("{id}")]
         public override async Task<IActionResult> Put([FromRoute] Guid id, [FromBody] AccountRequestDTO req)
         {
-            req.Contact = req.Contact.ToLower();
+            req.Contact = req.Contact.ToLowerInvariant();
             return await base.Put(id,req);
         }
 

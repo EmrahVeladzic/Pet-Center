@@ -19,14 +19,17 @@ namespace PetCenterModels.DBTables
         [Column("CategoryID")]
         public Guid CategoryId { get; set; }
 
+        [ForeignKey(nameof(CategoryId))]
+        public Category ItemCategory {get; set;} = null!;
+
         [Column("TargetKind")]
         public Guid? TargetKind { get; set; }
 
         [Column("TargetScale")]
-        public byte? TargetScale { get; set; }
+        public AnimalScale? TargetScale { get; set; }
 
         [Column("MassGrams")]
-        public int MassGrams { get; set; }
+        public int? MassGrams { get; set; }
 
         public override async Task StageDeletion<T>(PetCenterDBContext ctx, DbSet<T> set)
         {

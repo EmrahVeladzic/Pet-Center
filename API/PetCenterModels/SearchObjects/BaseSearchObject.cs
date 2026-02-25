@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
+using PetCenterModels.DBTables;
 
 namespace PetCenterModels.SearchObjects
 {
@@ -13,5 +14,9 @@ namespace PetCenterModels.SearchObjects
 
         [JsonIgnore]
         public virtual int PageSize {get;} = 25;
+
+
+        [JsonIgnore]
+        public Access AuthoritySpecifier {get; set;} = Access.User;
     }
 }

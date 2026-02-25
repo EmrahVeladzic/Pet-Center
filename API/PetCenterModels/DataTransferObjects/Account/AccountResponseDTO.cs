@@ -8,18 +8,20 @@ using System.Threading.Tasks;
 using PetCenterModels.DBTables;
 
 
-namespace PetCenterModels.Requests
+namespace PetCenterModels.DataTransferObjects
 {
     public class AccountResponseDTO : IBaseResponseDTO<Account,AccountResponseDTO>
     {        
 
         public Guid? Id {get; set;}
 
-        public string? Contact {get; set;}
+        public string Contact {get; set;} = string.Empty;
 
         public Access AccessLevel {get; set;}
 
         public bool Verified {get; set;}
+
+        public List<NoteSubDTO>? Notes {get; set;}
 
         public static AccountResponseDTO? FromEntity(Account? acc)
         {

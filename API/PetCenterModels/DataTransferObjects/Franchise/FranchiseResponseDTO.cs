@@ -9,10 +9,10 @@ using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using PetCenterModels.DataTransferObjects;
 using PetCenterModels.DBTables;
 
-namespace PetCenterModels.Requests
+namespace PetCenterModels.DataTransferObjects
 {
 
-    public class FranchiseResponseDTO : IAlbumCarryingDTO<Franchise,FranchiseResponseDTO> 
+    public class FranchiseResponseDTO : IBaseResponseDTO<Franchise,FranchiseResponseDTO> 
     {
         public Guid? Id { get; set; }
         public string? FranchiseName { get; set; }
@@ -21,6 +21,10 @@ namespace PetCenterModels.Requests
         public Guid AlbumId {get; set;}
 
         public List<ImageDTO?>? Images { get; set; }
+
+        public List<NoteSubDTO>? Notes {get; set;}
+
+        public bool? Owned {get; set;} = null;
 
         public static FranchiseResponseDTO? FromEntity(Franchise? model)
         {
@@ -31,9 +35,23 @@ namespace PetCenterModels.Requests
                 Id = model.Id,
                 FranchiseName = model.FranchiseName,
                 Contact = model.Contact,
-                AlbumId = model.AlbumId,
-                Images = model.Album?.Images?.Select(img=> ImageDTO.FromEntity(img)).ToList()
             };
+        }
+
+
+        public static FranchiseResponseDTO? FromEntity(Franchise? model, bool owned)
+        {
+            if(model==null){return null;}
+
+            return new FranchiseResponseDTO
+            {
+                Id = model.Id,
+                FranchiseName = model.FranchiseName,
+                Contact = model.Contact,  
+                Owned = owned             
+            };
+
+          
         }
     }
 

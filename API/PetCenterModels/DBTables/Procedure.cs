@@ -20,6 +20,9 @@ namespace PetCenterModels.DBTables
         [Column("ProcedureDescription")]
         public string Description {get; set;} = string.Empty;
 
+        [InverseProperty(nameof(MedicalProcedureSpecification.MedicalProcedure))]
+        public List<MedicalProcedureSpecification> Specifications {get; set;} = new();
+
         public override async Task StageDeletion<T>(PetCenterDBContext ctx, DbSet<T> set)
         {
             if(await ctx.MedicalProcedureSpecifications.Where(s=>s.ProcedureId == Id).ToArrayAsync() is MedicalProcedureSpecification[] s){ctx.MedicalProcedureSpecifications.RemoveRange(s);}

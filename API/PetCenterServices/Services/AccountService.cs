@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using PetCenterModels.DBTables;
-using PetCenterModels.Requests;
+using PetCenterModels.DataTransferObjects;
 using PetCenterModels.SearchObjects;
 using PetCenterServices.Interfaces;
 using PetCenterServices.Utils;
@@ -25,9 +25,9 @@ namespace PetCenterServices.Services
             dbSet = ctx.Accounts;
         }
 
-        protected override IQueryable<Account> Filter(AccountSearchObject search)
+        protected override async Task<IQueryable<Account>> Filter(Guid token_holder, AccountSearchObject search)
         {
-            IQueryable<Account> output = base.Filter(search);
+            IQueryable<Account> output = await base.Filter(token_holder,search);
             if (search.Role != null)
             {
                 output = output.Where(a=>a.AccessLevel==search.Role);
@@ -35,7 +35,7 @@ namespace PetCenterServices.Services
             return output;
         }
 
-        public override async Task<ServiceOutput<AccountResponseDTO>> Post(Guid? token_holder,AccountRequestDTO req)
+        public override async Task<ServiceOutput<AccountResponseDTO>> Post(Guid token_holder,AccountRequestDTO req)
         {
               
             Account acc = new();
@@ -45,7 +45,7 @@ namespace PetCenterServices.Services
 
             if (await dbContext.Accounts.CountAsync() > 0)
             {
-                acc.AccessLevel = Access.User;
+                acc.AccessLevel = (req.Business)?Access.BusinessAccount:Access.User;
                 acc.Verified = false;
 
             }
@@ -76,7 +76,7 @@ namespace PetCenterServices.Services
                    
                     User usr = new();
 
-                    usr.AlbumId = await ImageService.CreateAlbum(acc.Id,dbContext,usr.AlbumCapacity);  
+                   
                     usr.Id = acc.Id;
                     usr.UserName = await Utils.UserUtils.GenerateUsername(dbContext);
                     await dbContext.Users.AddAsync(usr);
@@ -94,7 +94,7 @@ namespace PetCenterServices.Services
             }
         }
 
-        public override async Task<ServiceOutput<AccountResponseDTO>> Put(Guid? token_holder,AccountRequestDTO req)
+        public override async Task<ServiceOutput<AccountResponseDTO>> Put(Guid token_holder,AccountRequestDTO req)
         {      
 
             Account? acc = await dbContext.Accounts.FindAsync(req.Id);
@@ -149,7 +149,7 @@ namespace PetCenterServices.Services
                 string login_pwd = Crypto.GenerateHash(req.Password!, acc.PasswordSalt);
                 if (login_pwd == acc.PasswordHash)
                 {
-                    User? usr = await dbContext.Users.Include(u=>u.UserAccount).Include(u=>u.Album).FirstOrDefaultAsync(u=>u.Id == acc.Id);
+                    User? usr = await dbContext.Users.Include(u=>u.UserAccount).FirstOrDefaultAsync(u=>u.Id == acc.Id);
 
                     if (usr != null)
                     {
@@ -208,13 +208,13 @@ namespace PetCenterServices.Services
                     
                     if (reg.Code == code) { 
 
-                        reg.RelevantAccount.Verified = true;            
-                        dbContext.Registrations.Remove(reg);
+                        reg.RelevantAccount.Verified = true;    
+                        await reg.StageDeletion<Registration>(dbContext,dbContext.Registrations);        
                         await dbContext.SaveChangesAsync();
                         await tx.CommitAsync();
 
 
-                        User? usr = await dbContext.Users.Include(u=>u.UserAccount).Include(u=>u.Album).FirstOrDefaultAsync(u=>u.Id == id);
+                        User? usr = await dbContext.Users.Include(u=>u.UserAccount).FirstOrDefaultAsync(u=>u.Id == id);
 
                         if (usr != null)
                         {
@@ -300,7 +300,7 @@ namespace PetCenterServices.Services
 
         }
 
-        public override async Task <ServiceOutput<object>> Delete(Guid? token_holder,Guid id)
+        public override async Task <ServiceOutput<object>> Delete(Guid token_holder,Guid id)
         {
             using (IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync(IsolationLevel.Serializable))
             {
@@ -339,7 +339,7 @@ namespace PetCenterServices.Services
         }
 
 
-        public override async Task<ServiceOutput<object>> IsClearedToCreate(Guid? token_holder, AccountRequestDTO resource)
+        public override async Task<ServiceOutput<object>> IsClearedToCreate(Guid token_holder, AccountRequestDTO resource)
         {           
             if (resource.Validate())
             {
@@ -356,7 +356,7 @@ namespace PetCenterServices.Services
             return ServiceOutput<object>.Error(HttpCode.BadRequest,"Invalid Contact and/or Password.");
         }
 
-        public override Task<ServiceOutput<object>> IsClearedToUpdate(Guid? token_holder, AccountRequestDTO resource)
+        public override Task<ServiceOutput<object>> IsClearedToUpdate(Guid token_holder, AccountRequestDTO resource)
         {
             if (!resource.Validate())
             {
@@ -369,7 +369,7 @@ namespace PetCenterServices.Services
             return Task.FromResult(ServiceOutput<object>.Error(HttpCode.Forbidden,"ID mismatch, unable to complete request."));
         }
 
-        public override async Task<ServiceOutput<object>> IsClearedToDelete(Guid? token_holder, Guid resourceId)
+        public override async Task<ServiceOutput<object>> IsClearedToDelete(Guid token_holder, Guid resourceId)
         {
             Account? acc = await dbSet.FindAsync(token_holder);
             if (token_holder != resourceId)

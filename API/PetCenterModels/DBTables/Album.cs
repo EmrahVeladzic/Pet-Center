@@ -21,7 +21,7 @@ namespace PetCenterModels.DBTables
         public byte Reserved { get; set; }
 
         [Column("OwnerID")]
-        public Guid PosterID {get; set;}
+        public Guid? PosterID {get; set;}
 
         [Column("Locked")]
         public bool Locked {get; set;}

@@ -7,11 +7,10 @@ using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using PetCenterModels.DBTables;
 
-namespace PetCenterModels.Requests
+namespace PetCenterModels.DataTransferObjects
 {
     public class AccountRequestDTO : IBaseRequestDTO
-    {
-        [JsonIgnore]
+    {       
         public Guid? Id {get; set;}
 
         [Required]
@@ -19,6 +18,8 @@ namespace PetCenterModels.Requests
         
         [Required]
         public string Password { get; set; } = string.Empty;
+
+        public bool Business {get; set;} = false;    
     
 
         public bool Validate()

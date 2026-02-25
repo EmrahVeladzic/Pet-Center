@@ -57,7 +57,6 @@ namespace PetCenterServices
         public DbSet<ProductListing> ProductListings {get;set;}
         public DbSet<MedicalListing> MedicalListings {get;set;}
         public DbSet<AnimalListing> AnimalListings {get;set;}
-        public DbSet<Confirmation> Confirmations {get;set;}
         public DbSet<Usage> UsageEstimates {get;set;}
         public DbSet<Supplies> SupplyRecords {get;set;}
         public DbSet<Discount> Discounts {get;set;}

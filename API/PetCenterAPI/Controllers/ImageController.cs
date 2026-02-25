@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using PetCenterModels.DataTransferObjects;
 using PetCenterModels.DBTables;
-using PetCenterModels.Requests;
 using PetCenterModels.SearchObjects;
 using PetCenterServices.Interfaces;
 using PetCenterServices.Utils;
@@ -24,6 +23,18 @@ namespace PetCenterAPI.Controllers
         public override async Task<IActionResult> Get([FromQuery] ImageSearchObject search)
         {
             return await base.Get(search);
+        }
+
+        [NonAction]
+        public override Task<IActionResult> GetById(Guid id)
+        {
+            throw new NotSupportedException();
+        }
+
+        [NonAction]
+        public override Task<IActionResult> Put([FromRoute]Guid id,[FromBody]ImageDTO ent)
+        {
+            throw new NotSupportedException();
         }
 
         [HttpPost]

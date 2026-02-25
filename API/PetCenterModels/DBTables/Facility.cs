@@ -29,7 +29,7 @@ namespace PetCenterModels.DBTables
         public string City { get; set; } = string.Empty;
 
         [Column("Contact")]        
-        public string Contact {  get; set; } = string.Empty;
+        public string? Contact {  get; set; } = null;
 
         public override async Task StageDeletion<T>(PetCenterDBContext ctx, DbSet<T> set)
         {
