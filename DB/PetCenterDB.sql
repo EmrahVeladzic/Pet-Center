@@ -230,7 +230,14 @@ CREATE TABLE [Service].[MedicalProcedureSpecification](
     ApproximateAgeDays INT,
     SexSpecific BIT,
     Optional BIT NOT NULL,
-    IntervalDays SMALLINT
+    IntervalDays SMALLINT,
+
+    CONSTRAINT CK_Specification_Interval_Age
+    CHECK (
+        (ApproximateAgeDays IS NULL OR ApproximateAgeDays>=0)
+        AND
+        (IntervalDays IS NULL OR IntervalDays >=0)
+    )
 
 );
 GO

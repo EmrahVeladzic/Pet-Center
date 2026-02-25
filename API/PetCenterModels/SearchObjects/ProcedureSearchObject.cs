@@ -8,14 +8,8 @@ using PetCenterModels.DBTables;
 
 namespace PetCenterModels.SearchObjects
 {
-    public class BreedSearchObject : BaseSearchObject
+    public class ProcedureSearchObject : BaseSearchObject
     {
-        public bool AdoptionPurposes {get; set;} = false;
-
-        public bool Incomplete {get; set;} = false;
-
-        public Guid? KindId { get; set; } =null;
-
         [JsonIgnore]
         public override int PageSize {get;} = 25;
     }

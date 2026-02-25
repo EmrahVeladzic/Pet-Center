@@ -101,8 +101,21 @@ namespace PetCenterServices.Services
             FormTemplateField? formTemplateField = await dbContext.FormTemplateFields.FindAsync(fieldId);
             if(formTemplateField!=null)
             {
-                await formTemplateField.StageDeletion<FormTemplateField>(dbContext,dbContext.FormTemplateFields);
-                await dbContext.SaveChangesAsync();
+
+                using (IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync())
+                {
+                    try
+                    {
+                        await formTemplateField.StageDeletion<FormTemplateField>(dbContext,dbContext.FormTemplateFields);
+                        await dbContext.SaveChangesAsync();
+                        await tx.CommitAsync();
+                    }
+                    catch
+                    {
+                        await tx.RollbackAsync();
+                        return ServiceOutput<object>.Error(HttpCode.InternalError,"Internal server error.");
+                    }
+                }
             }
             
             return ServiceOutput<object>.Success(null,HttpCode.NoContent);

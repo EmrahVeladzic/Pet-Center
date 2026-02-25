@@ -32,10 +32,16 @@ namespace PetCenterServices.Services
             IQueryable<Breed> query = dbSet.OrderBy(b=>b.Id);
             User? usr = await dbContext.Users.FindAsync(token_holder);
 
+            if(search.AuthoritySpecifier == Access.Admin && search.Incomplete)
+            {
+                query = query.Where(b=>b.Album.Reserved==0);
+            }
+
             if(search.AuthoritySpecifier == Access.User && search.AdoptionPurposes && usr!=null)
             {
                 
-                query = WithAlbum();               
+                query = WithAlbum();
+                query = query.Where(b=> b.Album.Reserved>0);               
                 query = query.Where(b =>
                 dbContext.AnimalListings.Any(al =>
                 al.Animal.AnimalBreed.Id == b.Id && b.KindId==search.KindId &&
@@ -48,6 +54,22 @@ namespace PetCenterServices.Services
 
             return query;
             
+            
+        }
+
+        public override async Task<ServiceOutput<List<BreedDTO>>> Get(Guid token_holder, BreedSearchObject search)
+        {
+            if(search.AdoptionPurposes && search.AuthoritySpecifier == Access.User)
+            {
+                return await base.Get(token_holder, search);
+            }
+            else
+            {
+                IQueryable<Breed> breeds = await Filter(token_holder,search);
+                List<Breed> output = await breeds.ToListAsync();
+
+                return ServiceOutput<List<BreedDTO>>.Success(output.Select(b=>BreedDTO.FromEntity(b)!).ToList());
+            }
             
         }
 

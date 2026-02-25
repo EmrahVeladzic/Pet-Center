@@ -23,9 +23,9 @@ namespace PetCenterServices.Services
             dbSet = ctx.AnimalKinds;
         }
 
-        protected override async Task<IQueryable<Kind>> Filter(Guid token_holder, KindSearchObject search)
+        protected override Task<IQueryable<Kind>> Filter(Guid token_holder, KindSearchObject search)
         {
-            IQueryable<Kind> query = await base.Filter(token_holder, search);
+            IQueryable<Kind> query = dbSet.Include(k=>k.Breeds).OrderBy(k=>k.Id);
             if (search.AuthoritySpecifier == Access.User && search.AdoptionPurposes)
             {
                 query = query.Where(k =>
@@ -34,7 +34,7 @@ namespace PetCenterServices.Services
                 al.Base.Visible &&
                 al.Base.Type == ListingType.Pet));
             }
-            return query;
+            return Task.FromResult(query);
         }
 
         public override async Task<ServiceOutput<object>> IsClearedToCreate(Guid token_holder, KindDTO resource)
