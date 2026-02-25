@@ -77,7 +77,7 @@ namespace PetCenterServices.Recommender
 
             Breed? breed = await ctx.AnimalBreeds.FindAsync(pet.BreedId);
             if(breed==null){return output;}
-            List<MedicalProcedureSpecification> specs = await ctx.MedicalProcedureSpecifications.Include(m=>m.MedicalProcedure).Where(m=>m.BreedId==pet.BreedId && (m.SexSpecific==null || m.SexSpecific==pet.Sex) && (m.ApproximateAge!=null || m.ApproximateAge<=(DateTime.UtcNow-pet.BirthDate).Days)).ToListAsync();
+            List<MedicalProcedureSpecification> specs = await ctx.MedicalProcedureSpecifications.Include(m=>m.MedicalProcedure).Where(m=>m.BreedId==pet.BreedId && (m.SexSpecific==null || m.SexSpecific==pet.Sex) && m.ApproximateAge!=null && m.ApproximateAge<=(DateTime.UtcNow-pet.BirthDate).Days).ToListAsync();
             specs.AddRange(await ctx.MedicalProcedureSpecifications.Include(m=>m.MedicalProcedure).Where(m=>m.KindId==breed.KindId && (m.SexSpecific==null || m.SexSpecific==pet.Sex) && m.ApproximateAge!=null && m.ApproximateAge<=(DateTime.UtcNow-pet.BirthDate).Days && !specs.Any(s=>s.ProcedureId==m.ProcedureId)).ToListAsync());
 
             specs = specs.Where(s=>s.MedicalProcedure!=null && s.ApproximateAge!=null).ToList();
@@ -103,31 +103,31 @@ namespace PetCenterServices.Recommender
 
         }
 
-        public async Task<NoteSubDTO> AddUsageInfoToProductListing(PetCenterDBContext ctx, ProductListing listing, int usage, int supplies)
+        public Task<NoteSubDTO> AddUsageInfoToProductListing(PetCenterDBContext ctx, ProductListing listing, int usage, int supplies)
         {
             NoteSubDTO output = new();
             output.Title = "Usage: ";
             output.Body= "You might not need this product.";
 
-            if(listing.Product==null|| listing.Product.ItemCategory==null || usage == 0){return output;}
+            if(listing.Product==null|| listing.Product.ItemCategory==null || usage == 0){return Task.FromResult<NoteSubDTO>(output);}
 
-            if (!listing.Product.ItemCategory.Consumable)
+            if (!listing.Product.ItemCategory.Consumable||listing.Product.MassGrams==null)
             {
                 output.Title = "Note: ";
                 output.Body = "Make sure this item is fitting for your pet(s).";
-                return output;
+                return Task.FromResult<NoteSubDTO>(output);
             }
 
 
             int days_remaining = supplies/usage;
-            int listing_days = (listing.Product.MassGrams*(int)listing.PerListing)/usage;
+            int listing_days = ((int)listing.Product.MassGrams*(int)listing.PerListing)/usage;
             string plural = (listing_days==1)?"day":"days";
 
 
             output.Body = $"This product would last you {listing_days} {plural}. Your current supplies will last for {days_remaining}.";
             
-            await Task.CompletedTask;
-            return output;
+            return Task.FromResult<NoteSubDTO>(output);
+            
         }
         
         public async Task<NoteSubDTO> ShoppingList(PetCenterDBContext ctx, Guid UserId){

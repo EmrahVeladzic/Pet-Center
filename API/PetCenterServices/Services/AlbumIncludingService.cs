@@ -27,9 +27,9 @@ namespace PetCenterServices.Services
            return dbSet.Include(e=>e.Album).ThenInclude(a=>a!.Images);
         }
 
-        protected override IQueryable<TEntity> Filter(Guid token_holder, TSearch search)
-        {
-            return WithAlbum().OrderBy(o=>o.Id);
+        protected override Task<IQueryable<TEntity>> Filter(Guid token_holder, TSearch search)
+        {           
+            return Task.FromResult<IQueryable<TEntity>>(WithAlbum().OrderBy(o=>o.Id));
         }
 
 
@@ -46,6 +46,44 @@ namespace PetCenterServices.Services
             
         }
 
+        public override async Task<ServiceOutput<TResponse>> Post(Guid token_holder,TRequest req)
+        {
+            bool valid = req.Validate();
+            if (!valid)
+            {
+                return ServiceOutput<TResponse>.Error(HttpCode.BadRequest,"Invalid request.");
+            }
+
+            if(req is ISerializableRequestDTO<TEntity> serializable)
+            {
+                TEntity? ent = serializable.ToEntity();
+
+                if(ent!=null){
+
+                    using (IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync())
+                    {
+                        try
+                        {
+                            ent.AlbumId = await ImageService.CreateAlbum(token_holder,dbContext,ent.AlbumCapacity);
+                            await dbSet.AddAsync(ent);
+                            await dbContext.SaveChangesAsync();
+                            await tx.CommitAsync();
+                            return ServiceOutput<TResponse>.Success(TResponse.FromEntity(ent),HttpCode.Created);
+                        }
+                        catch
+                        {
+                            await tx.RollbackAsync();
+                        }
+                    }
+
+                   
+                }     
+
+            }
+           
+            return ServiceOutput<TResponse>.Error(HttpCode.InternalError, "Internal server error.");
+
+        }
 
 
 

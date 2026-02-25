@@ -23,13 +23,16 @@ namespace PetCenterServices.Services
             dbSet = ctx.AnimalKinds;
         }
 
-        protected override IQueryable<Kind> Filter(Guid token_holder, KindSearchObject search)
+        protected override async Task<IQueryable<Kind>> Filter(Guid token_holder, KindSearchObject search)
         {
-            IQueryable<Kind> query = base.Filter(token_holder, search);
-            if (search.AuthoritySpecifier == Access.User)
+            IQueryable<Kind> query = await base.Filter(token_holder, search);
+            if (search.AuthoritySpecifier == Access.User && search.AdoptionPurposes)
             {
-               IQueryable<AnimalListing> listings = dbContext.AnimalListings.Include(l=>l.Animal).ThenInclude(a=>a.AnimalBreed).Where(al=>dbContext.Listings.Any(lst=>lst.Id==al.Id && lst.Visible && lst.Type == ListingType.Pet));
-               query = query.Where(k => listings.Any(l => l.Animal.AnimalBreed.KindId == k.Id));
+                query = query.Where(k =>
+                dbContext.AnimalListings.Any(al =>
+                al.Animal.AnimalBreed.KindId == k.Id &&
+                al.Base.Visible &&
+                al.Base.Type == ListingType.Pet));
             }
             return query;
         }
@@ -62,10 +65,10 @@ namespace PetCenterServices.Services
           
         }
 
-        public override async Task<ServiceOutput<object>> IsClearedToDelete(Guid token_holder, Guid resourceId)
+        public override  Task<ServiceOutput<object>> IsClearedToDelete(Guid token_holder, Guid resourceId)
         {           
-            await Task.CompletedTask;
-            return ServiceOutput<object>.Success(null,HttpCode.OK);
+            
+            return Task.FromResult(ServiceOutput<object>.Success(null,HttpCode.OK));
         }
 
     }

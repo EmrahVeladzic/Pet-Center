@@ -23,10 +23,10 @@ namespace PetCenterServices.Services
             dbSet = ctx.Categories;
         }
 
-        protected override IQueryable<Category> Filter(Guid token_holder, CategorySearchObject search)
+        protected override  Task<IQueryable<Category>> Filter(Guid token_holder, CategorySearchObject search)
         {
-            IQueryable<Category> output = dbSet.Include(c=>c.UsageSpecifics).OrderBy(c=>c.Id);
-            return output;
+            return Task.FromResult<IQueryable<Category>>( dbSet.Include(c=>c.UsageSpecifics).OrderBy(c=>c.Id));
+            
         }
 
         public override async Task<ServiceOutput<CategoryDTO>> Put(Guid token_holder, CategoryDTO req)
@@ -112,10 +112,9 @@ namespace PetCenterServices.Services
           
         }
 
-        public override async Task<ServiceOutput<object>> IsClearedToDelete(Guid token_holder, Guid resourceId)
+        public override  Task<ServiceOutput<object>> IsClearedToDelete(Guid token_holder, Guid resourceId)
         {           
-            await Task.CompletedTask;
-            return ServiceOutput<object>.Success(null,HttpCode.OK);
+            return Task.FromResult<ServiceOutput<object>>(ServiceOutput<object>.Success(null,HttpCode.OK));
         }
 
         public async Task<ServiceOutput<SuppliesSubDTO>> TrackSupplies(Guid user_id, Guid ConsumableId, Guid KindId, int InitialMass)

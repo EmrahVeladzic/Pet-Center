@@ -20,6 +20,9 @@ namespace PetCenterModels.DBTables
         [ForeignKey(nameof(AnimalId))]
         public Individual Animal { get; set; } = null!;
 
+        [ForeignKey(nameof(Id))]
+        public Listing Base {get; set;} = null!;
+
 
         public override async Task StageDeletion<T>(PetCenterDBContext ctx, DbSet<T> set)
         {

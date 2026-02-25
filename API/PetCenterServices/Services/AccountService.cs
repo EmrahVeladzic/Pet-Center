@@ -25,9 +25,9 @@ namespace PetCenterServices.Services
             dbSet = ctx.Accounts;
         }
 
-        protected override IQueryable<Account> Filter(Guid token_holder, AccountSearchObject search)
+        protected override async Task<IQueryable<Account>> Filter(Guid token_holder, AccountSearchObject search)
         {
-            IQueryable<Account> output = base.Filter(token_holder,search);
+            IQueryable<Account> output = await base.Filter(token_holder,search);
             if (search.Role != null)
             {
                 output = output.Where(a=>a.AccessLevel==search.Role);
@@ -45,7 +45,7 @@ namespace PetCenterServices.Services
 
             if (await dbContext.Accounts.CountAsync() > 0)
             {
-                acc.AccessLevel = Access.User;
+                acc.AccessLevel = (req.Business)?Access.BusinessAccount:Access.User;
                 acc.Verified = false;
 
             }

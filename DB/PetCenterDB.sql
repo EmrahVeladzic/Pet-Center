@@ -280,7 +280,7 @@ CREATE TABLE [Product].[Item](
 
     CONSTRAINT CK_Item_Mass
     CHECK (
-        (MassGrams IS NULL OR MassGrams>-1)
+        (MassGrams IS NULL OR MassGrams>=0)
     ),
 
     CONSTRAINT CK_Item_KindConsistency

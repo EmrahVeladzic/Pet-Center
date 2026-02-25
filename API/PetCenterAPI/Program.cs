@@ -11,6 +11,7 @@ using PetCenterServices.Services;
 using PetCenterServices.Utils;
 using System.Text;
 using System.Text.Json;
+using PetCenterServices.Recommender;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -61,6 +62,9 @@ builder.Services.AddSwaggerGen(cfg =>
     });
 });
 
+builder.Services.AddSingleton<IRecommenderSystem,RecommenderSystem>();
+
+
 builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IImageService, ImageService>();
@@ -70,6 +74,8 @@ builder.Services.AddScoped<IKindService, KindService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IFormTemplateService,FormTemplateService>();
 builder.Services.AddScoped<ILivingConditionFieldService,LivingconditionFieldService>();
+builder.Services.AddScoped<IItemService,ItemService>();
+builder.Services.AddScoped<IBreedService,BreedService>();
 
 builder.Services.AddDbContext<PetCenterDBContext>(options =>
 {

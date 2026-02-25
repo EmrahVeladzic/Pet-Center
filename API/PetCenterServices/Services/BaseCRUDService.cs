@@ -26,26 +26,27 @@ namespace PetCenterServices.Services
             dbSet = dbContext.Set<TEntity>();
         }
 
-        protected virtual IQueryable<TEntity> Filter(Guid token_holder, TSearch search)
-        {
-            return dbSet.OrderBy(o=>o.Id);
+        protected virtual  Task<IQueryable<TEntity>> Filter(Guid token_holder, TSearch search)
+        {           
+            return Task.FromResult<IQueryable<TEntity>>(dbSet.OrderBy(o=>o.Id));
         }
 
         protected int GetPageCount(int count, int PageSize)
         {
-            return (int)Math.Ceiling((double)count / PageSize);
+            return Math.Max((int)Math.Ceiling((double)count / PageSize),1);
         }
 
         public virtual async Task<ServiceOutput<int>> Count(Guid token_holder, TSearch search)
         {       
-            IQueryable<TEntity> entities = Filter(token_holder,search);   
+            IQueryable<TEntity> entities = await Filter(token_holder,search);   
             return ServiceOutput<int>.Success(GetPageCount(await entities.CountAsync(),search.PageSize));
         }
 
 
         public virtual async Task<ServiceOutput<List<TResponse>>> Get(Guid token_holder, TSearch search)
         {
-            List<TEntity> entities = await Filter(token_holder,search).Skip(search.Page*search.PageSize).Take(search.PageSize).ToListAsync();
+            IQueryable<TEntity> query = await Filter(token_holder,search);
+            List<TEntity> entities = await query.Skip(search.Page*search.PageSize).Take(search.PageSize).ToListAsync();
             return  ServiceOutput<List<TResponse>>.Success(entities.Select(e=>TResponse.FromEntity(e)!).ToList());
         }
 

@@ -26,10 +26,10 @@ namespace PetCenterModels.DBTables
             
         }
 
-        public virtual async Task StageDeletion<T>(PetCenterDBContext ctx, DbSet<T> set) where T: BaseTableEntity
+        public virtual Task StageDeletion<T>(PetCenterDBContext ctx, DbSet<T> set) where T: BaseTableEntity
         {
             set.Remove((T)this);
-            await Task.CompletedTask;
+            return Task.CompletedTask;
         }
 
     }
