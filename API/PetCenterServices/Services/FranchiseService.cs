@@ -57,6 +57,11 @@ namespace PetCenterServices.Services
                 return ServiceOutput<FranchiseResponseDTO>.Error(HttpCode.NotFound,"No form to base franchise on.");
             } 
 
+            if(await dbSet.AnyAsync(f=>f.OwnerId==frm.UserId && f.FranchiseName.ToLowerInvariant() == frm.FranchiseName.ToLowerInvariant()))
+            {
+                return ServiceOutput<FranchiseResponseDTO>.Error(HttpCode.Conflict,"The user already owns a franchise with this name.");
+            }
+
             Franchise franch = new();
 
             franch.Contact=frm.DefaultContact;
@@ -153,6 +158,13 @@ namespace PetCenterServices.Services
                 return ServiceOutput<object>.Error(HttpCode.Forbidden,"You do not own this franchise.");
             }
             return ServiceOutput<object>.Success(null,HttpCode.NoContent);
+        }
+
+        public static async Task<bool> IsEmployeeOfFranchise(PetCenterDBContext ctx,Guid user_id, Guid franchise_id)
+        {
+            
+            return await ctx.Franchises.AnyAsync(f=>f.Id==franchise_id&&f.OwnerId==user_id)||await ctx.EmployeeRecords.AnyAsync(e=>e.FranchiseId==franchise_id && e.UserId==user_id);
+
         }
 
     }

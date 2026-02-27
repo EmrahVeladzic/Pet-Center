@@ -47,6 +47,9 @@ namespace PetCenterModels.DBTables
         [ForeignKey(nameof(ShelterId))]
         public Franchise Shelter {get; set;} = null!;
 
+        [InverseProperty(nameof(MedicalRecordEntry.Animal))]
+        public List<MedicalRecordEntry> MedicalRecord {get; set;} = new();
+
         public bool Owned {get;set;}
 
         public override async Task StageDeletion<T>(PetCenterDBContext ctx, DbSet<T> set)
