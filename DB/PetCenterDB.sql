@@ -141,9 +141,9 @@ CREATE TABLE [Pending].[Form](
     AlbumID UNIQUEIDENTIFIER NOT NULL FOREIGN KEY REFERENCES [File].[Album](ID),
     FranchiseName NVARCHAR(50) NOT NULL,
     DefaultContact VARCHAR(255) NOT NULL,
-    Posted DATETIME2 NOT NULL,
 
-	CONSTRAINT UQ_Form_Album UNIQUE (AlbumID)
+	CONSTRAINT UQ_Form_Album UNIQUE (AlbumID),
+    CONSTRAINT UQ_Form_User_FranchiseName UNIQUE(UserID,FranchiseName)
 );
 GO
 
@@ -152,7 +152,9 @@ CREATE TABLE [Pending].[FormFieldEntry](
     CurrentVersion ROWVERSION NOT NULL,
     FormID UNIQUEIDENTIFIER NOT NULL FOREIGN KEY REFERENCES [Pending].[Form](ID),
     FormTemplateFieldID UNIQUEIDENTIFIER NOT NULL FOREIGN KEY REFERENCES [Business].[FormTemplateField](ID),
-    Serialized NVARCHAR(255) NOT NULL
+    Serialized NVARCHAR(255) NOT NULL,
+
+    CONSTRAINT UQ_FormFieldEntry_Form_TemplateField UNIQUE(FormID,FormTemplateFieldID)
 );
 GO
 
@@ -207,7 +209,9 @@ CREATE TABLE [Animal].[Individual](
         (Owned = 1 AND OwnerID IS NOT NULL AND ShelterID IS NULL)
         OR
         (Owned = 0 AND OwnerID IS NULL AND ShelterID IS NOT NULL)
-    )
+    ),
+
+    CONSTRAINT UQ_Individual_Identity UNIQUE (OwnerID,ShelterID,AnimalIdentity)
 
 );
 GO
@@ -262,7 +266,9 @@ CREATE TABLE [Animal].[MedicalRecordEntry](
     CurrentVersion ROWVERSION NOT NULL,
     ProcedureID UNIQUEIDENTIFIER NOT NULL FOREIGN KEY REFERENCES [Service].[MedicalProcedure](ID),
     AnimalID UNIQUEIDENTIFIER NOT NULL FOREIGN KEY REFERENCES [Animal].[Individual](ID),
-    DatePerformed DATETIME2 NOT NULL
+    DatePerformed DATETIME2 NOT NULL,
+
+    CONSTRAINT UQ_Entry_Animal_Procedure UNIQUE(AnimalID,ProcedureID)
 );
 GO
 

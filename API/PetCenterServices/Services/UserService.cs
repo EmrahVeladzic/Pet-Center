@@ -11,16 +11,19 @@ using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using PetCenterServices.Recommender;
 
 namespace PetCenterServices.Services
 {
     public class UserService : BaseCRUDService<User,UserSearchObject,UserRequestDTO,UserResponseDTO>, IUserService
     {
 
+        private readonly IRecommenderSystem recommender;
 
-        public UserService(PetCenterDBContext ctx) : base(ctx)
+        public UserService(PetCenterDBContext ctx, IRecommenderSystem rec) : base(ctx)
         {
             dbSet = ctx.Users;
+            recommender = rec;
         }
 
 
@@ -43,6 +46,13 @@ namespace PetCenterServices.Services
                 output = output.Where(u=> dbContext.EmployeeRecords.Any(e=>e.UserId==u.Id && e.FranchiseId==search.EmployedBy));
             }
             return Task.FromResult(output);
+        }
+
+        public override async Task<ServiceOutput<UserResponseDTO>> GetById(Guid token_holder, Guid id, Access authorization_level)
+        {
+            ServiceOutput<UserResponseDTO> output = await base.GetById(token_holder, id,authorization_level);
+            output.Body?.Notes?.Add(await recommender.ShoppingList(dbContext,token_holder));
+            return output;
         }
 
         public override async Task<ServiceOutput<UserResponseDTO>> Put(Guid token_holder,UserRequestDTO ent)

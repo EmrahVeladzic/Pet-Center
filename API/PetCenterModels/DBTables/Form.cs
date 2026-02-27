@@ -30,8 +30,6 @@ namespace PetCenterModels.DBTables
         [Column("DefaultContact")]
         public string DefaultContact { get; set; } = string.Empty;
 
-        [Column("Posted")]
-        public DateTime Posted {get; set;}
 
         [InverseProperty(nameof(FormFieldEntry.RelevantForm))]
         public List<FormFieldEntry> Entries {get; set;} = new();

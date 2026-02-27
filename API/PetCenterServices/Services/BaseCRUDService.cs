@@ -50,7 +50,7 @@ namespace PetCenterServices.Services
             return  ServiceOutput<List<TResponse>>.Success(entities.Select(e=>TResponse.FromEntity(e)!).ToList());
         }
 
-        public virtual async Task<ServiceOutput<TResponse>> GetById(Guid token_holder,Guid id)
+        public virtual async Task<ServiceOutput<TResponse>> GetById(Guid token_holder,Guid id, Access authorization_level)
         {
             TEntity? entity = await dbSet.FindAsync(id);
 

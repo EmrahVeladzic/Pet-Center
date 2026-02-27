@@ -33,7 +33,7 @@ namespace PetCenterServices.Services
         }
 
 
-        public override async Task<ServiceOutput<TResponse>> GetById(Guid token_holder, Guid id)
+        public override async Task<ServiceOutput<TResponse>> GetById(Guid token_holder, Guid id, Access authorization_level)
         {
             TEntity? entity = await WithAlbum().FirstOrDefaultAsync(e=>e.Id==id);
 

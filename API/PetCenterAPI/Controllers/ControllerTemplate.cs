@@ -66,7 +66,7 @@ namespace PetCenterAPI.Controllers
             
             if (TryGetUserId(out Guid usr_id))
             {
-                return ResultConverter.Convert<TResponse>(await service.GetById(usr_id,id));
+                return ResultConverter.Convert<TResponse>(await service.GetById(usr_id,id,SpecifySearchAuthority()));
             }
             return StatusCode(401,"Invalid token.");          
             
