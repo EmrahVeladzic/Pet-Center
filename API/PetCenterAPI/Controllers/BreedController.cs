@@ -17,11 +17,7 @@ namespace PetCenterAPI.Controllers
     {
         public BreedController(IBreedService s):base(s) { }
        
-        [NonAction]
-        public override Task<IActionResult> GetById(Guid id)
-        {
-            throw new NotImplementedException();
-        }
+       
 
         [Authorize(Roles ="Owner,Admin")]
         public override async Task<IActionResult> Put([FromRoute] Guid id, [FromBody] BreedDTO ent)

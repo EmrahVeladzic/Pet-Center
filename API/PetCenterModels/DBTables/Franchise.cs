@@ -30,6 +30,9 @@ namespace PetCenterModels.DBTables
         [InverseProperty(nameof(Facility.OwningFranchise))]
         public List<Facility> Facilities { get; set; } = new();
 
+        [InverseProperty(nameof(EmployeeRecord.Business))]
+        public List<EmployeeRecord> EmployeeRecords {get; set;} = new();
+
         public override async Task StageDeletion<T>(PetCenterDBContext ctx, DbSet<T> set)
         {
             if(await ctx.IndividualAnimals.Where(a=>a.ShelterId==Id && a.Owned==false).ToListAsync() is List<Individual> a){foreach(Individual ind in a){await ind.StageDeletion<Individual>(ctx,ctx.IndividualAnimals);}}

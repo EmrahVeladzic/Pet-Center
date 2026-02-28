@@ -15,6 +15,9 @@ namespace PetCenterModels.DBTables
         [Column("ListingID")]
         public Guid ListingId { get; set; }
 
+        [ForeignKey(nameof(ListingId))]
+        public Listing RelevantListing {get; set;} = null!;
+
         [Column("PercentDiscount")]
         public byte PercentDiscount { get; set; }
 
