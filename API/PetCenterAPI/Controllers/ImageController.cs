@@ -25,11 +25,7 @@ namespace PetCenterAPI.Controllers
             return await base.Get(search);
         }
 
-        [NonAction]
-        public override Task<IActionResult> GetById(Guid id)
-        {
-            throw new NotSupportedException();
-        }
+     
 
         [NonAction]
         public override Task<IActionResult> Put([FromRoute]Guid id,[FromBody]ImageDTO ent)

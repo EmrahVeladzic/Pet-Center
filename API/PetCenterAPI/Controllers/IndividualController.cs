@@ -19,11 +19,7 @@ namespace PetCenterAPI.Controllers
 
         public IndividualController(IIndividualService s):base(s) { }
 
-        [NonAction]
-        public override Task<IActionResult> GetById(Guid id)
-        {
-            throw new NotImplementedException();
-        }
+      
 
         [Authorize(Roles ="Employee,User")]
         [HttpPost]

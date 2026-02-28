@@ -18,12 +18,6 @@ namespace PetCenterAPI.Controllers
 
         public UserController(IUserService s):base(s) { }
 
-        [NonAction]
-        public override Task<IActionResult> GetById(Guid id)
-        {
-            throw new NotSupportedException();
-        }
-
         [HttpGet("me")]
         public async Task<IActionResult> GetSelf()
         {

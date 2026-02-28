@@ -18,12 +18,7 @@ namespace PetCenterAPI.Controllers
 
         public FormController(IFormService s):base(s) { }
 
-        [NonAction]
-        public override Task<IActionResult> GetById(Guid id)
-        {
-            throw new NotImplementedException();
-        }
-
+    
         [NonAction]       
         public override Task<IActionResult> Put( Guid id, FormDTO ent)
         {

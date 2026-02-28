@@ -287,7 +287,7 @@ CREATE TABLE [Product].[Item](
     CurrentVersion ROWVERSION NOT NULL,
     Title NVARCHAR(75) NOT NULL,
     CategoryID UNIQUEIDENTIFIER NOT NULL FOREIGN KEY REFERENCES [Product].[Category](ID),
-    TargetKind UNIQUEIDENTIFIER FOREIGN KEY REFERENCES [Animal].[Kind](ID),
+    TargetKind UNIQUEIDENTIFIER NOT NULL FOREIGN KEY REFERENCES [Animal].[Kind](ID),
     TargetScale TINYINT,
     MassGrams INT,
 
@@ -296,14 +296,7 @@ CREATE TABLE [Product].[Item](
         (MassGrams IS NULL OR MassGrams>=0)
     ),
 
-    CONSTRAINT CK_Item_KindConsistency
-    CHECK (
-        (TargetKind IS NULL AND TargetScale IS NULL)
-        OR
-        (TargetKind IS NOT NULL)
-    ),
-
-    CONSTRAINT UQ_Item_Title UNIQUE (Title)
+    CONSTRAINT UQ_Item_Title_Kind UNIQUE (Title,KindID)
 
 );
 GO
@@ -377,7 +370,7 @@ CREATE TABLE [Communication].[Comment](
     CurrentVersion ROWVERSION NOT NULL,
     Contents NVARCHAR(150) NOT NULL,
     PosterID UNIQUEIDENTIFIER NOT NULL FOREIGN KEY REFERENCES [Person].[User](ID),
-    Creation DATETIME2 NOT NULL,
+    LastEdited DATETIME2 NOT NULL,
     ListingID UNIQUEIDENTIFIER NOT NULL FOREIGN KEY REFERENCES [Offer].[Listing](ID),
 
     CONSTRAINT UQ_Comment_Poster_Listing UNIQUE(ListingID,PosterID)
@@ -430,7 +423,6 @@ CREATE TABLE [Communication].[Report](
     Expiry DATETIME2 NOT NULL,
     ReporterID UNIQUEIDENTIFIER NOT NULL FOREIGN KEY REFERENCES [Person].[User](ID),
 
-    CONSTRAINT UQ_Report_Listing_Comment UNIQUE (ListingID, CommentID),
     CONSTRAINT UQ_Report_Reporter_Listing UNIQUE (ReporterID, ListingID)
 );
 GO
@@ -494,6 +486,11 @@ CREATE TABLE [Offer].[Discount](
     ListingID UNIQUEIDENTIFIER NOT NULL,
     PercentDiscount TINYINT NOT NULL,
     Expiry DATETIME2 NOT NULL,
+
+    CONSTRAINT CK_Discount_Percent 
+    CHECK (
+        PercentDiscount>=0 AND PercentDiscount<=100
+    ),
 
     CONSTRAINT UQ_Discount_Listing UNIQUE(ListingID),
     CONSTRAINT FK_Discount_Listing FOREIGN KEY (ListingID) REFERENCES [Offer].[Listing](ID) ON DELETE CASCADE

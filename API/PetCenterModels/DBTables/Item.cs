@@ -23,7 +23,10 @@ namespace PetCenterModels.DBTables
         public Category ItemCategory {get; set;} = null!;
 
         [Column("TargetKind")]
-        public Guid? TargetKind { get; set; }
+        public Guid KindId { get; set; }
+
+        [ForeignKey(nameof(KindId))]
+        public Kind TargetKind {get; set;} =null!;
 
         [Column("TargetScale")]
         public AnimalScale? TargetScale { get; set; }

@@ -73,7 +73,6 @@ namespace PetCenterServices.Services
             
         }
 
-
         public override async Task<ServiceOutput<object>> IsClearedToCreate(Guid token_holder, BreedDTO resource)
         {
             if (!resource.Validate())
@@ -106,8 +105,13 @@ namespace PetCenterServices.Services
             }
             
             if(await dbSet.FirstOrDefaultAsync(b => b.Title.ToLowerInvariant() == resource.Title.ToLowerInvariant() && b.KindId == resource.KindId && b.Id!=resource.Id)!=null){
-                return ServiceOutput<object>.Error(HttpCode.Conflict,"A breed with the same kind and title already exists.");
+                return ServiceOutput<object>.Error(HttpCode.Conflict,"A breed with the same title already exists.");
             }
+
+            if(!await dbSet.AnyAsync(b=>b.Id==resource.Id&&b.KindId==resource.KindId)){
+                return ServiceOutput<object>.Error(HttpCode.Conflict,"You cannot change a breed's kind.");
+            }
+
 
             return ServiceOutput<object>.Success(null);
         }

@@ -24,7 +24,7 @@ namespace PetCenterModels.DataTransferObjects
 
         public Guid CategoryId {get; set;} = Guid.Empty;
 
-        public Guid? KindId {get; set;} = null;
+        public Guid KindId {get; set;} = Guid.Empty;
 
         public AnimalScale? Scale {get; set;} = null;
 
@@ -38,7 +38,7 @@ namespace PetCenterModels.DataTransferObjects
                 Id = entity.Id,
                 Title = entity.Title,
                 CategoryId=entity.CategoryId,
-                KindId=entity.TargetKind,
+                KindId=entity.KindId,
                 Scale = entity.TargetScale,
                 Mass=entity.MassGrams
             };
@@ -49,7 +49,7 @@ namespace PetCenterModels.DataTransferObjects
             Item item = new();
             item.Title=Title;
             item.CategoryId=CategoryId;
-            item.TargetKind=KindId;
+            item.KindId=KindId;
             item.TargetScale=Scale;
             item.MassGrams=Mass;
 
@@ -59,8 +59,7 @@ namespace PetCenterModels.DataTransferObjects
         
         
         public bool Validate()
-        {
-            if(KindId==null){Scale=null;}
+        {            
             return !string.IsNullOrWhiteSpace(Title) && (Mass==null||Mass>=0);
         }
 

@@ -18,12 +18,7 @@ namespace PetCenterAPI.Controllers
 
         public ItemController(IItemService s):base(s) { }
 
-        [NonAction]
-        public override Task<IActionResult> GetById(Guid id)
-        {
-            throw new NotImplementedException();
-        }
-
+      
         [Authorize(Roles = "Admin,Owner")]
         [HttpPut("{id}")]
         public override Task<IActionResult> Put([FromRoute] Guid id, [FromBody] ItemDTO ent)

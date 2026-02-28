@@ -23,11 +23,14 @@ namespace PetCenterModels.DBTables
 
         [Column("Contents")]
         public string Message { get; set; } = string.Empty;
-        [Column("Creation")]
-        public DateTime PostDate { get; set; }
+        [Column("LastEdited")]
+        public DateTime LastEditDate { get; set; }
        
         [Column("ListingID")]
         public Guid ListingId { get; set; }
+
+        [ForeignKey(nameof(ListingId))]
+        public Listing RelevantListing {get; set;} = null!;
 
         public override async Task StageDeletion<T>(PetCenterDBContext ctx, DbSet<T> set)
         {

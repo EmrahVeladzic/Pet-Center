@@ -14,50 +14,54 @@ namespace PetCenterModels.DBTables
 
     public enum ListingType : byte
     {
-        Service = 0,
+        Generic = 0,
         Product = 1,
-        Consumable = 2,
-        Pet = 3,
-        Medical = 4
+        Pet = 2,
+        Medical = 3
     }
 
     [Table("Listing", Schema = "Offer")]
     public class Listing : AlbumIncludingTableEntity
     {
         [Column("ListingName")]
-        public string? ListingName { get; set; }
+        public string ListingName { get; set; } = string.Empty;
         [Column("ListingDescription")]
-        public string? ListingDescription { get; set; }
+        public string ListingDescription { get; set; } = string.Empty;
 
         [Column("ListingType")]
-        public ListingType Type { get; set; }
+        public ListingType Type { get; set; } = ListingType.Generic;
         
         [Column("PriceMinor")]
-        public long PriceMinor {get; set;}
+        public long PriceMinor {get; set;} = 0;
 
 
         [Column("FranchiseID")]
-        public Guid? FranchiseId { get; set; }
+        public Guid FranchiseId { get; set; }
 
         [Column("Visible")]
-        public bool Visible { get; set; }
+        public bool Visible { get; set; } = false;
 
         [Column("Approved")]
-        public bool Approved { get; set; }
+        public bool Approved { get; set; } = false;
 
         [Column("Posted")]
-        public DateTime Posted {get; set;}
+        public DateTime Posted {get; set;} = DateTime.UtcNow;
 
         [Column("Updated")]
-        public bool Updated {get; set;}
+        public bool Updated {get; set;} = true;
 
         [JsonIgnore]
         [ForeignKey(nameof(FranchiseId))]
-        public Franchise? Business {  get; set; }
+        public Franchise Business {  get; set; } = null!;
 
+        [InverseProperty(nameof(Discount.RelevantListing))]
+        public Discount? ListingDiscount {get; set;} = null;
 
-        [NotMapped]
-        public List<Comment>? Comments { get; set; }
+        [InverseProperty(nameof(Comment.RelevantListing))]
+        public List<Comment> Comments { get; set; } = new();
+
+        [InverseProperty(nameof(Available.RelevantListing))]
+        public List<Available> AvailabilityRecords {get; set;} = new();
 
         [ForeignKey(nameof(Id))]
         public AnimalListing? AnimalExtension {get; set;} = null;
