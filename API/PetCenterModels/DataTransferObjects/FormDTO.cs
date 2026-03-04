@@ -106,6 +106,7 @@ namespace PetCenterModels.DataTransferObjects
         
         public bool Validate()
         {
+            DefaultContact=DefaultContact.ToLowerInvariant();
             if(string.IsNullOrWhiteSpace(FranchiseName)){return false;}
             EmailAddressAttribute e = new();
             if(!e.IsValid(DefaultContact)){return false;}

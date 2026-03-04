@@ -36,7 +36,7 @@ namespace PetCenterServices.Services
             {
                 return ServiceOutput<object>.Error(HttpCode.BadRequest,"DTO validation failed.");
             }
-            if(await dbSet.AnyAsync(f => f.Description.ToLowerInvariant() == resource.Description.ToLowerInvariant()))
+            if(await dbSet.AnyAsync(f => f.Description.ToLower() == resource.Description.ToLower()))
             {
                 return ServiceOutput<object>.Error(HttpCode.Conflict,"A template with this description already exists.");
             }
@@ -51,7 +51,7 @@ namespace PetCenterServices.Services
             {
                 return ServiceOutput<object>.Error(HttpCode.BadRequest,"DTO validation failed.");
             }
-            if(await dbSet.AnyAsync(f => f.Description.ToLowerInvariant() == resource.Description.ToLowerInvariant() && f.Id!=resource.Id))
+            if(await dbSet.AnyAsync(f => f.Description.ToLower() == resource.Description.ToLower() && f.Id!=resource.Id))
             {
                 return ServiceOutput<object>.Error(HttpCode.Conflict,"A template with this description already exists.");
             }
@@ -76,7 +76,7 @@ namespace PetCenterServices.Services
             {
                 return ServiceOutput<FormTemplateFieldDTO>.Error(HttpCode.NotFound,"Template does not exist.");
             } 
-            if(await dbContext.FormTemplateFields.AnyAsync(ff=>ff.FormTemplateId==field.FormTemplateId && ff.Description.ToLowerInvariant()==field.Description.ToLowerInvariant()&& ff.Id!=field.Id))
+            if(await dbContext.FormTemplateFields.AnyAsync(ff=>ff.FormTemplateId==field.FormTemplateId && ff.Description.ToLower()==field.Description.ToLower()&& ff.Id!=field.Id))
             {
                 return ServiceOutput<FormTemplateFieldDTO>.Error(HttpCode.Conflict,"Attempt to place a duplicate field.");
             }             

@@ -57,7 +57,7 @@ namespace PetCenterServices.Services
                 return ServiceOutput<FranchiseResponseDTO>.Error(HttpCode.NotFound,"No form to base franchise on.");
             } 
 
-            if(await dbSet.AnyAsync(f=>f.OwnerId==frm.UserId && f.FranchiseName.ToLowerInvariant() == frm.FranchiseName.ToLowerInvariant()))
+            if(await dbSet.AnyAsync(f=>f.OwnerId==frm.UserId && f.FranchiseName.ToLower() == frm.FranchiseName.ToLower()))
             {
                 return ServiceOutput<FranchiseResponseDTO>.Error(HttpCode.Conflict,"The user already owns a franchise with this name.");
             }

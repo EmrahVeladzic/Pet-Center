@@ -85,7 +85,7 @@ namespace PetCenterServices.Services
                 return ServiceOutput<object>.Error(HttpCode.NotFound,"The specified kind does not exist.");
             }
             
-            if(await dbSet.FirstOrDefaultAsync(b => b.Title.ToLowerInvariant() == resource.Title.ToLowerInvariant() && b.KindId == resource.KindId)!=null){
+            if(await dbSet.FirstOrDefaultAsync(b =>b.Title.ToLower()==resource.Title.ToLower() && b.KindId == resource.KindId)!=null){
                 return ServiceOutput<object>.Error(HttpCode.Conflict,"A breed with the same kind and title already exists.");
             }
 
@@ -104,7 +104,7 @@ namespace PetCenterServices.Services
                 return ServiceOutput<object>.Error(HttpCode.NotFound,"The specified kind does not exist.");
             }
             
-            if(await dbSet.FirstOrDefaultAsync(b => b.Title.ToLowerInvariant() == resource.Title.ToLowerInvariant() && b.KindId == resource.KindId && b.Id!=resource.Id)!=null){
+            if(await dbSet.FirstOrDefaultAsync(b => EF.Functions.Like(b.Title,resource.Title) && b.KindId == resource.KindId && b.Id!=resource.Id)!=null){
                 return ServiceOutput<object>.Error(HttpCode.Conflict,"A breed with the same title already exists.");
             }
 

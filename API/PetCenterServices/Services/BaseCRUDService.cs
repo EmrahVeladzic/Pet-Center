@@ -115,12 +115,13 @@ namespace PetCenterServices.Services
                     
                     if (overwrite != null)
                     {
-
+                        
 
                         using (IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync())
                         {
                             try
                             {
+                                overwrite.Id=ent.Id;
                                 dbSet.Entry(ent).CurrentValues.SetValues(overwrite);
                                 await dbContext.SaveChangesAsync();
                                 await tx.CommitAsync();

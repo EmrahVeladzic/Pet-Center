@@ -43,7 +43,7 @@ namespace PetCenterServices.Services
             {
                 return ServiceOutput<object>.Error(HttpCode.BadRequest,"DTO validation failed.");
             }
-            if(await dbSet.AnyAsync(k=>k.Title.ToLowerInvariant()==resource.Title.ToLowerInvariant()))
+            if(await dbSet.AnyAsync(k=>k.Title.ToLower()==resource.Title.ToLower()))
             {
                 return ServiceOutput<object>.Error(HttpCode.Conflict,"A kind with this title already exists.");
             }
@@ -57,7 +57,7 @@ namespace PetCenterServices.Services
             {
                 return ServiceOutput<object>.Error(HttpCode.BadRequest,"DTO validation failed.");
             }
-            if(await dbSet.AnyAsync(k=>k.Title.ToLowerInvariant()==resource.Title.ToLowerInvariant()&& k.Id!=resource.Id))
+            if(await dbSet.AnyAsync(k=>k.Title.ToLower()==resource.Title.ToLower()&& k.Id!=resource.Id))
             {
                 return ServiceOutput<object>.Error(HttpCode.Conflict,"A kind with this title already exists.");
             }

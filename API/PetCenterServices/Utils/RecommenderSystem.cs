@@ -42,7 +42,7 @@ namespace PetCenterServices.Recommender
             if (listing != null && listing.Product!=null)
             {
                 string ProductTitle = listing.Product.Title.ToLowerInvariant();
-                List<Wishlist> wishlists = await ctx.Wishlists.Include(w=>w.RelevantUser).ThenInclude(r=>r.OwnedAnimals).ThenInclude(o=>o.AnimalBreed).Where(w=>ProductTitle.Contains(w.Term.ToLowerInvariant())).ToListAsync();
+                List<Wishlist> wishlists = await ctx.Wishlists.Include(w=>w.RelevantUser).ThenInclude(r=>r.OwnedAnimals).ThenInclude(o=>o.AnimalBreed).Where(w=>ProductTitle.Contains(w.Term.ToLower())).ToListAsync();
                 wishlists = wishlists.Where(w=>w.RelevantUser!=null && w.RelevantUser.OwnedAnimals.Any(o=>o.AnimalBreed!=null && (listing.Product.TargetKind==null ||o.AnimalBreed.KindId==listing.Product.KindId) && (listing.Product.TargetScale==null||listing.Product.TargetScale==o.AnimalBreed.Scale))).ToList();
 
 

@@ -36,7 +36,7 @@ namespace PetCenterServices.Services
             {
                 return ServiceOutput<object>.Error(HttpCode.BadRequest,"DTO validation failed.");
             }
-            if(await dbSet.AnyAsync(l=>l.Title.ToLowerInvariant()==resource.Title.ToLowerInvariant()))
+            if(await dbSet.AnyAsync(l=>l.Title.ToLower()==resource.Title.ToLower()))
             {
                 return ServiceOutput<object>.Error(HttpCode.Conflict,"A living condition field with this title already exists.");
             }
@@ -55,7 +55,7 @@ namespace PetCenterServices.Services
             {
                 return ServiceOutput<object>.Error(HttpCode.NotFound,"This living condition field does not exist.");
             }
-            if(await dbSet.AnyAsync(f=>f.Title.ToLowerInvariant()==resource.Title.ToLowerInvariant() && f.Id!=resource.Id))
+            if(await dbSet.AnyAsync(f=>f.Title.ToLower()==resource.Title.ToLower() && f.Id!=resource.Id))
             {
                 return ServiceOutput<object>.Error(HttpCode.Conflict,"A living condition field with this title already exists.");
             }

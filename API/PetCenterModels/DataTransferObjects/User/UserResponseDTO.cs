@@ -15,7 +15,7 @@ namespace PetCenterModels.DataTransferObjects
     public class AnnouncementSubDTO : IBaseResponseDTO<Announcement, AnnouncementSubDTO>
     {
         public Guid? Id {get; set;}
-        public List<NoteSubDTO>? Notes {get; set;} = null;
+        public List<NoteSubDTO>? Notes {get; set;} = null;    
 
         public string Body {get; set;} = string.Empty;
 
@@ -34,9 +34,7 @@ namespace PetCenterModels.DataTransferObjects
     {
         public Guid? Id {get; set;}
         public List<NoteSubDTO>? Notes {get; set;} = null;
-
         public Guid? ListingId {get; set;} = null;
-
         public string Title {get; set;} = string.Empty;
 
         public string Body {get; set;} = string.Empty;
@@ -88,6 +86,12 @@ namespace PetCenterModels.DataTransferObjects
         public Guid? Id {get; set;}
         public string? UserName {get; set;}
         public List<NoteSubDTO>? Notes {get; set;}
+
+        public List<AnnouncementSubDTO>? Announcements {get; set;} = null;
+
+        public List<NotificationSubDTO>? Notifications {get; set;} = null;
+
+        public List<ReportResponseSubDTO>? Reports {get; set;} = null;
 
         public static UserResponseDTO? FromEntity(User? usr)
         {
