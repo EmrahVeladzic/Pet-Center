@@ -63,13 +63,13 @@ namespace PetCenterModels.DBTables
         [InverseProperty(nameof(Available.RelevantListing))]
         public List<Available> AvailabilityRecords {get; set;} = new();
 
-        [ForeignKey(nameof(Id))]
+        [InverseProperty(nameof(AnimalListing.Base))]
         public AnimalListing? AnimalExtension {get; set;} = null;
 
-        [ForeignKey(nameof(Id))]
+        [InverseProperty(nameof(ProductListing.Base))]
         public ProductListing? ProductExtension {get; set;} = null;
 
-        [ForeignKey(nameof(Id))]
+        [InverseProperty(nameof(MedicalListing.Base))]
         public MedicalListing? MedicalExtension {get; set;} = null;
 
         public override async Task StageDeletion<T>(PetCenterDBContext ctx, DbSet<T> set)

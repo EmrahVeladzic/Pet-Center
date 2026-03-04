@@ -38,7 +38,7 @@ namespace PetCenterServices.Services
 
             if (!string.IsNullOrWhiteSpace(search.UserName))
             {
-                output = output.Where(u=>u.UserName!.ToLowerInvariant().StartsWith(search.UserName.ToLowerInvariant()));
+                output = output.Where(u=>u.UserName!.ToLower().StartsWith(search.UserName.ToLower()));
             }
 
             if (search.EmployedBy != null)
@@ -50,9 +50,33 @@ namespace PetCenterServices.Services
 
         public override async Task<ServiceOutput<UserResponseDTO>> GetById(Guid token_holder, Guid id, Access authorization_level)
         {
-            ServiceOutput<UserResponseDTO> output = await base.GetById(token_holder, id,authorization_level);
-            output.Body?.Notes?.Add(await recommender.ShoppingList(dbContext,token_holder));
-            return output;
+            UserResponseDTO? output = UserResponseDTO.FromEntity(await dbSet.FindAsync(id));
+
+            if (output == null) 
+            {      
+                return ServiceOutput<UserResponseDTO>.Error(HttpCode.NotFound, "No user with this ID exists.");                 
+            }
+
+            if (authorization_level == Access.Admin)
+            {
+                output.Announcements=await dbContext.Announcements.OrderBy(a=>(((a.BusinessVisible)?1:0)+((a.UserVisible)?1:0))).Select(a=>AnnouncementSubDTO.FromEntity(a)!).ToListAsync(); 
+                output.Reports = await dbContext.Reports.Select(r=>ReportResponseSubDTO.FromEntity(r)!).ToListAsync();  
+            }
+            else if (authorization_level == Access.BusinessAccount)
+            {
+                List<Guid> workplaces = await dbContext.EmployeeRecords.Where(e=>e.UserId==token_holder).Select(e=>e.FranchiseId).ToListAsync();
+                output.Notifications = await dbContext.Notifications.Where(n=>n.UserId==token_holder || (n.FranchiseId!=null && workplaces.Contains(n.FranchiseId.Value!))).Select(n=>NotificationSubDTO.FromEntity(n)!).ToListAsync();
+                output.Announcements=await dbContext.Announcements.Where(a=>a.BusinessVisible).Select(a=>AnnouncementSubDTO.FromEntity(a)!).ToListAsync();
+            }
+            else
+            {
+                output.Notes=new();
+                output.Notes?.Add(await recommender.ShoppingList(dbContext,token_holder));
+                output.Notifications = await dbContext.Notifications.Where(n=>n.UserId==token_holder).Select(n=>NotificationSubDTO.FromEntity(n)!).ToListAsync();
+                output.Announcements=await dbContext.Announcements.Where(a=>a.UserVisible).Select(a=>AnnouncementSubDTO.FromEntity(a)!).ToListAsync();
+            }           
+            
+            return ServiceOutput<UserResponseDTO>.Success(output);
         }
 
         public override async Task<ServiceOutput<UserResponseDTO>> Put(Guid token_holder,UserRequestDTO ent)
@@ -263,7 +287,7 @@ namespace PetCenterServices.Services
                 return ServiceOutput<AnnouncementSubDTO>.Error(HttpCode.BadRequest,"Announcement body cannot be empty.");
             }
 
-            Announcement? existing = await dbContext.Announcements.FirstOrDefaultAsync(a=>a.Body.ToLowerInvariant()==body.ToLowerInvariant() && a.UserVisible==user_visible && a.BusinessVisible==business_visible);
+            Announcement? existing = await dbContext.Announcements.FirstOrDefaultAsync(a=>a.Body.ToLower()==body.ToLower() && a.UserVisible==user_visible && a.BusinessVisible==business_visible);
             if (existing != null)
             {
                 existing.Expiry = DateTime.UtcNow.AddDays(expiry);             
@@ -321,7 +345,7 @@ namespace PetCenterServices.Services
                 return ServiceOutput<NotificationSubDTO>.Error(HttpCode.BadRequest,"Notification title and body cannot be empty.");
             }
 
-            Notification? existing = await dbContext.Notifications.FirstOrDefaultAsync(a=>a.Body.ToLowerInvariant()==body.ToLowerInvariant() && a.Title.ToLowerInvariant()==title.ToLowerInvariant() && a.UserId==user_id && a.ListingId == listing_id && a.FranchiseId==franchise_id);
+            Notification? existing = await dbContext.Notifications.FirstOrDefaultAsync(a=>a.Body.ToLower()==body.ToLower() && a.Title.ToLower()==title.ToLower() && a.UserId==user_id && a.ListingId == listing_id && a.FranchiseId==franchise_id);
             if (existing != null)
             {
                 existing.Expiry = DateTime.UtcNow.AddDays(expiry);             

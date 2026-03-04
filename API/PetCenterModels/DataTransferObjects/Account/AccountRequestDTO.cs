@@ -11,6 +11,7 @@ namespace PetCenterModels.DataTransferObjects
 {
     public class AccountRequestDTO : IBaseRequestDTO
     {       
+        [JsonIgnore]
         public Guid? Id {get; set;}
 
         [Required]
@@ -19,6 +20,7 @@ namespace PetCenterModels.DataTransferObjects
         [Required]
         public string Password { get; set; } = string.Empty;
 
+        [Required]
         public bool Business {get; set;} = false;    
     
 

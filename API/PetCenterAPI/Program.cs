@@ -76,9 +76,9 @@ builder.Services.AddScoped<IFormTemplateService,FormTemplateService>();
 builder.Services.AddScoped<ILivingConditionFieldService,LivingconditionFieldService>();
 builder.Services.AddScoped<IItemService,ItemService>();
 builder.Services.AddScoped<IBreedService,BreedService>();
+builder.Services.AddScoped<IIndividualService,IndividualService>();
 builder.Services.AddScoped<IProcedureService,ProcedureService>();
 builder.Services.AddScoped<IFormService,FormService>();
-builder.Services.AddScoped<IIndividualService,IIndividualService>();
 builder.Services.AddScoped<IListingService,ListingService>();
 
 builder.Services.AddDbContext<PetCenterDBContext>(options =>

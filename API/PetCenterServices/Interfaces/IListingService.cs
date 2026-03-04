@@ -12,16 +12,13 @@ using PetCenterServices.Utils;
 namespace PetCenterServices.Interfaces
 {
     public interface IListingService : IBaseCRUDService<Listing,ListingSearchObject,ListingRequestDTO,ListingResponseDTO>
-    {
-
-        /*
-        public ServiceOutput<Task<ReportResponseSubDTO>> ReportMisuse(Guid token_holder, Guid ListingId, Guid? CommentId, string Reason);
-        public ServiceOutput<Task<CommentResponseSubDTO>> SendReview(Guid token_holder, Guid ListingId, string message);
-        public ServiceOutput<Task<object>> RemoveReview(Guid token_holder, Guid comment_id);
-        public ServiceOutput<Task<DiscountResponseSubDTO>> SetDiscount(Guid token_holder, Guid ListingId, int percentage, int days_valid);
-        public ServiceOutput<Task<object>> SetVisibility(Guid token_holder, Guid ListingId, bool visible);
-        public ServiceOutput<Task<object>> Approve (Guid ListingId);
-*/
-
+    {        
+        public Task <ServiceOutput<ReportResponseSubDTO>> ReportMisuse(Guid token_holder, Guid ListingId, Guid? CommentId, string Reason);
+        public Task <ServiceOutput<CommentResponseSubDTO>> SendReview(Guid token_holder, Guid ListingId, string message);
+        public Task <ServiceOutput<object>> RemoveReview(Guid token_holder, Guid comment_id, Access authorization_level);
+        public Task <ServiceOutput<DiscountResponseSubDTO>> SetDiscount(Guid token_holder, Guid ListingId, byte percentage, byte days_valid);
+        public Task <ServiceOutput<object>> SetVisibility(Guid token_holder, Guid ListingId, bool visible);
+        public Task <ServiceOutput<object>> Approve (Guid ListingId);
+        public Task <ServiceOutput<AvailabilityResponseSubDTO>> SetAvailability(Guid token_holder, Guid ListingId, Guid FacilityId, bool add_remove);
     }
 }

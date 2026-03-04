@@ -61,7 +61,7 @@ namespace PetCenterAPI.Controllers
 
   
 
-        [HttpGet("count")]
+        [HttpGet("Count")]
         public virtual async Task<IActionResult> Count([FromQuery] TSearch search)
         {
 

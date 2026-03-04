@@ -54,6 +54,7 @@ namespace PetCenterModels.DataTransferObjects
 
         public bool Validate()
         {
+            Contact=Contact?.ToLowerInvariant();
             EmailAddressAttribute e = new();
             return(e.IsValid(Contact)&&!string.IsNullOrWhiteSpace(City)&&!string.IsNullOrWhiteSpace(Street)&&!(OwningFranchise==Guid.Empty));
         }
