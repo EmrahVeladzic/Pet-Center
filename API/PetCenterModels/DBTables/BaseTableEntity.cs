@@ -26,7 +26,7 @@ namespace PetCenterModels.DBTables
             
         }
 
-        public virtual Task StageDeletion<T>(PetCenterDBContext ctx, DbSet<T> set) where T: BaseTableEntity
+        public virtual Task StageDeletion<T>(PetCenterDBContext ctx, DbSet<T> set, CancellationToken cancel = default) where T: BaseTableEntity
         {
             set.Remove((T)this);
             return Task.CompletedTask;

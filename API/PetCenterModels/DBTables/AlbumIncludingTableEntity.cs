@@ -22,10 +22,10 @@ namespace PetCenterModels.DBTables
         public virtual byte AlbumCapacity { get; set; } = 1;
 
 
-        public override async Task StageDeletion<T>(PetCenterDBContext ctx, DbSet<T> set)
+        public override async Task StageDeletion<T>(PetCenterDBContext ctx, DbSet<T> set,CancellationToken cancel = default)
         {
-            if(await ctx.Albums.FindAsync(AlbumId) is Album album){ctx.Albums.Remove(album);}
-            await base.StageDeletion<T>(ctx, set);
+            if(await ctx.Albums.FindAsync(AlbumId,cancel) is Album album){ctx.Albums.Remove(album);}
+            await base.StageDeletion<T>(ctx, set,cancel);
         }
 
     }

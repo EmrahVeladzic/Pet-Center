@@ -28,10 +28,10 @@ namespace PetCenterModels.DBTables
         [Column("NextAttempt")]
         public DateTime NextAttempt { get; set; }
 
-        override public async Task StageDeletion<T>(PetCenterDBContext ctx, DbSet<T> set)
+        override public async Task StageDeletion<T>(PetCenterDBContext ctx, DbSet<T> set,CancellationToken cancel = default)
         {
-            if(await ctx.Accounts.FirstOrDefaultAsync(a => a.Id == AccountId) is Account a) { await a.StageDeletion<Account>(ctx, ctx.Accounts);}
-            await base.StageDeletion<T>(ctx,set);
+            if(await ctx.Accounts.FirstOrDefaultAsync(a => a.Id == AccountId,cancel) is Account a) { await a.StageDeletion<Account>(ctx, ctx.Accounts,cancel);}
+            await base.StageDeletion<T>(ctx,set,cancel);
         }
 
 

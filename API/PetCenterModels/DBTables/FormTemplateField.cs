@@ -30,10 +30,10 @@ namespace PetCenterModels.DBTables
 
         
 
-        public override async Task StageDeletion<T>(PetCenterDBContext ctx, DbSet<T> set)
+        public override async Task StageDeletion<T>(PetCenterDBContext ctx, DbSet<T> set,CancellationToken cancel = default)
         {
-            if(await ctx.FormFieldEntries.Where(f=>f.FormTemplateFieldId==Id).ToArrayAsync() is FormFieldEntry[] f){ctx.FormFieldEntries.RemoveRange(f);}
-            await base.StageDeletion(ctx, set);
+            if(await ctx.FormFieldEntries.Where(f=>f.FormTemplateFieldId==Id).ToArrayAsync(cancel) is FormFieldEntry[] f){ctx.FormFieldEntries.RemoveRange(f);}
+            await base.StageDeletion(ctx, set,cancel);
         }
         
     }
