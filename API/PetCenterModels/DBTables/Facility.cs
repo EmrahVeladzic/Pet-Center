@@ -31,10 +31,10 @@ namespace PetCenterModels.DBTables
         [Column("Contact")]        
         public string? Contact {  get; set; } = null;
 
-        public override async Task StageDeletion<T>(PetCenterDBContext ctx, DbSet<T> set)
+        public override async Task StageDeletion<T>(PetCenterDBContext ctx, DbSet<T> set,CancellationToken cancel = default)
         {
-            if(await ctx.ListingAvailable.Where(a=>a.FacilityId == Id).ToArrayAsync() is Available[] a){ctx.ListingAvailable.RemoveRange(a);}
-            await base.StageDeletion(ctx, set);
+            if(await ctx.ListingAvailable.Where(a=>a.FacilityId == Id).ToArrayAsync(cancel) is Available[] a){ctx.ListingAvailable.RemoveRange(a);}
+            await base.StageDeletion(ctx, set,cancel);
         }
     }
 }

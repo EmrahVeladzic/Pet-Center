@@ -32,10 +32,10 @@ namespace PetCenterModels.DBTables
         [ForeignKey(nameof(ListingId))]
         public Listing RelevantListing {get; set;} = null!;
 
-        public override async Task StageDeletion<T>(PetCenterDBContext ctx, DbSet<T> set)
+        public override async Task StageDeletion<T>(PetCenterDBContext ctx, DbSet<T> set,CancellationToken cancel = default)
         {
-            if(await ctx.Reports.Where(r=>r.CommentId==Id).ToArrayAsync() is Report[] r){ctx.Reports.RemoveRange(r);}
-            await base.StageDeletion(ctx, set);
+            if(await ctx.Reports.Where(r=>r.CommentId==Id).ToArrayAsync(cancel) is Report[] r){ctx.Reports.RemoveRange(r);}
+            await base.StageDeletion(ctx, set,cancel);
         }
 
     }

@@ -22,11 +22,11 @@ namespace PetCenterModels.DBTables
         [InverseProperty(nameof(Usage.ProductCategory))]
         public List<Usage> UsageSpecifics {get; set;} = new();
 
-        public override async Task StageDeletion<T>(PetCenterDBContext ctx, DbSet<T> set)
+        public override async Task StageDeletion<T>(PetCenterDBContext ctx, DbSet<T> set,CancellationToken cancel = default)
         {
-            if(await ctx.Items.Where(i=>i.CategoryId==Id).ToListAsync() is List<Item> i){foreach(Item itm in i){await itm.StageDeletion<Item>(ctx,ctx.Items);}}
-            if(await ctx.UsageEstimates.Where(u=>u.CategoryId==Id).ToArrayAsync() is Usage[] u){ctx.UsageEstimates.RemoveRange(u);}
-            await base.StageDeletion(ctx, set);
+            if(await ctx.Items.Where(i=>i.CategoryId==Id).ToListAsync(cancel) is List<Item> i){foreach(Item itm in i){await itm.StageDeletion<Item>(ctx,ctx.Items,cancel);}}
+            if(await ctx.UsageEstimates.Where(u=>u.CategoryId==Id).ToArrayAsync(cancel) is Usage[] u){ctx.UsageEstimates.RemoveRange(u);}
+            await base.StageDeletion(ctx, set,cancel);
         }
     }
 }

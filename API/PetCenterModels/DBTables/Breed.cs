@@ -51,11 +51,11 @@ namespace PetCenterModels.DBTables
         public float Cohabitation {get; set;}
 
 
-        public override async Task StageDeletion<T>(PetCenterDBContext ctx, DbSet<T> set)
+        public override async Task StageDeletion<T>(PetCenterDBContext ctx, DbSet<T> set,CancellationToken cancel = default)
         {
-            if(await ctx.IndividualAnimals.Where(i=>i.BreedId==Id).ToListAsync() is List<Individual> i){foreach (Individual ind in i){await ind.StageDeletion<Individual>(ctx,ctx.IndividualAnimals);}}
-            if(await ctx.MedicalProcedureSpecifications.Where(m=>m.BreedId==Id).ToListAsync() is List<MedicalProcedureSpecification> m){foreach (MedicalProcedureSpecification med in m){await med.StageDeletion<MedicalProcedureSpecification>(ctx,ctx.MedicalProcedureSpecifications);}}
-            await base.StageDeletion(ctx, set);
+            if(await ctx.IndividualAnimals.Where(i=>i.BreedId==Id).ToListAsync(cancel) is List<Individual> i){foreach (Individual ind in i){await ind.StageDeletion<Individual>(ctx,ctx.IndividualAnimals,cancel);}}
+            if(await ctx.MedicalProcedureSpecifications.Where(m=>m.BreedId==Id).ToListAsync(cancel) is List<MedicalProcedureSpecification> m){foreach (MedicalProcedureSpecification med in m){await med.StageDeletion<MedicalProcedureSpecification>(ctx,ctx.MedicalProcedureSpecifications,cancel);}}
+            await base.StageDeletion(ctx, set,cancel);
         }
 
     }

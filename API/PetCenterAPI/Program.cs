@@ -12,6 +12,7 @@ using PetCenterServices.Utils;
 using System.Text;
 using System.Text.Json;
 using PetCenterServices.Recommender;
+using PetCenterServices.Workers;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -64,6 +65,7 @@ builder.Services.AddSwaggerGen(cfg =>
 
 builder.Services.AddSingleton<IRecommenderSystem,RecommenderSystem>();
 
+builder.Services.AddHostedService<CleanupService>();
 
 builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddScoped<IUserService, UserService>();

@@ -209,7 +209,7 @@ namespace PetCenterServices.Services
                     if (reg.Code == code) { 
 
                         reg.RelevantAccount.Verified = true;    
-                        await reg.StageDeletion<Registration>(dbContext,dbContext.Registrations);        
+                        dbContext.Registrations.Remove(reg);  
                         await dbContext.SaveChangesAsync();
                         await tx.CommitAsync();
 

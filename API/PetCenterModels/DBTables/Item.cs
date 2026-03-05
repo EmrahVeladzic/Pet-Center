@@ -34,10 +34,10 @@ namespace PetCenterModels.DBTables
         [Column("MassGrams")]
         public int? MassGrams { get; set; }
 
-        public override async Task StageDeletion<T>(PetCenterDBContext ctx, DbSet<T> set)
+        public override async Task StageDeletion<T>(PetCenterDBContext ctx, DbSet<T> set,CancellationToken cancel = default)
         {
-            if(await ctx.ProductListings.Where(p=>p.ProductId==Id).ToListAsync() is List<ProductListing> p){foreach(ProductListing pl in p){await pl.StageDeletion<ProductListing>(ctx,ctx.ProductListings);}}
-            await base.StageDeletion(ctx, set);
+            if(await ctx.ProductListings.Where(p=>p.ProductId==Id).ToListAsync(cancel) is List<ProductListing> p){foreach(ProductListing pl in p){await pl.StageDeletion<ProductListing>(ctx,ctx.ProductListings,cancel);}}
+            await base.StageDeletion(ctx, set,cancel);
         }
 
     }
