@@ -90,6 +90,7 @@ namespace PetCenterServices.Services
                 {
                     try
                     {
+                        current.CurrentVersion=ent.CurrentVersion;
                         current.UserName = ent.UserName;
                         await dbContext.SaveChangesAsync();
                         await tx.CommitAsync();
@@ -97,10 +98,10 @@ namespace PetCenterServices.Services
                         return ServiceOutput<UserResponseDTO>.Success(UserResponseDTO.FromEntity(current));
                         
                     }
-                    catch
+                    catch(Exception ex)
                     {
                         await tx.RollbackAsync();
-                        return ServiceOutput<UserResponseDTO>.Error(HttpCode.InternalError,"Internal server error.");
+                        return ServiceOutput<UserResponseDTO>.FromException(ex);
                     }
                 }
 
@@ -198,11 +199,11 @@ namespace PetCenterServices.Services
                    
                             
                 }
-                catch
+                catch(Exception ex)
                 {
                     
                     await tx.RollbackAsync();
-                    return ServiceOutput<string>.Error(HttpCode.InternalError,"Internal server error.");
+                    return ServiceOutput<string>.FromException(ex);
                 }
 
 
@@ -292,6 +293,7 @@ namespace PetCenterServices.Services
             {
                 existing.Expiry = DateTime.UtcNow.AddDays(expiry);             
                 await dbContext.SaveChangesAsync();
+                StaticDataVersionHolder.AnnouncementVersion=Guid.NewGuid();
                 return ServiceOutput<AnnouncementSubDTO>.Success(AnnouncementSubDTO.FromEntity(existing));
             }
            
@@ -308,11 +310,12 @@ namespace PetCenterServices.Services
                 await dbContext.Announcements.AddAsync(newAnnouncement);
                 await dbContext.SaveChangesAsync();
             }
-            catch
+            catch(Exception ex)
             {
-                return ServiceOutput<AnnouncementSubDTO>.Error(HttpCode.InternalError,"Internal server error.");
+                return ServiceOutput<AnnouncementSubDTO>.FromException(ex);
             }
 
+            StaticDataVersionHolder.AnnouncementVersion=Guid.NewGuid();
             return ServiceOutput<AnnouncementSubDTO>.Success(AnnouncementSubDTO.FromEntity(newAnnouncement),HttpCode.Created);
         }
 
@@ -327,10 +330,11 @@ namespace PetCenterServices.Services
                 {
                     await existing.StageDeletion<Announcement>(dbContext,dbContext.Announcements);
                     await dbContext.SaveChangesAsync();
+                    StaticDataVersionHolder.AnnouncementVersion=Guid.NewGuid();
                 }
-                catch
+                catch(Exception ex)
                 {
-                    return ServiceOutput<string>.Error(HttpCode.InternalError,"Internal server error.");
+                    return ServiceOutput<string>.FromException(ex);
                 }
                 
             }
@@ -368,9 +372,9 @@ namespace PetCenterServices.Services
                 await dbContext.Notifications.AddAsync(newNotification);
                 await dbContext.SaveChangesAsync();
             }
-            catch
+            catch(Exception ex)
             {
-                return ServiceOutput<NotificationSubDTO>.Error(HttpCode.InternalError,"Internal server error.");
+                return ServiceOutput<NotificationSubDTO>.FromException(ex);
             }
 
             return ServiceOutput<NotificationSubDTO>.Success(NotificationSubDTO.FromEntity(newNotification),HttpCode.Created);
@@ -388,9 +392,9 @@ namespace PetCenterServices.Services
                     await existing.StageDeletion<Notification>(dbContext,dbContext.Notifications);
                     await dbContext.SaveChangesAsync();
                 }
-                catch
+                catch(Exception ex)
                 {
-                    return ServiceOutput<string>.Error(HttpCode.InternalError,"Internal server error.");
+                    return ServiceOutput<string>.FromException(ex);
                 }
                 
             }

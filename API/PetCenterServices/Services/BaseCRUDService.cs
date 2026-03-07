@@ -26,6 +26,11 @@ namespace PetCenterServices.Services
             dbSet = dbContext.Set<TEntity>();
         }
 
+        protected virtual void Touch()
+        {
+            
+        }
+
         protected virtual  Task<IQueryable<TEntity>> Filter(Guid token_holder, TSearch search)
         {           
             return Task.FromResult<IQueryable<TEntity>>(dbSet.OrderBy(o=>o.Id));
@@ -84,11 +89,13 @@ namespace PetCenterServices.Services
                             await dbSet.AddAsync(ent);
                             await dbContext.SaveChangesAsync();
                             await tx.CommitAsync();
+                            Touch();
                             return ServiceOutput<TResponse>.Success(TResponse.FromEntity(ent),HttpCode.Created);
                         }
-                        catch
+                        catch(Exception ex)
                         {
                             await tx.RollbackAsync();
+                            return ServiceOutput<TResponse>.FromException(ex);
                         }
                     }
 
@@ -125,12 +132,14 @@ namespace PetCenterServices.Services
                                 dbSet.Entry(ent).CurrentValues.SetValues(overwrite);
                                 await dbContext.SaveChangesAsync();
                                 await tx.CommitAsync();
+                                Touch();
                                 return ServiceOutput<TResponse>.Success(TResponse.FromEntity(ent));
                                
                             }
-                            catch
+                            catch(Exception ex)
                             {
                                 await tx.RollbackAsync();
+                                return ServiceOutput<TResponse>.FromException(ex);
                             }
                         }
 
@@ -161,11 +170,12 @@ namespace PetCenterServices.Services
                         await current.StageDeletion<TEntity>(dbContext,dbSet);
                         await dbContext.SaveChangesAsync();                
                         await tx.CommitAsync();
+                        Touch();
                     }
-                    catch
+                    catch(Exception ex)
                     {
                         await tx.RollbackAsync();
-                        return ServiceOutput<object>.Error(HttpCode.InternalError, "Internal server error.");
+                        return ServiceOutput<object>.FromException(ex);
 
                     }
                 }

@@ -14,6 +14,8 @@ namespace PetCenterModels.DataTransferObjects
         [JsonIgnore]
         public Guid? Id {get; set;}
 
+        public byte[] CurrentVersion { get; set; } = Array.Empty<byte>();
+
         [Required]
         public string Contact { get; set; } = string.Empty;
         

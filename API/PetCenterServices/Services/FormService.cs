@@ -68,9 +68,10 @@ namespace PetCenterServices.Services
                         await tx.CommitAsync();
                         return ServiceOutput<FormDTO>.Success(FormDTO.FromEntity(ent),HttpCode.Created);
                     }
-                    catch
+                    catch(Exception ex)
                     {
                         await tx.RollbackAsync();
+                        return ServiceOutput<FormDTO>.FromException(ex);
                     }
                 }
 
@@ -156,10 +157,10 @@ namespace PetCenterServices.Services
                         await dbContext.SaveChangesAsync();
                         await tx.CommitAsync();
                     }
-                    catch
+                    catch(Exception ex)
                     {
                         await tx.RollbackAsync();
-                        return ServiceOutput<object>.Error(HttpCode.InternalError,"Internal server error.");
+                        return ServiceOutput<object>.FromException(ex);
                     }
 
                 }

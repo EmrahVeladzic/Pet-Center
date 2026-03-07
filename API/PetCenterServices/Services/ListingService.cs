@@ -355,10 +355,10 @@ namespace PetCenterServices.Services
                     await tx.CommitAsync();
                     return ServiceOutput<DiscountResponseSubDTO>.Success(DiscountResponseSubDTO.FromEntity(new_discount),HttpCode.Created);
                 }
-                catch
+                catch(Exception ex)
                 {
                     await tx.RollbackAsync();
-                    return ServiceOutput<DiscountResponseSubDTO>.Error(HttpCode.InternalError,"Internal server error.");
+                    return ServiceOutput<DiscountResponseSubDTO>.FromException(ex);
                 }
 
 
@@ -443,9 +443,10 @@ namespace PetCenterServices.Services
                         await tx.CommitAsync();
                         return ServiceOutput<ListingResponseDTO>.Success(ListingResponseDTO.FromEntity(lst),HttpCode.Created);
                     }
-                    catch
+                    catch(Exception ex)
                     {
                         await tx.RollbackAsync();
+                        return ServiceOutput<ListingResponseDTO>.FromException(ex);
                     
                     }
 
@@ -469,7 +470,7 @@ namespace PetCenterServices.Services
                 {
                     try
                     {
-
+                        listing.CurrentVersion=req.CurrentVersion;
                         listing.ListingName=req.Name;
                         listing.ListingDescription=req.Description;
                         listing.PriceMinor=req.PriceMinor;
@@ -477,6 +478,7 @@ namespace PetCenterServices.Services
                         if (listing.Type == ListingType.Product && listing.ProductExtension != null && req.ProductListingExtension != null)
                         {
                             listing.ProductExtension.PerListing=req.ProductListingExtension.PerListing;
+                            listing.ProductExtension.CurrentVersion=req.ProductListingExtension.CurrentVersion;
                         }
 
                         await dbContext.SaveChangesAsync();
@@ -484,9 +486,10 @@ namespace PetCenterServices.Services
                         await tx.CommitAsync();
                         return ServiceOutput<ListingResponseDTO>.Success(ListingResponseDTO.FromEntity(listing));
                     }
-                    catch
+                    catch(Exception ex)
                     {
                         await tx.RollbackAsync();
+                        return ServiceOutput<ListingResponseDTO>.FromException(ex);
                     }
 
                 }

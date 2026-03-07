@@ -15,6 +15,8 @@ namespace PetCenterModels.DataTransferObjects
     {
         public Guid? Id {get; set;}
 
+        public byte[] CurrentVersion { get; set; } = Array.Empty<byte>();
+
         public List<NoteSubDTO>? Notes {get; set;} = null;
 
         public Guid ProductId {get; set;} = Guid.Empty;
@@ -30,6 +32,7 @@ namespace PetCenterModels.DataTransferObjects
         public ProductListing? ToEntity()
         {
             ProductListing output = new();
+            output.CurrentVersion=CurrentVersion;
             output.ProductId=ProductId;
             output.PerListing=PerListing;
             return output;   
@@ -41,6 +44,7 @@ namespace PetCenterModels.DataTransferObjects
             return new ProductListingSubDTO
             {
                 Id=entity.Id,
+                CurrentVersion=entity.CurrentVersion,
                 ProductId=entity.ProductId,
                 PerListing=entity.PerListing
             };
@@ -53,6 +57,8 @@ namespace PetCenterModels.DataTransferObjects
     public class AnimalListingSubDTO : ISerializableRequestDTO<AnimalListing>, IBaseResponseDTO<AnimalListing,AnimalListingSubDTO>
     {
         public Guid? Id {get; set;}
+
+        public byte[] CurrentVersion { get; set; } = Array.Empty<byte>();
 
         public List<NoteSubDTO>? Notes {get; set;} = null;
 
@@ -67,6 +73,7 @@ namespace PetCenterModels.DataTransferObjects
         public AnimalListing? ToEntity()
         {
             AnimalListing output = new();
+            output.CurrentVersion=CurrentVersion;
             output.AnimalId=AnimalId;
             return output;   
         }
@@ -77,6 +84,7 @@ namespace PetCenterModels.DataTransferObjects
             return new AnimalListingSubDTO
             {
                 Id=entity.Id,
+                CurrentVersion=entity.CurrentVersion,
                 AnimalId = entity.AnimalId
             };
 
@@ -88,6 +96,8 @@ namespace PetCenterModels.DataTransferObjects
     public class MedicalListingSubDTO : ISerializableRequestDTO<MedicalListing>, IBaseResponseDTO<MedicalListing,MedicalListingSubDTO>
     {
         public Guid? Id {get; set;}
+
+        public byte[] CurrentVersion { get; set; } = Array.Empty<byte>();
 
         public List<NoteSubDTO>? Notes {get; set;} = null;
 
@@ -102,6 +112,7 @@ namespace PetCenterModels.DataTransferObjects
         public MedicalListing? ToEntity()
         {
             MedicalListing output = new();
+            output.CurrentVersion=CurrentVersion;
             output.ProcedureId=ProcedureId;
             return output;   
         }
@@ -112,6 +123,7 @@ namespace PetCenterModels.DataTransferObjects
             return new MedicalListingSubDTO
             {
                 Id=entity.Id,
+                CurrentVersion=entity.CurrentVersion,
                 ProcedureId = entity.ProcedureId
             };
 
@@ -123,6 +135,8 @@ namespace PetCenterModels.DataTransferObjects
     public class CommentResponseSubDTO : IBaseResponseDTO<Comment, CommentResponseSubDTO>
     {
         public Guid? Id {get; set;}
+
+        public byte[] CurrentVersion { get; set; } = Array.Empty<byte>();
 
         public Guid PosterId {get; set;} = Guid.Empty;
 
@@ -138,6 +152,7 @@ namespace PetCenterModels.DataTransferObjects
             return new CommentResponseSubDTO
             {
                 Id=entity.Id,
+                CurrentVersion=entity.CurrentVersion,
                 PosterId=entity.PosterId,
                 PosterName=entity.Poster.UserName??"Anonymous",
                 Contents=entity.Message
@@ -150,6 +165,8 @@ namespace PetCenterModels.DataTransferObjects
     public class AvailabilityResponseSubDTO : IBaseResponseDTO<Available, AvailabilityResponseSubDTO>
     {
         public Guid? Id {get; set;}
+
+        public byte[] CurrentVersion { get; set; } = Array.Empty<byte>();
 
         public Guid FacilityId {get; set;}
 
@@ -167,6 +184,7 @@ namespace PetCenterModels.DataTransferObjects
             return new AvailabilityResponseSubDTO
             {
                 Id=entity.Id,
+                CurrentVersion=entity.CurrentVersion,
                 FacilityId=entity.FacilityId,
                 Contact=entity.RelevantFacility.Contact??entity.RelevantFacility.OwningFranchise.Contact??"No contact provided.",
                 City=entity.RelevantFacility.City??"No city provided.",
@@ -183,6 +201,8 @@ namespace PetCenterModels.DataTransferObjects
     {
         public Guid? Id {get; set;}
 
+        public byte[] CurrentVersion { get; set; } = Array.Empty<byte>();
+
         public int Percentage {get; set;} = 0;
 
         public DateTime Expiry {get; set;} = DateTime.UtcNow;
@@ -195,6 +215,7 @@ namespace PetCenterModels.DataTransferObjects
             return new DiscountResponseSubDTO
             {
                 Id=entity.Id,
+                CurrentVersion=entity.CurrentVersion,
                 Percentage=entity.PercentDiscount,
                 Expiry=entity.Expiry
 
@@ -208,6 +229,8 @@ namespace PetCenterModels.DataTransferObjects
     public class ReportResponseSubDTO : IBaseResponseDTO<Report, ReportResponseSubDTO>
     {
         public Guid? Id {get; set;}
+
+        public byte[] CurrentVersion { get; set; } = Array.Empty<byte>();
 
         public string Reason {get; set;} = string.Empty;
 
@@ -227,6 +250,7 @@ namespace PetCenterModels.DataTransferObjects
             return new ReportResponseSubDTO
             {
                 Id=entity.Id,
+                CurrentVersion=entity.CurrentVersion,
                 Reason=entity.Reason,
                 ReporterId=entity.ReporterId,
                 ListingId=entity.ListingId,

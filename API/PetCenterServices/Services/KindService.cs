@@ -23,6 +23,11 @@ namespace PetCenterServices.Services
             dbSet = ctx.AnimalKinds;
         }
 
+        protected override void Touch()
+        {
+            StaticDataVersionHolder.KindVersion=Guid.NewGuid();
+        }
+
         protected override Task<IQueryable<Kind>> Filter(Guid token_holder, KindSearchObject search)
         {
             IQueryable<Kind> query = dbSet.Include(k=>k.Breeds).OrderBy(k=>k.Id);

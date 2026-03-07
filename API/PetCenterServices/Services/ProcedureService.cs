@@ -26,6 +26,11 @@ namespace PetCenterServices.Services
             
         }
 
+        protected override void Touch()
+        {
+            StaticDataVersionHolder.ProcedureVersion=Guid.NewGuid();
+        }
+
         protected override Task<IQueryable<Procedure>> Filter(Guid token_holder, ProcedureSearchObject search)
         {
 
@@ -120,6 +125,7 @@ namespace PetCenterServices.Services
 
             }
             
+            StaticDataVersionHolder.SpecificationVersion=Guid.NewGuid();
             return ServiceOutput<ProcedureSpecificationSubDTO>.Success(ProcedureSpecificationSubDTO.FromEntity(existing));
             
         }
@@ -140,15 +146,16 @@ namespace PetCenterServices.Services
                         await dbContext.SaveChangesAsync();
                         await tx.CommitAsync();
                     }
-                    catch
+                    catch(Exception ex)
                     {
                         await tx.RollbackAsync();
-                        return ServiceOutput<object>.Error(HttpCode.InternalError,"Internal server error.");
+                        return ServiceOutput<object>.FromException(ex);
                     }
                 }
                 
             }
 
+            StaticDataVersionHolder.SpecificationVersion=Guid.NewGuid();
             return ServiceOutput<object>.Success(null,HttpCode.NoContent);
         }
 

@@ -17,6 +17,8 @@ namespace PetCenterModels.DataTransferObjects
        
         public Guid? Id {get; set;} = null;
 
+        public byte[] CurrentVersion { get; set; } = Array.Empty<byte>();
+
         public Guid KindId {get; set;} = Guid.Empty;
 
         public AnimalScale Scale {get; set;}
@@ -42,6 +44,7 @@ namespace PetCenterModels.DataTransferObjects
             BreedDTO output = new BreedDTO
             {
                 Id = entity.Id,
+                CurrentVersion=entity.CurrentVersion,
                 Title = entity.Title,
                 KindId=entity.KindId,
                 AlbumId=entity.AlbumId,
@@ -64,7 +67,7 @@ namespace PetCenterModels.DataTransferObjects
         public Breed? ToEntity()
         {
             Breed breed = new();
-           
+            breed.CurrentVersion=CurrentVersion;
             breed.Title=Title;
             return breed;
         }

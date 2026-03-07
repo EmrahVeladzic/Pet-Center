@@ -76,6 +76,7 @@ namespace PetCenterServices.Services
 
                 try
                 {
+                    current.CurrentVersion=req.CurrentVersion;
                     current.BreedId=req.BreedId;
                     current.Name=req.Name;
                     current.Sex=req.Sex;
@@ -84,16 +85,15 @@ namespace PetCenterServices.Services
                     await tx.CommitAsync();
                     return ServiceOutput<IndividualResponseDTO>.Success(IndividualResponseDTO.FromEntity(current));
                 }
-                catch
+                catch(Exception ex)
                 {
-                    await tx.RollbackAsync();                    
+                    await tx.RollbackAsync();   
+                    return ServiceOutput<IndividualResponseDTO>.FromException(ex);
                 }
 
 
             }
 
-            
-            return ServiceOutput<IndividualResponseDTO>.Error(HttpCode.InternalError,"Internal server error.");
                         
         }
 
@@ -340,10 +340,10 @@ namespace PetCenterServices.Services
                     await tx.CommitAsync();
                     return ServiceOutput<IndividualResponseDTO>.Success(IndividualResponseDTO.FromEntity(new_individual));
                 }
-                catch
+                catch(Exception ex)
                 {
                     await tx.RollbackAsync();
-                    return ServiceOutput<IndividualResponseDTO>.Error(HttpCode.InternalError,"Internal server error.");
+                    return ServiceOutput<IndividualResponseDTO>.FromException(ex);
                 }
 
             }

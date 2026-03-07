@@ -16,6 +16,8 @@ namespace PetCenterModels.DataTransferObjects
        
         public Guid? Id {get; set;} = null;
 
+        public byte[] CurrentVersion { get; set; } = Array.Empty<byte>();
+
         public List<NoteSubDTO>? Notes {get; set;} = null;
 
         public Guid OwningFranchise {get; set;} = Guid.Empty;
@@ -33,6 +35,7 @@ namespace PetCenterModels.DataTransferObjects
             return new FacilityDTO
             {
                 Id = entity.Id,
+                CurrentVersion=entity.CurrentVersion,
                 Street = entity.Street,
                 City = entity.City,
                 Contact = entity.Contact,
@@ -43,7 +46,7 @@ namespace PetCenterModels.DataTransferObjects
         public Facility? ToEntity()
         {
             Facility facility = new();
-           
+            facility.CurrentVersion=CurrentVersion;
             facility.Contact=Contact;
             facility.FranchiseId=OwningFranchise;
             facility.City=City;

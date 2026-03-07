@@ -18,7 +18,7 @@ namespace PetCenterModels.DBTables
 
         [Column("CurrentVersion")]
         [Timestamp]
-        public byte[] CurrentVersion { get; set; } = null!;
+        public byte[] CurrentVersion { get; set; } = Array.Empty<byte>();
 
 
         public BaseTableEntity()

@@ -14,6 +14,8 @@ namespace PetCenterModels.DataTransferObjects
     {       
         public Guid? Id {get; set;}
 
+        public byte[] CurrentVersion { get; set; } = Array.Empty<byte>();
+
         public string Name {get; set;} = string.Empty;
 
         public string Description {get; set;} = string.Empty;
@@ -32,6 +34,7 @@ namespace PetCenterModels.DataTransferObjects
         public Listing? ToEntity()
         {
             Listing output = new();
+            output.CurrentVersion=CurrentVersion;
             output.ListingName=Name;
             output.ListingDescription=Description;
             output.FranchiseId=FranchiseId;
