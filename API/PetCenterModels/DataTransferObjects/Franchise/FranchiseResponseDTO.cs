@@ -15,6 +15,8 @@ namespace PetCenterModels.DataTransferObjects
     public class FranchiseResponseDTO : IBaseResponseDTO<Franchise,FranchiseResponseDTO> 
     {
         public Guid? Id { get; set; }
+
+        public byte[] CurrentVersion { get; set; } = Array.Empty<byte>();
         public string? FranchiseName { get; set; }
         public string? Contact { get; set; }
     
@@ -33,6 +35,7 @@ namespace PetCenterModels.DataTransferObjects
             return new FranchiseResponseDTO
             {
                 Id = model.Id,
+                CurrentVersion=model.CurrentVersion,
                 FranchiseName = model.FranchiseName,
                 Contact = model.Contact,
             };
@@ -46,6 +49,7 @@ namespace PetCenterModels.DataTransferObjects
             return new FranchiseResponseDTO
             {
                 Id = model.Id,
+                CurrentVersion=model.CurrentVersion,
                 FranchiseName = model.FranchiseName,
                 Contact = model.Contact,  
                 Owned = owned             

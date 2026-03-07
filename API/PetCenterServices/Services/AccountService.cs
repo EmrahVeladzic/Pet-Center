@@ -86,10 +86,11 @@ namespace PetCenterServices.Services
 
                     return ServiceOutput<AccountResponseDTO>.Success(AccountResponseDTO.FromEntity(acc),HttpCode.Created);
                 }
-                catch
+                catch(Exception ex)
                 {
                     await tx.RollbackAsync();
-                    return ServiceOutput<AccountResponseDTO>.Error(HttpCode.InternalError, "Internal server error.");
+                    return ServiceOutput<AccountResponseDTO>.FromException(ex);
+                    
                 }
             }
         }
@@ -110,13 +111,14 @@ namespace PetCenterServices.Services
                 {
                     try
                     {
+                        acc.CurrentVersion=req.CurrentVersion;
                         await dbContext.SaveChangesAsync();
                         await tx.CommitAsync();
                     }
-                    catch
+                    catch(Exception ex)
                     {
                         await tx.RollbackAsync();
-                        return ServiceOutput<AccountResponseDTO>.Error(HttpCode.InternalError, "Internal server error.");
+                        return ServiceOutput<AccountResponseDTO>.FromException(ex);
                     }
                 }
 
@@ -238,10 +240,11 @@ namespace PetCenterServices.Services
                     }
 
                 }
-                catch
+                catch(Exception ex)
                 {
                     await tx.RollbackAsync();
-                    return ServiceOutput<string>.Error(HttpCode.InternalError,"Internal server error.");
+                    return ServiceOutput<string>.FromException(ex);
+                    
                 }
             }
            
@@ -290,10 +293,10 @@ namespace PetCenterServices.Services
                     
                 }                       
          
-                catch
+                catch(Exception ex)
                 {
                     await tx.RollbackAsync();
-                    return ServiceOutput<string>.Error(HttpCode.InternalError,"Internal server error.");
+                    return ServiceOutput<string>.FromException(ex);                    
 
                 }
             }
@@ -328,10 +331,11 @@ namespace PetCenterServices.Services
                     return ServiceOutput<object>.Success(default,HttpCode.NoContent);
                 
                 }
-                catch
+                catch(Exception ex)
                 {
                     await tx.RollbackAsync();
-                    return ServiceOutput<object>.Error(HttpCode.InternalError, "Internal server error.");
+                    return ServiceOutput<object>.FromException(ex);
+                    
 
                 }
             }

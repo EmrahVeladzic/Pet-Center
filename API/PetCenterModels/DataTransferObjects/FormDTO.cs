@@ -16,6 +16,8 @@ namespace PetCenterModels.DataTransferObjects
        
         public Guid? Id {get; set;} = null;
 
+        public byte[] CurrentVersion { get; set; } = Array.Empty<byte>();
+
         public Guid FormId {get; set;} = Guid.Empty;
 
         public Guid FormTemplateFieldId {get; set;} = Guid.Empty;
@@ -29,6 +31,7 @@ namespace PetCenterModels.DataTransferObjects
             return new FormEntrySubDTO
             {
                 Id = entity.Id,
+                CurrentVersion=entity.CurrentVersion,
                 FormTemplateFieldId=entity.FormTemplateFieldId,
                 FormId = entity.FormId,
                 Serialized=entity.Serialized
@@ -38,7 +41,7 @@ namespace PetCenterModels.DataTransferObjects
         public FormFieldEntry? ToEntity()
         {
             FormFieldEntry field = new();
-
+            field.CurrentVersion=CurrentVersion;
             field.FormId=FormId;
             field.FormTemplateFieldId=FormTemplateFieldId;
             field.Serialized=Serialized;          
@@ -57,6 +60,8 @@ namespace PetCenterModels.DataTransferObjects
     {
        
         public Guid? Id {get; set;} = null;
+
+        public byte[] CurrentVersion { get; set; } = Array.Empty<byte>();
 
         public List<NoteSubDTO>? Notes {get; set;} = null;
 
@@ -81,6 +86,7 @@ namespace PetCenterModels.DataTransferObjects
             return new FormDTO
             {
                 Id = entity.Id,
+                CurrentVersion = entity.CurrentVersion,
                 DefaultContact = entity.DefaultContact,
                 FranchiseName=entity.FranchiseName,
                 UserId=entity.UserId,
@@ -94,6 +100,7 @@ namespace PetCenterModels.DataTransferObjects
         public Form? ToEntity()
         {
             Form form = new();
+            form.CurrentVersion=CurrentVersion;
             form.UserId=UserId;
             form.AlbumId=AlbumId;
             form.DefaultContact=DefaultContact;

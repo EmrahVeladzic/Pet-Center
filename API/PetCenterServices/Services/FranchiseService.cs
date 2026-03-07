@@ -86,10 +86,10 @@ namespace PetCenterServices.Services
                     await dbContext.SaveChangesAsync();
                     await tx.CommitAsync();
                 }
-                catch 
+                catch(Exception ex)
                 {
                     await tx.RollbackAsync();
-                    return ServiceOutput<FranchiseResponseDTO>.Error(HttpCode.InternalError,"Internal server error.");
+                    return ServiceOutput<FranchiseResponseDTO>.FromException(ex);
                 }
             }
 
@@ -110,13 +110,14 @@ namespace PetCenterServices.Services
             {
                 try
                 {
+                    franch.CurrentVersion=req.CurrentVersion;
                     await dbContext.SaveChangesAsync();
                     await tx.CommitAsync();
                 }
-                catch 
+                catch(Exception ex)
                 {
                     await tx.RollbackAsync();
-                    return ServiceOutput<FranchiseResponseDTO>.Error(HttpCode.InternalError,"Internal server error.");
+                    return ServiceOutput<FranchiseResponseDTO>.FromException(ex);
                 }
             }
 

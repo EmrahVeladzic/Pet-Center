@@ -26,6 +26,11 @@ namespace PetCenterServices.Services
             recommender = rec;
         }
 
+        protected override void Touch()
+        {
+            StaticDataVersionHolder.BreedVersion = Guid.NewGuid();
+        }
+
         protected override async Task<IQueryable<Breed>> Filter(Guid token_holder, BreedSearchObject search)
         {
             

@@ -14,6 +14,8 @@ namespace PetCenterModels.DataTransferObjects
     {       
         public Guid? Id {get; set;}
 
+        public byte[] CurrentVersion { get; set; } = Array.Empty<byte>();
+
         public string Name {get; set;} = string.Empty;
 
         public Guid BreedId {get; set;} = Guid.Empty;
@@ -34,6 +36,7 @@ namespace PetCenterModels.DataTransferObjects
         public Individual? ToEntity()
         {
             Individual output = new();
+            output.CurrentVersion=CurrentVersion;
             output.AnimalIdentity = Guid.NewGuid();
             output.BreedId=BreedId;
             output.Sex=Sex;

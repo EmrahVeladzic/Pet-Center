@@ -23,6 +23,11 @@ namespace PetCenterServices.Services
             dbSet = ctx.LivingConditionFields;
         }
 
+        protected override void Touch()
+        {
+            StaticDataVersionHolder.LivingConditionVersion=Guid.NewGuid();
+        }
+
         protected override Task<IQueryable<LivingConditionField>> Filter(Guid token_holder, LivingConditionSearchObject search)
         {
            
@@ -96,12 +101,13 @@ namespace PetCenterServices.Services
                 }
 
                 await dbContext.SaveChangesAsync();
+                Touch();
                 return ServiceOutput<LivingConditionEntrySubDTO>.Success(LivingConditionEntrySubDTO.FromEntity(entry));
 
             }
-            catch
+            catch(Exception ex)
             {
-                return ServiceOutput<LivingConditionEntrySubDTO>.Error(HttpCode.InternalError,"Internal server error.");
+                return ServiceOutput<LivingConditionEntrySubDTO>.FromException(ex);
             }
 
 
@@ -123,14 +129,14 @@ namespace PetCenterServices.Services
                     await entry.StageDeletion<LivingConditionEntry>(dbContext,dbContext.LivingConditionEntries);
                     await dbContext.SaveChangesAsync();
                 }
-                catch
+                catch(Exception ex)
                 {
-                    return ServiceOutput<object>.Error(HttpCode.InternalError,"Internal server error.");
+                    return ServiceOutput<object>.FromException(ex);
                 }
 
                 
             }
-
+            Touch();
             return ServiceOutput<object>.Success(null,HttpCode.NoContent);
         }
 

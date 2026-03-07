@@ -15,6 +15,8 @@ namespace PetCenterModels.DataTransferObjects
     public class AnnouncementSubDTO : IBaseResponseDTO<Announcement, AnnouncementSubDTO>
     {
         public Guid? Id {get; set;}
+
+        public byte[] CurrentVersion { get; set; } = Array.Empty<byte>();
         public List<NoteSubDTO>? Notes {get; set;} = null;    
 
         public string Body {get; set;} = string.Empty;
@@ -25,6 +27,7 @@ namespace PetCenterModels.DataTransferObjects
             return new AnnouncementSubDTO
             {
                 Id=announcement.Id,
+                CurrentVersion=announcement.CurrentVersion,
                 Body=announcement.Body
             };
         }
@@ -33,6 +36,8 @@ namespace PetCenterModels.DataTransferObjects
     public class NotificationSubDTO : IBaseResponseDTO<Notification, NotificationSubDTO>
     {
         public Guid? Id {get; set;}
+
+        public byte[] CurrentVersion { get; set; } = Array.Empty<byte>();
         public List<NoteSubDTO>? Notes {get; set;} = null;
         public Guid? ListingId {get; set;} = null;
         public string Title {get; set;} = string.Empty;
@@ -45,6 +50,7 @@ namespace PetCenterModels.DataTransferObjects
             return new NotificationSubDTO
             {
                 Id=notification.Id,
+                CurrentVersion=notification.CurrentVersion,
                 Title = notification.Title,
                 Body=notification.Body,
                 ListingId=notification.ListingId
@@ -55,6 +61,8 @@ namespace PetCenterModels.DataTransferObjects
     public class SuppliesSubDTO : IBaseResponseDTO<Supplies,SuppliesSubDTO>
     {
         public Guid? Id {get; set;}
+
+        public byte[] CurrentVersion { get; set; } = Array.Empty<byte>();
 
         public Guid KindId {get; set;}
 
@@ -68,6 +76,7 @@ namespace PetCenterModels.DataTransferObjects
             SuppliesSubDTO output = new();
 
             output.Id=supplies.Id;
+            output.CurrentVersion=supplies.CurrentVersion;
             output.KindId=supplies.KindId;
             output.ConsumableId=supplies.CategoryId;
 
@@ -84,6 +93,9 @@ namespace PetCenterModels.DataTransferObjects
     public class UserResponseDTO : IBaseResponseDTO<User,UserResponseDTO>
     {        
         public Guid? Id {get; set;}
+
+        public byte[] CurrentVersion { get; set; } = Array.Empty<byte>();
+
         public string? UserName {get; set;}
         public List<NoteSubDTO>? Notes {get; set;}
 
@@ -100,6 +112,7 @@ namespace PetCenterModels.DataTransferObjects
             return new UserResponseDTO
             {
                 Id=usr.Id,
+                CurrentVersion=usr.CurrentVersion,
                 UserName=usr.UserName,
                
             };

@@ -16,6 +16,8 @@ namespace PetCenterModels.DataTransferObjects
        
         public Guid? Id {get; set;} = null;
 
+        public byte[] CurrentVersion { get; set; } = Array.Empty<byte>();
+
         public Guid FormTemplateId {get; set;} = Guid.Empty;
 
         public string Description {get; set;} = string.Empty;
@@ -30,6 +32,7 @@ namespace PetCenterModels.DataTransferObjects
             return new FormTemplateFieldDTO
             {
                 Id = entity.Id,
+                CurrentVersion=entity.CurrentVersion,
                 FormTemplateId = entity.FormTemplateId,
                 Description = entity.Description,
                 Optional = entity.Optional
@@ -39,7 +42,7 @@ namespace PetCenterModels.DataTransferObjects
         public FormTemplateField? ToEntity()
         {
             FormTemplateField formTemplateField = new();
-           
+            formTemplateField.CurrentVersion=CurrentVersion;
             formTemplateField.FormTemplateId = FormTemplateId;
             formTemplateField.Description = Description;
             formTemplateField.Optional = Optional;
@@ -58,6 +61,8 @@ namespace PetCenterModels.DataTransferObjects
        
         public Guid? Id {get; set;} = null;
 
+        public byte[] CurrentVersion { get; set; } = Array.Empty<byte>();
+
         public List<NoteSubDTO>? Notes {get; set;} = null;
 
         public string Description {get; set;} = string.Empty;
@@ -71,6 +76,7 @@ namespace PetCenterModels.DataTransferObjects
             return new FormTemplateDTO
             {
                 Id = entity.Id,
+                CurrentVersion=entity.CurrentVersion,
                 Description = entity.Description,
                 Fields = entity.Entries.Select(f=>FormTemplateFieldDTO.FromEntity(f)!).ToList()
             };
@@ -80,6 +86,7 @@ namespace PetCenterModels.DataTransferObjects
         {
             FormTemplate formTemplate = new();
            
+            formTemplate.CurrentVersion=CurrentVersion;
             formTemplate.Description = Description;
 
             return formTemplate;

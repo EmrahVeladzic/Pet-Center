@@ -70,9 +70,10 @@ namespace PetCenterServices.Services
                             await tx.CommitAsync();
                             return ServiceOutput<TResponse>.Success(TResponse.FromEntity(ent),HttpCode.Created);
                         }
-                        catch
+                        catch(Exception ex)
                         {
                             await tx.RollbackAsync();
+                            return ServiceOutput<TResponse>.FromException(ex);
                         }
                     }
 

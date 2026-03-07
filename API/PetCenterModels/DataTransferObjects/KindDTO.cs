@@ -16,6 +16,8 @@ namespace PetCenterModels.DataTransferObjects
        
         public Guid? Id {get; set;} = null;
 
+        public byte[] CurrentVersion { get; set; } = Array.Empty<byte>();
+
         public List<NoteSubDTO>? Notes {get; set;} = null;
 
         public string Title {get; set;} = string.Empty;
@@ -29,6 +31,7 @@ namespace PetCenterModels.DataTransferObjects
             return new KindDTO
             {
                 Id = entity.Id,
+                CurrentVersion=entity.CurrentVersion,
                 Title = entity.Title,
                 Breeds=entity.Breeds.Select(b=>BreedDTO.FromEntity(b)!).ToList()
 
@@ -38,7 +41,7 @@ namespace PetCenterModels.DataTransferObjects
         public Kind? ToEntity()
         {
             Kind kind = new();
-           
+            kind.CurrentVersion = CurrentVersion;
             kind.Title=Title;
             return kind;
         }

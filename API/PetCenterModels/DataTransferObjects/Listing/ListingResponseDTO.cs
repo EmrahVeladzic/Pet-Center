@@ -17,6 +17,8 @@ namespace PetCenterModels.DataTransferObjects
        
         public Guid? Id {get; set;} = null;      
 
+        public byte[] CurrentVersion { get; set; } = Array.Empty<byte>();
+
         public List<NoteSubDTO>? Notes {get; set;} = null;
 
         public Guid AlbumId {get; set;} = Guid.Empty;
@@ -53,6 +55,7 @@ namespace PetCenterModels.DataTransferObjects
             ListingResponseDTO output = new ListingResponseDTO
             {
                 Id = entity.Id,
+                CurrentVersion=entity.CurrentVersion,
                 Name=entity.ListingName,
                 Description=entity.ListingDescription,
                 FranchiseId=entity.FranchiseId,

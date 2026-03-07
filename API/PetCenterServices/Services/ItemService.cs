@@ -23,6 +23,11 @@ namespace PetCenterServices.Services
             dbSet = ctx.Items;
         }
 
+        protected override void Touch()
+        {
+            StaticDataVersionHolder.ProductVersion=Guid.NewGuid();
+        }
+
         public override async Task<ServiceOutput<object>> IsClearedToCreate (Guid token_holder, ItemDTO resource)
         {
             if (!resource.Validate())

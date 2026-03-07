@@ -23,6 +23,8 @@ namespace PetCenterModels.DataTransferObjects
         
         public Guid? Id {get; set;} = null;
 
+        public byte[] CurrentVersion { get; set; } = Array.Empty<byte>();
+
         [Required]
         public Guid AlbumInsertId { get; set; } = Guid.Empty;
         [Required]
@@ -40,6 +42,7 @@ namespace PetCenterModels.DataTransferObjects
             return new ImageDTO
             {
                 Id = img.Id,
+                CurrentVersion=img.CurrentVersion,
                 AlbumInsertId=img.AlbumId,
                 Width = img.Width,
                 Height = img.Height,
@@ -56,6 +59,7 @@ namespace PetCenterModels.DataTransferObjects
         {
             Image img = new();
 
+            img.CurrentVersion=CurrentVersion;
             img.Width=Width;
             img.Height=Height;
             img.AlbumId = AlbumInsertId;

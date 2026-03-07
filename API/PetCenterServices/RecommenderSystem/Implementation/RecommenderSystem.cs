@@ -16,6 +16,48 @@ using System.Threading.Tasks;
 namespace PetCenterServices.Recommender
 {
 
+     public class PetCenterVector5
+    {
+
+        public float Investment {get; set;} = 0.0f;
+        public float Territory {get; set;} = 0.0f;
+        public float Pricing {get; set;} = 0.0f;
+        public float Longevity {get; set;} = 0.0f;
+        public float Cohabitation {get; set;} = 0.0f;
+
+        public PetCenterVector5(List<LivingConditionEntry> entries)
+        {
+            entries = entries.Where(e=>e.Field !=null).ToList();
+
+            foreach(LivingConditionEntry entry in entries)
+            {
+                if (entry.Answer)
+                {
+                    Investment += entry.Field.InvestmentEffect;
+                    Territory += entry.Field.TerritoryEffect;
+                    Pricing += entry.Field.PricingEffect;
+                    Longevity += entry.Field.LongevityEffect;
+                    Cohabitation += entry.Field.CohabitationEffect;
+                }
+                else
+                {
+                    Investment -= entry.Field.InvestmentEffect;
+                    Territory -= entry.Field.TerritoryEffect;
+                    Pricing -= entry.Field.PricingEffect;
+                    Longevity -= entry.Field.LongevityEffect;
+                    Cohabitation -= entry.Field.CohabitationEffect;
+                }
+            }
+
+            Investment = Math.Clamp(Investment,0.0f,1.0f);
+            Territory = Math.Clamp(Territory,0.0f,1.0f);
+            Pricing = Math.Clamp(Pricing,0.0f,1.0f);
+            Longevity = Math.Clamp(Longevity,0.0f,1.0f);
+            Cohabitation = Math.Clamp(Cohabitation,0.0f,1.0f);
+        }
+        
+    }
+
     public class RecommenderSystem : IRecommenderSystem
     {
         
@@ -139,7 +181,8 @@ namespace PetCenterServices.Recommender
             List<Supplies> supplies = await ctx.SupplyRecords.Include(s=>s.KindDetails).Include(s=>s.ConsumableCategory).Where(s=>s.UserId==UserId).ToListAsync();
             Animals = Animals.Where(a=>a.AnimalBreed!=null).ToList();
 
-            List<Kind> kinds= await ctx.AnimalKinds.Where(k=>Animals.Any(a=>a.AnimalBreed.KindId==k.Id)).ToListAsync();
+            List<Kind> kinds= await ctx.AnimalKinds.ToListAsync();
+            kinds = kinds.Where(k=>Animals.Any(a=>a.AnimalBreed.KindId==k.Id)).ToList();
 
                         
             supplies = supplies.Where(s=>s.ConsumableCategory!=null && s.KindDetails!=null).ToList();

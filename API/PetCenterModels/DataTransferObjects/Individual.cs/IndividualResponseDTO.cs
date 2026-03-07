@@ -15,6 +15,8 @@ namespace PetCenterModels.DataTransferObjects
         public Guid? Id {get; set;}
         public List<NoteSubDTO>? Notes {get; set;}
 
+        public byte[] CurrentVersion { get; set; } = Array.Empty<byte>();
+
         public DateTime DatePerformed {get; set;} = DateTime.UtcNow;
 
         public Guid ProcedureId {get; set;} = Guid.Empty;
@@ -27,6 +29,7 @@ namespace PetCenterModels.DataTransferObjects
             return new MedicalEntrySubDTO
             {
                 Id=ent.Id,
+                CurrentVersion=ent.CurrentVersion,
                 DatePerformed=ent.DatePerformed,
                 ProcedureId=ent.ProcedureId,
                 AnimalId=ent.AnimalId
@@ -37,6 +40,8 @@ namespace PetCenterModels.DataTransferObjects
     {        
 
         public Guid? Id {get; set;}
+
+        public byte[] CurrentVersion { get; set; } = Array.Empty<byte>();
 
         public Guid Identity {get; set;} = Guid.Empty;
         public string Name {get; set;} = string.Empty;
@@ -58,6 +63,7 @@ namespace PetCenterModels.DataTransferObjects
             return new IndividualResponseDTO
             {
                 Id = ind.Id,
+                CurrentVersion=ind.CurrentVersion,
                 Identity=ind.AnimalIdentity,
                 Name = ind.Name,
                 BreedId=ind.BreedId,
