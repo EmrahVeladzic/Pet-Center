@@ -64,7 +64,7 @@ namespace PetCenterServices.Services
                     {
                         try
                         {
-                            ent.AlbumId = await ImageService.CreateAlbum(token_holder,dbContext,ent.AlbumCapacity);
+                            ent.AlbumId = await ImageService.CreateAlbum(null,dbContext,ent.AlbumCapacity);
                             await dbSet.AddAsync(ent);
                             await dbContext.SaveChangesAsync();
                             await tx.CommitAsync();
