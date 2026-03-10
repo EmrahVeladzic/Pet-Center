@@ -85,7 +85,7 @@ namespace PetCenterServices.Services
                 return ServiceOutput<object>.Error(HttpCode.BadRequest,"DTO validation failed.");
             }
 
-            if(await dbContext.AnimalKinds.AnyAsync(k => k.Id == resource.KindId))
+            if(!await dbContext.AnimalKinds.AnyAsync(k => k.Id == resource.KindId))
             {
                 return ServiceOutput<object>.Error(HttpCode.NotFound,"The specified kind does not exist.");
             }
@@ -104,7 +104,7 @@ namespace PetCenterServices.Services
                 return ServiceOutput<object>.Error(HttpCode.BadRequest,"DTO validation failed.");
             }
 
-            if(await dbContext.AnimalKinds.AnyAsync(k => k.Id == resource.KindId))
+            if(!await dbContext.AnimalKinds.AnyAsync(k => k.Id == resource.KindId))
             {
                 return ServiceOutput<object>.Error(HttpCode.NotFound,"The specified kind does not exist.");
             }

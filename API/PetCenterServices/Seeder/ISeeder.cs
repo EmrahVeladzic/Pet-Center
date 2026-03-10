@@ -13,8 +13,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace PetCenterServices.Seeder
-{
-    
+{    
 
     public interface ISeeder
     {

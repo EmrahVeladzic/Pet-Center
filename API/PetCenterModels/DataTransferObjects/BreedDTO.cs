@@ -16,7 +16,7 @@ namespace PetCenterModels.DataTransferObjects
     {
        
         public Guid? Id {get; set;} = null;
-
+        
         public byte[] CurrentVersion { get; set; } = Array.Empty<byte>();
 
         public Guid KindId {get; set;} = Guid.Empty;
@@ -68,6 +68,14 @@ namespace PetCenterModels.DataTransferObjects
         {
             Breed breed = new();
             breed.CurrentVersion=CurrentVersion;
+            breed.KindId=KindId;
+            breed.AlbumId=AlbumId;
+            breed.Scale=Scale;
+            breed.Investment=Investment;
+            breed.Territory=Territory;
+            breed.Cohabitation=Cohabitation;
+            breed.Longevity=Longevity;
+            breed.Pricing=Pricing;
             breed.Title=Title;
             return breed;
         }

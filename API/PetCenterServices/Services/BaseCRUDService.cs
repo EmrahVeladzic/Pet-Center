@@ -128,8 +128,18 @@ namespace PetCenterServices.Services
                         {
                             try
                             {
-                                overwrite.Id=ent.Id;
+
+                                
+                                overwrite.Id = ent.Id;
+
+                                
+                                dbSet.Entry(ent).Property(e => e.CurrentVersion).OriginalValue = overwrite.CurrentVersion;
+
+                                
+                                var originalVersion = overwrite.CurrentVersion;
+                                overwrite.CurrentVersion = ent.CurrentVersion; 
                                 dbSet.Entry(ent).CurrentValues.SetValues(overwrite);
+
                                 await dbContext.SaveChangesAsync();
                                 await tx.CommitAsync();
                                 Touch();
