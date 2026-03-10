@@ -25,7 +25,7 @@ namespace PetCenterServices.Workers
 
             while (!stoppingToken.IsCancellationRequested)
             {
-                using(AsyncServiceScope scope = scope_factory.CreateAsyncScope())
+                await using(AsyncServiceScope scope = scope_factory.CreateAsyncScope())
                 {
                     PetCenterDBContext dBContext = scope.ServiceProvider.GetRequiredService<PetCenterDBContext>();
                     IHostEnvironment environment = scope.ServiceProvider.GetRequiredService<IHostEnvironment>();
@@ -33,7 +33,7 @@ namespace PetCenterServices.Workers
                 }
 
                 
-                await Task.Delay(TimeSpan.FromHours(6));
+                await Task.Delay(TimeSpan.FromHours(6),stoppingToken);
             }
 
         }
@@ -43,7 +43,7 @@ namespace PetCenterServices.Workers
             bool proceed = true;
             while(proceed && !stoppingToken.IsCancellationRequested)
             {
-                await using (IDbContextTransaction tx = await dBContext.Database.BeginTransactionAsync())
+                await using (IDbContextTransaction tx = await dBContext.Database.BeginTransactionAsync(stoppingToken))
                 {
                     try
                     {

@@ -185,10 +185,10 @@ namespace PetCenterServices.Services
         }
 
 
-        public static async Task<Guid> CreateAlbum(Guid token_holder,PetCenterDBContext ctx, byte cap)
+        public static async Task<Guid> CreateAlbum(Guid? token_holder,PetCenterDBContext ctx, byte cap)
         {
             Album alb = new(cap);
-            alb.PosterID = (Guid)token_holder;
+            alb.PosterID = token_holder;
             await ctx.Albums.AddAsync(alb);
             await ctx.SaveChangesAsync();
             return alb.Id;

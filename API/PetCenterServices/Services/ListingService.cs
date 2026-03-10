@@ -423,6 +423,11 @@ namespace PetCenterServices.Services
                 {
                     try
                     {
+                        Franchise? franch = await dbContext.Franchises.FindAsync(req?.FranchiseId);
+                        Guid? owner = franch?.OwnerId??null;
+
+                        lst.AlbumId=await ImageService.CreateAlbum(owner,dbContext,1);
+
                         await dbSet.AddAsync(lst);
                         await dbContext.SaveChangesAsync();
 

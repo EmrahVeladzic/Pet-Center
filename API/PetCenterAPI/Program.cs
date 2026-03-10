@@ -13,6 +13,7 @@ using System.Text;
 using System.Text.Json;
 using PetCenterServices.Recommender;
 using PetCenterServices.Workers;
+using PetCenterServices.Seeder;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -64,8 +65,11 @@ builder.Services.AddSwaggerGen(cfg =>
 });
 
 builder.Services.AddSingleton<IRecommenderSystem,RecommenderSystem>();
+builder.Services.AddSingleton<ISeeder,Seeder>();
+
 
 builder.Services.AddHostedService<CleanupService>();
+builder.Services.AddHostedService<SupplyService>();
 
 builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddScoped<IUserService, UserService>();
@@ -186,7 +190,7 @@ while (retry)
         {
             PetCenterDBContext ctx = scope.ServiceProvider.GetRequiredService<PetCenterDBContext>();
             IAccountService svc = scope.ServiceProvider.GetRequiredService<IAccountService>();
-            
+            ISeeder seeder = scope.ServiceProvider.GetRequiredService<ISeeder>();
                     
                 if (!await ctx.Accounts.AnyAsync())
                 {
@@ -209,6 +213,8 @@ while (retry)
 
 
                     await svc.Post(Guid.Empty,owner_req);
+
+                    await seeder.SeedDatabase(ctx,true);
                   
                 }
 

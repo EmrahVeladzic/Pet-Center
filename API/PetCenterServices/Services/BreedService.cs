@@ -117,6 +117,10 @@ namespace PetCenterServices.Services
                 return ServiceOutput<object>.Error(HttpCode.Conflict,"You cannot change a breed's kind.");
             }
 
+            if(!await dbSet.AnyAsync(b=>b.Id==resource.Id&&b.AlbumId==resource.AlbumId)){
+                return ServiceOutput<object>.Error(HttpCode.Conflict,"You cannot change a breed's album.");
+            }
+
 
             return ServiceOutput<object>.Success(null);
         }
