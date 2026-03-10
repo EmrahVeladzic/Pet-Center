@@ -15,6 +15,7 @@ using PetCenterServices.Recommender;
 using PetCenterServices.Workers;
 using PetCenterServices.Seeder;
 
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -62,10 +63,12 @@ builder.Services.AddSwaggerGen(cfg =>
             new string[] {}
         }
     });
+
+    cfg.SchemaFilter<CurrentVersionSchemaFilter>();
 });
 
 builder.Services.AddSingleton<IRecommenderSystem,RecommenderSystem>();
-builder.Services.AddSingleton<ISeeder,Seeder>();
+builder.Services.AddSingleton<ISeeder,TestSeeder>();
 
 
 builder.Services.AddHostedService<CleanupService>();
