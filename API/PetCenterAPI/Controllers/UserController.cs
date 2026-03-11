@@ -55,7 +55,7 @@ namespace PetCenterAPI.Controllers
 
         [HttpPut("Announcement")]
         [Authorize(Roles = "Owner,Admin")]
-        public async Task<IActionResult> AddAnnouncement([FromBody] string announcement, [FromQuery] bool user_visible, [FromQuery] bool business_visible, [FromQuery]  int days_valid = 7)
+        public async Task<IActionResult> AddAnnouncement([FromQuery] string announcement, [FromQuery] bool user_visible, [FromQuery] bool business_visible, [FromQuery]  int days_valid = 7)
         {
             return ResultConverter.Convert<AnnouncementSubDTO>(await service.AddAnnouncement(announcement,user_visible,business_visible,days_valid));
         }
@@ -71,7 +71,7 @@ namespace PetCenterAPI.Controllers
 
         [HttpPut("Notification/{usr_id}")]
         [Authorize(Roles = "Owner,Admin")]
-        public async Task<IActionResult> AddNotification([FromRoute] Guid usr_id, [FromQuery] string title, [FromBody] string body, [FromQuery] Guid? franchise_id, [FromQuery] Guid? listing_id, [FromQuery] int days_valid = 7)
+        public async Task<IActionResult> AddNotification([FromRoute] Guid usr_id, [FromQuery] string title, [FromQuery] string body, [FromQuery] Guid? franchise_id, [FromQuery] Guid? listing_id, [FromQuery] int days_valid = 7)
         {
             return ResultConverter.Convert<NotificationSubDTO>(await service.AddNotification(title,body,usr_id,franchise_id,listing_id,days_valid));
         }

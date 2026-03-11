@@ -218,8 +218,13 @@ namespace PetCenterServices.Seeder
 
                     if (non_static_data)
                     {
-                        
+                        for(int i =1; i<=30; i++)
+                        {
+                            
+
+                        }
                     }
+
                     await tx.CommitAsync();
                     return true;
                 }
