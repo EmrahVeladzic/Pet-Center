@@ -18,7 +18,7 @@ namespace PetCenterServices.Interfaces
         public Task <ServiceOutput<object>> RemoveReview(Guid token_holder, Guid comment_id, Access authorization_level);
         public Task <ServiceOutput<DiscountResponseSubDTO>> SetDiscount(Guid token_holder, Guid ListingId, byte percentage, byte days_valid);
         public Task <ServiceOutput<object>> SetVisibility(Guid token_holder, Guid ListingId, bool visible);
-        public Task <ServiceOutput<object>> Approve (Guid ListingId);
+        public Task <ServiceOutput<object>> Evaluate (Guid ListingId,bool approved,string note);
         public Task <ServiceOutput<AvailabilityResponseSubDTO>> SetAvailability(Guid token_holder, Guid ListingId, Guid FacilityId, bool add_remove);
     }
 }

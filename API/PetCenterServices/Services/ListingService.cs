@@ -219,24 +219,44 @@ namespace PetCenterServices.Services
             return ServiceOutput<object>.Success(null,HttpCode.NoContent);
         }
 
-        public async Task <ServiceOutput<object>> Approve (Guid ListingId)
+        public async Task <ServiceOutput<object>> Evaluate (Guid ListingId,bool approve,string note)
         {
-            Listing? listing = await dbSet.Include(l=>l.Album).FirstOrDefaultAsync(l=>l.Id==ListingId);
+            Listing? listing = await dbSet.Include(l=>l.Album).Include(l=>l.Business).FirstOrDefaultAsync(l=>l.Id==ListingId);
 
-            if (listing != null)
+            if (listing != null && listing.Album!=null && listing.Business!=null)
             {
-                if (listing.Album == null || listing.Album.Reserved <= 0)
+                if (listing.Album.Reserved <= 0)
                 {
-                    return ServiceOutput<object>.Error(HttpCode.Forbidden,"You may not approve listings without images.");
+                    return ServiceOutput<object>.Error(HttpCode.Forbidden,"You may not evaluate listings without images.");
                 }
 
-                listing.Approved=true;
+                if (!listing.Updated)
+                {
+                    return ServiceOutput<object>.Error(HttpCode.Conflict,"This listing has already been evaluated.");
+                }
+
+                listing.Approved=approve;
                 listing.Visible=true;
                 listing.Album.Locked=true;
+                listing.Updated=false;
+
+                Notification notification = new Notification
+                {
+                    UserId=listing.Business.OwnerId,
+                    FranchiseId=listing.FranchiseId,
+                    Title=$"Listing evaluation - {((approve)?"APPROVED":"NOT APPROVED")}",
+                    Body=$"Note: \"{note}\".",
+                    Expiry=DateTime.UtcNow.AddDays(2),
+                    ListingId=listing.Id
+                };
+
+                await dbContext.Notifications.AddAsync(notification);
+
                 await dbContext.SaveChangesAsync();
+
                 return ServiceOutput<object>.Success(null,HttpCode.NoContent);
             }
-            return ServiceOutput<object>.Error(HttpCode.NotFound,"The selected listing does not exist.");
+            return ServiceOutput<object>.Error(HttpCode.NotFound,"One or more resources needed for this operation are missing.");
         }
 
         public async Task <ServiceOutput<object>> SetVisibility(Guid token_holder, Guid ListingId, bool visible)
@@ -427,6 +447,7 @@ namespace PetCenterServices.Services
                         Guid? owner = franch?.OwnerId??null;
 
                         lst.AlbumId=await ImageService.CreateAlbum(owner,dbContext,1);
+                        lst.Updated=true;
 
                         await dbSet.AddAsync(lst);
                         await dbContext.SaveChangesAsync();
@@ -444,6 +465,7 @@ namespace PetCenterServices.Services
                         lst.ProductExtension=plst;
                         lst.AnimalExtension=alst;
                         lst.MedicalExtension=mlst;
+                        
                        
                         await tx.CommitAsync();
                         return ServiceOutput<ListingResponseDTO>.Success(ListingResponseDTO.FromEntity(lst),HttpCode.Created);
@@ -479,6 +501,7 @@ namespace PetCenterServices.Services
                         listing.ListingName=req.Name;
                         listing.ListingDescription=req.Description;
                         listing.PriceMinor=req.PriceMinor;
+                        listing.Updated=true;
 
                         if (listing.Type == ListingType.Product && listing.ProductExtension != null && req.ProductListingExtension != null)
                         {

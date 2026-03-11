@@ -42,10 +42,10 @@ namespace PetCenterAPI.Controllers
 
 
         [Authorize(Roles ="Owner,Admin")]
-        [HttpPost("Approve/{id}")]
-        public async Task<IActionResult> Approve([FromRoute]Guid id)
+        [HttpPost("Evaluate/{id}")]
+        public async Task<IActionResult> Evaluate([FromRoute]Guid id,[FromQuery]bool approve,[FromQuery]string note="Evaluated")
         {
-            return ResultConverter.Convert<object>(await service.Approve(id));
+            return ResultConverter.Convert<object>(await service.Evaluate(id,approve,note));
         }
 
         [Authorize(Roles ="Owner,Admin")]
@@ -83,7 +83,7 @@ namespace PetCenterAPI.Controllers
 
         [Authorize(Roles ="Employee,User")]
         [HttpPut("Report/{listing_id}")]
-        public async Task<IActionResult> ReportMisuse([FromRoute] Guid listing_id,[FromQuery] Guid? comment_id, [FromBody] string Reason)
+        public async Task<IActionResult> ReportMisuse([FromRoute] Guid listing_id,[FromQuery] Guid? comment_id, [FromQuery] string Reason)
         {
             if(TryGetUserId(out Guid user_id))
             {
@@ -94,7 +94,7 @@ namespace PetCenterAPI.Controllers
 
         [Authorize(Roles ="User")]
         [HttpPut("Review/{listing_id}")]
-        public async Task<IActionResult> AddReview([FromRoute] Guid listing_id,[FromBody] string comment)
+        public async Task<IActionResult> AddReview([FromRoute] Guid listing_id,[FromQuery] string comment)
         {
             if(TryGetUserId(out Guid user_id))
             {

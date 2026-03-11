@@ -3,6 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using PetCenterModels.DataTransferObjects;
 using PetCenterModels.DBTables;
+using PetCenterServices.Utils;
 using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
@@ -109,6 +110,7 @@ namespace PetCenterServices.Recommender
                     }
                 }
                 await ctx.SaveChangesAsync();
+                
             }
             
         }

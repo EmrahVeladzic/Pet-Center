@@ -35,7 +35,7 @@ namespace PetCenterAPI.Controllers
 
         [Authorize(Roles = "Admin,Owner")]
         [HttpDelete("Deny/{id}")]
-        public async Task<IActionResult> DenyForm ([FromRoute] Guid id, [FromBody] string reason)
+        public async Task<IActionResult> DenyForm ([FromRoute] Guid id, [FromQuery] string reason)
         {
             return ResultConverter.Convert<object>(await service.DenyForm(id,reason));
         }
