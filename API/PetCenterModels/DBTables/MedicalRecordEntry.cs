@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace PetCenterModels.DBTables
 {
-    [Table("MedicalRecordEntry",Schema ="Service")]
+    [Table("MedicalRecordEntry",Schema ="Animal")]
     public class MedicalRecordEntry:BaseTableEntity
     {
 

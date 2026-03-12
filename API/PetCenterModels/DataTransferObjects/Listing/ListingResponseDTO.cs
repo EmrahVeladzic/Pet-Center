@@ -59,8 +59,8 @@ namespace PetCenterModels.DataTransferObjects
                 Name=entity.ListingName,
                 Description=entity.ListingDescription,
                 FranchiseId=entity.FranchiseId,
-                Contact=entity.Business.Contact??"No provided contact.",
-                FranchiseName=entity.Business.FranchiseName??"No provided name.",
+                Contact="No provided contact.",
+                FranchiseName="No provided name.",
                 PriceMinor=entity.PriceMinor,
                 Type=entity.Type,
                 ProductListingExtension=ProductListingSubDTO.FromEntity(entity.ProductExtension),
@@ -70,6 +70,12 @@ namespace PetCenterModels.DataTransferObjects
                 Availability=entity.AvailabilityRecords.Select(a=>AvailabilityResponseSubDTO.FromEntity(a)!).ToList(),
                 Comments=entity.Comments.Select(c=>CommentResponseSubDTO.FromEntity(c)!).ToList()
             };
+
+            if (entity.Business != null)
+            {
+                output.Contact=entity.Business.Contact??output.Contact;
+                output.FranchiseName=entity.Business.FranchiseName??output.FranchiseName;
+            }
 
             if (entity.Album != null)
             {

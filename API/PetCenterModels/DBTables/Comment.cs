@@ -24,7 +24,7 @@ namespace PetCenterModels.DBTables
         [Column("Contents")]
         public string Message { get; set; } = string.Empty;
         [Column("LastEdited")]
-        public DateTime LastEditDate { get; set; }
+        public DateTime LastEditDate { get; set; } = DateTime.UtcNow;
        
         [Column("ListingID")]
         public Guid ListingId { get; set; }

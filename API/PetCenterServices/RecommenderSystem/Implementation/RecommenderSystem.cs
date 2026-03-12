@@ -121,8 +121,29 @@ namespace PetCenterServices.Recommender
 
             Breed? breed = await ctx.AnimalBreeds.FindAsync(pet.BreedId);
             if(breed==null){return output;}
-            List<MedicalProcedureSpecification> specs = await ctx.MedicalProcedureSpecifications.Include(m=>m.MedicalProcedure).Where(m=>m.BreedId==pet.BreedId && (m.SexSpecific==null || m.SexSpecific==pet.Sex) && m.ApproximateAge!=null && m.ApproximateAge<=(DateTime.UtcNow-pet.BirthDate).Days).ToListAsync();
-            specs.AddRange(await ctx.MedicalProcedureSpecifications.Include(m=>m.MedicalProcedure).Where(m=>m.KindId==breed.KindId && (m.SexSpecific==null || m.SexSpecific==pet.Sex) && m.ApproximateAge!=null && m.ApproximateAge<=(DateTime.UtcNow-pet.BirthDate).Days && !specs.Any(s=>s.ProcedureId==m.ProcedureId)).ToListAsync());
+
+            List<MedicalProcedureSpecification> specs = await ctx.MedicalProcedureSpecifications.Include(m=>m.MedicalProcedure)
+            .Where(m => m.BreedId == pet.BreedId &&
+            (m.SexSpecific == null || m.SexSpecific == pet.Sex))
+            .ToListAsync(); 
+
+            specs = specs
+            .Where(m => m.ApproximateAge == null || 
+            m.ApproximateAge <= (DateTime.UtcNow - pet.BirthDate).Days)
+            .ToList();
+
+            List<MedicalProcedureSpecification> candidates = await ctx.MedicalProcedureSpecifications
+            .Include(m => m.MedicalProcedure)
+            .Where(m => m.KindId == breed.KindId &&
+            (m.SexSpecific == null || m.SexSpecific == pet.Sex))
+            .ToListAsync();
+
+            List<MedicalProcedureSpecification> filtered = candidates
+            .Where(m => m.ApproximateAge == null || 
+            m.ApproximateAge <= (DateTime.UtcNow - pet.BirthDate).Days)
+            .ToList();
+
+            specs.AddRange(filtered.Where(m => !specs.Any(s => s.ProcedureId == m.ProcedureId)));
 
             specs = specs.Where(s=>s.MedicalProcedure!=null && s.ApproximateAge!=null).ToList();
 
