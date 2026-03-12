@@ -89,6 +89,10 @@ namespace UserContactConsumer.Services
                 subject = "Message from PetCenter!";
             }
 
+            if (string.IsNullOrWhiteSpace(smtp.email))
+            {
+                smtp.email="null@example.com";
+            }
 
             MimeMessage msg = new();
             msg.Subject = subject;

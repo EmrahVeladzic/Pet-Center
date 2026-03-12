@@ -60,9 +60,13 @@ namespace PetCenterServices.Services
 
             switch (search.OrderBy)
             {
-                case OrderingMethod.ID : {query=query.OrderBy(q=>q.Id);break;}
+                
                 case OrderingMethod.PriceAscending : {query=query.OrderBy(q=>(q.ListingDiscount!=null)?((q.PriceMinor*100)-(q.PriceMinor*(long)q.ListingDiscount.PercentDiscount)):q.PriceMinor);break;}
                 case OrderingMethod.PriceDescending : {query=query.OrderByDescending(q=>(q.ListingDiscount!=null)?((q.PriceMinor*100)-(q.PriceMinor*(long)q.ListingDiscount.PercentDiscount)):q.PriceMinor);break;}
+                case OrderingMethod.PostedDescending : {query=query.OrderByDescending(q=>q.Posted);break;}
+                case OrderingMethod.PostedAscending : {query=query.OrderBy(q=>q.Posted);break;}
+                default: {query=query.OrderBy(q=>q.Id);break;}
+            
             }
 
             return Task.FromResult(query);

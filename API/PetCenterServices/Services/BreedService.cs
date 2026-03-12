@@ -50,6 +50,7 @@ namespace PetCenterServices.Services
                 query = query.Where(b =>
                 dbContext.AnimalListings.Any(al =>
                 al.Animal.AnimalBreed.Id == b.Id && b.KindId==search.KindId &&
+                al.Base.Approved &&
                 al.Base.Visible &&
                 al.Base.Type == ListingType.Pet));
                 query=await recommender.GetMostCompatibleBreeds(dbContext,query,usr);

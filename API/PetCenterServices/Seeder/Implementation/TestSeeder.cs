@@ -25,7 +25,7 @@ namespace PetCenterServices.Seeder
     public class TestSeeder : ISeeder
     {      
 
-        public PetCenterModels.DBTables.Image CreateRandomImage(Guid album_id,Random rng, short w = 64, short h=64)
+        public PetCenterModels.DBTables.Image CreateRandomImage(Guid album_id,Random rng, short w = 32, short h=32)
         {
             PetCenterModels.DBTables.Image output = new();
             output.AlbumId=album_id;
@@ -64,7 +64,7 @@ namespace PetCenterServices.Seeder
             return output;
         }
 
-        public async Task<bool> SeedDatabase(PetCenterDBContext ctx, bool non_static_data)
+        public async Task<bool> SeedDatabase(PetCenterDBContext ctx, bool non_static_data,int? seed)
         {
 
             List<string> countries = new List<string> { "Scottish","Japanese","Persian","Siamese","German","French","Italian","Russian","Norwegian","Swedish","American","British","Turkish","Egyptian","Indian","Chinese","Thai","Canadian","Australian","Belgian" };
@@ -88,6 +88,11 @@ namespace PetCenterServices.Seeder
                 try
                 {
                     Random rng = new();
+
+                    if (seed != null)
+                    {
+                        rng=new Random((int)seed);
+                    }
 
                     await ctx.AnimalKinds.AddAsync(new Kind{Title="Dogs"});
                     await ctx.AnimalKinds.AddAsync(new Kind{Title="Cats"});
@@ -210,27 +215,424 @@ namespace PetCenterServices.Seeder
                     foreach(Breed afflicted_breed in afflicted_breeds)
                     {
                         await ctx.MedicalProcedureSpecifications.AddAsync(new MedicalProcedureSpecification{ProcedureId=proc.Id,KindId=afflicted_breed.KindId,BreedId=afflicted_breed.Id,SexSpecific=(rng.Next(2)==1)?null:false,Optional=false,IntervalDays=null,ApproximateAge=rng.Next(100,400)});
-                    }
+                    }                   
 
+                    await ctx.Announcements.AddAsync(new Announcement{Body="Users and employees can see this.",UserVisible=true,BusinessVisible=true,Expiry=DateTime.UtcNow.AddDays(3)});
+                    await ctx.Announcements.AddAsync(new Announcement{Body="Users specific.",UserVisible=true,BusinessVisible=false,Expiry=DateTime.UtcNow.AddDays(3)});
+                    await ctx.Announcements.AddAsync(new Announcement{Body="Employee specific.",UserVisible=false,BusinessVisible=true,Expiry=DateTime.UtcNow.AddDays(3)});
+                    await ctx.Announcements.AddAsync(new Announcement{Body="Internal modmail.",UserVisible=false,BusinessVisible=false,Expiry=DateTime.UtcNow.AddDays(3)});
 
                     await ctx.SaveChangesAsync();
 
-
                     if (non_static_data)
                     {
-                        for(int i =1; i<=30; i++)
+                        List<Account> Users = new();
+                        List<Account> Employees = new();
+                        List<Account> Admins = new();
+
+                        for(int i =1; i<=31; i++)
                         {
+                            Account acc = new();
+                            User usr = new();
+                            usr.UserName=await Utils.UserUtils.GenerateUsername(ctx);
+                            acc.PasswordSalt=Utils.Crypto.GenerateSalt();
+                            acc.PasswordHash=Utils.Crypto.GenerateHash("test",acc.PasswordSalt);
+                            acc.Verified=true;
+
+                            if (i < 11)
+                            {
+                                acc.Contact=$"user{i}@example.com";
+                                acc.AccessLevel=Access.User;
+                                Users.Add(acc);
+                                
+                            }
+                            else if (i < 21)
+                            {
+                                acc.Contact=$"employee{i-10}@example.com";
+                                acc.AccessLevel=Access.BusinessAccount;
+                                Employees.Add(acc);
+                            }
+                            else if(i<31)
+                            {
+                                acc.Contact=$"admin{i-20}@example.com";
+                                acc.AccessLevel=Access.Admin;
+                                Admins.Add(acc);
+                            }
+                            else
+                            {
+                                acc.Verified=false;                                
+                                acc.Contact="unverified@example.com";
+                            }
+
+                            await ctx.Accounts.AddAsync(acc);
+                            await ctx.SaveChangesAsync();
+                            usr.Id=acc.Id;
+                            await ctx.Users.AddAsync(usr);
+
+                            if (!acc.Verified)
+                            {
+                                await ctx.Registrations.AddAsync(new Registration{AccountId=acc.Id,Expiry=DateTime.UtcNow.AddHours(1),NextAttempt=DateTime.UtcNow,Code=12345678});
+                            }
+
+                            await ctx.SaveChangesAsync();
+                        }
+
+                        Franchise franch = new Franchise{OwnerId=Employees[0].Id,Contact="mega@example.com",FranchiseName="MegaCorp"};
+                        await ctx.Franchises.AddAsync(franch);
+
+                        await ctx.SaveChangesAsync();
+
+                        await ctx.Notifications.AddAsync(new Notification{UserId=franch.OwnerId,FranchiseId=null,ListingId=null,Title="Notification - OWNER", Body="Only you can see this notification."});
+                        await ctx.Notifications.AddAsync(new Notification{UserId=franch.OwnerId,FranchiseId=franch.Id,ListingId=null,Title="Notification - FRANCHISE", Body="You and your employees can see this notification."});
+
+
+                        Facility facility = new Facility{Contact="mega.uk@example.com",City="London",Street="MainSt no.1",FranchiseId=franch.Id};
+                        await ctx.Facilities.AddAsync(facility);
+
+                        for(int i = 1; i<4; i++)
+                        {
+                            await ctx.EmployeeRecords.AddAsync(new EmployeeRecord{FranchiseId=franch.Id,UserId=Employees[i].Id});
+                        }
+
+                        await ctx.SaveChangesAsync();
+                        
+                        for(int i = 0; i<2; i++)
+                        {
+                            if (template == null || template.Entries.Count == 0)
+                            {
+                                break;
+                            }
+                            bool visible = i==0;
+                            string base_name = (visible)? "Visible":"Invisible";
                             
+                            Form frm = new Form{FormTemplateId=template.Id,UserId=Employees[0].Id,FranchiseName=$"{base_name}Corp",DefaultContact=$"{base_name.ToLower()}@example.com",AlbumId=await ImageService.CreateAlbum(Employees[0].Id,ctx,1)};
+
+                            await ctx.Forms.AddAsync(frm);
+
+                            await ctx.SaveChangesAsync();
+
+                            if (visible)
+                            {
+                                await ctx.Images.AddAsync(CreateRandomImage(frm.AlbumId,rng));
+                            }
+
+                            foreach(FormTemplateField ftf in template.Entries)
+                            {
+                                await ctx.FormFieldEntries.AddAsync(new FormFieldEntry{FormId=frm.Id,FormTemplateFieldId=ftf.Id,Serialized=(ftf.Optional)?"":base_name});
+
+                            }
+
+                            await ctx.SaveChangesAsync();
 
                         }
+
+                        List<Breed> breeds = await ctx.AnimalBreeds.Where(b=>b.KindId==kinds[0].Id||b.KindId==afflicted_kind_id).ToListAsync();
+
+                        List<string> petNames = new List<string> { "Bella", "Max", "Luna", "Charlie",
+                        "Daisy", "Rocky", "Coco", "Oliver", "Molly", "Leo", "Simba", "Lola", 
+                        "Buddy", "Nala", "Toby", "Chloe", "Jack", "Sadie", "Milo", "Ruby" };
+
+                        for(int i = 0; i < 100; i++)
+                        {
+
+                            bool owned = rng.Next(4)==1;
+
+                            Individual animal = new Individual{Owned=owned,ShelterId=(owned)?null:franch.Id,OwnerId=(owned)?Users[rng.Next(Users.Count)].Id:null,Name=petNames[rng.Next(petNames.Count)],Sex=rng.Next(2)==1,BreedId=breeds[rng.Next(breeds.Count)].Id,AnimalIdentity=Guid.NewGuid(),BirthDate=DateTime.UtcNow.AddDays(-(rng.Next(100,1000)))};
+
+                            await ctx.IndividualAnimals.AddAsync(animal);
+
+                            if ((i & 0x7) == 0x7)
+                            {
+                                await ctx.SaveChangesAsync();
+
+                                await ctx.MedicalRecordEntries.AddAsync(new MedicalRecordEntry{AnimalId=animal.Id,ProcedureId=proc.Id,DatePerformed=animal.BirthDate.AddDays(rng.Next(100))});
+                            }
+
+                        }
+
+                        await ctx.SaveChangesAsync();
+
+                        List<LivingConditionField> livingConditions = await ctx.LivingConditionFields.ToListAsync();
+
+
+                        foreach(Account acc in Users)
+                        {
+                            
+                            int kind_c = rng.Next(kinds.Count);
+                            int cat_c = rng.Next(categories.Count);
+
+                            int wish_c = rng.Next(25);
+
+                            for(int i = 0; i<kind_c; i++)
+                            {
+                                
+                                for(int j = 0; j < cat_c; j++)
+                                {
+                                    
+                                    await ctx.SupplyRecords.AddAsync(new Supplies{UserId=acc.Id,CategoryId=categories[j].Id,KindId=kinds[i].Id,MassGrams=rng.Next(1000),Evaluated=DateTime.UtcNow.AddHours(-rng.Next(24))});
+
+                                }
+
+                            }
+
+                            List<string> wishes = new();
+
+                            for(int i=0; i < wish_c; i++)
+                            {
+                                string wish = productDescriptors[rng.Next(productDescriptors.Count)];
+
+                                if (!wishes.Contains(wish))
+                                {
+                                    await ctx.Wishlists.AddAsync(new Wishlist{UserId=acc.Id,Term=wish});
+                                    wishes.Add(wish);
+                                }
+                            }
+
+                            foreach(LivingConditionField lvf in livingConditions)
+                            {
+                                
+                                int answer = rng.Next(3);
+
+                                if (answer < 2)
+                                {
+
+                                    await ctx.LivingConditionEntries.AddAsync(new LivingConditionEntry{UserId=acc.Id,LivingConditionFieldID=lvf.Id,Answer=answer==1});
+
+                                }
+
+
+                            }
+
+
+                        }
+
+                        List<Guid> generic_listing_album_ids = new();
+
+                        for(int i = 0; i<5; i++)
+                        {
+
+                            generic_listing_album_ids.Add(await ImageService.CreateAlbum(franch.OwnerId,ctx,1));
+
+                            if (i != 4)
+                            {
+                                await ctx.Images.AddAsync(CreateRandomImage(generic_listing_album_ids[i],rng));
+                            }
+                        }
+
+
+
+
+                        Listing visible_medical = new Listing{Type= ListingType.Medical, FranchiseId=franch.Id,PriceMinor=rng.Next(10000),AlbumId=generic_listing_album_ids[0],Approved=true,Updated=false,Visible=true,ListingName="Visible medical listing.",ListingDescription="Users should see this listing."};
+
+                        await ctx.Listings.AddAsync(visible_medical);
+
+                        await ctx.SaveChangesAsync();
+
+                        await ctx.MedicalListings.AddAsync(new MedicalListing{Id=visible_medical.Id,ProcedureId=proc.Id});
+
+                        await ctx.ListingAvailable.AddAsync(new Available{ListingId=visible_medical.Id,FacilityId=facility.Id});
+
+
+                        await ctx.Listings.AddAsync(new Listing{FranchiseId=franch.Id,PriceMinor=rng.Next(10000),AlbumId=generic_listing_album_ids[1],Approved=false,Updated=true,Visible=true,ListingName="Approval pending listing.",ListingDescription="Admins should see this listing."});
+
+                        await ctx.Listings.AddAsync(new Listing{FranchiseId=franch.Id,PriceMinor=rng.Next(10000),AlbumId=generic_listing_album_ids[2],Approved=false,Updated=false,Visible=true,ListingName="Non-updated listing.",ListingDescription="Workers should see this listing."});
+
+                        await ctx.Listings.AddAsync(new Listing{FranchiseId=franch.Id,PriceMinor=rng.Next(10000),AlbumId=generic_listing_album_ids[3],Approved=true,Updated=false,Visible=false,ListingName="Generic invisible listing.",ListingDescription="Workers should see this listing."});
+
+                        await ctx.Listings.AddAsync(new Listing{FranchiseId=franch.Id,PriceMinor=rng.Next(10000),AlbumId=generic_listing_album_ids[4],Approved=false,Updated=true,Visible=true,ListingName="Image-free listing.",ListingDescription="Workers should see this listing."});
+
+                        await ctx.SaveChangesAsync();
+
+                        List<Listing> listings = new();
+
+                        List<Individual> adoptable_animals = await ctx.IndividualAnimals.Include(i=>i.AnimalBreed).Where(a=>a.ShelterId==franch.Id).ToListAsync();
+
+                        int adoptables = 0;
+                        foreach(Individual ind in adoptable_animals)
+                        {
+
+                            adoptables++;
+                            bool up_for_adoption = rng.Next(3)==2;
+
+                            DateTime creation = DateTime.UtcNow.AddDays(-rng.Next(100));   
+                            
+
+                            if (up_for_adoption)
+                            {
+                                
+                                Guid album_id = await ImageService.CreateAlbum(franch.OwnerId,ctx,1);
+                                await ctx.Images.AddAsync(CreateRandomImage(album_id,rng));
+
+
+
+                                Listing new_listing = new Listing{Type=ListingType.Pet,FranchiseId=franch.Id,PriceMinor=rng.Next(10000),AlbumId=album_id,Approved=true,Updated=false,Visible=true,ListingName=$"{ind.Name}-{adoptables}",ListingDescription=$"Cute {ind.AnimalBreed.Title} for adoption.",Posted=creation};
+                                await ctx.Listings.AddAsync(new_listing);
+
+                                listings.Add(new_listing);
+                                
+                                await ctx.SaveChangesAsync();
+
+                                await ctx.AnimalListings.AddAsync(new AnimalListing{Id=new_listing.Id,AnimalId=ind.Id});
+                                                              
+
+                            }
+                      
+                        }
+
+                        List<Item> items = await ctx.Items.Include(i=>i.ItemCategory).ToListAsync();
+                        int marketables = 0;
+
+                        foreach(Item itm in items)
+                        {
+                            marketables ++;
+                            
+                            bool for_sale = rng.Next(3)==2;
+
+                            byte amount = (byte)rng.Next(2,15);
+
+                            DateTime creation = DateTime.UtcNow.AddDays(-rng.Next(100));   
+                            
+
+                            if (for_sale)
+                            {
+                                
+                                Guid album_id = await ImageService.CreateAlbum(franch.OwnerId,ctx,1);
+                                await ctx.Images.AddAsync(CreateRandomImage(album_id,rng));
+
+                                Listing new_listing = new Listing{Type=ListingType.Product,FranchiseId=franch.Id,PriceMinor=rng.Next(10000),AlbumId=album_id,Approved=true,Updated=false,Visible=true,ListingName=$"{itm.Title}-{marketables}",ListingDescription=$"A great choice of {itm.ItemCategory.Title} for yout pet.",Posted=creation};
+                                await ctx.Listings.AddAsync(new_listing);
+
+                                listings.Add(new_listing);
+                                
+                                await ctx.SaveChangesAsync();
+
+                                await ctx.ProductListings.AddAsync(new ProductListing{Id=new_listing.Id,ProductId=itm.Id,PerListing=amount});
+                                                              
+
+                            }
+
+                        }
+
+
+                        for(int i = 0;i<5; i++)
+                        {
+                            
+                            int price = rng.Next(12345);
+                            DateTime creation = DateTime.UtcNow.AddDays(-rng.Next(100));                          
+
+                            
+                            Guid album_id = await ImageService.CreateAlbum(franch.OwnerId,ctx,1);
+                            await ctx.Images.AddAsync(CreateRandomImage(album_id,rng));
+
+                            Listing new_listing = new Listing{Type=ListingType.Generic,FranchiseId=franch.Id,PriceMinor=price,AlbumId=album_id,Approved=true,Updated=false,Visible=true,ListingName=$"Generic listing no. {i}",ListingDescription=$"Test.",Posted=creation};
+                            await ctx.Listings.AddAsync(new_listing);
+
+                            listings.Add(new_listing);                              
+                                                         
+                            
+                            await ctx.SaveChangesAsync();    
+
+                            await ctx.ListingAvailable.AddAsync(new Available{ListingId=new_listing.Id,FacilityId=facility.Id});                 
+                        }
+
+
+                        await ctx.SaveChangesAsync();
+
+
+                        List<string> commentBodies = new List<string>
+                        {
+                            "Looks great.",                            
+                            "Very satisfied.",
+                            "Seems like a scam.",
+                            "Do NOT recommend!",
+                            "http://www.malicious_link.com",
+                            "Very happy.",
+                            "Nice.",
+                            "Just what I needed.",
+                        };
+
+
+                        List<Comment> comments = new();
+
+
+                        for(int i=1; i < Users.Count; i++)
+                        {
+                            foreach(Listing l in listings)
+                            {
+                                if (rng.Next(4) == 3)
+                                {
+                                    
+                                    Comment cmt = new Comment{PosterId=Users[i].Id,ListingId=l.Id,Message=commentBodies[rng.Next(commentBodies.Count)]};
+
+                                    await ctx.Comments.AddAsync(cmt);
+
+                                    comments.Add(cmt);
+
+
+                                }
+                                
+
+                            }
+
+                        }
+
+
+                        await ctx.SaveChangesAsync();
+
+                        List<Guid> reported_listings = new();
+
+                        for(int i = 0; i < comments.Count; i++)
+                        {
+                            
+                            int choice = i&0x7;
+
+                            if (!reported_listings.Contains(comments[i].ListingId))
+                            {
+                                
+                           
+
+                                switch (choice)
+                                {
+                                    case 0 : {
+                                        await ctx.Reports.AddAsync(new Report{ReporterId=Users[0].Id,Expiry=DateTime.UtcNow.AddDays(rng.Next(1,4)),Reason="Listing.",ListingId=comments[i].ListingId,CommentId=null});
+                                        reported_listings.Add(comments[i].ListingId);
+                                        break;
+                                    }
+                                    case 1 : {
+                                        await ctx.Reports.AddAsync(new Report{ReporterId=Users[0].Id,Expiry=DateTime.UtcNow.AddDays(rng.Next(1,4)),Reason="Comment only.",ListingId=comments[i].ListingId,CommentId=comments[i].Id});
+                                        reported_listings.Add(comments[i].ListingId);
+                                        break;
+                                    }
+
+                                    default: {break;}
+                                }
+
+                            }
+
+
+                        }
+
+                        await ctx.SaveChangesAsync();
+
+                        List<Album> reserved_albums = await ctx.Albums.Where(a => a.Images.Any()).ToListAsync();
+
+                        foreach(Album alb in reserved_albums)
+                        {
+                            alb.Reserved=1;
+                        }
+
+                        await ctx.SaveChangesAsync();
+
                     }
+
+                    
 
                     await tx.CommitAsync();
                     return true;
                 }
                 catch
                 {
-                    await tx.RollbackAsync();
+                    await tx.RollbackAsync();                    
                     return false;
                 }
             }

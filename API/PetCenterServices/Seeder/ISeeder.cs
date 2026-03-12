@@ -20,7 +20,7 @@ namespace PetCenterServices.Seeder
         
 
 
-        public Task<bool> SeedDatabase(PetCenterDBContext ctx, bool non_static_data);
+        public Task<bool> SeedDatabase(PetCenterDBContext ctx, bool non_static_data = default, int? seed = default);
 
 
 

@@ -10,6 +10,7 @@ using PetCenterServices;
 
 namespace PetCenterModels.DBTables
 {
+    [Table("Discount", Schema = "Offer")]
     public class Discount : ExpirableTableEntity
     {
         [Column("ListingID")]

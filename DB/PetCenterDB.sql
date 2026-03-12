@@ -471,7 +471,7 @@ CREATE TABLE [Person].[LivingConditionField](
 );
 GO
 
-CREATE TABLE [Animal].[LivingConditionEntry](
+CREATE TABLE [Person].[LivingConditionEntry](
     ID UNIQUEIDENTIFIER NOT NULL DEFAULT NEWSEQUENTIALID() PRIMARY KEY,
     CurrentVersion ROWVERSION NOT NULL,
     UserID UNIQUEIDENTIFIER NOT NULL,

@@ -149,15 +149,21 @@ namespace PetCenterModels.DataTransferObjects
         public static CommentResponseSubDTO? FromEntity(Comment? entity)
         {
             if(entity==null){return null;}
-            return new CommentResponseSubDTO
+            CommentResponseSubDTO output = new CommentResponseSubDTO
             {
                 Id=entity.Id,
                 CurrentVersion=entity.CurrentVersion,
                 PosterId=entity.PosterId,
-                PosterName=entity.Poster.UserName??"Anonymous",
+                PosterName="Anonymous",
                 Contents=entity.Message
             };
 
+            if (entity.Poster != null)
+            {
+                output.PosterName=entity.Poster.UserName;
+            }
+
+            return output;
         }
 
     }
@@ -181,16 +187,31 @@ namespace PetCenterModels.DataTransferObjects
         public static AvailabilityResponseSubDTO? FromEntity(Available? entity)
         {
             if(entity==null){return null;}
-            return new AvailabilityResponseSubDTO
+            AvailabilityResponseSubDTO output = new AvailabilityResponseSubDTO
             {
                 Id=entity.Id,
                 CurrentVersion=entity.CurrentVersion,
                 FacilityId=entity.FacilityId,
-                Contact=entity.RelevantFacility.Contact??entity.RelevantFacility.OwningFranchise.Contact??"No contact provided.",
-                City=entity.RelevantFacility.City??"No city provided.",
-                Street=entity.RelevantFacility.Street??"No street provided."
+                Contact="No contact provided.",
+                City=entity.RelevantFacility.City="No city provided.",
+                Street=entity.RelevantFacility.Street="No street provided."
 
             };
+
+            if (entity.RelevantFacility != null)
+            {
+                if (entity.RelevantFacility.OwningFranchise != null)
+                {
+                    output.Contact=entity.RelevantFacility.OwningFranchise.Contact;
+                }
+
+                output.Contact=entity.RelevantFacility.Contact??output.Contact;
+                
+                output.City=entity.RelevantFacility.City??output.City;
+                output.Street=entity.RelevantFacility.Street??output.Street;
+            }
+
+            return output;
 
         }
 

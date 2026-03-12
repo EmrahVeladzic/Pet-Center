@@ -12,7 +12,9 @@ namespace PetCenterModels.SearchObjects
     {
         ID = 0,
         PriceDescending = 1,
-        PriceAscending = 2
+        PriceAscending = 2,
+        PostedDescending = 3,
+        PostedAscending = 4
     }
 
     public class ListingSearchObject:BaseSearchObject
