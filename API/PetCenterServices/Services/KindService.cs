@@ -33,10 +33,12 @@ namespace PetCenterServices.Services
             IQueryable<Kind> query = dbSet.Include(k=>k.Breeds).OrderBy(k=>k.Id);
             if (search.AuthoritySpecifier == Access.User && search.AdoptionPurposes)
             {
+                query = dbSet.OrderBy(k=>k.Id);
                 query = query.Where(k =>
                 dbContext.AnimalListings.Any(al =>
                 al.Animal.AnimalBreed.KindId == k.Id &&
                 al.Base.Visible &&
+                al.Base.Approved &&
                 al.Base.Type == ListingType.Pet));
             }
             return Task.FromResult(query);
