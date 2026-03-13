@@ -31,7 +31,7 @@ namespace PetCenterServices.Services
         protected override Task<IQueryable<LivingConditionField>> Filter(Guid token_holder, LivingConditionSearchObject search)
         {
            
-            IQueryable<LivingConditionField> query = dbSet.Include(l=>l.Entries.Where(e=>e.UserId==token_holder).Take(1)).OrderBy(o=>o.Id);
+            IQueryable<LivingConditionField> query = dbSet.Include(l=>l.Entries.Where(e=>e.UserId==token_holder).OrderBy(l => l.Id).Take(1)).OrderBy(o=>o.Id);
             return Task.FromResult(query);
         }
         

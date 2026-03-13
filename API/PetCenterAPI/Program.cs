@@ -28,6 +28,7 @@ builder.Services.AddCors(options =>
         policy.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod();
 
     });
+    
 
 });
 
@@ -94,7 +95,13 @@ builder.Services.AddDbContext<PetCenterDBContext>(options =>
 {
 
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
-    
+
+    if (builder.Environment.IsDevelopment())
+    {
+        options.EnableDetailedErrors().LogTo(Console.WriteLine,LogLevel.Warning);
+    }
+
+
 });
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
