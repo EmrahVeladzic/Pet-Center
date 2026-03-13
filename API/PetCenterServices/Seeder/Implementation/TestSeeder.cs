@@ -67,7 +67,7 @@ namespace PetCenterServices.Seeder
         public async Task<bool> SeedDatabase(PetCenterDBContext ctx, bool non_static_data,int? seed)
         {
 
-            List<string> countries = new List<string> { "Scottish","Japanese","Persian","Siamese","German","French","Italian","Russian","Norwegian","Swedish","American","British","Turkish","Egyptian","Indian","Chinese","Thai","Canadian","Australian","Belgian" };
+            List<string> countries = new List<string> { "Scottish","Japanese","Siamese","German","French","Italian","Russian","Norwegian","Swedish","American","British","Turkish","Egyptian","Chinese","Thai","Canadian","Australian","Belgian" };
            
             List<string> descriptors = new List<string>
             {
@@ -104,7 +104,7 @@ namespace PetCenterServices.Seeder
                     await ctx.Categories.AddAsync(new Category{Title="Litter",Consumable=true});
                     await ctx.Categories.AddAsync(new Category{Title="Toys",Consumable=false});
                     await ctx.Categories.AddAsync(new Category{Title="Beds",Consumable=false});
-                    await ctx.Categories.AddAsync(new Category{Title="Furniture",Consumable=false});
+                    await ctx.Categories.AddAsync(new Category{Title="Bowls",Consumable=false});
 
                     await ctx.SaveChangesAsync(); 
 
@@ -121,8 +121,12 @@ namespace PetCenterServices.Seeder
                             int usage_g = rng.Next(50);
 
                             if (usage_g > 10)
-                            {                                
-                                await ctx.UsageEstimates.AddAsync(new Usage{KindId=kind.Id,CategoryId=cat.Id,ScaleSpecific=null,AverageDailyAmountGrams=usage_g});
+                            {                     
+                                if(cat.Consumable){
+
+                                    await ctx.UsageEstimates.AddAsync(new Usage{KindId=kind.Id,CategoryId=cat.Id,ScaleSpecific=null,AverageDailyAmountGrams=usage_g});
+
+                                }
 
                                 await ctx.Items.AddAsync(new Item{CategoryId=cat.Id,KindId=kind.Id,TargetScale=null,MassGrams=(cat.Consumable)?rng.Next(25,1500):null,Title="Generic "+productDescriptors[rng.Next(productDescriptors.Count)].ToLower()+" "+cat.Title.ToLower()+" for "+kind.Title.ToLower()});
 
@@ -132,7 +136,13 @@ namespace PetCenterServices.Seeder
 
                                     if(Math.Abs(usage_g - usage_g_scale) > 10)
                                     {
-                                        await ctx.UsageEstimates.AddAsync(new Usage{KindId=kind.Id,CategoryId=cat.Id,ScaleSpecific=scales[i],AverageDailyAmountGrams=usage_g_scale});
+                                        if (cat.Consumable)
+                                        {
+                                            
+                                            await ctx.UsageEstimates.AddAsync(new Usage{KindId=kind.Id,CategoryId=cat.Id,ScaleSpecific=scales[i],AverageDailyAmountGrams=usage_g_scale});
+                                            
+                                        }
+                                        
                                         await ctx.Items.AddAsync(new Item{CategoryId=cat.Id,KindId=kind.Id,TargetScale=scales[i],MassGrams=(cat.Consumable)?rng.Next(25,1500):null,Title=productDescriptors[rng.Next(productDescriptors.Count)]+" "+cat.Title.ToLower()+" for "+scales[i].ToString().ToLower()+" "+kind.Title.ToLower()});
                                     
                                     }
@@ -176,11 +186,11 @@ namespace PetCenterServices.Seeder
 
                         await ctx.Images.AddAsync(CreateRandomImage(breed.AlbumId,rng));
 
-                        breed.Investment=(float)rng.NextDouble();
-                        breed.Territory=(float)rng.NextDouble();
-                        breed.Pricing=(float)rng.NextDouble();
-                        breed.Longevity=(float)rng.NextDouble();
-                        breed.Cohabitation=(float)rng.NextDouble();
+                        breed.Investment=rng.NextSingle();
+                        breed.Territory=rng.NextSingle();
+                        breed.Pricing=rng.NextSingle();
+                        breed.Longevity=rng.NextSingle();
+                        breed.Cohabitation=rng.NextSingle();
 
                         breed.Scale= scales[rng.Next(scales.Length)];
 
@@ -189,17 +199,46 @@ namespace PetCenterServices.Seeder
                         await ctx.SaveChangesAsync();
                     }
 
-                    await ctx.LivingConditionFields.AddAsync(new LivingConditionField{Title="I wish nothing more than to spend as many years as I can with my pet.",LongevityEffect=0.75f,PricingEffect=0.2f});
-                    await ctx.LivingConditionFields.AddAsync(new LivingConditionField{Title="I want a low-maintenance pet.",PricingEffect=-0.25f,InvestmentEffect=-0.65f});
-                    await ctx.LivingConditionFields.AddAsync(new LivingConditionField{Title="I have a large living space.",InvestmentEffect=-0.1f,TerritoryEffect=0.4f,PricingEffect=0.1f});
-                    await ctx.LivingConditionFields.AddAsync(new LivingConditionField{Title="I prefer the baby-era of pet ownership.",LongevityEffect=-0.5f});
-                    await ctx.LivingConditionFields.AddAsync(new LivingConditionField{Title="I have other pets at the moment.",CohabitationEffect=0.8f});
-                    await ctx.LivingConditionFields.AddAsync(new LivingConditionField{Title="I can only afford one pet.",CohabitationEffect=-0.9f,PricingEffect=-0.4f,LongevityEffect=-0.15f});
+
+                    bool repeat_breed_shuffle = true;
+                    while (repeat_breed_shuffle)
+                    {
+                        repeat_breed_shuffle = false;
+
+                        foreach(Kind knd in kinds)
+                        {
+                            if(!await ctx.AnimalBreeds.AnyAsync(b => b.KindId == knd.Id))
+                            {
+                                repeat_breed_shuffle=true;
+
+                                Breed? brd = await ctx.AnimalBreeds.OrderBy(b=>Guid.NewGuid()).FirstOrDefaultAsync();
+
+                                if (brd != null)
+                                {
+                                    brd.KindId=knd.Id;
+                                    await ctx.SaveChangesAsync();
+                                }
+                            }
+                            
+                        }
+                        
+
+                    }
+
+
+                    await ctx.SaveChangesAsync();
+
+                    await ctx.LivingConditionFields.AddAsync(new LivingConditionField{Title="I wish nothing more than to spend as many years as I can with my pet.",LongevityEffect=0.65f,PricingEffect=0.125f});
+                    await ctx.LivingConditionFields.AddAsync(new LivingConditionField{Title="I want a low-maintenance pet.",PricingEffect=-0.2f,InvestmentEffect=-0.35f});
+                    await ctx.LivingConditionFields.AddAsync(new LivingConditionField{Title="I have a large living space.",InvestmentEffect=-0.125f,TerritoryEffect=0.3f});
+                    await ctx.LivingConditionFields.AddAsync(new LivingConditionField{Title="I prefer the baby-era of pet ownership.",LongevityEffect=-0.35f});
+                    await ctx.LivingConditionFields.AddAsync(new LivingConditionField{Title="I have other pets at the moment.",CohabitationEffect=0.5f});
+                    await ctx.LivingConditionFields.AddAsync(new LivingConditionField{Title="I can only afford one pet.",CohabitationEffect=-0.2f,PricingEffect=-0.4f,LongevityEffect=-0.15f});
                     await ctx.LivingConditionFields.AddAsync(new LivingConditionField{Title="I want a pet that adapts well to small living spaces.",TerritoryEffect=-0.5f,CohabitationEffect=0.2f});
-                    await ctx.LivingConditionFields.AddAsync(new LivingConditionField{Title="I enjoy outdoor activities with my pet.",TerritoryEffect=0.6f,InvestmentEffect=0.1f});
-                    await ctx.LivingConditionFields.AddAsync(new LivingConditionField{Title="I prefer pets that are quiet and unobtrusive.",CohabitationEffect=-0.5f,PricingEffect=-0.2f});
-                    await ctx.LivingConditionFields.AddAsync(new LivingConditionField{Title="I want a low-cost pet that still lives a long life.",PricingEffect=-0.7f,LongevityEffect=0.4f});
-                    await ctx.LivingConditionFields.AddAsync(new LivingConditionField{Title="I like pets that require frequent engagement and play.",InvestmentEffect=0.5f,CohabitationEffect=0.3f,TerritoryEffect=0.2f});
+                    await ctx.LivingConditionFields.AddAsync(new LivingConditionField{Title="I enjoy outdoor activities with my pet.",TerritoryEffect=0.35f,InvestmentEffect=0.1f});
+                    await ctx.LivingConditionFields.AddAsync(new LivingConditionField{Title="I prefer pets that are quiet and unobtrusive.",TerritoryEffect=-0.125f,InvestmentEffect=-0.4f});
+                    await ctx.LivingConditionFields.AddAsync(new LivingConditionField{Title="I want a low-cost pet that still lives a long life.",PricingEffect=-0.25f,LongevityEffect=0.25f});
+                    await ctx.LivingConditionFields.AddAsync(new LivingConditionField{Title="I like pets that require frequent engagement and play.",InvestmentEffect=0.35f,CohabitationEffect=0.15f,TerritoryEffect=0.2f});
 
                     await ctx.SaveChangesAsync();
                     
@@ -208,13 +247,15 @@ namespace PetCenterServices.Seeder
                     await ctx.SaveChangesAsync();
 
                     Guid afflicted_kind_id = kinds[rng.Next(kinds.Count)].Id;
-                    List<Breed> afflicted_breeds = await ctx.AnimalBreeds.Where(b=>b.KindId!=afflicted_kind_id).OrderBy(b => Guid.NewGuid()).Take(rng.Next(2,10)).ToListAsync();
+                    List<Breed> afflicted_breeds = await ctx.AnimalBreeds.Where(b=>b.KindId!=afflicted_kind_id).OrderBy(b => Guid.NewGuid()).Take(rng.Next(5,10)).ToListAsync();
+
+                    afflicted_breeds = afflicted_breeds.Where(a=>a.KindId==afflicted_breeds[0].KindId).ToList();
 
                     await ctx.MedicalProcedureSpecifications.AddAsync(new MedicalProcedureSpecification{ProcedureId=proc.Id,KindId=afflicted_kind_id,BreedId=null,SexSpecific=true,Optional=true,IntervalDays=50,ApproximateAge=280});
 
                     foreach(Breed afflicted_breed in afflicted_breeds)
                     {
-                        await ctx.MedicalProcedureSpecifications.AddAsync(new MedicalProcedureSpecification{ProcedureId=proc.Id,KindId=afflicted_breed.KindId,BreedId=afflicted_breed.Id,SexSpecific=(rng.Next(2)==1)?null:false,Optional=false,IntervalDays=null,ApproximateAge=rng.Next(100,400)});
+                        await ctx.MedicalProcedureSpecifications.AddAsync(new MedicalProcedureSpecification{ProcedureId=proc.Id,KindId=afflicted_breed.KindId,BreedId=afflicted_breed.Id,SexSpecific=null,Optional=false,IntervalDays=null,ApproximateAge=rng.Next(100,400)});
                     }                   
 
                     await ctx.Announcements.AddAsync(new Announcement{Body="Users and employees can see this.",UserVisible=true,BusinessVisible=true,Expiry=DateTime.UtcNow.AddDays(3)});
@@ -222,6 +263,18 @@ namespace PetCenterServices.Seeder
                     await ctx.Announcements.AddAsync(new Announcement{Body="Employee specific.",UserVisible=false,BusinessVisible=true,Expiry=DateTime.UtcNow.AddDays(3)});
                     await ctx.Announcements.AddAsync(new Announcement{Body="Internal modmail.",UserVisible=false,BusinessVisible=false,Expiry=DateTime.UtcNow.AddDays(3)});
 
+
+                    foreach(Category cat in categories){
+                        
+                        Usage? usg_aff = await ctx.UsageEstimates.FirstOrDefaultAsync(u=>u.KindId==afflicted_kind_id && u.CategoryId==cat.Id);
+
+                        if(usg_aff==null && cat.Consumable)
+                        {
+                            await ctx.UsageEstimates.AddAsync(new Usage{KindId=afflicted_kind_id,CategoryId=cat.Id,ScaleSpecific=null,AverageDailyAmountGrams=rng.Next(100,500)});
+                        }
+
+                    }
+                    
                     await ctx.SaveChangesAsync();
 
                     if (non_static_data)
@@ -337,11 +390,11 @@ namespace PetCenterServices.Seeder
 
                             bool owned = rng.Next(4)==1;
 
-                            Individual animal = new Individual{Owned=owned,ShelterId=(owned)?null:franch.Id,OwnerId=(owned)?Users[rng.Next(Users.Count)].Id:null,Name=petNames[rng.Next(petNames.Count)],Sex=rng.Next(2)==1,BreedId=breeds[rng.Next(breeds.Count)].Id,AnimalIdentity=Guid.NewGuid(),BirthDate=DateTime.UtcNow.AddDays(-(rng.Next(100,1000)))};
+                            Individual animal = new Individual{Owned=owned,ShelterId=(owned)?null:franch.Id,OwnerId=(owned)?Users[rng.Next(1,Users.Count)].Id:null,Name=petNames[rng.Next(petNames.Count)],Sex=rng.Next(2)==1,BreedId=breeds[rng.Next(breeds.Count)].Id,AnimalIdentity=Guid.NewGuid(),BirthDate=DateTime.UtcNow.AddDays(-(rng.Next(100,1000)))};
 
                             await ctx.IndividualAnimals.AddAsync(animal);
 
-                            if ((i & 0x7) == 0x7)
+                            if ((i & 0x3) == 0x3||((i&0x1)==0x1&&!animal.Owned))
                             {
                                 await ctx.SaveChangesAsync();
 
@@ -349,6 +402,27 @@ namespace PetCenterServices.Seeder
                             }
 
                         }
+
+                        for(int i = 0; i< kinds.Count; i++)
+                        {
+                            Breed? brd = await ctx.AnimalBreeds.FirstOrDefaultAsync(b=>b.KindId==kinds[i].Id);
+
+                            if (brd != null)
+                            {
+                                if (brd.KindId == afflicted_breeds[0].KindId)
+                                {
+                                    brd=afflicted_breeds[0];
+                                }
+
+                                Individual animal_m = new Individual{Owned=true,ShelterId=null,OwnerId=Users[0].Id,Name=petNames[rng.Next(petNames.Count)],Sex=true,BreedId=brd.Id,AnimalIdentity=Guid.NewGuid(),BirthDate=DateTime.UtcNow.AddDays(-(rng.Next(500,1500)))};
+                                Individual animal_f = new Individual{Owned=true,ShelterId=null,OwnerId=Users[0].Id,Name=petNames[rng.Next(petNames.Count)],Sex=false,BreedId=brd.Id,AnimalIdentity=Guid.NewGuid(),BirthDate=DateTime.UtcNow.AddDays(-(rng.Next(500,1500)))};
+                                await ctx.IndividualAnimals.AddAsync(animal_m);
+                                await ctx.IndividualAnimals.AddAsync(animal_f);
+                            
+                            };
+                        }
+
+                        
 
                         await ctx.SaveChangesAsync();
 
@@ -363,14 +437,35 @@ namespace PetCenterServices.Seeder
 
                             int wish_c = rng.Next(25);
 
+                            if (acc == Users[0])
+                            {
+                                kind_c=kinds.Count;
+                                cat_c=categories.Count;
+
+                                wish_c=rng.Next(15,25);
+                            }
+
                             for(int i = 0; i<kind_c; i++)
                             {
                                 
                                 for(int j = 0; j < cat_c; j++)
                                 {
-                                    
-                                    await ctx.SupplyRecords.AddAsync(new Supplies{UserId=acc.Id,CategoryId=categories[j].Id,KindId=kinds[i].Id,MassGrams=rng.Next(1000),Evaluated=DateTime.UtcNow.AddHours(-rng.Next(24))});
+                                    int mass = rng.Next(1000);
 
+                                    if((i&0x1)==0x1 && (j&0x1)==0x1 && acc.Id == Users[0].Id)
+                                    {
+                                        mass=0;
+                                    }
+
+                                    bool will_add = rng.Next(3)==2;
+
+                                    if (categories[j].Consumable&&(will_add||acc.Id==Users[0].Id))
+                                    {
+                                        await ctx.SupplyRecords.AddAsync(new Supplies{UserId=acc.Id,CategoryId=categories[j].Id,KindId=kinds[i].Id,MassGrams=mass,Evaluated=DateTime.UtcNow.AddHours(-rng.Next(24))});
+
+                                    }
+                                    
+                         
                                 }
 
                             }
@@ -406,6 +501,8 @@ namespace PetCenterServices.Seeder
 
                         }
 
+                        await ctx.SaveChangesAsync();
+
                         List<Guid> generic_listing_album_ids = new();
 
                         for(int i = 0; i<5; i++)
@@ -420,6 +517,14 @@ namespace PetCenterServices.Seeder
                         }
 
 
+                        List<string> Individual_desc = new List<string>
+                        {
+                            "Cute",
+                            "Playful",
+                            "Loyal",
+                            "Friendly",
+                            "Energetic"
+                        };
 
 
                         Listing visible_medical = new Listing{Type= ListingType.Medical, FranchiseId=franch.Id,PriceMinor=rng.Next(10000),AlbumId=generic_listing_album_ids[0],Approved=true,Updated=false,Visible=true,ListingName="Visible medical listing.",ListingDescription="Users should see this listing."};
@@ -465,7 +570,7 @@ namespace PetCenterServices.Seeder
 
 
 
-                                Listing new_listing = new Listing{Type=ListingType.Pet,FranchiseId=franch.Id,PriceMinor=rng.Next(10000),AlbumId=album_id,Approved=true,Updated=false,Visible=true,ListingName=$"{ind.Name}-{adoptables}",ListingDescription=$"Cute {ind.AnimalBreed.Title} for adoption.",Posted=creation};
+                                Listing new_listing = new Listing{Type=ListingType.Pet,FranchiseId=franch.Id,PriceMinor=rng.Next(10000),AlbumId=album_id,Approved=true,Updated=false,Visible=true,ListingName=$"{ind.Name}-{adoptables}",ListingDescription=$"{Individual_desc[rng.Next(Individual_desc.Count)]} {ind.AnimalBreed.Title} for adoption.",Posted=creation};
                                 await ctx.Listings.AddAsync(new_listing);
 
                                 listings.Add(new_listing);

@@ -29,7 +29,7 @@ namespace PetCenterServices.Services
         protected override Task<IQueryable<Listing>> Filter(Guid token_holder, ListingSearchObject search)
         {
             
-            IQueryable<Listing> query = WithAlbum().Include(l=>l.Comments).ThenInclude(c=>c.Poster).Include(l=>l.AvailabilityRecords).ThenInclude(a=>a.RelevantFacility).Include(l=>l.ListingDiscount)
+            IQueryable<Listing> query = WithAlbum().Include(l=>l.Business).Include(l=>l.Comments).ThenInclude(c=>c.Poster).Include(l=>l.AvailabilityRecords).ThenInclude(a=>a.RelevantFacility).Include(l=>l.ListingDiscount)
             .Include(l=>l.AnimalExtension).ThenInclude(a=>a!.Animal).Include(l=>l.MedicalExtension).ThenInclude(m=>m!.Procedure).ThenInclude(mp=>mp.Specifications).Include(l=>l.ProductExtension).ThenInclude(p=>p!.Product).ThenInclude(pr=>pr.ItemCategory);
 
             switch (search.AuthoritySpecifier)
@@ -112,7 +112,7 @@ namespace PetCenterServices.Services
 
         public override async Task<ServiceOutput<ListingResponseDTO>> GetById(Guid token_holder, Guid id, Access authorization_level)
         {
-            Listing? output = await WithAlbum().Include(l=>l.Comments).ThenInclude(c=>c.Poster).Include(l=>l.AvailabilityRecords).ThenInclude(a=>a.RelevantFacility).Include(l=>l.ListingDiscount)
+            Listing? output = await WithAlbum().Include(l=>l.Business).Include(l=>l.Comments).ThenInclude(c=>c.Poster).Include(l=>l.AvailabilityRecords).ThenInclude(a=>a.RelevantFacility).Include(l=>l.ListingDiscount)
             .Include(l=>l.AnimalExtension).ThenInclude(a=>a!.Animal).Include(l=>l.MedicalExtension).ThenInclude(m=>m!.Procedure).ThenInclude(mp=>mp.Specifications).Include(l=>l.ProductExtension).ThenInclude(p=>p!.Product).ThenInclude(pr=>pr.ItemCategory).FirstOrDefaultAsync(l=>l.Id==id);
 
             ListingResponseDTO? dto = ListingResponseDTO.FromEntity(output);

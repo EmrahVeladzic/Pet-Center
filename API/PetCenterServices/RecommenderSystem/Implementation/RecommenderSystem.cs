@@ -17,7 +17,7 @@ using System.Threading.Tasks;
 namespace PetCenterServices.Recommender
 {
 
-     public class PetCenterVector5
+    public class PetCenterVector5
     {
 
         public float Investment {get; set;} = 0.0f;
