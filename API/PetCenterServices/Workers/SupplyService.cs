@@ -50,7 +50,7 @@ namespace PetCenterServices.Workers
                     {
                         try
                         {
-                            List<Supplies> supplies = await dBContext.SupplyRecords.Include(s=>s.RelevantUser).ThenInclude(u=>u.OwnedAnimals).Where(s=>s.Evaluated<DateTime.UtcNow.AddDays(-1)).Take(50).ToListAsync(stoppingToken);
+                            List<Supplies> supplies = await dBContext.SupplyRecords.Include(s=>s.RelevantUser).ThenInclude(u=>u.OwnedAnimals).Where(s=>s.Evaluated<DateTime.UtcNow.AddDays(-1)).OrderBy(s=>s.Id).Take(50).ToListAsync(stoppingToken);
                             proceed = supplies.Count>0;
 
                             foreach(Supplies sup in supplies)
