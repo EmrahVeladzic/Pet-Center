@@ -12,6 +12,8 @@ using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using RabbitMQ.Client;
+using PetCenterShared;
 
 
 namespace PetCenterServices.Services
@@ -19,10 +21,12 @@ namespace PetCenterServices.Services
     public class AccountService : BaseCRUDService<Account,AccountSearchObject,AccountRequestDTO,AccountResponseDTO>, IAccountService
     {
 
+        private IMessageBusClient message_bus_client;
 
-        public AccountService(PetCenterDBContext ctx):base(ctx)
+        public AccountService(PetCenterDBContext ctx,IMessageBusClient client):base(ctx)
         {
             dbSet = ctx.Accounts;
+            message_bus_client=client;
         }
 
         protected override async Task<IQueryable<Account>> Filter(Guid token_holder, AccountSearchObject search)
@@ -171,13 +175,19 @@ namespace PetCenterServices.Services
 
         public async Task<ServiceOutput<string>> RequestAccountVerification(Guid id)
         {
-            Registration? reg = await dbContext.Registrations.Include(r=>r.RelevantAccount).FirstOrDefaultAsync(r=>r.AccountId==id);
+            Registration? reg = await dbContext.Registrations.Include(r=>r.RelevantAccount).ThenInclude(a=>a.AccountUser).FirstOrDefaultAsync(r=>r.AccountId==id);
 
             if (reg != null)
             {
+                if (reg.RelevantAccount == null||reg.RelevantAccount.AccountUser==null)
+                {
+                    return ServiceOutput<string>.Error(HttpCode.InternalError,"Internal server error.");
+                }
+
                 reg.Code = Utils.Crypto.GenerateCode();
                 await dbContext.SaveChangesAsync();
-                return  ServiceOutput<string>.Success($"Your verification code will be sent shortly. TESTING > {reg.Code.ToString()}");
+                await message_bus_client.SendEmailMessage(new ConsumerMessage(){Contact=reg.RelevantAccount.Contact,Message=$"Your verification code is {reg.Code}.",Subject="Welcome!",Name=reg.RelevantAccount.AccountUser.UserName});
+                return  ServiceOutput<string>.Success($"Your verification code will be sent shortly.");
             }
 
             return  ServiceOutput<string>.Success("Account is already verified.");
