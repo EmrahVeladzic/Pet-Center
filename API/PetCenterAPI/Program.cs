@@ -14,6 +14,7 @@ using System.Text.Json;
 using PetCenterServices.Recommender;
 using PetCenterServices.Workers;
 using PetCenterServices.Seeder;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -91,6 +92,8 @@ builder.Services.AddScoped<IProcedureService,ProcedureService>();
 builder.Services.AddScoped<IFormService,FormService>();
 builder.Services.AddScoped<IListingService,ListingService>();
 
+builder.Services.AddScoped<IMessageBusClient, MessageBusClient>();
+
 builder.Services.AddDbContext<PetCenterDBContext>(options =>
 {
 
@@ -101,6 +104,7 @@ builder.Services.AddDbContext<PetCenterDBContext>(options =>
         options.EnableDetailedErrors().LogTo(Console.WriteLine,LogLevel.Warning);
     }
 
+    options.ConfigureWarnings(w =>  w.Ignore(RelationalEventId.MultipleCollectionIncludeWarning));
 
 });
 

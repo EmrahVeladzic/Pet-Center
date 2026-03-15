@@ -21,7 +21,7 @@ namespace PetCenterServices.Workers
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            await Task.Delay(TimeSpan.FromMinutes(15),stoppingToken);
+            await Task.Delay(TimeSpan.FromMinutes(5),stoppingToken);
 
             while (!stoppingToken.IsCancellationRequested)
             {
@@ -33,7 +33,7 @@ namespace PetCenterServices.Workers
                 }
 
                 
-                await Task.Delay(TimeSpan.FromHours(1),stoppingToken);
+                await Task.Delay(TimeSpan.FromMinutes(15),stoppingToken);
             }
 
         }
