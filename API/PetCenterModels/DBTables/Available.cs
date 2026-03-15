@@ -15,9 +15,15 @@ namespace PetCenterModels.DBTables
     {   
         [Column("ListingID")]
         public Guid ListingId { get; set; }
+        
+        [ForeignKey(nameof(ListingId))]
+        public Listing RelevantListing {get; set;} = null!;
 
         [Column("FacilityID")]
         public Guid FacilityId { get; set; }
+
+        [ForeignKey(nameof(FacilityId))]
+        public Facility RelevantFacility {get; set;} =null!;
 
     }
     

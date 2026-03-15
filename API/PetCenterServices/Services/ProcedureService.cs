@@ -26,6 +26,11 @@ namespace PetCenterServices.Services
             
         }
 
+        protected override void Touch()
+        {
+            StaticDataVersionHolder.ProcedureVersion=Guid.NewGuid();
+        }
+
         protected override Task<IQueryable<Procedure>> Filter(Guid token_holder, ProcedureSearchObject search)
         {
 
@@ -42,7 +47,7 @@ namespace PetCenterServices.Services
                 return ServiceOutput<object>.Error(HttpCode.BadRequest,"DTO validation failed.");
             }
 
-            if(await dbSet.AnyAsync(p => p.Description.ToLowerInvariant() == resource.Description.ToLowerInvariant()))
+            if(await dbSet.AnyAsync(p => p.Description.ToLower() == resource.Description.ToLower()))
             {
                 return ServiceOutput<object>.Error(HttpCode.Conflict,"This medical procedure is already defined.");
             }
@@ -59,7 +64,7 @@ namespace PetCenterServices.Services
             }
 
 
-            if(await dbSet.AnyAsync(p => p.Description.ToLowerInvariant() == resource.Description.ToLowerInvariant()&&p.Id!=resource.Id))
+            if(await dbSet.AnyAsync(p => p.Description.ToLower() == resource.Description.ToLower()&&p.Id!=resource.Id))
             {
                 return ServiceOutput<object>.Error(HttpCode.Conflict,"This medical procedure is already defined.");
             }
@@ -120,6 +125,7 @@ namespace PetCenterServices.Services
 
             }
             
+            StaticDataVersionHolder.SpecificationVersion=Guid.NewGuid();
             return ServiceOutput<ProcedureSpecificationSubDTO>.Success(ProcedureSpecificationSubDTO.FromEntity(existing));
             
         }
@@ -140,15 +146,16 @@ namespace PetCenterServices.Services
                         await dbContext.SaveChangesAsync();
                         await tx.CommitAsync();
                     }
-                    catch
+                    catch(Exception ex)
                     {
                         await tx.RollbackAsync();
-                        return ServiceOutput<object>.Error(HttpCode.InternalError,"Internal server error.");
+                        return ServiceOutput<object>.FromException(ex);
                     }
                 }
                 
             }
 
+            StaticDataVersionHolder.SpecificationVersion=Guid.NewGuid();
             return ServiceOutput<object>.Success(null,HttpCode.NoContent);
         }
 

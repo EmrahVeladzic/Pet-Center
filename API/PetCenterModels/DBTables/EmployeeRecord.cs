@@ -16,8 +16,14 @@ namespace PetCenterModels.DBTables
         [Column("UserID")]
         public Guid UserId { get; set; }
 
+        [ForeignKey(nameof(UserId))]
+        public User Employee{get;set;} = null!;
+
         [Column("FranchiseID")]
         public Guid FranchiseId { get; set; }
+
+        [ForeignKey(nameof(FranchiseId))]
+        public Franchise Business {get;set;} = null!;
 
         
     }

@@ -30,14 +30,17 @@ namespace PetCenterModels.DBTables
         [InverseProperty(nameof(Facility.OwningFranchise))]
         public List<Facility> Facilities { get; set; } = new();
 
-        public override async Task StageDeletion<T>(PetCenterDBContext ctx, DbSet<T> set)
+        [InverseProperty(nameof(EmployeeRecord.Business))]
+        public List<EmployeeRecord> EmployeeRecords {get; set;} = new();
+
+        public override async Task StageDeletion<T>(PetCenterDBContext ctx, DbSet<T> set,CancellationToken cancel = default)
         {
-            if(await ctx.IndividualAnimals.Where(a=>a.ShelterId==Id && a.Owned==false).ToListAsync() is List<Individual> a){foreach(Individual ind in a){await ind.StageDeletion<Individual>(ctx,ctx.IndividualAnimals);}}
-            if(await ctx.Listings.Where(l=>l.FranchiseId==Id).ToListAsync() is List<Listing> l){foreach(Listing lst in l){await lst.StageDeletion<Listing>(ctx,ctx.Listings);}}
-            if(await ctx.EmployeeRecords.Where(e=>e.FranchiseId==Id).ToArrayAsync() is EmployeeRecord []e){ctx.EmployeeRecords.RemoveRange(e);}
-            if(await ctx.Facilities.Where(f=>f.FranchiseId==Id).ToListAsync() is List<Facility> f){foreach(Facility fac in f){await fac.StageDeletion<Facility>(ctx,ctx.Facilities);}}
-            if(await ctx.Notifications.Where(n=>n.FranchiseId==Id).ToArrayAsync() is Notification[] n){ctx.Notifications.RemoveRange(n);}
-            await base.StageDeletion(ctx, set);
+            if(await ctx.IndividualAnimals.Where(a=>a.ShelterId==Id && a.Owned==false).ToListAsync(cancel) is List<Individual> a){foreach(Individual ind in a){await ind.StageDeletion<Individual>(ctx,ctx.IndividualAnimals,cancel);}}
+            if(await ctx.Listings.Where(l=>l.FranchiseId==Id).ToListAsync(cancel) is List<Listing> l){foreach(Listing lst in l){await lst.StageDeletion<Listing>(ctx,ctx.Listings,cancel);}}
+            if(await ctx.EmployeeRecords.Where(e=>e.FranchiseId==Id).ToArrayAsync(cancel) is EmployeeRecord []e){ctx.EmployeeRecords.RemoveRange(e);}
+            if(await ctx.Facilities.Where(f=>f.FranchiseId==Id).ToListAsync(cancel) is List<Facility> f){foreach(Facility fac in f){await fac.StageDeletion<Facility>(ctx,ctx.Facilities,cancel);}}
+            if(await ctx.Notifications.Where(n=>n.FranchiseId==Id).ToArrayAsync(cancel) is Notification[] n){ctx.Notifications.RemoveRange(n);}
+            await base.StageDeletion(ctx, set,cancel);
         }
 
     }

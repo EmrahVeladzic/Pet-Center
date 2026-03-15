@@ -57,6 +57,11 @@ namespace PetCenterServices.Services
                 return ServiceOutput<FranchiseResponseDTO>.Error(HttpCode.NotFound,"No form to base franchise on.");
             } 
 
+            if(await dbSet.AnyAsync(f=>f.OwnerId==frm.UserId && f.FranchiseName.ToLower() == frm.FranchiseName.ToLower()))
+            {
+                return ServiceOutput<FranchiseResponseDTO>.Error(HttpCode.Conflict,"The user already owns a franchise with this name.");
+            }
+
             Franchise franch = new();
 
             franch.Contact=frm.DefaultContact;
@@ -81,10 +86,10 @@ namespace PetCenterServices.Services
                     await dbContext.SaveChangesAsync();
                     await tx.CommitAsync();
                 }
-                catch 
+                catch(Exception ex)
                 {
                     await tx.RollbackAsync();
-                    return ServiceOutput<FranchiseResponseDTO>.Error(HttpCode.InternalError,"Internal server error.");
+                    return ServiceOutput<FranchiseResponseDTO>.FromException(ex);
                 }
             }
 
@@ -105,13 +110,14 @@ namespace PetCenterServices.Services
             {
                 try
                 {
+                    franch.CurrentVersion=req.CurrentVersion;
                     await dbContext.SaveChangesAsync();
                     await tx.CommitAsync();
                 }
-                catch 
+                catch(Exception ex)
                 {
                     await tx.RollbackAsync();
-                    return ServiceOutput<FranchiseResponseDTO>.Error(HttpCode.InternalError,"Internal server error.");
+                    return ServiceOutput<FranchiseResponseDTO>.FromException(ex);
                 }
             }
 
@@ -153,6 +159,13 @@ namespace PetCenterServices.Services
                 return ServiceOutput<object>.Error(HttpCode.Forbidden,"You do not own this franchise.");
             }
             return ServiceOutput<object>.Success(null,HttpCode.NoContent);
+        }
+
+        public static async Task<bool> IsEmployeeOfFranchise(PetCenterDBContext ctx,Guid user_id, Guid franchise_id)
+        {
+            
+            return await ctx.Franchises.AnyAsync(f=>f.Id==franchise_id&&f.OwnerId==user_id)||await ctx.EmployeeRecords.AnyAsync(e=>e.FranchiseId==franchise_id && e.UserId==user_id);
+
         }
 
     }

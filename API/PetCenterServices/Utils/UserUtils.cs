@@ -38,7 +38,7 @@ namespace PetCenterServices.Utils
             }
         }
 
-        public static async Task<int> GetTotalDailyUsageForCategory(PetCenterDBContext ctx, Guid CategoryId, Guid KindId , List<Individual> animals)
+        public static async Task<int> GetTotalDailyUsageForCategory(PetCenterDBContext ctx, Guid CategoryId, Guid KindId , List<Individual> animals, CancellationToken cancel = default)
         {
             int output = 0;
             animals = animals.Where(a=>a.AnimalBreed!=null && a.AnimalBreed.KindId==KindId).ToList();
@@ -47,7 +47,7 @@ namespace PetCenterServices.Utils
             {             
                 output +=  await ctx.UsageEstimates
                 .Where(u => u.CategoryId == CategoryId && u.KindId == animal.AnimalBreed.KindId &&(u.ScaleSpecific == animal.AnimalBreed.Scale || u.ScaleSpecific == null))
-                .OrderByDescending(u => u.ScaleSpecific != null).Select(u => u.AverageDailyAmountGrams).FirstOrDefaultAsync();
+                .OrderByDescending(u => u.ScaleSpecific != null).Select(u => u.AverageDailyAmountGrams).FirstOrDefaultAsync(cancel);
             }
 
             return output;

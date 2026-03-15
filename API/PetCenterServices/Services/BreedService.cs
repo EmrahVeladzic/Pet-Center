@@ -26,6 +26,11 @@ namespace PetCenterServices.Services
             recommender = rec;
         }
 
+        protected override void Touch()
+        {
+            StaticDataVersionHolder.BreedVersion = Guid.NewGuid();
+        }
+
         protected override async Task<IQueryable<Breed>> Filter(Guid token_holder, BreedSearchObject search)
         {
             
@@ -45,6 +50,7 @@ namespace PetCenterServices.Services
                 query = query.Where(b =>
                 dbContext.AnimalListings.Any(al =>
                 al.Animal.AnimalBreed.Id == b.Id && b.KindId==search.KindId &&
+                al.Base.Approved &&
                 al.Base.Visible &&
                 al.Base.Type == ListingType.Pet));
                 query=await recommender.GetMostCompatibleBreeds(dbContext,query,usr);
@@ -73,7 +79,6 @@ namespace PetCenterServices.Services
             
         }
 
-
         public override async Task<ServiceOutput<object>> IsClearedToCreate(Guid token_holder, BreedDTO resource)
         {
             if (!resource.Validate())
@@ -81,12 +86,12 @@ namespace PetCenterServices.Services
                 return ServiceOutput<object>.Error(HttpCode.BadRequest,"DTO validation failed.");
             }
 
-            if(await dbContext.AnimalKinds.AnyAsync(k => k.Id == resource.KindId))
+            if(!await dbContext.AnimalKinds.AnyAsync(k => k.Id == resource.KindId))
             {
                 return ServiceOutput<object>.Error(HttpCode.NotFound,"The specified kind does not exist.");
             }
             
-            if(await dbSet.FirstOrDefaultAsync(b => b.Title.ToLowerInvariant() == resource.Title.ToLowerInvariant() && b.KindId == resource.KindId)!=null){
+            if(await dbSet.FirstOrDefaultAsync(b =>b.Title.ToLower()==resource.Title.ToLower() && b.KindId == resource.KindId)!=null){
                 return ServiceOutput<object>.Error(HttpCode.Conflict,"A breed with the same kind and title already exists.");
             }
 
@@ -100,14 +105,23 @@ namespace PetCenterServices.Services
                 return ServiceOutput<object>.Error(HttpCode.BadRequest,"DTO validation failed.");
             }
 
-            if(await dbContext.AnimalKinds.AnyAsync(k => k.Id == resource.KindId))
+            if(!await dbContext.AnimalKinds.AnyAsync(k => k.Id == resource.KindId))
             {
                 return ServiceOutput<object>.Error(HttpCode.NotFound,"The specified kind does not exist.");
             }
             
-            if(await dbSet.FirstOrDefaultAsync(b => b.Title.ToLowerInvariant() == resource.Title.ToLowerInvariant() && b.KindId == resource.KindId && b.Id!=resource.Id)!=null){
-                return ServiceOutput<object>.Error(HttpCode.Conflict,"A breed with the same kind and title already exists.");
+            if(await dbSet.FirstOrDefaultAsync(b => EF.Functions.Like(b.Title,resource.Title) && b.KindId == resource.KindId && b.Id!=resource.Id)!=null){
+                return ServiceOutput<object>.Error(HttpCode.Conflict,"A breed with the same title already exists.");
             }
+
+            if(!await dbSet.AnyAsync(b=>b.Id==resource.Id&&b.KindId==resource.KindId)){
+                return ServiceOutput<object>.Error(HttpCode.Conflict,"You cannot change a breed's kind.");
+            }
+
+            if(!await dbSet.AnyAsync(b=>b.Id==resource.Id&&b.AlbumId==resource.AlbumId)){
+                return ServiceOutput<object>.Error(HttpCode.Conflict,"You cannot change a breed's album.");
+            }
+
 
             return ServiceOutput<object>.Success(null);
         }

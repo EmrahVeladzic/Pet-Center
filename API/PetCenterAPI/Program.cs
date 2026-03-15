@@ -12,6 +12,10 @@ using PetCenterServices.Utils;
 using System.Text;
 using System.Text.Json;
 using PetCenterServices.Recommender;
+using PetCenterServices.Workers;
+using PetCenterServices.Seeder;
+using Microsoft.EntityFrameworkCore.Diagnostics;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -25,6 +29,7 @@ builder.Services.AddCors(options =>
         policy.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod();
 
     });
+    
 
 });
 
@@ -60,10 +65,16 @@ builder.Services.AddSwaggerGen(cfg =>
             new string[] {}
         }
     });
+
+    cfg.SchemaFilter<CurrentVersionSchemaFilter>();
 });
 
 builder.Services.AddSingleton<IRecommenderSystem,RecommenderSystem>();
+builder.Services.AddSingleton<ISeeder,TestSeeder>();
 
+
+builder.Services.AddHostedService<CleanupService>();
+builder.Services.AddHostedService<SupplyService>();
 
 builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddScoped<IUserService, UserService>();
@@ -76,12 +87,24 @@ builder.Services.AddScoped<IFormTemplateService,FormTemplateService>();
 builder.Services.AddScoped<ILivingConditionFieldService,LivingconditionFieldService>();
 builder.Services.AddScoped<IItemService,ItemService>();
 builder.Services.AddScoped<IBreedService,BreedService>();
+builder.Services.AddScoped<IIndividualService,IndividualService>();
 builder.Services.AddScoped<IProcedureService,ProcedureService>();
+builder.Services.AddScoped<IFormService,FormService>();
+builder.Services.AddScoped<IListingService,ListingService>();
+
+builder.Services.AddScoped<IMessageBusClient, MessageBusClient>();
 
 builder.Services.AddDbContext<PetCenterDBContext>(options =>
 {
 
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
+
+    if (builder.Environment.IsDevelopment())
+    {
+        options.EnableDetailedErrors().LogTo(Console.WriteLine,LogLevel.Warning);
+    }
+
+    options.ConfigureWarnings(w =>  w.Ignore(RelationalEventId.MultipleCollectionIncludeWarning));
 
 });
 
@@ -181,7 +204,7 @@ while (retry)
         {
             PetCenterDBContext ctx = scope.ServiceProvider.GetRequiredService<PetCenterDBContext>();
             IAccountService svc = scope.ServiceProvider.GetRequiredService<IAccountService>();
-            
+            ISeeder seeder = scope.ServiceProvider.GetRequiredService<ISeeder>();
                     
                 if (!await ctx.Accounts.AnyAsync())
                 {
@@ -204,6 +227,8 @@ while (retry)
 
 
                     await svc.Post(Guid.Empty,owner_req);
+
+                    await seeder.SeedDatabase(ctx,true);
                   
                 }
 

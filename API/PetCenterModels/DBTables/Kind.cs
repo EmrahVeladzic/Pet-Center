@@ -21,13 +21,13 @@ namespace PetCenterModels.DBTables
         [InverseProperty(nameof(Breed.AnimalKind))]
         public List<Breed> Breeds {get; set;} = new();
 
-        public override async Task StageDeletion<T>(PetCenterDBContext ctx, DbSet<T> set)
+        public override async Task StageDeletion<T>(PetCenterDBContext ctx, DbSet<T> set,CancellationToken cancel = default)
         {
-            if(await ctx.AnimalBreeds.Where(b=>b.KindId==Id).ToListAsync() is List<Breed> b){foreach(Breed br in b){await br.StageDeletion<Breed>(ctx,ctx.AnimalBreeds);}}
-            if(await ctx.MedicalProcedureSpecifications.Where(m=>m.KindId==Id).ToListAsync() is List<MedicalProcedureSpecification> m){foreach (MedicalProcedureSpecification med in m){await med.StageDeletion<MedicalProcedureSpecification>(ctx,ctx.MedicalProcedureSpecifications);}}
-            if(await ctx.Items.Where(i=>i.TargetKind==Id).ToListAsync() is List<Item> i){foreach(Item itm in i){await itm.StageDeletion<Item>(ctx,ctx.Items);}}
-            if(await ctx.UsageEstimates.Where(u=>u.KindId==Id).ToArrayAsync() is Usage[] u){ctx.RemoveRange(u);}
-            await base.StageDeletion(ctx, set);
+            if(await ctx.AnimalBreeds.Where(b=>b.KindId==Id).ToListAsync(cancel) is List<Breed> b){foreach(Breed br in b){await br.StageDeletion<Breed>(ctx,ctx.AnimalBreeds,cancel);}}
+            if(await ctx.MedicalProcedureSpecifications.Where(m=>m.KindId==Id).ToListAsync(cancel) is List<MedicalProcedureSpecification> m){foreach (MedicalProcedureSpecification med in m){await med.StageDeletion<MedicalProcedureSpecification>(ctx,ctx.MedicalProcedureSpecifications,cancel);}}
+            if(await ctx.Items.Where(i=>i.KindId==Id).ToListAsync(cancel) is List<Item> i){foreach(Item itm in i){await itm.StageDeletion<Item>(ctx,ctx.Items,cancel);}}
+            if(await ctx.UsageEstimates.Where(u=>u.KindId==Id).ToArrayAsync(cancel) is Usage[] u){ctx.RemoveRange(u);}
+            await base.StageDeletion(ctx, set,cancel);
         }
     }
 }

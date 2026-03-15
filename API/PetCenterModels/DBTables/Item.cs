@@ -23,7 +23,10 @@ namespace PetCenterModels.DBTables
         public Category ItemCategory {get; set;} = null!;
 
         [Column("TargetKind")]
-        public Guid? TargetKind { get; set; }
+        public Guid KindId { get; set; }
+
+        [ForeignKey(nameof(KindId))]
+        public Kind TargetKind {get; set;} =null!;
 
         [Column("TargetScale")]
         public AnimalScale? TargetScale { get; set; }
@@ -31,10 +34,10 @@ namespace PetCenterModels.DBTables
         [Column("MassGrams")]
         public int? MassGrams { get; set; }
 
-        public override async Task StageDeletion<T>(PetCenterDBContext ctx, DbSet<T> set)
+        public override async Task StageDeletion<T>(PetCenterDBContext ctx, DbSet<T> set,CancellationToken cancel = default)
         {
-            if(await ctx.ProductListings.Where(p=>p.ProductId==Id).ToListAsync() is List<ProductListing> p){foreach(ProductListing pl in p){await pl.StageDeletion<ProductListing>(ctx,ctx.ProductListings);}}
-            await base.StageDeletion(ctx, set);
+            if(await ctx.ProductListings.Where(p=>p.ProductId==Id).ToListAsync(cancel) is List<ProductListing> p){foreach(ProductListing pl in p){await pl.StageDeletion<ProductListing>(ctx,ctx.ProductListings,cancel);}}
+            await base.StageDeletion(ctx, set,cancel);
         }
 
     }

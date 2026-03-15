@@ -44,10 +44,10 @@ namespace PetCenterServices.Services
                         await dbContext.SaveChangesAsync();
                         await tx.CommitAsync();
                     }
-                    catch
+                    catch(Exception ex)
                     {
                         await tx.RollbackAsync();
-                        return ServiceOutput<object>.Error(HttpCode.InternalError,"Internal server error.");
+                        return ServiceOutput<object>.FromException(ex);
                     }
                 }
 
@@ -68,10 +68,10 @@ namespace PetCenterServices.Services
                     output = await UploadImage(token_holder,img,dbContext);
                     await tx.CommitAsync();
                 }
-                catch
+                catch(Exception ex)
                 {
                     await tx.RollbackAsync();
-                    output = ServiceOutput<ImageDTO>.Error(HttpCode.InternalError,"Internal server error.");
+                    output = ServiceOutput<ImageDTO>.FromException(ex);
 
                 }
             }
@@ -185,10 +185,10 @@ namespace PetCenterServices.Services
         }
 
 
-        public static async Task<Guid> CreateAlbum(Guid token_holder,PetCenterDBContext ctx, byte cap)
+        public static async Task<Guid> CreateAlbum(Guid? token_holder,PetCenterDBContext ctx, byte cap)
         {
             Album alb = new(cap);
-            alb.PosterID = (Guid)token_holder;
+            alb.PosterID = token_holder;
             await ctx.Albums.AddAsync(alb);
             await ctx.SaveChangesAsync();
             return alb.Id;

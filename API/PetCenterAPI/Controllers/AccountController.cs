@@ -26,11 +26,7 @@ namespace PetCenterAPI.Controllers
             return await base.Get(search);
         }
 
-        [NonAction]
-        public override Task<IActionResult> GetById(Guid id)
-        {
-            throw new NotSupportedException();
-        }
+       
 
         [HttpPost]
         [AllowAnonymous]

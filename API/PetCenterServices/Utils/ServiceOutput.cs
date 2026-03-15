@@ -1,4 +1,7 @@
 
+using System.ComponentModel.DataAnnotations;
+using Microsoft.EntityFrameworkCore;
+
 namespace PetCenterServices.Utils
 {
     public enum HttpCode : int
@@ -32,6 +35,19 @@ namespace PetCenterServices.Utils
 
         public static ServiceOutput<T> Success(T? body, HttpCode code = HttpCode.OK) => new(code, body, null);
         public static ServiceOutput<T> Error(HttpCode code, string message) => new(code, default, message);
+
+        public static ServiceOutput<T> FromException(Exception ex)
+        {
+            return (ex) switch    
+            {
+                DbUpdateConcurrencyException => ServiceOutput<T>.Error(HttpCode.Conflict, "The resource was modified by another process."),
+                ValidationException => ServiceOutput<T>.Error(HttpCode.BadRequest, "The provided data did not pass validation."),
+                KeyNotFoundException => ServiceOutput<T>.Error(HttpCode.NotFound, "The selected resource does not exist."),
+                UnauthorizedAccessException => ServiceOutput<T>.Error(HttpCode.Forbidden, "You lack the permission to perform this action."),
+                DbUpdateException => ServiceOutput<T>.Error(HttpCode.BadRequest, "A database update error occurred."),
+                _ => ServiceOutput<T>.Error(HttpCode.InternalError, "Internal server error.")
+            };      
+        }
 
         public static bool IsSuccess(ServiceOutput<T> input){return (int)input.Code<400;}
 

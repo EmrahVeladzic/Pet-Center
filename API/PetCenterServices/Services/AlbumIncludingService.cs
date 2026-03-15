@@ -33,7 +33,7 @@ namespace PetCenterServices.Services
         }
 
 
-        public override async Task<ServiceOutput<TResponse>> GetById(Guid token_holder, Guid id)
+        public override async Task<ServiceOutput<TResponse>> GetById(Guid token_holder, Guid id, Access authorization_level)
         {
             TEntity? entity = await WithAlbum().FirstOrDefaultAsync(e=>e.Id==id);
 
@@ -64,15 +64,16 @@ namespace PetCenterServices.Services
                     {
                         try
                         {
-                            ent.AlbumId = await ImageService.CreateAlbum(token_holder,dbContext,ent.AlbumCapacity);
+                            ent.AlbumId = await ImageService.CreateAlbum(null,dbContext,ent.AlbumCapacity);
                             await dbSet.AddAsync(ent);
                             await dbContext.SaveChangesAsync();
                             await tx.CommitAsync();
                             return ServiceOutput<TResponse>.Success(TResponse.FromEntity(ent),HttpCode.Created);
                         }
-                        catch
+                        catch(Exception ex)
                         {
                             await tx.RollbackAsync();
+                            return ServiceOutput<TResponse>.FromException(ex);
                         }
                     }
 

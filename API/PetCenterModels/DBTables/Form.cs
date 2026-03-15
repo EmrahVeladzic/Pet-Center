@@ -30,16 +30,14 @@ namespace PetCenterModels.DBTables
         [Column("DefaultContact")]
         public string DefaultContact { get; set; } = string.Empty;
 
-        [Column("Posted")]
-        public DateTime Posted {get; set;}
 
         [InverseProperty(nameof(FormFieldEntry.RelevantForm))]
         public List<FormFieldEntry> Entries {get; set;} = new();
 
-        public override async Task StageDeletion<T>(PetCenterDBContext ctx, DbSet<T> set)
+        public override async Task StageDeletion<T>(PetCenterDBContext ctx, DbSet<T> set,CancellationToken cancel = default)
         {
-            if(await ctx.FormFieldEntries.Where(f=>f.FormId==Id).ToArrayAsync() is FormFieldEntry[] f){ctx.FormFieldEntries.RemoveRange(f);}
-            await base.StageDeletion(ctx, set);
+            if(await ctx.FormFieldEntries.Where(f=>f.FormId==Id).ToArrayAsync(cancel) is FormFieldEntry[] f){ctx.FormFieldEntries.RemoveRange(f);}
+            await base.StageDeletion(ctx, set,cancel);
         }
     }
 }

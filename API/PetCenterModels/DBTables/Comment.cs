@@ -23,16 +23,19 @@ namespace PetCenterModels.DBTables
 
         [Column("Contents")]
         public string Message { get; set; } = string.Empty;
-        [Column("Creation")]
-        public DateTime PostDate { get; set; }
+        [Column("LastEdited")]
+        public DateTime LastEditDate { get; set; } = DateTime.UtcNow;
        
         [Column("ListingID")]
         public Guid ListingId { get; set; }
 
-        public override async Task StageDeletion<T>(PetCenterDBContext ctx, DbSet<T> set)
+        [ForeignKey(nameof(ListingId))]
+        public Listing RelevantListing {get; set;} = null!;
+
+        public override async Task StageDeletion<T>(PetCenterDBContext ctx, DbSet<T> set,CancellationToken cancel = default)
         {
-            if(await ctx.Reports.Where(r=>r.CommentId==Id).ToArrayAsync() is Report[] r){ctx.Reports.RemoveRange(r);}
-            await base.StageDeletion(ctx, set);
+            if(await ctx.Reports.Where(r=>r.CommentId==Id).ToArrayAsync(cancel) is Report[] r){ctx.Reports.RemoveRange(r);}
+            await base.StageDeletion(ctx, set,cancel);
         }
 
     }

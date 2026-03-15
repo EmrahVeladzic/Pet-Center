@@ -60,20 +60,8 @@ namespace PetCenterAPI.Controllers
         }
 
   
-        [HttpGet("{id}")]
-        public virtual async Task<IActionResult> GetById([FromRoute]Guid id)
-        {     
-            
-            if (TryGetUserId(out Guid usr_id))
-            {
-                return ResultConverter.Convert<TResponse>(await service.GetById(usr_id,id));
-            }
-            return StatusCode(401,"Invalid token.");          
-            
-        }
 
-
-        [HttpGet("count")]
+        [HttpGet("Count")]
         public virtual async Task<IActionResult> Count([FromQuery] TSearch search)
         {
 

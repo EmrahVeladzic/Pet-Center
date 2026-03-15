@@ -5,6 +5,10 @@ GO
 USE [$(DB_NAME)];
 GO
 
+SET QUOTED_IDENTIFIER ON;
+SET ANSI_NULLS ON;
+GO
+
 CREATE SCHEMA [File]
 GO
 CREATE SCHEMA [Person]
@@ -62,7 +66,7 @@ GO
 CREATE TABLE [Person].[User](
     ID UNIQUEIDENTIFIER NOT NULL PRIMARY KEY FOREIGN KEY REFERENCES [Person].[Account](ID),
     CurrentVersion ROWVERSION NOT NULL,   
-    UserName NVARCHAR(50) NOT NULL,
+    UserName NVARCHAR(75) NOT NULL,
 
     CONSTRAINT UQ_UserName UNIQUE (UserName),
 );
@@ -72,7 +76,7 @@ CREATE TABLE [Business].[Franchise](
     ID UNIQUEIDENTIFIER NOT NULL DEFAULT NEWSEQUENTIALID() PRIMARY KEY,
     CurrentVersion ROWVERSION NOT NULL,
     OwnerID UNIQUEIDENTIFIER NOT NULL FOREIGN KEY REFERENCES [Person].[User](ID),
-    FranchiseName NVARCHAR(50) NOT NULL,
+    FranchiseName NVARCHAR(75) NOT NULL,
     DefaultContact VARCHAR(255) NOT NULL,
 
     CONSTRAINT UQ_Franchise_Owner UNIQUE(OwnerID,FranchiseName)
@@ -114,7 +118,7 @@ CREATE TABLE [Business].[FormTemplateField](
     ID UNIQUEIDENTIFIER NOT NULL DEFAULT NEWSEQUENTIALID() PRIMARY KEY,
     CurrentVersion ROWVERSION NOT NULL,
     FormTemplateID UNIQUEIDENTIFIER NOT NULL FOREIGN KEY REFERENCES [Business].[FormTemplate](ID),
-    FormFieldDescription NVARCHAR(50) NOT NULL,
+    FormFieldDescription NVARCHAR(75) NOT NULL,
     Optional BIT NOT NULL,
 
     CONSTRAINT UQ_FormTemplateField_Description UNIQUE (FormFieldDescription, FormTemplateID)
@@ -139,11 +143,11 @@ CREATE TABLE [Pending].[Form](
     FormTemplateID UNIQUEIDENTIFIER NOT NULL FOREIGN KEY REFERENCES [Business].[FormTemplate](ID),
     UserID UNIQUEIDENTIFIER NOT NULL FOREIGN KEY REFERENCES [Person].[User](ID),
     AlbumID UNIQUEIDENTIFIER NOT NULL FOREIGN KEY REFERENCES [File].[Album](ID),
-    FranchiseName NVARCHAR(50) NOT NULL,
+    FranchiseName NVARCHAR(75) NOT NULL,
     DefaultContact VARCHAR(255) NOT NULL,
-    Posted DATETIME2 NOT NULL,
 
-	CONSTRAINT UQ_Form_Album UNIQUE (AlbumID)
+	CONSTRAINT UQ_Form_Album UNIQUE (AlbumID),
+    CONSTRAINT UQ_Form_User_FranchiseName UNIQUE(UserID,FranchiseName)
 );
 GO
 
@@ -152,7 +156,9 @@ CREATE TABLE [Pending].[FormFieldEntry](
     CurrentVersion ROWVERSION NOT NULL,
     FormID UNIQUEIDENTIFIER NOT NULL FOREIGN KEY REFERENCES [Pending].[Form](ID),
     FormTemplateFieldID UNIQUEIDENTIFIER NOT NULL FOREIGN KEY REFERENCES [Business].[FormTemplateField](ID),
-    Serialized NVARCHAR(255) NOT NULL
+    Serialized NVARCHAR(255) NOT NULL,
+
+    CONSTRAINT UQ_FormFieldEntry_Form_TemplateField UNIQUE(FormID,FormTemplateFieldID)
 );
 GO
 
@@ -169,7 +175,7 @@ CREATE TABLE [Animal].[Breed](
     ID UNIQUEIDENTIFIER NOT NULL DEFAULT NEWSEQUENTIALID() PRIMARY KEY,
     CurrentVersion ROWVERSION NOT NULL,
     KindID UNIQUEIDENTIFIER NOT NULL FOREIGN KEY REFERENCES [Animal].[Kind](ID),   
-    Title NVARCHAR(50) NOT NULL,
+    Title NVARCHAR(75) NOT NULL,
     Scale TINYINT NOT NULL,
     Investment REAL NOT NULL,
     Territory REAL NOT NULL,
@@ -195,7 +201,7 @@ CREATE TABLE [Animal].[Individual](
     CurrentVersion ROWVERSION NOT NULL,
     AnimalIdentity UNIQUEIDENTIFIER NOT NULL,
     BreedID UNIQUEIDENTIFIER NOT NULL FOREIGN KEY REFERENCES [Animal].[Breed](ID),
-    AnimalName NVARCHAR(50) NOT NULL,
+    AnimalName NVARCHAR(75) NOT NULL,
     BirthDate DATETIME2 NOT NULL,
     Sex BIT NOT NULL,
     OwnerID UNIQUEIDENTIFIER FOREIGN KEY REFERENCES [Person].[User](ID),
@@ -207,7 +213,9 @@ CREATE TABLE [Animal].[Individual](
         (Owned = 1 AND OwnerID IS NOT NULL AND ShelterID IS NULL)
         OR
         (Owned = 0 AND OwnerID IS NULL AND ShelterID IS NOT NULL)
-    )
+    ),
+
+    CONSTRAINT UQ_Individual_Identity UNIQUE (OwnerID,ShelterID,AnimalIdentity)
 
 );
 GO
@@ -262,14 +270,16 @@ CREATE TABLE [Animal].[MedicalRecordEntry](
     CurrentVersion ROWVERSION NOT NULL,
     ProcedureID UNIQUEIDENTIFIER NOT NULL FOREIGN KEY REFERENCES [Service].[MedicalProcedure](ID),
     AnimalID UNIQUEIDENTIFIER NOT NULL FOREIGN KEY REFERENCES [Animal].[Individual](ID),
-    DatePerformed DATETIME2 NOT NULL
+    DatePerformed DATETIME2 NOT NULL,
+
+    CONSTRAINT UQ_Entry_Animal_Procedure UNIQUE(AnimalID,ProcedureID)
 );
 GO
 
 CREATE TABLE [Product].[Category](
     ID UNIQUEIDENTIFIER NOT NULL DEFAULT NEWSEQUENTIALID() PRIMARY KEY,
     CurrentVersion ROWVERSION NOT NULL,
-    Title NVARCHAR(50) NOT NULL,
+    Title NVARCHAR(75) NOT NULL,
     Consumable BIT NOT NULL,
 
     CONSTRAINT UQ_Category_Title UNIQUE (Title)
@@ -281,7 +291,7 @@ CREATE TABLE [Product].[Item](
     CurrentVersion ROWVERSION NOT NULL,
     Title NVARCHAR(75) NOT NULL,
     CategoryID UNIQUEIDENTIFIER NOT NULL FOREIGN KEY REFERENCES [Product].[Category](ID),
-    TargetKind UNIQUEIDENTIFIER FOREIGN KEY REFERENCES [Animal].[Kind](ID),
+    TargetKind UNIQUEIDENTIFIER NOT NULL FOREIGN KEY REFERENCES [Animal].[Kind](ID),
     TargetScale TINYINT,
     MassGrams INT,
 
@@ -290,14 +300,7 @@ CREATE TABLE [Product].[Item](
         (MassGrams IS NULL OR MassGrams>=0)
     ),
 
-    CONSTRAINT CK_Item_KindConsistency
-    CHECK (
-        (TargetKind IS NULL AND TargetScale IS NULL)
-        OR
-        (TargetKind IS NOT NULL)
-    ),
-
-    CONSTRAINT UQ_Item_Title UNIQUE (Title)
+    CONSTRAINT UQ_Item_Title_Kind UNIQUE (Title,TargetKind)
 
 );
 GO
@@ -371,7 +374,7 @@ CREATE TABLE [Communication].[Comment](
     CurrentVersion ROWVERSION NOT NULL,
     Contents NVARCHAR(150) NOT NULL,
     PosterID UNIQUEIDENTIFIER NOT NULL FOREIGN KEY REFERENCES [Person].[User](ID),
-    Creation DATETIME2 NOT NULL,
+    LastEdited DATETIME2 NOT NULL,
     ListingID UNIQUEIDENTIFIER NOT NULL FOREIGN KEY REFERENCES [Offer].[Listing](ID),
 
     CONSTRAINT UQ_Comment_Poster_Listing UNIQUE(ListingID,PosterID)
@@ -394,7 +397,7 @@ CREATE TABLE [Communication].[Notification](
     CurrentVersion ROWVERSION NOT NULL,
     UserID UNIQUEIDENTIFIER NOT NULL FOREIGN KEY REFERENCES [Person].[User](ID),
     FranchiseID UNIQUEIDENTIFIER FOREIGN KEY REFERENCES [Business].[Franchise](ID),
-    Title NVARCHAR(50) NOT NULL,
+    Title NVARCHAR(75) NOT NULL,
     Body NVARCHAR(255) NOT NULL,
     ListingID UNIQUEIDENTIFIER FOREIGN KEY REFERENCES [Offer].[Listing](ID),
     Expiry DATETIME2 NOT NULL,
@@ -424,7 +427,6 @@ CREATE TABLE [Communication].[Report](
     Expiry DATETIME2 NOT NULL,
     ReporterID UNIQUEIDENTIFIER NOT NULL FOREIGN KEY REFERENCES [Person].[User](ID),
 
-    CONSTRAINT UQ_Report_Listing_Comment UNIQUE (ListingID, CommentID),
     CONSTRAINT UQ_Report_Reporter_Listing UNIQUE (ReporterID, ListingID)
 );
 GO
@@ -451,7 +453,7 @@ GO
 CREATE TABLE [Person].[LivingConditionField](
     ID UNIQUEIDENTIFIER NOT NULL DEFAULT NEWSEQUENTIALID() PRIMARY KEY,
     CurrentVersion ROWVERSION NOT NULL,
-    Title NVARCHAR(50) NOT NULL,
+    Title NVARCHAR(75) NOT NULL,
     InvestmentEffect REAL NOT NULL DEFAULT 0,
     TerritoryEffect REAL NOT NULL DEFAULT 0,
     PricingEffect REAL NOT NULL DEFAULT 0,
@@ -469,7 +471,7 @@ CREATE TABLE [Person].[LivingConditionField](
 );
 GO
 
-CREATE TABLE [Animal].[LivingConditionEntry](
+CREATE TABLE [Person].[LivingConditionEntry](
     ID UNIQUEIDENTIFIER NOT NULL DEFAULT NEWSEQUENTIALID() PRIMARY KEY,
     CurrentVersion ROWVERSION NOT NULL,
     UserID UNIQUEIDENTIFIER NOT NULL,
@@ -488,6 +490,11 @@ CREATE TABLE [Offer].[Discount](
     ListingID UNIQUEIDENTIFIER NOT NULL,
     PercentDiscount TINYINT NOT NULL,
     Expiry DATETIME2 NOT NULL,
+
+    CONSTRAINT CK_Discount_Percent 
+    CHECK (
+        PercentDiscount>=0 AND PercentDiscount<=100
+    ),
 
     CONSTRAINT UQ_Discount_Listing UNIQUE(ListingID),
     CONSTRAINT FK_Discount_Listing FOREIGN KEY (ListingID) REFERENCES [Offer].[Listing](ID) ON DELETE CASCADE

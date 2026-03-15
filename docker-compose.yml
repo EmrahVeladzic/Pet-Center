@@ -1,6 +1,5 @@
 services:
   mssql:
-    mem_limit: 4g
     image: mcr.microsoft.com/mssql/server:2022-latest
     container_name: mssql
     environment:
@@ -14,6 +13,14 @@ services:
       test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P \"$${SA_PASSWORD}\" -C -Q 'SELECT 1'"]
       interval: 20s
       retries: 15
+    networks:
+      - petcenter-network
+    deploy:
+      resources:
+        limits:
+          memory: ${MSSQL_MEM_LIMIT:-4G}
+        reservations:
+          memory: ${MSSQL_MEM_RESERVE:-2G}
 
   mssql-init:
     image: mcr.microsoft.com/mssql/server:2022-latest
@@ -28,6 +35,94 @@ services:
     entrypoint: >
       bash -c "/opt/mssql-tools18/bin/sqlcmd -S mssql -U sa -P \"$SA_PASSWORD\" -C -v DB_NAME=\"$DB_NAME\" -i /PetCenterDB.sql"
     restart: "no"
+    networks:
+      - petcenter-network
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    environment:
+      - RABBITMQ_DEFAULT_USER=${RABBITMQ_USERNAME}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASSWORD}
+    ports:
+      - "5672:5672"   
+      - "15672:15672" 
+    networks:
+      - petcenter-network
+    deploy:
+      resources:
+        limits:
+          memory: ${RABBITMQ_MEM_LIMIT:-512M}
+        reservations:
+          memory: ${RABBITMQ_MEM_RESERVE:-256M}
+
+
+  #petcenter-api:
+  #  build:
+  #    context: .
+  #    dockerfile: API/PetCenterApi/Dockerfile
+  #  environment:
+  #    - ConnectionStrings__DefaultConnection=Server=mssql;Database=${DB_NAME};User Id=sa;Password=${SA_PASSWORD};TrustServerCertificate=True;
+  #    - RABBITMQ_HOSTNAME=${RABBITMQ_HOSTNAME}
+  #    - RABBITMQ_QUEUENAME=${RABBITMQ_QUEUENAME}
+  #    - RABBITMQ_USERNAME=${RABBITMQ_USERNAME}
+  #    - RABBITMQ_PASSWORD=${RABBITMQ_PASSWORD}
+  #    - INSTANCE_OWNER_CONTACT=${INSTANCE_OWNER_CONTACT}
+  #    - INSTANCE_OWNER_PASSWORD=${INSTANCE_OWNER_PASSWORD}
+  #  depends_on:
+  #    mssql:
+  #      condition: service_healthy
+  #    rabbitmq:
+  #      condition: service_started
+  #  networks:
+  #    - petcenter-network
+  #  deploy:
+  #    resources:
+  #      limits:
+  #        memory: ${API_MEM_LIMIT:-512M}
+  #      reservations:
+  #        memory: ${API_MEM_RESERVE:-256M}
+
+  email-consumer:
+    build:
+      context: .
+      dockerfile: API/UserContactConsumer/Dockerfile
+    environment:
+      - RABBITMQ_HOSTNAME=${RABBITMQ_HOSTNAME}
+      - RABBITMQ_QUEUENAME=${RABBITMQ_QUEUENAME}
+      - RABBITMQ_USERNAME=${RABBITMQ_USERNAME}
+      - RABBITMQ_PASSWORD=${RABBITMQ_PASSWORD}
+      - SMTP_USERNAME=${SMTP_USERNAME}
+      - SMTP_PASSWORD=${SMTP_PASSWORD}
+      - SMTP_SERVER=${SMTP_SERVER}
+      - SMTP_PORT=${SMTP_PORT}
+      - APP_EMAIL=${APP_EMAIL}      
+    depends_on:
+      - rabbitmq
+    networks:
+      - petcenter-network
+    deploy:
+      resources:
+        limits:
+          memory: ${CONSUMER_MEM_LIMIT:-256M}
+        reservations:
+          memory: ${CONSUMER_MEM_RESERVE:-128M}
+
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: mailhog
+    environment:
+      - MH_STORAGE=memory
+      - MH_MAX_MESSAGES=50
+    ports:
+      - "1025:1025" 
+      - "8025:8025" 
+    networks:
+      - petcenter-network
+
+networks:
+  petcenter-network:
+    driver: bridge
 
 volumes:
   mssql_data:

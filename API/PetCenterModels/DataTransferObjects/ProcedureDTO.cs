@@ -15,6 +15,8 @@ namespace PetCenterModels.DataTransferObjects
     public class ProcedureSpecificationSubDTO : IBaseResponseDTO<MedicalProcedureSpecification, ProcedureSpecificationSubDTO>
     {
         public Guid? Id {get; set;} = null;
+
+        public byte[] CurrentVersion { get; set; } = Array.Empty<byte>();
       
         public List<NoteSubDTO>? Notes {get; set;} = null;
 
@@ -38,6 +40,7 @@ namespace PetCenterModels.DataTransferObjects
             return new ProcedureSpecificationSubDTO
             {
                 Id=entity.Id,
+                CurrentVersion=entity.CurrentVersion,
                 ProcedureID=entity.ProcedureId,
                 Optional=entity.Optional,
                 KindId=entity.KindId,
@@ -55,6 +58,8 @@ namespace PetCenterModels.DataTransferObjects
     {
        
         public Guid? Id {get; set;} = null;
+
+        public byte[] CurrentVersion { get; set; } = Array.Empty<byte>();
       
         public List<NoteSubDTO>? Notes {get; set;} = null;
 
@@ -68,6 +73,7 @@ namespace PetCenterModels.DataTransferObjects
             ProcedureDTO output = new ProcedureDTO
             {
                 Id = entity.Id,
+                CurrentVersion=entity.CurrentVersion,
                 Description = entity.Description,
                 Specifications = entity.Specifications.Select(s=>ProcedureSpecificationSubDTO.FromEntity(s)!).ToList()
             };
@@ -80,7 +86,7 @@ namespace PetCenterModels.DataTransferObjects
         public Procedure? ToEntity()
         {
             Procedure proc = new();
-           
+            proc.CurrentVersion=CurrentVersion;           
             proc.Description=Description;
             return proc;
         }
