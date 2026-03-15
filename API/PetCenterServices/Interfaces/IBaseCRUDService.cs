@@ -16,7 +16,7 @@ namespace PetCenterServices.Interfaces
       
         public Task<ServiceOutput<int>> Count(Guid token_holder, TSearch search);
         public Task<ServiceOutput<List<TResponse>>> Get(Guid token_holder, TSearch search);
-        public Task <ServiceOutput<TResponse>> GetById(Guid token_holder, Guid id);
+        public Task <ServiceOutput<TResponse>> GetById(Guid token_holder, Guid id, Access authorization_level);
         public Task<ServiceOutput<TResponse>> Post(Guid token_holder,TRequest ent);
         public Task<ServiceOutput<TResponse>> Put(Guid token_holder,TRequest ent);
         public Task<ServiceOutput<object>> Delete(Guid token_holder,Guid id);

@@ -10,15 +10,21 @@ using System.Threading.Tasks;
 
 namespace PetCenterModels.DBTables
 {
-    [Table("MedicalRecordEntry",Schema ="Service")]
+    [Table("MedicalRecordEntry",Schema ="Animal")]
     public class MedicalRecordEntry:BaseTableEntity
     {
 
         [Column("ProcedureID")]
         public Guid ProcedureId {get; set;}
 
+        [ForeignKey(nameof(ProcedureId))]
+        public Procedure MedicalProcedure {get; set;} = null!;
+
         [Column("AnimalID")]
         public Guid AnimalId {get; set;}
+
+        [ForeignKey(nameof(AnimalId))]
+        public Individual Animal {get; set;} = null!;
 
         [Column("DatePerformed")]
         public DateTime DatePerformed {get; set;}

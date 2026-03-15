@@ -15,6 +15,8 @@ namespace PetCenterModels.DataTransferObjects
 
         public Guid? Id {get; set;}
 
+        public byte[] CurrentVersion { get; set; } = Array.Empty<byte>();
+
         public string Contact {get; set;} = string.Empty;
 
         public Access AccessLevel {get; set;}
@@ -29,6 +31,7 @@ namespace PetCenterModels.DataTransferObjects
 
             return new AccountResponseDTO
             {
+                CurrentVersion=acc.CurrentVersion,
                 Id=acc.Id,
                 Contact = acc.Contact,
                 AccessLevel = acc.AccessLevel,

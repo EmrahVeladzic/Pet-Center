@@ -18,11 +18,7 @@ namespace PetCenterAPI.Controllers
 
         public FormTemplateController(IFormTemplateService s):base(s) { }
 
-        [NonAction]
-        public override Task<IActionResult> GetById(Guid id)
-        {
-            throw new NotImplementedException();
-        }
+       
 
         [Authorize(Roles = "Admin,Owner")]
         [HttpPut("{id}")]

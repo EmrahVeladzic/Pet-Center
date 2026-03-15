@@ -47,13 +47,16 @@ namespace PetCenterModels.DBTables
         [ForeignKey(nameof(ShelterId))]
         public Franchise Shelter {get; set;} = null!;
 
+        [InverseProperty(nameof(MedicalRecordEntry.Animal))]
+        public List<MedicalRecordEntry> MedicalRecord {get; set;} = new();
+
         public bool Owned {get;set;}
 
-        public override async Task StageDeletion<T>(PetCenterDBContext ctx, DbSet<T> set)
+        public override async Task StageDeletion<T>(PetCenterDBContext ctx, DbSet<T> set,CancellationToken cancel = default)
         {
-            if(await ctx.MedicalRecordEntries.Where(m=>m.AnimalId==Id).ToArrayAsync() is MedicalRecordEntry[] m){ctx.MedicalRecordEntries.RemoveRange(m);}
-            if(await ctx.AnimalListings.FirstOrDefaultAsync(a=>a.AnimalId==Id) is AnimalListing a){await a.StageDeletion<AnimalListing>(ctx,ctx.AnimalListings);}
-            await base.StageDeletion(ctx, set);
+            if(await ctx.MedicalRecordEntries.Where(m=>m.AnimalId==Id).ToArrayAsync(cancel) is MedicalRecordEntry[] m){ctx.MedicalRecordEntries.RemoveRange(m);}
+            if(await ctx.AnimalListings.FirstOrDefaultAsync(a=>a.AnimalId==Id,cancel) is AnimalListing a){await a.StageDeletion<AnimalListing>(ctx,ctx.AnimalListings,cancel);}
+            await base.StageDeletion(ctx, set,cancel);
         }
 
     }

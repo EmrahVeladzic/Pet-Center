@@ -46,9 +46,9 @@ namespace PetCenterModels.DBTables
             
         }
 
-        public override async Task StageDeletion<T>(PetCenterDBContext ctx, DbSet<T> set)
+        public override async Task StageDeletion<T>(PetCenterDBContext ctx, DbSet<T> set, CancellationToken cancel = default)
         {
-            if(await ctx.Images.Where(i=>i.AlbumId==Id).ToArrayAsync() is Image[] i){ctx.Images.RemoveRange(i);}
+            if(await ctx.Images.Where(i=>i.AlbumId==Id).ToArrayAsync(cancel) is Image[] i){ctx.Images.RemoveRange(i);}
             Reserved = 0;
         }
 

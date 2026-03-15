@@ -16,6 +16,8 @@ namespace PetCenterModels.DataTransferObjects
     {
         public Guid? Id {get; set;} = null;
 
+        public byte[] CurrentVersion { get; set; } = Array.Empty<byte>();
+
         public List<NoteSubDTO>? Notes {get; set;} = null;
 
         public Guid UserId {get; set;} = Guid.Empty;
@@ -31,6 +33,7 @@ namespace PetCenterModels.DataTransferObjects
             return new LivingConditionEntrySubDTO
             {
                 Id=entry.Id,
+                CurrentVersion = entry.CurrentVersion,
                 UserId = entry.UserId,
                 FieldId = entry.LivingConditionFieldID,
                 Answer = entry.Answer
@@ -44,6 +47,8 @@ namespace PetCenterModels.DataTransferObjects
     {
        
         public Guid? Id {get; set;} = null;
+
+        public byte[] CurrentVersion { get; set; } = Array.Empty<byte>();
 
         public List<NoteSubDTO>? Notes {get; set;} = null;
 
@@ -63,6 +68,7 @@ namespace PetCenterModels.DataTransferObjects
             return new LivingConditionFieldDTO
             {
                 Id = entity.Id,
+                CurrentVersion=entity.CurrentVersion,
                 Title = entity.Title,
                 InvestmentEffect=entity.InvestmentEffect,
                 TerritoryEffect=entity.TerritoryEffect,
@@ -76,7 +82,7 @@ namespace PetCenterModels.DataTransferObjects
         public LivingConditionField? ToEntity()
         {
             LivingConditionField field = new();
-           
+            field.CurrentVersion=CurrentVersion;
             field.Title=Title;
             field.InvestmentEffect=InvestmentEffect;
             field.TerritoryEffect=TerritoryEffect;

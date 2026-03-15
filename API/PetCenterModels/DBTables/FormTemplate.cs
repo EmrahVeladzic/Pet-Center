@@ -20,11 +20,11 @@ namespace PetCenterModels.DBTables
         [InverseProperty(nameof(FormTemplateField.Template))]
         public List<FormTemplateField> Entries {get; set;} = new();
 
-        public override async Task StageDeletion<T>(PetCenterDBContext ctx, DbSet<T> set)
+        public override async Task StageDeletion<T>(PetCenterDBContext ctx, DbSet<T> set,CancellationToken cancel = default)
         {
-            if(await ctx.Forms.Where(f=>f.FormTemplateId==Id).ToListAsync() is List<Form> f){foreach(Form frm in f){await frm.StageDeletion<Form>(ctx,ctx.Forms);}}
-            if(await ctx.FormTemplateFields.Where(t=>t.FormTemplateId==Id).ToListAsync() is List<FormTemplateField> t){foreach(FormTemplateField ftf in t){await ftf.StageDeletion<FormTemplateField>(ctx,ctx.FormTemplateFields);}}
-            await base.StageDeletion(ctx, set);
+            if(await ctx.Forms.Where(f=>f.FormTemplateId==Id).ToListAsync(cancel) is List<Form> f){foreach(Form frm in f){await frm.StageDeletion<Form>(ctx,ctx.Forms,cancel);}}
+            if(await ctx.FormTemplateFields.Where(t=>t.FormTemplateId==Id).ToListAsync(cancel) is List<FormTemplateField> t){foreach(FormTemplateField ftf in t){await ftf.StageDeletion<FormTemplateField>(ctx,ctx.FormTemplateFields,cancel);}}
+            await base.StageDeletion(ctx, set,cancel);
         }
         
     }

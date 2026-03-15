@@ -23,6 +23,11 @@ namespace PetCenterServices.Services
             dbSet = ctx.Categories;
         }
 
+        protected override void Touch()
+        {
+            StaticDataVersionHolder.CategoryVersion=Guid.NewGuid();
+        }
+
         protected override  Task<IQueryable<Category>> Filter(Guid token_holder, CategorySearchObject search)
         {
             return Task.FromResult<IQueryable<Category>>( dbSet.Include(c=>c.UsageSpecifics).OrderBy(c=>c.Id));
@@ -58,13 +63,14 @@ namespace PetCenterServices.Services
                             dbSet.Entry(ent).CurrentValues.SetValues(overwrite);
                             await dbContext.SaveChangesAsync();
                             await tx.CommitAsync();
+                            Touch();
                             return ServiceOutput<CategoryDTO>.Success(CategoryDTO.FromEntity(ent));
                                
                         }
-                        catch
+                        catch(Exception ex)
                         {
                             await tx.RollbackAsync();
-                            return ServiceOutput<CategoryDTO>.Error(HttpCode.InternalError, "Internal server error.");
+                            return ServiceOutput<CategoryDTO>.FromException(ex);
                         }
                     }
 
@@ -84,7 +90,7 @@ namespace PetCenterServices.Services
             {
                 return ServiceOutput<object>.Error(HttpCode.BadRequest,"DTO validation failed.");
             }
-            if(await dbSet.AnyAsync(c=>c.Title.ToLowerInvariant()==resource.Title.ToLowerInvariant()))
+            if(await dbSet.AnyAsync(c=>c.Title.ToLower()==resource.Title.ToLower()))
             {
                 return ServiceOutput<object>.Error(HttpCode.Conflict,"A category with this title already exists.");
             }
@@ -103,7 +109,7 @@ namespace PetCenterServices.Services
             {
                 return ServiceOutput<object>.Error(HttpCode.NotFound,"This category does not exist.");
             }
-            if(await dbSet.AnyAsync(c=>c.Title.ToLowerInvariant()==resource.Title.ToLowerInvariant() && c.Id!=resource.Id))
+            if(await dbSet.AnyAsync(c=>c.Title.ToLower()==resource.Title.ToLower() && c.Id!=resource.Id))
             {
                 return ServiceOutput<object>.Error(HttpCode.Conflict,"A category with this title already exists.");
             }
@@ -161,9 +167,9 @@ namespace PetCenterServices.Services
                 return ServiceOutput<SuppliesSubDTO>.Success(SuppliesSubDTO.FromEntity(supply_record));
 
             }
-            catch
+            catch(Exception ex)
             {
-                return ServiceOutput<SuppliesSubDTO>.Error(HttpCode.InternalError,"Internal server error.");
+                return ServiceOutput<SuppliesSubDTO>.FromException(ex);
             }
 
 
@@ -184,9 +190,9 @@ namespace PetCenterServices.Services
                     await supply_record.StageDeletion<Supplies>(dbContext,dbContext.SupplyRecords);
                     await dbContext.SaveChangesAsync();
                 }
-                catch
+                catch(Exception ex)
                 {
-                    return ServiceOutput<object>.Error(HttpCode.InternalError,"Internal server error.");
+                    return ServiceOutput<object>.FromException(ex);
                 }
 
                 
@@ -238,12 +244,13 @@ namespace PetCenterServices.Services
                 }
 
                 await dbContext.SaveChangesAsync();
+                StaticDataVersionHolder.UsageVersion= Guid.NewGuid();
                 return ServiceOutput<UsageSubDTO>.Success(UsageSubDTO.FromEntity(usage_record));
 
             }
-            catch
+            catch(Exception ex)
             {
-                return ServiceOutput<UsageSubDTO>.Error(HttpCode.InternalError,"Internal server error.");
+                return ServiceOutput<UsageSubDTO>.FromException(ex);
             }
 
         }
@@ -259,10 +266,11 @@ namespace PetCenterServices.Services
                 {
                     await usage_record.StageDeletion<Usage>(dbContext,dbContext.UsageEstimates);
                     await dbContext.SaveChangesAsync();
+                    StaticDataVersionHolder.UsageVersion=Guid.NewGuid();
                 }
-                catch
+                catch(Exception ex)
                 {
-                    return ServiceOutput<object>.Error(HttpCode.InternalError,"Internal server error.");
+                    return ServiceOutput<object>.FromException(ex);
                 }
 
             }

@@ -42,14 +42,14 @@ namespace UserContactConsumer.Services
                 server = email_cfg["SmtpServer"]
             };
 
-            string? e = Environment.GetEnvironmentVariable("SMTP_EMAIL");
+            string? e = Environment.GetEnvironmentVariable("APP_EMAIL");
 
             if (!string.IsNullOrWhiteSpace(e))
             {
                 smtp.email = e;
             }
 
-            string? usr = Environment.GetEnvironmentVariable("SMTP_USER");
+            string? usr = Environment.GetEnvironmentVariable("SMTP_USERNAME");
 
             if (!string.IsNullOrWhiteSpace(usr))
             {
@@ -77,7 +77,7 @@ namespace UserContactConsumer.Services
 
         }
 
-        public void SendEmail(string email,string message, string? subject, string? name)
+        public async Task SendEmail(string email,string message, string? subject, string? name)
         {
             if (string.IsNullOrWhiteSpace(name))
             {
@@ -89,6 +89,10 @@ namespace UserContactConsumer.Services
                 subject = "Message from PetCenter!";
             }
 
+            if (string.IsNullOrWhiteSpace(smtp.email))
+            {
+                smtp.email="null@example.com";
+            }
 
             MimeMessage msg = new();
             msg.Subject = subject;
@@ -100,9 +104,17 @@ namespace UserContactConsumer.Services
             {
                 try
                 {
-                    client.Connect(smtp.server, smtp.port.GetValueOrDefault(587));
-                    client.Authenticate(smtp.user, smtp.password);
-                    client.Send(msg);
+                    MailKit.Security.SecureSocketOptions security = (smtp.port == 1025) 
+                    ? MailKit.Security.SecureSocketOptions.None 
+                    : MailKit.Security.SecureSocketOptions.StartTls;
+
+                    await client.ConnectAsync(smtp.server, smtp.port.GetValueOrDefault(1025), security);
+                    if (!string.IsNullOrWhiteSpace(smtp.user) && !string.IsNullOrWhiteSpace(smtp.password))
+                    {
+                        await client.AuthenticateAsync(smtp.user, smtp.password);
+                        await client.SendAsync(msg);
+                    }
+                   
 
                 }
                 catch (Exception ex)

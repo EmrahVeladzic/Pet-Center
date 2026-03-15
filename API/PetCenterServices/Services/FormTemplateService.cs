@@ -23,6 +23,11 @@ namespace PetCenterServices.Services
             dbSet = ctx.FormTemplates;
         }
 
+        protected override void Touch()
+        {
+            StaticDataVersionHolder.FormTemplateVersion=Guid.NewGuid();
+        }
+
         protected override async Task<IQueryable<FormTemplate>> Filter(Guid token_holder, FormTemplateSearchObject search)
         {
             IQueryable<FormTemplate> query = await base.Filter(token_holder, search);
@@ -36,7 +41,7 @@ namespace PetCenterServices.Services
             {
                 return ServiceOutput<object>.Error(HttpCode.BadRequest,"DTO validation failed.");
             }
-            if(await dbSet.AnyAsync(f => f.Description.ToLowerInvariant() == resource.Description.ToLowerInvariant()))
+            if(await dbSet.AnyAsync(f => f.Description.ToLower() == resource.Description.ToLower()))
             {
                 return ServiceOutput<object>.Error(HttpCode.Conflict,"A template with this description already exists.");
             }
@@ -51,7 +56,7 @@ namespace PetCenterServices.Services
             {
                 return ServiceOutput<object>.Error(HttpCode.BadRequest,"DTO validation failed.");
             }
-            if(await dbSet.AnyAsync(f => f.Description.ToLowerInvariant() == resource.Description.ToLowerInvariant() && f.Id!=resource.Id))
+            if(await dbSet.AnyAsync(f => f.Description.ToLower() == resource.Description.ToLower() && f.Id!=resource.Id))
             {
                 return ServiceOutput<object>.Error(HttpCode.Conflict,"A template with this description already exists.");
             }
@@ -76,7 +81,7 @@ namespace PetCenterServices.Services
             {
                 return ServiceOutput<FormTemplateFieldDTO>.Error(HttpCode.NotFound,"Template does not exist.");
             } 
-            if(await dbContext.FormTemplateFields.AnyAsync(ff=>ff.FormTemplateId==field.FormTemplateId && ff.Description.ToLowerInvariant()==field.Description.ToLowerInvariant()&& ff.Id!=field.Id))
+            if(await dbContext.FormTemplateFields.AnyAsync(ff=>ff.FormTemplateId==field.FormTemplateId && ff.Description.ToLower()==field.Description.ToLower()&& ff.Id!=field.Id))
             {
                 return ServiceOutput<FormTemplateFieldDTO>.Error(HttpCode.Conflict,"Attempt to place a duplicate field.");
             }             
@@ -87,11 +92,13 @@ namespace PetCenterServices.Services
                 templateField.Optional = field.Optional;
                 templateField.FormTemplateId = field.FormTemplateId;
                 await dbContext.SaveChangesAsync();
+                Touch();
                 return ServiceOutput<FormTemplateFieldDTO>.Success(FormTemplateFieldDTO.FromEntity(templateField));
             }
             FormTemplateField entity = field.ToEntity()!;
             await dbContext.FormTemplateFields.AddAsync(entity);
             await dbContext.SaveChangesAsync();
+            Touch();
             return ServiceOutput<FormTemplateFieldDTO>.Success(FormTemplateFieldDTO.FromEntity(entity));
 
         }
@@ -109,11 +116,12 @@ namespace PetCenterServices.Services
                         await formTemplateField.StageDeletion<FormTemplateField>(dbContext,dbContext.FormTemplateFields);
                         await dbContext.SaveChangesAsync();
                         await tx.CommitAsync();
+                        Touch();
                     }
-                    catch
+                    catch(Exception ex)
                     {
                         await tx.RollbackAsync();
-                        return ServiceOutput<object>.Error(HttpCode.InternalError,"Internal server error.");
+                        return ServiceOutput<object>.FromException(ex);
                     }
                 }
             }

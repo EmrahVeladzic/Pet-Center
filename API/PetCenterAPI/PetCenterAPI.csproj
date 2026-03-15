@@ -18,8 +18,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\PetCenterModels\PetCenterModels.csproj" />
-    <ProjectReference Include="..\PetCenterServices\PetCenterServices.csproj" />
-    <ProjectReference Include="..\PetCenterShared\PetCenterShared.csproj" />
+    <ProjectReference Include="..\PetCenterServices\PetCenterServices.csproj" />   
   </ItemGroup>
 
 </Project>

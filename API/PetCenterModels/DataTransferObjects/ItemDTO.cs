@@ -18,13 +18,15 @@ namespace PetCenterModels.DataTransferObjects
        
         public Guid? Id {get; set;} = null;
 
+        public byte[] CurrentVersion { get; set; } = Array.Empty<byte>();
+
         public List<NoteSubDTO>? Notes {get; set;} = null;
 
         public string Title {get; set;} = string.Empty;
 
         public Guid CategoryId {get; set;} = Guid.Empty;
 
-        public Guid? KindId {get; set;} = null;
+        public Guid KindId {get; set;} = Guid.Empty;
 
         public AnimalScale? Scale {get; set;} = null;
 
@@ -36,9 +38,10 @@ namespace PetCenterModels.DataTransferObjects
             return new ItemDTO
             {
                 Id = entity.Id,
+                CurrentVersion=entity.CurrentVersion,
                 Title = entity.Title,
                 CategoryId=entity.CategoryId,
-                KindId=entity.TargetKind,
+                KindId=entity.KindId,
                 Scale = entity.TargetScale,
                 Mass=entity.MassGrams
             };
@@ -47,9 +50,10 @@ namespace PetCenterModels.DataTransferObjects
         public Item? ToEntity()
         {
             Item item = new();
+            item.CurrentVersion=CurrentVersion;
             item.Title=Title;
             item.CategoryId=CategoryId;
-            item.TargetKind=KindId;
+            item.KindId=KindId;
             item.TargetScale=Scale;
             item.MassGrams=Mass;
 
@@ -59,8 +63,7 @@ namespace PetCenterModels.DataTransferObjects
         
         
         public bool Validate()
-        {
-            if(KindId==null){Scale=null;}
+        {            
             return !string.IsNullOrWhiteSpace(Title) && (Mass==null||Mass>=0);
         }
 

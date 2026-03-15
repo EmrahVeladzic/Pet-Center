@@ -50,11 +50,12 @@ namespace PetCenterServices.Services
             {
                 return ServiceOutput<object>.Error(HttpCode.Forbidden,"You do not own this franchise.");
             }
-            Facility? fac = await dbSet.FirstOrDefaultAsync(f=>f.City.ToLowerInvariant()==resource.City.ToLowerInvariant()&&f.Street.ToLowerInvariant()==resource.Street.ToLowerInvariant()&&f.FranchiseId==resource.OwningFranchise);
+            Facility? fac = await dbSet.FirstOrDefaultAsync(f=>f.City.ToLower()==resource.City.ToLower()&&f.Street.ToLower()==resource.Street.ToLower()&&f.FranchiseId==resource.OwningFranchise);
             if (fac != null)
             {
                 return ServiceOutput<object>.Error(HttpCode.BadRequest,"A facility with these parameters already exists.");
             }
+
             return ServiceOutput<object>.Success(null);
         }
 
@@ -74,10 +75,19 @@ namespace PetCenterServices.Services
             {
                 return ServiceOutput<object>.Error(HttpCode.Forbidden,"You do not own this franchise.");
             }
-            Facility? fac = await dbSet.FirstOrDefaultAsync(f=>f.City.ToLowerInvariant()==resource.City.ToLowerInvariant()&&f.Street.ToLowerInvariant()==resource.Street.ToLowerInvariant()&&f.FranchiseId==resource.OwningFranchise&& f.Id!=resource.Id);
+            Facility? fac = await dbSet.FirstOrDefaultAsync(f=>f.City.ToLower()==resource.City.ToLower()&&f.Street.ToLower()==resource.Street.ToLower()&&f.FranchiseId==resource.OwningFranchise&& f.Id!=resource.Id);
             if (fac != null)
             {
                 return ServiceOutput<object>.Error(HttpCode.BadRequest,"A facility with these parameters already exists.");
+            }
+              fac = await dbSet.FindAsync(resource.Id);
+            if (fac == null)
+            {
+                return ServiceOutput<object>.Error(HttpCode.NotFound,"Could not find facility.");    
+            }
+            if (fac.FranchiseId != resource.OwningFranchise)
+            {
+                return ServiceOutput<object>.Error(HttpCode.Conflict,"You may not alter the owning franchise of a facility.");
             }
             return ServiceOutput<object>.Success(null);
         }

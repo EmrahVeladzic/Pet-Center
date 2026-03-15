@@ -11,7 +11,10 @@ namespace PetCenterModels.DataTransferObjects
 {
     public class AccountRequestDTO : IBaseRequestDTO
     {       
+        [JsonIgnore]
         public Guid? Id {get; set;}
+
+        public byte[] CurrentVersion { get; set; } = Array.Empty<byte>();
 
         [Required]
         public string Contact { get; set; } = string.Empty;
@@ -19,6 +22,7 @@ namespace PetCenterModels.DataTransferObjects
         [Required]
         public string Password { get; set; } = string.Empty;
 
+        [Required]
         public bool Business {get; set;} = false;    
     
 

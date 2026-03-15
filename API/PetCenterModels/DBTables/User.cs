@@ -24,14 +24,14 @@ namespace PetCenterModels.DBTables
         [InverseProperty(nameof(Individual.Owner))]
         public List<Individual> OwnedAnimals {get; set;} = new();
 
-        public override async Task StageDeletion<T>(PetCenterDBContext ctx, DbSet<T> set)
+        public override async Task StageDeletion<T>(PetCenterDBContext ctx, DbSet<T> set,CancellationToken cancel = default)
         {
-            if(await ctx.Franchises.Where(f=>f.OwnerId==Id).ToListAsync() is List<Franchise> fr){foreach(Franchise fran in fr){await fran.StageDeletion<Franchise>(ctx,ctx.Franchises);}}
-            if(await ctx.IndividualAnimals.Where(a=>a.OwnerId==Id && a.Owned==true).ToListAsync() is List<Individual> a){foreach(Individual ind in a){await ind.StageDeletion<Individual>(ctx,ctx.IndividualAnimals);}}
-            if(await ctx.Forms.Where(f=>f.UserId==Id).ToListAsync() is List<Form>f){foreach(Form frm in f){await frm.StageDeletion<Form>(ctx,ctx.Forms);}}
-            if(await ctx.Comments.Where(c=>c.PosterId==Id).ToListAsync() is List<Comment> c){foreach(Comment com in c){await com.StageDeletion<Comment>(ctx,ctx.Comments);}}
-            if(await ctx.EmployeeRecords.Where(e=>e.UserId==Id).ToArrayAsync() is EmployeeRecord []e){ctx.EmployeeRecords.RemoveRange(e);}
-            if(await ctx.Reports.Where(r=>r.ReporterId==Id).ToArrayAsync() is Report[] r){ctx.Reports.RemoveRange(r);}
+            if(await ctx.Franchises.Where(f=>f.OwnerId==Id).ToListAsync(cancel) is List<Franchise> fr){foreach(Franchise fran in fr){await fran.StageDeletion<Franchise>(ctx,ctx.Franchises,cancel);}}
+            if(await ctx.IndividualAnimals.Where(a=>a.OwnerId==Id && a.Owned==true).ToListAsync(cancel) is List<Individual> a){foreach(Individual ind in a){await ind.StageDeletion<Individual>(ctx,ctx.IndividualAnimals,cancel);}}
+            if(await ctx.Forms.Where(f=>f.UserId==Id).ToListAsync(cancel) is List<Form>f){foreach(Form frm in f){await frm.StageDeletion<Form>(ctx,ctx.Forms,cancel);}}
+            if(await ctx.Comments.Where(c=>c.PosterId==Id).ToListAsync(cancel) is List<Comment> c){foreach(Comment com in c){await com.StageDeletion<Comment>(ctx,ctx.Comments,cancel);}}
+            if(await ctx.EmployeeRecords.Where(e=>e.UserId==Id).ToArrayAsync(cancel) is EmployeeRecord []e){ctx.EmployeeRecords.RemoveRange(e);}
+            if(await ctx.Reports.Where(r=>r.ReporterId==Id).ToArrayAsync(cancel) is Report[] r){ctx.Reports.RemoveRange(r);}
         }
     }
 }

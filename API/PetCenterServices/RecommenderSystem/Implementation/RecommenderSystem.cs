@@ -3,6 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using PetCenterModels.DataTransferObjects;
 using PetCenterModels.DBTables;
+using PetCenterServices.Utils;
 using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
@@ -15,6 +16,48 @@ using System.Threading.Tasks;
 
 namespace PetCenterServices.Recommender
 {
+
+    public class PetCenterVector5
+    {
+
+        public float Investment {get; set;} = 0.0f;
+        public float Territory {get; set;} = 0.0f;
+        public float Pricing {get; set;} = 0.0f;
+        public float Longevity {get; set;} = 0.0f;
+        public float Cohabitation {get; set;} = 0.0f;
+
+        public PetCenterVector5(List<LivingConditionEntry> entries)
+        {
+            entries = entries.Where(e=>e.Field !=null).ToList();
+
+            foreach(LivingConditionEntry entry in entries)
+            {
+                if (entry.Answer)
+                {
+                    Investment += entry.Field.InvestmentEffect;
+                    Territory += entry.Field.TerritoryEffect;
+                    Pricing += entry.Field.PricingEffect;
+                    Longevity += entry.Field.LongevityEffect;
+                    Cohabitation += entry.Field.CohabitationEffect;
+                }
+                else
+                {
+                    Investment -= entry.Field.InvestmentEffect;
+                    Territory -= entry.Field.TerritoryEffect;
+                    Pricing -= entry.Field.PricingEffect;
+                    Longevity -= entry.Field.LongevityEffect;
+                    Cohabitation -= entry.Field.CohabitationEffect;
+                }
+            }
+
+            Investment = Math.Clamp(Investment,0.0f,1.0f);
+            Territory = Math.Clamp(Territory,0.0f,1.0f);
+            Pricing = Math.Clamp(Pricing,0.0f,1.0f);
+            Longevity = Math.Clamp(Longevity,0.0f,1.0f);
+            Cohabitation = Math.Clamp(Cohabitation,0.0f,1.0f);
+        }
+        
+    }
 
     public class RecommenderSystem : IRecommenderSystem
     {
@@ -42,8 +85,8 @@ namespace PetCenterServices.Recommender
             if (listing != null && listing.Product!=null)
             {
                 string ProductTitle = listing.Product.Title.ToLowerInvariant();
-                List<Wishlist> wishlists = await ctx.Wishlists.Include(w=>w.RelevantUser).ThenInclude(r=>r.OwnedAnimals).ThenInclude(o=>o.AnimalBreed).Where(w=>ProductTitle.Contains(w.Term.ToLowerInvariant())).ToListAsync();
-                wishlists = wishlists.Where(w=>w.RelevantUser!=null && w.RelevantUser.OwnedAnimals.Any(o=>o.AnimalBreed!=null && (listing.Product.TargetKind==null ||o.AnimalBreed.KindId==listing.Product.TargetKind) && (listing.Product.TargetScale==null||listing.Product.TargetScale==o.AnimalBreed.Scale))).ToList();
+                List<Wishlist> wishlists = await ctx.Wishlists.Include(w=>w.RelevantUser).ThenInclude(r=>r.OwnedAnimals).ThenInclude(o=>o.AnimalBreed).Where(w=>ProductTitle.Contains(w.Term.ToLower())).ToListAsync();
+                wishlists = wishlists.Where(w=>w.RelevantUser!=null && w.RelevantUser.OwnedAnimals.Any(o=>o.AnimalBreed!=null && (listing.Product.TargetKind==null ||o.AnimalBreed.KindId==listing.Product.KindId) && (listing.Product.TargetScale==null||listing.Product.TargetScale==o.AnimalBreed.Scale))).ToList();
 
 
                 int progress = 0;
@@ -67,6 +110,7 @@ namespace PetCenterServices.Recommender
                     }
                 }
                 await ctx.SaveChangesAsync();
+                
             }
             
         }
@@ -77,8 +121,29 @@ namespace PetCenterServices.Recommender
 
             Breed? breed = await ctx.AnimalBreeds.FindAsync(pet.BreedId);
             if(breed==null){return output;}
-            List<MedicalProcedureSpecification> specs = await ctx.MedicalProcedureSpecifications.Include(m=>m.MedicalProcedure).Where(m=>m.BreedId==pet.BreedId && (m.SexSpecific==null || m.SexSpecific==pet.Sex) && m.ApproximateAge!=null && m.ApproximateAge<=(DateTime.UtcNow-pet.BirthDate).Days).ToListAsync();
-            specs.AddRange(await ctx.MedicalProcedureSpecifications.Include(m=>m.MedicalProcedure).Where(m=>m.KindId==breed.KindId && (m.SexSpecific==null || m.SexSpecific==pet.Sex) && m.ApproximateAge!=null && m.ApproximateAge<=(DateTime.UtcNow-pet.BirthDate).Days && !specs.Any(s=>s.ProcedureId==m.ProcedureId)).ToListAsync());
+
+            List<MedicalProcedureSpecification> specs = await ctx.MedicalProcedureSpecifications.Include(m=>m.MedicalProcedure)
+            .Where(m => m.BreedId == pet.BreedId &&
+            (m.SexSpecific == null || m.SexSpecific == pet.Sex))
+            .ToListAsync(); 
+
+            specs = specs
+            .Where(m => m.ApproximateAge == null || 
+            m.ApproximateAge <= (DateTime.UtcNow - pet.BirthDate).Days)
+            .ToList();
+
+            List<MedicalProcedureSpecification> candidates = await ctx.MedicalProcedureSpecifications
+            .Include(m => m.MedicalProcedure)
+            .Where(m => m.KindId == breed.KindId &&
+            (m.SexSpecific == null || m.SexSpecific == pet.Sex))
+            .ToListAsync();
+
+            List<MedicalProcedureSpecification> filtered = candidates
+            .Where(m => m.ApproximateAge == null || 
+            m.ApproximateAge <= (DateTime.UtcNow - pet.BirthDate).Days)
+            .ToList();
+
+            specs.AddRange(filtered.Where(m => !specs.Any(s => s.ProcedureId == m.ProcedureId)));
 
             specs = specs.Where(s=>s.MedicalProcedure!=null && s.ApproximateAge!=null).ToList();
 
@@ -139,7 +204,8 @@ namespace PetCenterServices.Recommender
             List<Supplies> supplies = await ctx.SupplyRecords.Include(s=>s.KindDetails).Include(s=>s.ConsumableCategory).Where(s=>s.UserId==UserId).ToListAsync();
             Animals = Animals.Where(a=>a.AnimalBreed!=null).ToList();
 
-            List<Kind> kinds= await ctx.AnimalKinds.Where(k=>Animals.Any(a=>a.AnimalBreed.KindId==k.Id)).ToListAsync();
+            List<Kind> kinds= await ctx.AnimalKinds.ToListAsync();
+            kinds = kinds.Where(k=>Animals.Any(a=>a.AnimalBreed.KindId==k.Id)).ToList();
 
                         
             supplies = supplies.Where(s=>s.ConsumableCategory!=null && s.KindDetails!=null).ToList();

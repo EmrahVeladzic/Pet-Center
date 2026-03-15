@@ -38,6 +38,7 @@ public class ContactConsumer
             password = rabbitmq_cfg["Password"]
 
         };
+        
 
         string? host = Environment.GetEnvironmentVariable("RABBITMQ_HOSTNAME");
 
@@ -82,11 +83,25 @@ public class ContactConsumer
             Password = consumer.rabbitmq.password!
         };
 
-        consumer.connection = await factory.CreateConnectionAsync();
-        consumer.channel = await consumer.connection.CreateChannelAsync();
+        bool repeat = true;
 
-        await consumer.channel.QueueDeclareAsync(queue: consumer.rabbitmq.queue!,durable:false,exclusive:false,autoDelete:false,arguments:null);
+        while (repeat)
+        {
+            try{
+                repeat=false;
+                consumer.connection = await factory.CreateConnectionAsync();
+                consumer.channel = await consumer.connection.CreateChannelAsync();
+
+                await consumer.channel.QueueDeclareAsync(queue: consumer.rabbitmq.queue!,durable:false,exclusive:false,autoDelete:false,arguments:null);
+            }
+            catch
+            {
+                repeat = true;
+                await Task.Delay(5000);
+            }
         
+        }
+
         return consumer;
 
     }
@@ -107,37 +122,48 @@ public class ContactConsumer
 
     public async Task StartListening()
     {
-        AsyncEventingBasicConsumer c = new(channel!);
-        AsyncEventingBasicConsumer consumer = new AsyncEventingBasicConsumer(channel!);
-
-        
-        consumer.ReceivedAsync += (channel, input) =>
+        if (channel != null)
         {
-            byte[] body = input.Body.ToArray();
-            string json = Encoding.UTF8.GetString(body);
-            ConsumerMessage? msg = JsonSerializer.Deserialize<ConsumerMessage>(json);
-
-            if (msg != null && !string.IsNullOrWhiteSpace(msg.Contact))
+            AsyncEventingBasicConsumer consumer = new AsyncEventingBasicConsumer(channel);
+        
+        
+            consumer.ReceivedAsync += async (sender, input) =>
             {
 
-                EmailAddressAttribute attribute = new EmailAddressAttribute();
-                if (attribute.IsValid(msg.Contact)){
+                if(sender is IChannel chn){
 
-                    email_service.SendEmail(msg.Contact, msg.Message, msg.Subject, msg.Name);
+                    byte[] body = input.Body.ToArray();
+                    string json = Encoding.UTF8.GetString(body);
+                    ConsumerMessage? msg = JsonSerializer.Deserialize<ConsumerMessage>(json);
 
-                }
+                    
 
-            }
+                    if (msg != null && !string.IsNullOrWhiteSpace(msg.Contact))
+                    {
 
-            return Task.CompletedTask;
+                        EmailAddressAttribute attribute = new EmailAddressAttribute();
+                        if (attribute.IsValid(msg.Contact)){
 
-        };
+                            await email_service.SendEmail(msg.Contact, msg.Message, msg.Subject, msg.Name);
 
-        await channel!.BasicConsumeAsync(queue:rabbitmq!.queue!,autoAck:true,consumer:consumer);
+                        }
+                
+
+                    }  
+
+                    await chn.BasicAckAsync(input.DeliveryTag,false);    
+
+                }      
+
+            };
+
+            await channel!.BasicConsumeAsync(queue:rabbitmq!.queue!,autoAck:false,consumer:consumer);
+
         
+        }
+         
 
     }
-
 
 
 }

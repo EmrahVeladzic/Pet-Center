@@ -16,6 +16,8 @@ namespace PetCenterModels.DBTables
        
         [Column("UserID")]
         public Guid UserId { get; set; }
+        [ForeignKey(nameof(UserId))]
+        public User RelevantUser {get; set;} = null!;
 
         [Column("ConsumableID")]
         public Guid CategoryId {get; set;}

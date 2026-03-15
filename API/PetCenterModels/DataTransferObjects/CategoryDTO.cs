@@ -17,6 +17,8 @@ namespace PetCenterModels.DataTransferObjects
     {
         public Guid? Id {get; set;}
 
+        public byte[] CurrentVersion { get; set; } = Array.Empty<byte>();
+
         public List<NoteSubDTO>? Notes {get; set;} = null;
 
         public Guid CategoryId {get; set;}
@@ -33,6 +35,7 @@ namespace PetCenterModels.DataTransferObjects
             return new UsageSubDTO
             {
                 Id=usage.Id,
+                CurrentVersion=usage.CurrentVersion,
                 CategoryId=usage.CategoryId,
                 KindId=usage.KindId,
                 ScaleSpecific=usage.ScaleSpecific,
@@ -48,6 +51,8 @@ namespace PetCenterModels.DataTransferObjects
        
         public Guid? Id {get; set;} = null;
 
+        public byte[] CurrentVersion { get; set; } = Array.Empty<byte>();
+
         public List<NoteSubDTO>? Notes {get; set;} = null;
 
         public string Title {get; set;} = string.Empty;
@@ -62,6 +67,7 @@ namespace PetCenterModels.DataTransferObjects
             return new CategoryDTO
             {
                 Id = entity.Id,
+                CurrentVersion= entity.CurrentVersion,
                 Title = entity.Title,
                 Consumable = entity.Consumable,
                 UsageSpecifics = entity.UsageSpecifics.Select(u=>UsageSubDTO.FromEntity(u)).ToList()
@@ -71,7 +77,7 @@ namespace PetCenterModels.DataTransferObjects
         public Category? ToEntity()
         {
             Category category = new();
-           
+            category.CurrentVersion=CurrentVersion;
             category.Title=Title;
             category.Consumable=Consumable;
             return category;

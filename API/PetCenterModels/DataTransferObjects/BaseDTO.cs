@@ -19,6 +19,9 @@ namespace PetCenterModels.DataTransferObjects
     public interface IBaseRequestDTO
     {             
         public Guid? Id { get; set; }
+
+        public byte[] CurrentVersion { get; set; }
+
         public bool Validate();
     }
 
@@ -32,6 +35,9 @@ namespace PetCenterModels.DataTransferObjects
         public List<NoteSubDTO>? Notes {get; set;}
 
         public Guid? Id {get; set;}
+
+        public byte[] CurrentVersion { get; set; }
+
         public static abstract TSelf? FromEntity(TEntity? entity);
 
     }

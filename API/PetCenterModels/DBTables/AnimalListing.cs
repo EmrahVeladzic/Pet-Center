@@ -24,10 +24,10 @@ namespace PetCenterModels.DBTables
         public Listing Base {get; set;} = null!;
 
 
-        public override async Task StageDeletion<T>(PetCenterDBContext ctx, DbSet<T> set)
+        public override async Task StageDeletion<T>(PetCenterDBContext ctx, DbSet<T> set,CancellationToken cancel = default)
         {
-            if(await ctx.Listings.FirstOrDefaultAsync(l=>l.Id==Id) is Listing l){await l.StageDeletion(ctx, ctx.Listings);}
-            await base.StageDeletion(ctx, set);
+            if(await ctx.Listings.FirstOrDefaultAsync(l=>l.Id==Id,cancel) is Listing l){await l.StageDeletion(ctx, ctx.Listings,cancel);}
+            await base.StageDeletion(ctx, set,cancel);
         }
 
     }
