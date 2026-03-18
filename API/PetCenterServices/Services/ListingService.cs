@@ -258,6 +258,10 @@ namespace PetCenterServices.Services
 
                 await dbContext.SaveChangesAsync();
 
+                
+                await recommender.RecommendListingToUsers(dbContext,listing);
+                
+
                 return ServiceOutput<object>.Success(null,HttpCode.NoContent);
             }
             return ServiceOutput<object>.Error(HttpCode.NotFound,"One or more resources needed for this operation are missing.");
@@ -277,6 +281,9 @@ namespace PetCenterServices.Services
 
                 listing.Visible = visible;
                 await dbContext.SaveChangesAsync();
+                
+                await recommender.RecommendListingToUsers(dbContext,listing);
+                
                 return ServiceOutput<object>.Success(null);
 
             }
@@ -374,7 +381,7 @@ namespace PetCenterServices.Services
                     new_discount.PercentDiscount=percentage;
                     await dbContext.Discounts.AddAsync(new_discount);
                     await dbContext.SaveChangesAsync();
-                    await recommender.RecommendListingToUsers(dbContext,new_discount);
+                    await recommender.RecommendListingToUsers(dbContext,listing);
 
                     await tx.CommitAsync();
                     return ServiceOutput<DiscountResponseSubDTO>.Success(DiscountResponseSubDTO.FromEntity(new_discount),HttpCode.Created);
@@ -468,10 +475,11 @@ namespace PetCenterServices.Services
 
                         lst.ProductExtension=plst;
                         lst.AnimalExtension=alst;
-                        lst.MedicalExtension=mlst;
+                        lst.MedicalExtension=mlst;                        
                         
                        
                         await tx.CommitAsync();
+                        
                         return ServiceOutput<ListingResponseDTO>.Success(ListingResponseDTO.FromEntity(lst),HttpCode.Created);
                     }
                     catch(Exception ex)

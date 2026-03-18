@@ -79,14 +79,18 @@ namespace PetCenterServices.Recommender
             return filter.OrderBy(expression);
         }
 
-        public async Task RecommendListingToUsers(PetCenterDBContext ctx, Discount discount)
-        {
-            ProductListing? listing = await ctx.ProductListings.Include(l=>l.Product).FirstOrDefaultAsync(l=>l.Id == discount.ListingId);
-            if (listing != null && listing.Product!=null)
+        public async Task RecommendListingToUsers(PetCenterDBContext ctx,Listing listing)
+        {         
+            if(listing.Type!=ListingType.Product||!listing.Visible||!listing.Approved){return;}
+            listing.ProductExtension=await ctx.ProductListings.Include(pl=>pl.Product).FirstOrDefaultAsync(pl=>pl.Id==listing.Id);
+            listing.ListingDiscount=await ctx.Discounts.FirstOrDefaultAsync(d=>d.ListingId==listing.Id);
+
+
+            if (listing.ProductExtension != null && listing.ProductExtension.Product!=null)
             {
-                string ProductTitle = listing.Product.Title.ToLowerInvariant();
-                List<Wishlist> wishlists = await ctx.Wishlists.Include(w=>w.RelevantUser).ThenInclude(r=>r.OwnedAnimals).ThenInclude(o=>o.AnimalBreed).Where(w=>ProductTitle.Contains(w.Term.ToLower())).ToListAsync();
-                wishlists = wishlists.Where(w=>w.RelevantUser!=null && w.RelevantUser.OwnedAnimals.Any(o=>o.AnimalBreed!=null && (listing.Product.TargetKind==null ||o.AnimalBreed.KindId==listing.Product.KindId) && (listing.Product.TargetScale==null||listing.Product.TargetScale==o.AnimalBreed.Scale))).ToList();
+                string ProductTitle = listing.ProductExtension.Product.Title.ToLowerInvariant();
+                List<Wishlist> wishlists = await ctx.Wishlists.Include(w=>w.RelevantUser).ThenInclude(r=>r.OwnedAnimals).ThenInclude(o=>o.AnimalBreed).Where(w=>ProductTitle.Contains(w.Term.ToLower())).Include(w=>w.RelevantUser).ThenInclude(r=>r.Notifications).ToListAsync();
+                wishlists = wishlists.Where(w=>w.RelevantUser!=null && !w.RelevantUser.Notifications.Any(n=>n.ListingId==listing.Id)  && w.RelevantUser.OwnedAnimals.Any(o=>o.AnimalBreed!=null && (listing.ProductExtension.Product.TargetKind==null ||o.AnimalBreed.KindId==listing.ProductExtension.Product.KindId) && (listing.ProductExtension.Product.TargetScale==null||listing.ProductExtension.Product.TargetScale==o.AnimalBreed.Scale))).ToList();
 
 
                 int progress = 0;
@@ -95,13 +99,24 @@ namespace PetCenterServices.Recommender
                     Notification notif = new();
                     notif.UserId=w.UserId;
                     notif.FranchiseId=null;
-                    notif.ListingId = discount.ListingId;
-                    notif.Expiry=discount.Expiry;
-                    notif.Title = $"Discount - {w.Term}";
-                    notif.Body = $"A new discount of {(int)discount.PercentDiscount}% has been applied to a product you might want.";
-                    
-                    await ctx.Notifications.AddAsync(notif);
+                    notif.ListingId = listing.Id;
 
+                    if (listing.ListingDiscount != null)
+                    {
+                 
+                        notif.Expiry=listing.ListingDiscount.Expiry;
+                        notif.Title = $"Discount - {w.Term}";
+                        notif.Body = $"A new discount of {(int)listing.ListingDiscount.PercentDiscount}% has been applied to a product you might want.";
+                    
+                    }
+                    else
+                    {
+                        notif.Expiry=DateTime.UtcNow.AddDays(3);
+                        notif.Title=$"New listing - {w.Term}";
+                        notif.Body=$"A new listing including the term \"{w.Term}\" that you may be interested in has just been made visible.";
+                    }
+
+                    await ctx.Notifications.AddAsync(notif);
                     progress++;
                     if (progress >= 100)
                     {
