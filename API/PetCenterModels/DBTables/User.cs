@@ -24,6 +24,9 @@ namespace PetCenterModels.DBTables
         [InverseProperty(nameof(Individual.Owner))]
         public List<Individual> OwnedAnimals {get; set;} = new();
 
+        [InverseProperty(nameof(Notification.RelevantUser))]
+        public List<Notification> Notifications {get; set;} = new();
+
         public override async Task StageDeletion<T>(PetCenterDBContext ctx, DbSet<T> set,CancellationToken cancel = default)
         {
             if(await ctx.Franchises.Where(f=>f.OwnerId==Id).ToListAsync(cancel) is List<Franchise> fr){foreach(Franchise fran in fr){await fran.StageDeletion<Franchise>(ctx,ctx.Franchises,cancel);}}

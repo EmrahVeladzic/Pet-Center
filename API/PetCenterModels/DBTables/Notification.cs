@@ -16,8 +16,14 @@ namespace PetCenterModels.DBTables
         [Column("UserID")]
         public Guid UserId { get; set; } = Guid.Empty;
 
+        [ForeignKey(nameof(UserId))]
+        public User RelevantUser {get; set;}= null!;
+
         [Column("FranchiseID")]
         public Guid? FranchiseId { get; set; } = null;
+
+        [ForeignKey(nameof(FranchiseId))]
+        public Franchise? UserOwnedFranchise {get; set;}= null;
 
         [Column("Title")]
         public string Title { get; set; } = string.Empty;
@@ -27,6 +33,9 @@ namespace PetCenterModels.DBTables
 
         [Column("ListingID")]
         public Guid? ListingId { get; set; } = null;
+
+        [ForeignKey(nameof(ListingId))]
+        public Listing RelevantListing {get; set;}= null!;
 
       
 
