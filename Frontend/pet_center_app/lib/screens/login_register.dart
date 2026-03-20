@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:pet_center_app/models/data_transfer/account/account_request_dto.dart';
+import 'package:pet_center_app/services/account_service.dart';
 import 'package:pet_center_app/utils/app_style.dart';
 
 class CredentialsScreen extends StatefulWidget {
@@ -25,7 +27,14 @@ class _CredentialsScreenState extends State<CredentialsScreen> {
     });
   }
 
-  void _sendRequest() {}
+  void _sendRequest() async {
+    if (registerMode) {
+    } else {
+      await AccountService.logIn(
+        AccountRequestDTO(contact: contact, password: password),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {

@@ -67,14 +67,16 @@ namespace PetCenterServices.Services
                     await dbContext.Accounts.AddAsync(acc);
                     await dbContext.SaveChangesAsync();
 
+                    
+
                     if (!acc.Verified)
                     {
-                        Registration reg = new();
-                        reg.Expiry = DateTime.UtcNow.AddDays(7);
-                        reg.NextAttempt = DateTime.UtcNow;
-                        reg.AccountId = acc.Id;
-                        reg.Code = Crypto.GenerateCode();
-                        await dbContext.Registrations.AddAsync(reg);
+                        Registration registration = new();
+                        registration.Expiry = DateTime.UtcNow.AddDays(7);
+                        registration.NextAttempt = DateTime.UtcNow;
+                        registration.AccountId = acc.Id;
+                        registration.Code = Crypto.GenerateCode();
+                        await dbContext.Registrations.AddAsync(registration);
                         await dbContext.SaveChangesAsync();
                     }
                    
@@ -88,6 +90,12 @@ namespace PetCenterServices.Services
 
                     await tx.CommitAsync();
 
+                    Registration? reg = await dbContext.Registrations.FirstOrDefaultAsync(r=>r.AccountId==acc.Id);
+                    if(!acc.Verified && reg!=null){
+                                               
+                        await message_bus_client.SendEmailMessage(new ConsumerMessage(){Contact=acc.Contact,Message=$"Your verification code is {reg.Code}.",Subject="Welcome!",Name=usr.UserName});
+
+                    }
                     return ServiceOutput<AccountResponseDTO>.Success(AccountResponseDTO.FromEntity(acc),HttpCode.Created);
                 }
                 catch(Exception ex)
