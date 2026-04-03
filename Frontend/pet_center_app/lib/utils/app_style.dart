@@ -1,6 +1,17 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:pet_center_app/utils/globals.dart';
+
+Color mainTone = Color.fromARGB(255, 60, 50, 75);
+
+void showSnackbar(String message) {
+  final messenger = rootScaffoldKey.currentState;
+  if (messenger != null) {
+    messenger.clearSnackBars();
+    messenger.showSnackBar(SnackBar(content: Text(message)));
+  }
+}
 
 class ReactiveDesignSystem extends ThemeExtension<ReactiveDesignSystem> {
   final double spacing;

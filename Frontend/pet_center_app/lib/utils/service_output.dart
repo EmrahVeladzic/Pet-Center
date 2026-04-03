@@ -1,8 +1,8 @@
 import 'dart:convert';
 
-import 'package:flutter/material.dart';
+import 'app_style.dart';
 import 'package:json_annotation/json_annotation.dart';
-import 'package:pet_center_app/utils/globals.dart';
+
 import 'package:http/http.dart' as http;
 
 enum HttpCode {
@@ -90,31 +90,30 @@ class ServiceOutput<T> {
         return null;
       }
 
-      return fromJsonT(parsedBody);
+      try {
+        return fromJsonT(parsedBody);
+      } catch (e) {
+        showSnackbar("Invalid server response.");
+        return null;
+      }
     }
 
     if (parsedBody is Map<String, dynamic> && parsedBody.containsKey('error')) {
       final msg = parsedBody['error']?.toString();
-      rootScaffoldKey.currentState?.showSnackBar(
-        SnackBar(content: Text(msg ?? "Unknown error.")),
-      );
+      showSnackbar(msg ?? "Unknown error.");
       return null;
     }
 
     if (parsedBody is Map<String, dynamic> &&
         parsedBody.containsKey('errors')) {
       final message = (parsedBody['errors'] as Map<String, dynamic>).values
-          .expand((e) => e as List)
+          .expand((e) => (e as List?) ?? [])
           .join('\n');
-      rootScaffoldKey.currentState?.showSnackBar(
-        SnackBar(content: Text(message)),
-      );
+      showSnackbar(message);
       return null;
     }
 
-    rootScaffoldKey.currentState?.showSnackBar(
-      SnackBar(content: Text("Unexpected error - $status.")),
-    );
+    showSnackbar("Unexpected error - $status.");
     return null;
   }
 }
