@@ -28,7 +28,13 @@ class PetCenterApp extends StatelessWidget {
         final media = MediaQuery.of(context);
 
         final theme = ThemeData(
-          colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+          colorScheme: ColorScheme.fromSeed(seedColor: mainTone),
+          elevatedButtonTheme: ElevatedButtonThemeData(
+            style: ElevatedButton.styleFrom(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+            ),
+          ),
+
           extensions: [ReactiveDesignSystem.fromMediaQuery(media)],
         );
 

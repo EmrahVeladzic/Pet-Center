@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:pet_center_app/models/data_transfer/account/account_request_dto.dart';
 import 'package:pet_center_app/services/account_service.dart';
 import 'package:pet_center_app/utils/app_style.dart';
+import 'package:pet_center_app/utils/jwt_parser.dart';
 
 class CredentialsScreen extends StatefulWidget {
   const CredentialsScreen({super.key});
@@ -14,6 +15,8 @@ class _CredentialsScreenState extends State<CredentialsScreen> {
   String password = '';
   bool businessPurposes = false;
   bool registerMode = false;
+  bool unverified = false;
+  int verificationCode = 0;
 
   void _toggleBusiness() {
     setState(() {
@@ -21,18 +24,50 @@ class _CredentialsScreenState extends State<CredentialsScreen> {
     });
   }
 
-  void _toggleMode() {
-    setState(() {
-      registerMode = !registerMode;
-    });
+  void _linkAction() async {
+    if (unverified) {
+      final output = await AccountService.requestVerification();
+      if (output != null) {
+        showSnackbar(output);
+      }
+    } else {
+      setState(() {
+        registerMode = !registerMode;
+      });
+    }
   }
 
   void _sendRequest() async {
-    if (registerMode) {
+    if (!unverified) {
+      if (registerMode) {
+        final output = await AccountService.register(
+          AccountRequestDTO(
+            contact: contact,
+            password: password,
+            business: businessPurposes,
+          ),
+        );
+        if (output != null) {
+          showSnackbar("Registration successful!");
+          setState(() {
+            registerMode = false;
+          });
+        }
+      } else {
+        final output = await AccountService.logIn(
+          AccountRequestDTO(contact: contact, password: password),
+        );
+        if (output != null) {
+          parseJwt(output);
+        }
+        setState(() {
+          unverified = !(userToken?.verified ?? true);
+        });
+        if (!unverified) {}
+      }
     } else {
-      await AccountService.logIn(
-        AccountRequestDTO(contact: contact, password: password),
-      );
+      final output = await AccountService.verify(verificationCode);
+      if (output != null) {}
     }
   }
 
@@ -45,7 +80,7 @@ class _CredentialsScreenState extends State<CredentialsScreen> {
     final hMult = isLandscape ? 0.6 : 0.75;
 
     return Scaffold(
-      backgroundColor: Color.fromARGB(255, 60, 50, 75),
+      backgroundColor: mainTone,
       body: Center(
         child: FractionallySizedBox(
           widthFactor: wMult,
@@ -71,7 +106,11 @@ class _CredentialsScreenState extends State<CredentialsScreen> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(
-                            registerMode ? 'Register' : 'Login',
+                            unverified
+                                ? "Account verification"
+                                : registerMode
+                                ? 'Register'
+                                : 'Login',
                             style: TextStyle(fontSize: design.fontSize * 2),
                           ),
 
@@ -79,41 +118,64 @@ class _CredentialsScreenState extends State<CredentialsScreen> {
 
                           SizedBox(height: design.spacing),
 
-                          TextField(
-                            decoration: InputDecoration(
-                              labelText: 'Contact',
-                              labelStyle: TextStyle(fontSize: design.fontSize),
+                          if (!unverified) ...[
+                            TextField(
+                              key: const ValueKey('contact'),
+                              decoration: InputDecoration(
+                                labelText: 'Contact',
+                                labelStyle: TextStyle(
+                                  fontSize: design.fontSize,
+                                ),
+                              ),
+                              style: TextStyle(fontSize: design.fontSize),
+                              onChanged: (v) => contact = v,
                             ),
-                            style: TextStyle(fontSize: design.fontSize),
-                            onChanged: (v) => contact = v,
-                          ),
-                          SizedBox(height: design.spacing),
-                          TextField(
-                            decoration: InputDecoration(
-                              labelText: 'Password',
-                              labelStyle: TextStyle(fontSize: design.fontSize),
-                            ),
-                            style: TextStyle(fontSize: design.fontSize),
-                            obscureText: true,
-                            onChanged: (v) => password = v,
-                          ),
-
-                          if (registerMode) ...[
                             SizedBox(height: design.spacing),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              children: [
-                                Checkbox(
-                                  value: businessPurposes,
-                                  onChanged: (_) => _toggleBusiness(),
+                            TextField(
+                              key: const ValueKey('pwd'),
+                              decoration: InputDecoration(
+                                labelText: 'Password',
+                                labelStyle: TextStyle(
+                                  fontSize: design.fontSize,
                                 ),
-                                Text(
-                                  'Business account',
-                                  style: TextStyle(fontSize: design.fontSize),
+                              ),
+                              style: TextStyle(fontSize: design.fontSize),
+                              obscureText: true,
+                              onChanged: (v) => password = v,
+                            ),
+
+                            if (registerMode) ...[
+                              SizedBox(height: design.spacing),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                children: [
+                                  Checkbox(
+                                    value: businessPurposes,
+                                    onChanged: (_) => _toggleBusiness(),
+                                  ),
+                                  Text(
+                                    'Business account',
+                                    style: TextStyle(fontSize: design.fontSize),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ] else ...[
+                            TextField(
+                              key: const ValueKey('code'),
+                              decoration: InputDecoration(
+                                labelText: 'Verification Code',
+                                labelStyle: TextStyle(
+                                  fontSize: design.fontSize,
                                 ),
-                              ],
+                              ),
+                              style: TextStyle(fontSize: design.fontSize),
+                              keyboardType: TextInputType.number,
+                              onChanged: (v) =>
+                                  verificationCode = int.tryParse(v) ?? 0,
                             ),
                           ],
+
                           const Spacer(flex: 2),
 
                           SizedBox(height: design.spacing),
@@ -121,7 +183,11 @@ class _CredentialsScreenState extends State<CredentialsScreen> {
                           ElevatedButton(
                             onPressed: _sendRequest,
                             child: Text(
-                              registerMode ? 'Register' : 'Login',
+                              unverified
+                                  ? "Verify"
+                                  : registerMode
+                                  ? 'Register'
+                                  : 'Login',
                               style: TextStyle(fontSize: design.fontSize),
                             ),
                           ),
@@ -129,9 +195,11 @@ class _CredentialsScreenState extends State<CredentialsScreen> {
                           SizedBox(height: design.spacing),
 
                           TextButton(
-                            onPressed: _toggleMode,
+                            onPressed: _linkAction,
                             child: Text(
-                              registerMode
+                              unverified
+                                  ? "Send a new code."
+                                  : registerMode
                                   ? 'Already have an account? Login'
                                   : 'No account? Register',
                               style: TextStyle(fontSize: design.fontSize),
