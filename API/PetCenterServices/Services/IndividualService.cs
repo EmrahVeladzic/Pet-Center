@@ -103,9 +103,11 @@ namespace PetCenterServices.Services
             if (resource.AuthoritySpecifier == Access.User)
             {
                 resource.OwnerId=token_holder;
+                resource.ShelterId=null;
             }
             else
             {
+                resource.OwnerId=null;
                 if (resource.ShelterId == null)
                 {
                     return ServiceOutput<object>.Error(HttpCode.BadRequest, "Employees need to provide the franchise ID to add sheltered animals.");
