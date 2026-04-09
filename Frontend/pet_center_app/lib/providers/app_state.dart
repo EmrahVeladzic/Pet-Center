@@ -14,7 +14,7 @@ class AppState extends ChangeNotifier {
       return false;
     }
 
-    final decoded = JwtDecoder.decode(token!);
+    final Map<String, dynamic> decoded = JwtDecoder.decode(token!);
     final value = decoded["verified"];
 
     if (value is bool) {

@@ -26,6 +26,7 @@ class PetCenterApp extends StatelessWidget {
 
       builder: (context, child) {
         final media = MediaQuery.of(context);
+        final design = ReactiveDesignSystem.fromMediaQuery(media);
 
         final theme = ThemeData(
           colorScheme: ColorScheme.fromSeed(seedColor: mainTone),
@@ -33,6 +34,23 @@ class PetCenterApp extends StatelessWidget {
             style: ElevatedButton.styleFrom(
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.zero),
             ),
+          ),
+          appBarTheme: AppBarTheme(
+            centerTitle: true,
+            backgroundColor: secondaryTone,
+            titleTextStyle: TextStyle(
+              fontSize: design.fontSize * 1.25,
+              color: panelTone,
+            ),
+          ),
+          bottomAppBarTheme: BottomAppBarThemeData(color: secondaryTone),
+          scaffoldBackgroundColor: mainTone,
+          textTheme: TextTheme(
+            bodyMedium: TextStyle(fontSize: design.fontSize),
+            bodyLarge: TextStyle(fontSize: design.fontSize),
+            titleMedium: TextStyle(fontSize: design.fontSize),
+            titleLarge: TextStyle(fontSize: design.fontSize),
+            labelLarge: TextStyle(fontSize: design.fontSize),
           ),
 
           extensions: [ReactiveDesignSystem.fromMediaQuery(media)],

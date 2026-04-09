@@ -24,13 +24,13 @@ namespace PetCenterModels.DataTransferObjects
 
         public DateTime BirthDate {get; set;} = DateTime.UtcNow;
 
-        [NotMapped]
+        [JsonIgnore]
         public Guid? OwnerId {get; set;} = null;
 
         public Guid? ShelterId {get; set;} = null;
     
-        [NotMapped]
-        public Access? AuthoritySpecifier {get; set;} = Access.User;
+        [JsonIgnore]
+        public Access AuthoritySpecifier {get; set;} = Access.User;
 
 
         public Individual? ToEntity()

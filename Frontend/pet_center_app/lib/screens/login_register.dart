@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:pet_center_app/models/data_transfer/account/account_request_dto.dart';
+import 'package:pet_center_app/screens/dashboard.dart';
 import 'package:pet_center_app/services/account_service.dart';
 import 'package:pet_center_app/utils/app_style.dart';
 import 'package:pet_center_app/utils/jwt_parser.dart';
@@ -27,6 +28,9 @@ class _CredentialsScreenState extends State<CredentialsScreen> {
   void _linkAction() async {
     if (unverified) {
       final output = await AccountService.requestVerification();
+      if (!mounted) {
+        return;
+      }
       if (output != null) {
         showSnackbar(output);
       }
@@ -47,6 +51,9 @@ class _CredentialsScreenState extends State<CredentialsScreen> {
             business: businessPurposes,
           ),
         );
+        if (!mounted) {
+          return;
+        }
         if (output != null) {
           showSnackbar("Registration successful!");
           setState(() {
@@ -57,51 +64,67 @@ class _CredentialsScreenState extends State<CredentialsScreen> {
         final output = await AccountService.logIn(
           AccountRequestDTO(contact: contact, password: password),
         );
+        if (!mounted) {
+          return;
+        }
         if (output != null) {
           parseJwt(output);
         }
         setState(() {
-          unverified = !(userToken?.verified ?? true);
+          if (userToken != null) {
+            unverified = !(userToken?.verified ?? false);
+          }
         });
-        if (!unverified) {}
+        if (!unverified && userToken != null) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => const DashboardScreen()),
+          );
+        }
       }
     } else {
       final output = await AccountService.verify(verificationCode);
-      if (output != null) {}
+      if (!mounted) {
+        return;
+      }
+      if (output != null) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const DashboardScreen()),
+        );
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final design = Theme.of(context).extension<ReactiveDesignSystem>()!;
-    final isLandscape = design.layoutDirection == Axis.horizontal;
+    final ReactiveDesignSystem design = Theme.of(
+      context,
+    ).extension<ReactiveDesignSystem>()!;
+    final bool isLandscape = design.layoutDirection == Axis.horizontal;
 
-    final wMult = isLandscape ? 0.65 : 1.0;
-    final hMult = isLandscape ? 0.6 : 0.75;
+    final double wMult = isLandscape ? 0.65 : 1.0;
+    final double hMult = isLandscape ? 0.6 : 0.75;
 
     return Scaffold(
-      backgroundColor: mainTone,
       body: Center(
         child: FractionallySizedBox(
           widthFactor: wMult,
           heightFactor: hMult,
           child: Container(
             padding: EdgeInsets.all(design.spacing),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              boxShadow: [
-                BoxShadow(blurRadius: design.spacing, color: Colors.black26),
-              ],
-            ),
+            decoration: design.panelDecoration(),
             child: LayoutBuilder(
               builder: (context, boxConstraints) {
                 return SingleChildScrollView(
+                  
                   child: ConstrainedBox(
                     constraints: BoxConstraints(
                       minHeight: boxConstraints.maxHeight,
                     ),
                     child: IntrinsicHeight(
-                      child: Column(
+                      
+                      child: Column(                        
                         mainAxisSize: MainAxisSize.max,
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
@@ -121,13 +144,8 @@ class _CredentialsScreenState extends State<CredentialsScreen> {
                           if (!unverified) ...[
                             TextField(
                               key: const ValueKey('contact'),
-                              decoration: InputDecoration(
-                                labelText: 'Contact',
-                                labelStyle: TextStyle(
-                                  fontSize: design.fontSize,
-                                ),
-                              ),
-                              style: TextStyle(fontSize: design.fontSize),
+                              decoration: InputDecoration(labelText: 'Contact'),
+
                               onChanged: (v) => contact = v,
                             ),
                             SizedBox(height: design.spacing),
@@ -135,11 +153,8 @@ class _CredentialsScreenState extends State<CredentialsScreen> {
                               key: const ValueKey('pwd'),
                               decoration: InputDecoration(
                                 labelText: 'Password',
-                                labelStyle: TextStyle(
-                                  fontSize: design.fontSize,
-                                ),
                               ),
-                              style: TextStyle(fontSize: design.fontSize),
+
                               obscureText: true,
                               onChanged: (v) => password = v,
                             ),
@@ -153,10 +168,7 @@ class _CredentialsScreenState extends State<CredentialsScreen> {
                                     value: businessPurposes,
                                     onChanged: (_) => _toggleBusiness(),
                                   ),
-                                  Text(
-                                    'Business account',
-                                    style: TextStyle(fontSize: design.fontSize),
-                                  ),
+                                  Text('Business account'),
                                 ],
                               ),
                             ],
@@ -165,11 +177,8 @@ class _CredentialsScreenState extends State<CredentialsScreen> {
                               key: const ValueKey('code'),
                               decoration: InputDecoration(
                                 labelText: 'Verification Code',
-                                labelStyle: TextStyle(
-                                  fontSize: design.fontSize,
-                                ),
                               ),
-                              style: TextStyle(fontSize: design.fontSize),
+
                               keyboardType: TextInputType.number,
                               onChanged: (v) =>
                                   verificationCode = int.tryParse(v) ?? 0,
@@ -188,7 +197,6 @@ class _CredentialsScreenState extends State<CredentialsScreen> {
                                   : registerMode
                                   ? 'Register'
                                   : 'Login',
-                              style: TextStyle(fontSize: design.fontSize),
                             ),
                           ),
 
@@ -202,7 +210,6 @@ class _CredentialsScreenState extends State<CredentialsScreen> {
                                   : registerMode
                                   ? 'Already have an account? Login'
                                   : 'No account? Register',
-                              style: TextStyle(fontSize: design.fontSize),
                             ),
                           ),
                         ],
