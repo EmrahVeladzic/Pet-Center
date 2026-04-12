@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:pet_center_app/models/data_transfer/account/account_request_dto.dart';
 import 'package:pet_center_app/screens/dashboard.dart';
 import 'package:pet_center_app/services/account_service.dart';
+import 'package:pet_center_app/services/static_data_service.dart';
+
 import 'package:pet_center_app/utils/app_style.dart';
 import 'package:pet_center_app/utils/jwt_parser.dart';
 
@@ -41,6 +43,22 @@ class _CredentialsScreenState extends State<CredentialsScreen> {
     }
   }
 
+  void onLogin() async {
+    await StaticDataService.updateStaticData();
+
+    if (self == null) {
+      return;
+    }
+
+    if (!mounted) {
+      return;
+    }
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (_) => const DashboardScreen()),
+    );
+  }
+
   void _sendRequest() async {
     if (!unverified) {
       if (registerMode) {
@@ -76,10 +94,7 @@ class _CredentialsScreenState extends State<CredentialsScreen> {
           }
         });
         if (!unverified && userToken != null) {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (_) => const DashboardScreen()),
-          );
+          onLogin();
         }
       }
     } else {
@@ -88,10 +103,7 @@ class _CredentialsScreenState extends State<CredentialsScreen> {
         return;
       }
       if (output != null) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => const DashboardScreen()),
-        );
+        onLogin();
       }
     }
   }
@@ -117,14 +129,12 @@ class _CredentialsScreenState extends State<CredentialsScreen> {
             child: LayoutBuilder(
               builder: (context, boxConstraints) {
                 return SingleChildScrollView(
-                  
                   child: ConstrainedBox(
                     constraints: BoxConstraints(
                       minHeight: boxConstraints.maxHeight,
                     ),
                     child: IntrinsicHeight(
-                      
-                      child: Column(                        
+                      child: Column(
                         mainAxisSize: MainAxisSize.max,
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
