@@ -11,6 +11,6 @@ namespace PetCenterModels.SearchObjects
     public class ProcedureSearchObject : BaseSearchObject
     {
         [JsonIgnore]
-        public override int PageSize {get;} = 25;
+        public override int PageSize {get;} = int.MaxValue;
     }
 }
