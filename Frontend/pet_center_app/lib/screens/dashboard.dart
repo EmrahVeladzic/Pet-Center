@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:pet_center_app/models/enums.dart';
+import 'package:pet_center_app/screens/feed.dart';
 import 'package:pet_center_app/utils/app_style.dart';
 import 'package:pet_center_app/utils/jwt_parser.dart';
 
@@ -14,6 +15,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   void adoptionScreen() {}
 
+  void feedScreen() {
+    Navigator.push(context, MaterialPageRoute(builder: (_) => FeedScreen()));
+  }
+
   @override
   Widget build(BuildContext context) {
     final ReactiveDesignSystem design = Theme.of(
@@ -21,18 +26,22 @@ class _DashboardScreenState extends State<DashboardScreen> {
     ).extension<ReactiveDesignSystem>()!;
 
     final bool isLandscape = design.layoutDirection == Axis.horizontal;
-    final double hMult = isLandscape ? 0.5 : 1.0;
+    final double wMult = isLandscape ? 0.5 : 1.0;
 
     return Scaffold(
       backgroundColor: mainTone,
       appBar: AppBar(
-        title: Text(
-          "${(userToken?.username != null) ? userToken?.username : 'PetCenter'}",
+        title: SizedBox(
+          width: design.screenWidth * marqueeWMult,
+          height: design.marqueeSize,
+          child: design.textMarquee(
+            "${(userToken?.username != null) ? userToken?.username : 'PetCenter'}",
+          ),
         ),
       ),
       body: Center(
         child: FractionallySizedBox(
-          widthFactor: hMult,
+          widthFactor: wMult,
           heightFactor: 1.0,
           child: Container(
             padding: EdgeInsets.all(design.spacing),
@@ -75,25 +84,25 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               child: Text('My pets'),
                             ),
                           ),
-                          SizedBox(height: design.spacing),
-                          FractionallySizedBox(
-                            widthFactor: 0.5,
-                            alignment: Alignment.center,
-                            child: ElevatedButton(
-                              onPressed: () {},
-                              child: Text('Messages'),
-                            ),
-                          ),
-                          SizedBox(height: design.spacing),
-                          FractionallySizedBox(
-                            widthFactor: 0.5,
-                            alignment: Alignment.center,
-                            child: ElevatedButton(
-                              onPressed: () {},
-                              child: Text('User'),
-                            ),
-                          ),
                         ],
+                        SizedBox(height: design.spacing),
+                        FractionallySizedBox(
+                          widthFactor: 0.5,
+                          alignment: Alignment.center,
+                          child: ElevatedButton(
+                            onPressed: feedScreen,
+                            child: Text('Messages'),
+                          ),
+                        ),
+                        SizedBox(height: design.spacing),
+                        FractionallySizedBox(
+                          widthFactor: 0.5,
+                          alignment: Alignment.center,
+                          child: ElevatedButton(
+                            onPressed: () {},
+                            child: Text('User'),
+                          ),
+                        ),
                       ],
                     ),
                   ),

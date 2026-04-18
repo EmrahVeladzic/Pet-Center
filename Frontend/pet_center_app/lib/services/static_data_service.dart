@@ -29,6 +29,9 @@ List<FormTemplateDTO> templates = [];
 List<LivingConditionEntrySubDTO> condition = [];
 List<ProcedureDTO> procedures = [];
 
+Set<String> visitedNotifIndices = {};
+Set<String> visitedReportIndices = {};
+
 class StaticDataService {
   static Future<void> updateStaticData() async {
     try {

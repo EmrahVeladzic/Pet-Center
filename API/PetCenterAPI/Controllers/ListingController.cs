@@ -17,7 +17,16 @@ namespace PetCenterAPI.Controllers
     {
         public ListingController(IListingService s):base(s) { }
        
-       
+        [Authorize]
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetById([FromRoute] Guid id)
+        {
+            if(TryGetUserId(out Guid user_id))
+            {
+                return ResultConverter.Convert<ListingResponseDTO>(await service.GetById(user_id,id,SpecifySearchAuthority()));
+            }
+            return StatusCode(401,"Invalid token.");
+        }
 
         [Authorize(Roles ="Employee")]
         [HttpPut("{id}")]
