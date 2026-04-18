@@ -533,6 +533,8 @@ namespace PetCenterServices.Seeder
 
                         await ctx.SaveChangesAsync();
 
+                        
+
                         await ctx.MedicalListings.AddAsync(new MedicalListing{Id=visible_medical.Id,ProcedureId=proc.Id});
 
                         await ctx.ListingAvailable.AddAsync(new Available{ListingId=visible_medical.Id,FacilityId=facility.Id});
@@ -545,6 +547,13 @@ namespace PetCenterServices.Seeder
                         await ctx.Listings.AddAsync(new Listing{FranchiseId=franch.Id,PriceMinor=rng.Next(10000),AlbumId=generic_listing_album_ids[3],Approved=true,Updated=false,Visible=false,ListingName="Generic invisible listing.",ListingDescription="Workers should see this listing."});
 
                         await ctx.Listings.AddAsync(new Listing{FranchiseId=franch.Id,PriceMinor=rng.Next(10000),AlbumId=generic_listing_album_ids[4],Approved=false,Updated=true,Visible=true,ListingName="Image-free listing.",ListingDescription="Workers should see this listing."});
+
+                        await ctx.SaveChangesAsync();
+
+
+                        await ctx.Notifications.AddAsync(new Notification{UserId=Users[0].Id,Title="Blank",Body="This notification does not link a listing."});
+
+                        await ctx.Notifications.AddAsync(new Notification{UserId=Users[0].Id,Title="Not blank",Body="This notification links a listing.", ListingId = visible_medical.Id});
 
                         await ctx.SaveChangesAsync();
 
@@ -731,6 +740,9 @@ namespace PetCenterServices.Seeder
                     }
 
                     
+
+                    
+
 
                     await tx.CommitAsync();
                     return true;

@@ -42,15 +42,18 @@ class PetCenterApp extends StatelessWidget {
               fontSize: design.fontSize * 1.25,
               color: panelTone,
             ),
+            iconTheme: IconThemeData(color: panelTone),
           ),
           bottomAppBarTheme: BottomAppBarThemeData(color: secondaryTone),
           scaffoldBackgroundColor: mainTone,
           textTheme: TextTheme(
-            bodyMedium: TextStyle(fontSize: design.fontSize),
-            bodyLarge: TextStyle(fontSize: design.fontSize),
-            titleMedium: TextStyle(fontSize: design.fontSize),
-            titleLarge: TextStyle(fontSize: design.fontSize),
-            labelLarge: TextStyle(fontSize: design.fontSize),
+            bodyMedium: TextStyle(fontSize: design.fontSize, color: mainTone),
+          ),
+          tabBarTheme: TabBarThemeData(
+            indicatorSize: TabBarIndicatorSize.tab,
+            indicator: BoxDecoration(color: tabTone),
+            labelColor: panelTone,
+            unselectedLabelColor: listTone,
           ),
 
           extensions: [ReactiveDesignSystem.fromMediaQuery(media)],
