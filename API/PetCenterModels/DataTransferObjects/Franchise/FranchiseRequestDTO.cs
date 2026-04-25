@@ -16,8 +16,10 @@ namespace PetCenterModels.DataTransferObjects
         public Guid? Id { get; set; }
 
         public byte[] CurrentVersion { get; set; } = Array.Empty<byte>();
-        
+
+        [MaxLength(75)]        
         public string FranchiseName { get; set; } = string.Empty;
+        [MaxLength(255)]
         public string Contact { get; set; } = string.Empty;
 
         public bool Validate()

@@ -22,10 +22,13 @@ namespace PetCenterModels.DataTransferObjects
 
         public Guid OwningFranchise {get; set;} = Guid.Empty;
 
+        [MaxLength(150)]
         public string Street {get; set;} = string.Empty;
 
+        [MaxLength(100)]
         public string City {get; set;} = string.Empty;
 
+        [MaxLength(255)]
         public string? Contact {get; set;} = null;
 
 

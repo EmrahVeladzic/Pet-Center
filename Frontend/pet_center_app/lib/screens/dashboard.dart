@@ -25,14 +25,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
       context,
     ).extension<ReactiveDesignSystem>()!;
 
-    final bool isLandscape = design.layoutDirection == Axis.horizontal;
-    final double wMult = isLandscape ? 0.5 : 1.0;
-
     return Scaffold(
       backgroundColor: mainTone,
       appBar: AppBar(
         title: SizedBox(
-          width: design.screenWidth * marqueeWMult,
+          width: design.screenWidth * marqueeTitleWMult,
           height: design.marqueeSize,
           child: design.textMarquee(
             "${(userToken?.username != null) ? userToken?.username : 'PetCenter'}",
@@ -41,7 +38,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
       body: Center(
         child: FractionallySizedBox(
-          widthFactor: wMult,
+          widthFactor: design.bodyWMult,
           heightFactor: 1.0,
           child: Container(
             padding: EdgeInsets.all(design.spacing),

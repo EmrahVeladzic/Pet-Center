@@ -16,6 +16,7 @@ namespace PetCenterModels.DataTransferObjects
 
         public byte[] CurrentVersion { get; set; } = Array.Empty<byte>();
 
+        [MaxLength(75)]
         public string Name {get; set;} = string.Empty;
 
         public Guid BreedId {get; set;} = Guid.Empty;

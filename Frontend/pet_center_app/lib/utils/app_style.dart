@@ -13,9 +13,11 @@ Color visitedPanelTone = Color.fromARGB(255, 185, 185, 185);
 Color listTone = Color.fromARGB(255, 200, 200, 200);
 Color shadowTone = Color.fromARGB(100, 10, 10, 10);
 Color tabTone = Color.fromARGB(255, 90, 80, 105);
-double marqueeWMult = 0.75;
+double marqueeTitleWMult = 0.75;
+double marqueeNoteWMult = 0.95;
 double marqueeSpeed = 15.0;
 double marqueeBlank = 125.0;
+double imgWMult = 0.75;
 
 void showSnackbar(String message) {
   final messenger = rootScaffoldKey.currentState;
@@ -45,6 +47,7 @@ class ReactiveDesignSystem extends ThemeExtension<ReactiveDesignSystem> {
   final double fontSize;
   final double marqueeSize;
   final Axis layoutDirection;
+  final double bodyWMult;
   final double screenWidth;
   final double screenHeight;
 
@@ -52,6 +55,7 @@ class ReactiveDesignSystem extends ThemeExtension<ReactiveDesignSystem> {
     required this.spacing,
     required this.fontSize,
     required this.layoutDirection,
+    required this.bodyWMult,
     required this.marqueeSize,
     required this.screenWidth,
     required this.screenHeight,
@@ -71,6 +75,8 @@ class ReactiveDesignSystem extends ThemeExtension<ReactiveDesignSystem> {
 
       layoutDirection: isLandscape ? Axis.horizontal : Axis.vertical,
 
+      bodyWMult: isLandscape ? 0.5 : 1.0,
+
       marqueeSize: (isLandscape ? shortSide * 0.02 : shortSide * 0.04) * 1.4,
 
       screenWidth: width,
@@ -81,8 +87,9 @@ class ReactiveDesignSystem extends ThemeExtension<ReactiveDesignSystem> {
 
   Widget textMarquee(
     String text, [
+    double? limit,
+    double marqueeWMult = 1.0,
     double fontMult = 1.0,
-    double wMult = 0.75,
   ]) {
     final size = fontMult * fontSize;
 
@@ -95,10 +102,13 @@ class ReactiveDesignSystem extends ThemeExtension<ReactiveDesignSystem> {
       textDirection: TextDirection.ltr,
     )..layout();
 
-    if (painter.width > screenWidth * wMult) {
+    double extreme = limit ?? screenWidth;
+    extreme *= marqueeWMult;
+
+    if (painter.width > extreme) {
       return Center(
         child: SizedBox(
-          width: screenWidth * wMult * marqueeWMult,
+          width: extreme * marqueeWMult,
           height: marqueeSize * fontMult,
           child: Marquee(
             text: text,
@@ -112,6 +122,10 @@ class ReactiveDesignSystem extends ThemeExtension<ReactiveDesignSystem> {
         child: Text(text, style: TextStyle(fontSize: fontMult * fontSize)),
       );
     }
+  }
+
+  SizedBox verticalGap([double? height]) {
+    return SizedBox(height: height ?? spacing);
   }
 
   BoxDecoration panelDecoration([bool visited = false]) {
@@ -130,6 +144,7 @@ class ReactiveDesignSystem extends ThemeExtension<ReactiveDesignSystem> {
     Color? backgroundColor,
     double? screenWidth,
     double? screenHeight,
+    double? bodyWMult,
   }) {
     return ReactiveDesignSystem(
       spacing: spacing ?? this.spacing,
@@ -138,6 +153,7 @@ class ReactiveDesignSystem extends ThemeExtension<ReactiveDesignSystem> {
       marqueeSize: marqueeSize ?? this.marqueeSize,
       screenWidth: screenWidth ?? this.screenWidth,
       screenHeight: screenHeight ?? this.screenHeight,
+      bodyWMult: bodyWMult ?? this.bodyWMult,
     );
   }
 
@@ -155,6 +171,7 @@ class ReactiveDesignSystem extends ThemeExtension<ReactiveDesignSystem> {
       screenHeight:
           lerpDouble(screenHeight, other.screenHeight, t) ?? screenHeight,
       layoutDirection: t < 0.5 ? layoutDirection : other.layoutDirection,
+      bodyWMult: lerpDouble(bodyWMult, other.bodyWMult, t) ?? bodyWMult,
     );
   }
 }

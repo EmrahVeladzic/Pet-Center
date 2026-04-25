@@ -142,6 +142,7 @@ namespace PetCenterModels.DataTransferObjects
 
         public string PosterName {get; set;} = string.Empty;
 
+        [MaxLength(150)]
         public string Contents {get; set;} = string.Empty;
 
         public List<NoteSubDTO>? Notes {get; set;} = null;
@@ -193,8 +194,8 @@ namespace PetCenterModels.DataTransferObjects
                 CurrentVersion=entity.CurrentVersion,
                 FacilityId=entity.FacilityId,
                 Contact="No contact provided.",
-                City=entity.RelevantFacility.City="No city provided.",
-                Street=entity.RelevantFacility.Street="No street provided."
+                City="No city provided.",
+                Street="No street provided."
 
             };
 

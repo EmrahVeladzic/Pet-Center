@@ -22,6 +22,7 @@ namespace PetCenterModels.DataTransferObjects
 
         public List<NoteSubDTO>? Notes {get; set;} = null;
 
+        [MaxLength(75)]
         public string Title {get; set;} = string.Empty;
 
         public Guid CategoryId {get; set;} = Guid.Empty;
