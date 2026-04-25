@@ -20,6 +20,7 @@ namespace PetCenterModels.DataTransferObjects
 
         public Guid FormTemplateId {get; set;} = Guid.Empty;
 
+        [MaxLength(75)]
         public string Description {get; set;} = string.Empty;
 
         public bool Optional { get; set; } = false;
@@ -65,6 +66,7 @@ namespace PetCenterModels.DataTransferObjects
 
         public List<NoteSubDTO>? Notes {get; set;} = null;
 
+        [MaxLength(100)]
         public string Description {get; set;} = string.Empty;
         
         public List<FormTemplateFieldDTO> Fields {get; set;} = new();

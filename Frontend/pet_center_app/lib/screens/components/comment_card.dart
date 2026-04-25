@@ -1,18 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:pet_center_app/models/data_transfer/user/user_response_dto.dart';
+import 'package:pet_center_app/models/data_transfer/listing/sub_dtos.dart';
 import 'package:pet_center_app/utils/app_style.dart';
 
-class NotificationCard extends StatelessWidget {
-  final NotificationSubDTO notification;
-  final bool visited;
+class CommentCard extends StatelessWidget {
+  final CommentResponseSubDTO comment;
   final VoidCallback onTap;
 
-  const NotificationCard({
-    super.key,
-    required this.notification,
-    required this.visited,
-    required this.onTap,
-  });
+  const CommentCard({super.key, required this.comment, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -24,13 +18,15 @@ class NotificationCard extends StatelessWidget {
       padding: EdgeInsetsGeometry.symmetric(horizontal: 0, vertical: 1),
       child: Container(
         padding: EdgeInsets.all(design.spacing),
-        decoration: design.panelDecoration(visited),
+        decoration: design.panelDecoration(),
         child: Row(
           children: [
-            Expanded(flex: 3, child: Text(notification.title)),
+            Expanded(
+              flex: 3,
+              child: Text('"${comment.contents}" - ${comment.posterName}'),
+            ),
             Expanded(
               flex: 1,
-
               child: Padding(
                 padding: EdgeInsetsGeometry.symmetric(
                   horizontal: design.spacing,

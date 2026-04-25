@@ -96,6 +96,10 @@ namespace PetCenterAPI.Controllers
         {
             if(TryGetUserId(out Guid user_id))
             {
+                if (Reason.Length > 255)
+                {
+                    return StatusCode(400,"The stated reason is too long.");
+                }
                 return ResultConverter.Convert<ReportResponseSubDTO>(await service.ReportMisuse(user_id,listing_id,comment_id,Reason));
             }
             return StatusCode(401,"Invalid token.");

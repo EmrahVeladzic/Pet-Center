@@ -21,9 +21,6 @@ class _FeedScreenState extends State<FeedScreen> {
       context,
     ).extension<ReactiveDesignSystem>()!;
 
-    final bool isLandscape = design.layoutDirection == Axis.horizontal;
-    final double wMult = isLandscape ? 0.5 : 1.0;
-
     List<Widget> tabs = [
       const Tab(text: 'Announcements'),
       const Tab(text: 'Notifications'),
@@ -49,7 +46,7 @@ class _FeedScreenState extends State<FeedScreen> {
         ),
         body: Center(
           child: FractionallySizedBox(
-            widthFactor: wMult,
+            widthFactor: design.bodyWMult,
             heightFactor: 1.0,
             child: ColoredBox(
               color: listTone,

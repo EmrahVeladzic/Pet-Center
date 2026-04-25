@@ -1,14 +1,17 @@
 import 'package:http/http.dart' as http;
 import 'package:pet_center_app/models/data_transfer/category_dto.dart';
 import 'package:pet_center_app/models/data_transfer/form_template_dto.dart';
+import 'package:pet_center_app/models/data_transfer/franchise/franchise_response_dto.dart';
 import 'package:pet_center_app/models/data_transfer/item_dto.dart';
 import 'package:pet_center_app/models/data_transfer/kind_dto.dart';
 import 'package:pet_center_app/models/data_transfer/living_condition_dto.dart';
 import 'package:pet_center_app/models/data_transfer/procedure_dto.dart';
 import 'package:pet_center_app/models/data_transfer/static_data_dto.dart';
 import 'package:pet_center_app/models/data_transfer/user/user_response_dto.dart';
+import 'package:pet_center_app/models/enums.dart';
 import 'package:pet_center_app/services/category_service.dart';
 import 'package:pet_center_app/services/form_template_service.dart';
+import 'package:pet_center_app/services/franchise_service.dart';
 import 'package:pet_center_app/services/item_service.dart';
 import 'package:pet_center_app/services/kind_service.dart';
 import 'package:pet_center_app/services/living_condition_service.dart';
@@ -28,12 +31,14 @@ UserResponseDTO? self;
 List<FormTemplateDTO> templates = [];
 List<LivingConditionEntrySubDTO> condition = [];
 List<ProcedureDTO> procedures = [];
+List<FranchiseResponseDTO> workplaces = [];
 
 Set<String> visitedNotifIndices = {};
 Set<String> visitedReportIndices = {};
 
 class StaticDataService {
   static Future<void> updateStaticData() async {
+    Access role = userToken?.role ?? Access.user;
     try {
       final response = await http.get(
         Uri.parse("${AppConfig.apiBaseUrl}/Static"),
@@ -109,6 +114,13 @@ class StaticDataService {
             currentStaticDataVersion.procedureVersion = result.procedureVersion;
             currentStaticDataVersion.specificationVersion =
                 result.specificationVersion;
+          }
+        }
+
+        if (role == Access.user && workplaces.isEmpty) {
+          final newWorkplaces = await FranchiseService.get(userToken?.userId);
+          if (newWorkplaces != null) {
+            workplaces = newWorkplaces;
           }
         }
       }

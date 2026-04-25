@@ -47,6 +47,10 @@ namespace PetCenterAPI.Controllers
         {
             if(TryGetUserId(out Guid caller_id))
             {
+                if (term.Length > 50)
+                {
+                    return StatusCode(400,"The term is too long.");
+                }
                 return ResultConverter.Convert<string>(await service.SetWishlistTerm(caller_id,term,add_remove));
             }
             return StatusCode(401,"Invalid token.");  
@@ -57,6 +61,10 @@ namespace PetCenterAPI.Controllers
         [Authorize(Roles = "Owner,Admin")]
         public async Task<IActionResult> AddAnnouncement([FromQuery] string announcement, [FromQuery] bool user_visible, [FromQuery] bool business_visible, [FromQuery]  int days_valid = 7)
         {
+            if (announcement.Length > 255)
+            {
+                return StatusCode(400,"The announcement is too long.");
+            }
             return ResultConverter.Convert<AnnouncementSubDTO>(await service.AddAnnouncement(announcement,user_visible,business_visible,days_valid));
         }
         
@@ -73,6 +81,19 @@ namespace PetCenterAPI.Controllers
         [Authorize(Roles = "Owner,Admin")]
         public async Task<IActionResult> AddNotification([FromRoute] Guid usr_id, [FromQuery] string title, [FromQuery] string body, [FromQuery] Guid? franchise_id, [FromQuery] Guid? listing_id, [FromQuery] int days_valid = 7)
         {
+            if (title.Length>75)
+            {
+                if (body.Length > 255)
+                {
+                    return StatusCode(400,"The title and body are too long");
+                }
+                return StatusCode(400,"The title is too long.");
+            }
+            if (body.Length > 255)
+            {
+                return StatusCode(400,"The body is too long.");
+            }
+            
             return ResultConverter.Convert<NotificationSubDTO>(await service.AddNotification(title,body,usr_id,franchise_id,listing_id,days_valid));
         }
 

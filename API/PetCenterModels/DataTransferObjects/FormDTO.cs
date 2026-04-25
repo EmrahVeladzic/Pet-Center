@@ -22,6 +22,7 @@ namespace PetCenterModels.DataTransferObjects
 
         public Guid FormTemplateFieldId {get; set;} = Guid.Empty;
 
+        [MaxLength(255)]
         public string Serialized {get; set;} = string.Empty;
         public List<NoteSubDTO>? Notes {get; set;} = null;
 
@@ -65,8 +66,10 @@ namespace PetCenterModels.DataTransferObjects
 
         public List<NoteSubDTO>? Notes {get; set;} = null;
 
+        [MaxLength(75)]
         public string FranchiseName {get; set;} = string.Empty;
 
+        [MaxLength(255)]
         public string DefaultContact {get; set;} = string.Empty;
         
         public List<FormEntrySubDTO> Entries {get; set;} = new();

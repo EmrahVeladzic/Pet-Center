@@ -52,6 +52,7 @@ namespace PetCenterModels.DataTransferObjects
 
         public List<NoteSubDTO>? Notes {get; set;} = null;
 
+        [MaxLength(75)]
         public string Title {get; set;} = string.Empty;
 
         public float InvestmentEffect { get; set; } = 0.0f;
