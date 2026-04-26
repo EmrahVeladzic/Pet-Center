@@ -27,6 +27,37 @@ class ListingService {
     }
   }
 
+  static Future<ReportResponseSubDTO?> reportMisuse(
+    String listingId,
+    String reason, [
+    String? commentId,
+  ]) async {
+    try {
+      final query = <String, String>{};
+      query['reason'] = reason;
+      if (commentId != null) {
+        query['comment_id'] = commentId;
+      }
+
+      final response = await http.put(
+        Uri.parse(
+          "${AppConfig.apiBaseUrl}/api/Listing/Report/$listingId",
+        ).replace(queryParameters: query),
+        headers: {'Authorization': 'Bearer $rawToken'},
+      );
+
+      final result = await ServiceOutput.fromResponse<ReportResponseSubDTO>(
+        response,
+        (json) => ReportResponseSubDTO.fromJson(json as Map<String, dynamic>),
+      );
+
+      return result;
+    } catch (ex) {
+      showError(ex);
+      return null;
+    }
+  }
+
   static Future<CommentResponseSubDTO?> sendReview(
     String listingId,
     String text,
@@ -54,14 +85,16 @@ class ListingService {
     }
   }
 
-  static Future deleteReview(String id) async {
+  static Future<bool> deleteReview(String id) async {
     try {
-      await http.delete(
+      final response = await http.delete(
         Uri.parse("${AppConfig.apiBaseUrl}/api/Listing/Review/$id"),
         headers: {'Authorization': 'Bearer $rawToken'},
       );
+      return ServiceOutput.isSuccess(response);
     } catch (ex) {
       showError(ex);
+      return false;
     }
   }
 }

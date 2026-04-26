@@ -27,17 +27,17 @@ class NotificationCard extends StatelessWidget {
         decoration: design.panelDecoration(visited),
         child: Row(
           children: [
-            Expanded(flex: 3, child: Text(notification.title)),
+            Expanded(flex: 4, child: Text(notification.title)),
             Expanded(
               flex: 1,
 
-              child: Padding(
-                padding: EdgeInsetsGeometry.symmetric(
-                  horizontal: design.spacing,
-                ),
-                child: ElevatedButton(
+              child: Align(
+                alignment: Alignment.center,
+                child: IconButton(
                   onPressed: onTap,
-                  child: Icon(Icons.arrow_forward),
+                  icon: const Icon(Icons.arrow_forward),
+                  padding: EdgeInsets.zero,
+                  visualDensity: VisualDensity.compact,
                 ),
               ),
             ),

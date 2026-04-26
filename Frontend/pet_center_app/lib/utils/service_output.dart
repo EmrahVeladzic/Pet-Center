@@ -68,7 +68,9 @@ class ServiceOutput<T> {
 
   ServiceOutput({required this.statusCode, this.body, this.errorMessage});
 
-  bool get isSuccess => statusCode < 400;
+  static bool isSuccess(http.Response response) {
+    return (response.statusCode < 400);
+  }
 
   static Future<T?> fromResponse<T>(
     http.Response response,

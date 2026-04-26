@@ -21,7 +21,7 @@ class AvailabilityCard extends StatelessWidget {
           Container(
             decoration: design.panelDecoration(),
             child: design.textMarquee(
-              available.contact,
+              '${available.city} ${available.street}',
               design.screenWidth * design.bodyWMult,
               marqueeNoteWMult,
             ),
@@ -29,7 +29,7 @@ class AvailabilityCard extends StatelessWidget {
           Container(
             color: visitedPanelTone,
             child: design.textMarquee(
-              '${available.city} ${available.street}',
+              available.contact,
               design.screenWidth * design.bodyWMult,
               marqueeNoteWMult,
             ),

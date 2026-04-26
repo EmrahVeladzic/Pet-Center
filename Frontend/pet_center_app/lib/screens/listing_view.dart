@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:pet_center_app/models/data_transfer/listing/listing_response_dto.dart';
+import 'package:pet_center_app/models/data_transfer/listing/sub_dtos.dart';
 import 'package:pet_center_app/models/enums.dart';
 import 'package:pet_center_app/screens/comment_view.dart';
 import 'package:pet_center_app/screens/components/availability_card.dart';
@@ -21,6 +22,30 @@ class ListingViewScreen extends StatefulWidget {
 
 class _ListingViewScreenState extends State<ListingViewScreen> {
   Access role = userToken?.role ?? Access.user;
+
+  void showComment(CommentResponseSubDTO input) {
+    setState(() {
+      final current = widget.listing.comments
+          .cast<CommentResponseSubDTO?>()
+          .firstWhere(
+            (comm) => comm?.posterId == input.posterId,
+            orElse: () => null,
+          );
+
+      if (current == null) {
+        widget.listing.comments.add(input);
+      } else {
+        final index = widget.listing.comments.indexOf(current);
+        widget.listing.comments[index] = input;
+      }
+    });
+  }
+
+  void removeComment(CommentResponseSubDTO input) {
+    setState(() {
+      widget.listing.comments.remove(input);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -95,6 +120,16 @@ class _ListingViewScreenState extends State<ListingViewScreen> {
                   ...widget.listing.availability.map(
                     (available) => AvailabilityCard(available: available),
                   ),
+                ] else ...[
+                  design.verticalGap(),
+                  Padding(
+                    padding: EdgeInsetsGeometry.symmetric(
+                      horizontal: design.spacing,
+                    ),
+                    child: design.textMarquee(
+                      'For more information, contact ${widget.listing.franchiseName} at ${widget.listing.contact}.',
+                    ),
+                  ),
                 ],
 
                 if (widget.listing.comments.isNotEmpty ||
@@ -108,7 +143,12 @@ class _ListingViewScreenState extends State<ListingViewScreen> {
                   ),
 
                   if (role == Access.user && widget.listing.id != null) ...[
-                    CommentCreator(listingId: widget.listing.id!),
+                    CommentCreator(
+                      listingId: widget.listing.id!,
+                      onPost: (comment) {
+                        showComment(comment);
+                      },
+                    ),
                   ],
 
                   ...widget.listing.comments.map(
@@ -118,8 +158,12 @@ class _ListingViewScreenState extends State<ListingViewScreen> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) =>
-                                CommentViewScreen(comment: comment),
+                            builder: (context) => CommentViewScreen(
+                              comment: comment,
+                              onDelete: () {
+                                removeComment(comment);
+                              },
+                            ),
                           ),
                         );
                       },

@@ -258,10 +258,10 @@ namespace PetCenterServices.Seeder
                         await ctx.MedicalProcedureSpecifications.AddAsync(new MedicalProcedureSpecification{ProcedureId=proc.Id,KindId=afflicted_breed.KindId,BreedId=afflicted_breed.Id,SexSpecific=null,Optional=false,IntervalDays=null,ApproximateAge=rng.Next(100,400)});
                     }                   
 
-                    await ctx.Announcements.AddAsync(new Announcement{Body="Users and employees can see this.",UserVisible=true,BusinessVisible=true,Expiry=DateTime.UtcNow.AddDays(3)});
-                    await ctx.Announcements.AddAsync(new Announcement{Body="Users specific.",UserVisible=true,BusinessVisible=false,Expiry=DateTime.UtcNow.AddDays(3)});
-                    await ctx.Announcements.AddAsync(new Announcement{Body="Employee specific.",UserVisible=false,BusinessVisible=true,Expiry=DateTime.UtcNow.AddDays(3)});
-                    await ctx.Announcements.AddAsync(new Announcement{Body="Internal modmail.",UserVisible=false,BusinessVisible=false,Expiry=DateTime.UtcNow.AddDays(3)});
+                    await ctx.Announcements.AddAsync(new Announcement{Body="Users and employees can see this.",UserVisible=true,BusinessVisible=true});
+                    await ctx.Announcements.AddAsync(new Announcement{Body="Users specific.",UserVisible=true,BusinessVisible=false});
+                    await ctx.Announcements.AddAsync(new Announcement{Body="Employee specific.",UserVisible=false,BusinessVisible=true});
+                    await ctx.Announcements.AddAsync(new Announcement{Body="Internal modmail.",UserVisible=false,BusinessVisible=false});
 
 
                     foreach(Category cat in categories){
@@ -708,12 +708,12 @@ namespace PetCenterServices.Seeder
                                 switch (choice)
                                 {
                                     case 0 : {
-                                        await ctx.Reports.AddAsync(new Report{ReporterId=Users[0].Id,Expiry=DateTime.UtcNow.AddDays(rng.Next(1,4)),Reason="Listing.",ListingId=comments[i].ListingId,CommentId=null});
+                                        await ctx.Reports.AddAsync(new Report{ReporterId=Users[0].Id,Reason="Listing.",ListingId=comments[i].ListingId,CommentId=null});
                                         reported_listings.Add(comments[i].ListingId);
                                         break;
                                     }
                                     case 1 : {
-                                        await ctx.Reports.AddAsync(new Report{ReporterId=Users[0].Id,Expiry=DateTime.UtcNow.AddDays(rng.Next(1,4)),Reason="Comment only.",ListingId=comments[i].ListingId,CommentId=comments[i].Id});
+                                        await ctx.Reports.AddAsync(new Report{ReporterId=Users[0].Id,Reason="Comment only.",ListingId=comments[i].ListingId,CommentId=comments[i].Id});
                                         reported_listings.Add(comments[i].ListingId);
                                         break;
                                     }

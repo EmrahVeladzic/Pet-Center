@@ -172,13 +172,24 @@ namespace PetCenterServices.Services
             }
 
             Comment? comment = await dbContext.Comments.FirstOrDefaultAsync(c=>c.PosterId==token_holder && c.ListingId==ListingId);
+            User? self = await dbContext.Users.FirstOrDefaultAsync(u=>u.Id==token_holder);
+
 
             if (comment != null)
             {
                 comment.Message=message;
                 comment.LastEditDate=DateTime.UtcNow;  
                 await dbContext.SaveChangesAsync();  
-                return ServiceOutput<CommentResponseSubDTO>.Success(CommentResponseSubDTO.FromEntity(comment));        
+
+
+                CommentResponseSubDTO? output = CommentResponseSubDTO.FromEntity(comment);
+
+                if(self!=null && output!=null && !string.IsNullOrWhiteSpace(self.UserName))
+                {
+                    output.PosterName=self.UserName;
+                }
+
+                return ServiceOutput<CommentResponseSubDTO>.Success(output);        
             }
             else
             {
@@ -196,7 +207,15 @@ namespace PetCenterServices.Services
                 await dbContext.Comments.AddAsync(new_comment);
                 await dbContext.SaveChangesAsync();
                 comment=new_comment;
-                return ServiceOutput<CommentResponseSubDTO>.Success(CommentResponseSubDTO.FromEntity(comment),HttpCode.Created);
+                
+                CommentResponseSubDTO? output = CommentResponseSubDTO.FromEntity(comment);
+
+                if(self!=null && output!=null && !string.IsNullOrWhiteSpace(self.UserName))
+                {
+                    output.PosterName=self.UserName;
+                }
+
+                return ServiceOutput<CommentResponseSubDTO>.Success(output,HttpCode.Created);
             }
             
         }
