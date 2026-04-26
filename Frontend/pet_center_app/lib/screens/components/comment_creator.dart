@@ -1,10 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:pet_center_app/models/data_transfer/listing/sub_dtos.dart';
 import 'package:pet_center_app/services/listing_service.dart';
 import 'package:pet_center_app/utils/app_style.dart';
 
 class CommentCreator extends StatefulWidget {
   final String listingId;
-  const CommentCreator({super.key, required this.listingId});
+  final void Function(CommentResponseSubDTO feedback) onPost;
+
+  const CommentCreator({
+    super.key,
+    required this.listingId,
+    required this.onPost,
+  });
 
   @override
   State<CommentCreator> createState() => _CommentCreatorState();
@@ -19,20 +26,24 @@ class _CommentCreatorState extends State<CommentCreator> {
     super.dispose();
   }
 
+  void sendReview() async {
+    final String text = _controller.text.trim();
+    if (text.isEmpty) return;
+
+    final output = await ListingService.sendReview(widget.listingId, text);
+
+    if (output != null) {
+      widget.onPost(output);
+    }
+
+    _controller.clear();
+  }
+
   @override
   Widget build(BuildContext context) {
     final ReactiveDesignSystem design = Theme.of(
       context,
     ).extension<ReactiveDesignSystem>()!;
-
-    void sendReview() async {
-      final String text = _controller.text.trim();
-      if (text.isEmpty) return;
-
-      await ListingService.sendReview(widget.listingId, text);
-
-      _controller.clear();
-    }
 
     return Padding(
       padding: EdgeInsetsGeometry.symmetric(horizontal: 0, vertical: 1),
@@ -42,7 +53,7 @@ class _CommentCreatorState extends State<CommentCreator> {
         child: Row(
           children: [
             Expanded(
-              flex: 3,
+              flex: 4,
 
               child: ColoredBox(
                 color: listTone,
@@ -58,13 +69,13 @@ class _CommentCreatorState extends State<CommentCreator> {
             ),
             Expanded(
               flex: 1,
-              child: Padding(
-                padding: EdgeInsetsGeometry.symmetric(
-                  horizontal: design.spacing,
-                ),
-                child: ElevatedButton(
+              child: Align(
+                alignment: Alignment.center,
+                child: IconButton(
                   onPressed: sendReview,
-                  child: Icon(Icons.arrow_forward),
+                  icon: const Icon(Icons.arrow_forward),
+                  padding: EdgeInsets.zero,
+                  visualDensity: VisualDensity.compact,
                 ),
               ),
             ),

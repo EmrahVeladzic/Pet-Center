@@ -22,18 +22,18 @@ class CommentCard extends StatelessWidget {
         child: Row(
           children: [
             Expanded(
-              flex: 3,
+              flex: 4,
               child: Text('"${comment.contents}" - ${comment.posterName}'),
             ),
             Expanded(
               flex: 1,
-              child: Padding(
-                padding: EdgeInsetsGeometry.symmetric(
-                  horizontal: design.spacing,
-                ),
-                child: ElevatedButton(
+              child: Align(
+                alignment: Alignment.center,
+                child: IconButton(
                   onPressed: onTap,
-                  child: Icon(Icons.arrow_forward),
+                  icon: const Icon(Icons.arrow_forward),
+                  padding: EdgeInsets.zero,
+                  visualDensity: VisualDensity.compact,
                 ),
               ),
             ),
