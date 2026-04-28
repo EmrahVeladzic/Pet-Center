@@ -34,6 +34,7 @@ CREATE TABLE [Person].[Account](
     Contact VARCHAR(255) NOT NULL,
     PasswordHash VARCHAR(44) NOT NULL,
     PasswordSalt VARCHAR(24) NOT NULL,
+    RegistrationDate DATETIME2 NOT NULL,
     AccessLevel TINYINT NOT NULL,
     Verified BIT NOT NULL,
 
@@ -126,14 +127,25 @@ CREATE TABLE [Business].[FormTemplateField](
 GO
 
 CREATE TABLE [Pending].[Registration](
-    ID UNIQUEIDENTIFIER NOT NULL DEFAULT NEWSEQUENTIALID() PRIMARY KEY,
-    CurrentVersion ROWVERSION NOT NULL,
-    AccountID UNIQUEIDENTIFIER NOT NULL,
-    Code INT NOT NULL,
+    ID UNIQUEIDENTIFIER NOT NULL PRIMARY KEY,
+    CurrentVersion ROWVERSION NOT NULL,    
+    CodeHash VARCHAR(44) NOT NULL,
+    CodeSalt VARCHAR(24) NOT NULL,
     Expiry DATETIME2 NOT NULL,
     NextAttempt DATETIME2 NOT NULL,
 
-    CONSTRAINT FK_Registration_Account FOREIGN KEY (AccountID) REFERENCES [Person].[Account](ID) ON DELETE CASCADE
+    CONSTRAINT FK_Registration_Account FOREIGN KEY (ID) REFERENCES [Person].[Account](ID) ON DELETE CASCADE
+);
+GO
+
+CREATE TABLE [Pending].[SingleTimeEntry](
+    ID UNIQUEIDENTIFIER NOT NULL PRIMARY KEY,
+    CurrentVersion ROWVERSION NOT NULL,
+    CodeHash VARCHAR(44) NOT NULL,
+    CodeSalt VARCHAR(24) NOT NULL,
+    Expiry DATETIME2 NOT NULL,
+
+    CONSTRAINT FK_SingleTimeEntry_Account FOREIGN KEY (ID) REFERENCES [Person].[Account](ID) ON DELETE CASCADE
 );
 GO
 
@@ -421,13 +433,14 @@ GO
 CREATE TABLE [Communication].[Report](
     ID UNIQUEIDENTIFIER NOT NULL DEFAULT NEWSEQUENTIALID() PRIMARY KEY,
     CurrentVersion ROWVERSION NOT NULL,
-    CommentID UNIQUEIDENTIFIER FOREIGN KEY REFERENCES [Communication].[Comment](ID),
+    CommentID UNIQUEIDENTIFIER,
     ListingID UNIQUEIDENTIFIER NOT NULL FOREIGN KEY REFERENCES [Offer].[Listing](ID),
     Reason NVARCHAR(255) NOT NULL,
     Expiry DATETIME2 NOT NULL,
     ReporterID UNIQUEIDENTIFIER NOT NULL FOREIGN KEY REFERENCES [Person].[User](ID),
 
-    CONSTRAINT UQ_Report_Reporter_Listing UNIQUE (ReporterID, ListingID)
+    CONSTRAINT UQ_Report_Reporter_Listing UNIQUE (ReporterID, ListingID),
+    CONSTRAINT FK_Report_Comment FOREIGN KEY (CommentID) REFERENCES [Communication].[Comment](ID) ON DELETE CASCADE
 );
 GO
 

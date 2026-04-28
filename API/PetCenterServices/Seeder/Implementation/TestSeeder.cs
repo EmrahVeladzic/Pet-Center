@@ -17,6 +17,7 @@ using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Formats.Webp;
 using PetCenterServices.Services;
+using PetCenterServices.Utils;
 
 namespace PetCenterServices.Seeder
 {
@@ -324,7 +325,10 @@ namespace PetCenterServices.Seeder
 
                             if (!acc.Verified)
                             {
-                                await ctx.Registrations.AddAsync(new Registration{AccountId=acc.Id,Expiry=DateTime.UtcNow.AddHours(1),NextAttempt=DateTime.UtcNow,Code=12345678});
+                                string salt = Crypto.GenerateSalt();
+                                string hash = Crypto.GenerateHash("12345678",salt);
+
+                                await ctx.Registrations.AddAsync(new Registration{Id=acc.Id,Expiry=DateTime.UtcNow.AddHours(1),NextAttempt=DateTime.UtcNow,CodeHash=hash,CodeSalt=salt});
                             }
 
                             await ctx.SaveChangesAsync();
@@ -334,10 +338,12 @@ namespace PetCenterServices.Seeder
                         await ctx.Franchises.AddAsync(franch);
 
                         await ctx.SaveChangesAsync();
+                       
 
-                        await ctx.Notifications.AddAsync(new Notification{UserId=franch.OwnerId,FranchiseId=null,ListingId=null,Title="Notification - OWNER", Body="Only you can see this notification."});
-                        await ctx.Notifications.AddAsync(new Notification{UserId=franch.OwnerId,FranchiseId=franch.Id,ListingId=null,Title="Notification - FRANCHISE", Body="You and your employees can see this notification."});
+                        await ctx.Notifications.AddAsync(new Notification{UserId=franch.OwnerId,FranchiseId=null,ListingId=null,Title="Notification - OWNER", Body="Only you, the owner, can see this notification."});
+                        await ctx.Notifications.AddAsync(new Notification{UserId=franch.OwnerId,FranchiseId=franch.Id,ListingId=null,Title="Notification - FRANCHISE", Body="The franchise owner and employees can see this notification."});
 
+                       
 
                         Facility facility = new Facility{Contact="mega.uk@example.com",City="London",Street="MainSt no.1",FranchiseId=franch.Id};
                         await ctx.Facilities.AddAsync(facility);
@@ -551,9 +557,20 @@ namespace PetCenterServices.Seeder
                         await ctx.SaveChangesAsync();
 
 
-                        await ctx.Notifications.AddAsync(new Notification{UserId=Users[0].Id,Title="Blank",Body="This notification does not link a listing."});
+                        await ctx.Comments.AddAsync(new Comment{PosterId = Users[1].Id,ListingId=visible_medical.Id,Message="Feel free to report, or delete this review."});
+                        await ctx.Comments.AddAsync(new Comment{PosterId = Users[2].Id,ListingId=visible_medical.Id,Message="Feel free to ban me as an admin over this review."});
 
-                        await ctx.Notifications.AddAsync(new Notification{UserId=Users[0].Id,Title="Not blank",Body="This notification links a listing.", ListingId = visible_medical.Id});
+
+
+                        for(int i = 0; i<3; i++){
+
+                            await ctx.Notifications.AddAsync(new Notification{UserId=Users[i].Id,Title="Blank",Body="This notification does not link a listing."});
+                            await ctx.Notifications.AddAsync(new Notification{UserId=Users[i].Id,Title="Not blank",Body="This notification links a listing.", ListingId = visible_medical.Id});
+
+                            await ctx.Notifications.AddAsync(new Notification{UserId=Employees[i].Id,Title="Blank",Body="This notification does not link a listing."});
+                            await ctx.Notifications.AddAsync(new Notification{UserId=Employees[i].Id,Title="Not blank",Body="This notification links a listing.", ListingId = visible_medical.Id});
+                           
+                        }
 
                         await ctx.SaveChangesAsync();
 

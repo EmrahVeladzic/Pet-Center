@@ -138,6 +138,8 @@ namespace PetCenterModels.DataTransferObjects
 
         public byte[] CurrentVersion { get; set; } = Array.Empty<byte>();
 
+        public Guid ListingId {get; set;} = Guid.Empty;
+
         public Guid PosterId {get; set;} = Guid.Empty;
 
         public string PosterName {get; set;} = string.Empty;
@@ -154,6 +156,7 @@ namespace PetCenterModels.DataTransferObjects
             {
                 Id=entity.Id,
                 CurrentVersion=entity.CurrentVersion,
+                ListingId=entity.ListingId,
                 PosterId=entity.PosterId,
                 PosterName="Anonymous",
                 Contents=entity.Message

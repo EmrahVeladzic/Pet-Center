@@ -31,7 +31,9 @@ class _FeedScreenState extends State<FeedScreen> {
 
     List<Widget> pages = [
       const AnnouncementPage(),
-      const NotificationPage(),
+      if (role != Access.admin && role != Access.owner) ...{
+        const NotificationPage(),
+      },
       if (role == Access.admin || role == Access.owner) ...{const ReportPage()},
     ];
 

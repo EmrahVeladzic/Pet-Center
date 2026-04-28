@@ -74,6 +74,17 @@ namespace PetCenterAPI.Controllers
             return StatusCode(401,"Invalid token.");
         }
 
+         
+        [HttpGet ("ForgotPassword/{contact}")]
+        [AllowAnonymous]
+        public async Task<IActionResult> ForgotPassword([FromRoute]string contact)
+        {
+            
+            return ResultConverter.Convert<string>(await service.RequestSingleTimeEntryCode(contact.ToLowerInvariant()));
+            
+        }
+
+
         
         [HttpPost("Verify/{code}")]
         [AllowUnverified]

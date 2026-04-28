@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:pet_center_app/models/data_transfer/listing/sub_dtos.dart';
 import 'package:pet_center_app/models/enums.dart';
 import 'package:pet_center_app/screens/components/deletion_dialog.dart';
+import 'package:pet_center_app/screens/components/report_dialog.dart';
 import 'package:pet_center_app/services/listing_service.dart';
 import 'package:pet_center_app/services/static_data_service.dart';
 import 'package:pet_center_app/services/user_service.dart';
@@ -94,7 +95,18 @@ class _CommentViewScreenState extends State<CommentViewScreen> {
                 child: Text('Delete'),
               ),
             ] else ...[
-              ElevatedButton(onPressed: () {}, child: Text('Report')),
+              ElevatedButton(
+                onPressed: () {
+                  showDialog(
+                    context: context,
+                    builder: (_) => ReportDialog(
+                      listingId: widget.comment.listingId,
+                      commentId: widget.comment.id,
+                    ),
+                  );
+                },
+                child: Text('Report'),
+              ),
             ],
           ],
         ),

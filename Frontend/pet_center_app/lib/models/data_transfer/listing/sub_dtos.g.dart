@@ -72,6 +72,7 @@ CommentResponseSubDTO _$CommentResponseSubDTOFromJson(
 ) => CommentResponseSubDTO(
   id: json['id'] as String?,
   currentVersion: json['currentVersion'] as String? ?? '',
+  listingId: json['listingId'] as String? ?? '',
   posterId: json['posterId'] as String? ?? '',
   posterName: json['posterName'] as String? ?? '',
   contents: json['contents'] as String? ?? '',
@@ -85,6 +86,7 @@ Map<String, dynamic> _$CommentResponseSubDTOToJson(
 ) => <String, dynamic>{
   'id': instance.id,
   'currentVersion': instance.currentVersion,
+  'listingId': instance.listingId,
   'posterId': instance.posterId,
   'posterName': instance.posterName,
   'contents': instance.contents,

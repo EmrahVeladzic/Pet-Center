@@ -35,6 +35,10 @@ namespace PetCenterModels.DBTables
         [JsonIgnore]
         public string PasswordSalt { get; set; } = string.Empty;
 
+        [Column("RegistrationDate")]
+        [JsonIgnore]
+        public DateTime RegistrationDate {get; set;} = DateTime.UtcNow;
+
         [Column("AccessLevel")]
         [JsonIgnore]
         public Access AccessLevel { get; set; }

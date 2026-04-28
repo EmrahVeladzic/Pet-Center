@@ -66,6 +66,7 @@ class MedicalListingSubDTO {
 class CommentResponseSubDTO {
   String? id;
   String currentVersion;
+  String listingId;
   String posterId;
   String posterName;
   String contents;
@@ -74,6 +75,7 @@ class CommentResponseSubDTO {
   CommentResponseSubDTO({
     this.id,
     this.currentVersion = '',
+    this.listingId = '',
     this.posterId = '',
     this.posterName = '',
     this.contents = '',
