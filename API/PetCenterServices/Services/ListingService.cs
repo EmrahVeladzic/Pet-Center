@@ -172,8 +172,17 @@ namespace PetCenterServices.Services
             }
 
             Comment? comment = await dbContext.Comments.FirstOrDefaultAsync(c=>c.PosterId==token_holder && c.ListingId==ListingId);
-            User? self = await dbContext.Users.FirstOrDefaultAsync(u=>u.Id==token_holder);
+            User? self = await dbContext.Users.Include(u=>u.UserAccount).FirstOrDefaultAsync(u=>u.Id==token_holder);
 
+            if (self == null || self.UserAccount==null)
+            {
+                return ServiceOutput<CommentResponseSubDTO>.Error(HttpCode.Unauthorized,"Invalid token.");
+            }
+
+            if (self.UserAccount.RegistrationDate.AddDays(7) > DateTime.UtcNow)
+            {
+                return ServiceOutput<CommentResponseSubDTO>.Error(HttpCode.Forbidden,"Your account needs to be at least a week old to post reviews.");
+            }
 
             if (comment != null)
             {
@@ -184,7 +193,7 @@ namespace PetCenterServices.Services
 
                 CommentResponseSubDTO? output = CommentResponseSubDTO.FromEntity(comment);
 
-                if(self!=null && output!=null && !string.IsNullOrWhiteSpace(self.UserName))
+                if(output!=null && !string.IsNullOrWhiteSpace(self.UserName))
                 {
                     output.PosterName=self.UserName;
                 }
@@ -210,7 +219,7 @@ namespace PetCenterServices.Services
                 
                 CommentResponseSubDTO? output = CommentResponseSubDTO.FromEntity(comment);
 
-                if(self!=null && output!=null && !string.IsNullOrWhiteSpace(self.UserName))
+                if(output!=null && !string.IsNullOrWhiteSpace(self.UserName))
                 {
                     output.PosterName=self.UserName;
                 }

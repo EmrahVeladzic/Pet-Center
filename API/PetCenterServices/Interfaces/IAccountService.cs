@@ -16,6 +16,7 @@ namespace PetCenterServices.Interfaces
     {    
         public Task<ServiceOutput<string>> LogIn(AccountRequestDTO req);       
         public Task <ServiceOutput<string>> RequestAccountVerification(Guid id);
+        public Task <ServiceOutput<string>> RequestSingleTimeEntryCode(string contact);
         public Task<ServiceOutput<string>> VerifyAccount(Guid id, int code);   
         public Task<ServiceOutput<string>> SetRole(Guid owner_id, Guid id, Access role);
 

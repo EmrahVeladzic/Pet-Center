@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -11,10 +11,9 @@ using PetCenterServices;
 
 namespace PetCenterModels.DBTables
 {
-    [Table("Registration", Schema = "Pending")]
-    public class Registration : ExpirableTableEntity
-    {      
-       
+    [Table("SingleTimeEntry", Schema = "Pending")]
+    public class SingleTimeEntry : ExpirableTableEntity
+    {             
 
         [JsonIgnore]
         [ForeignKey(nameof(Id))]
@@ -25,17 +24,7 @@ namespace PetCenterModels.DBTables
 
         [Column("CodeHash")]
         public string CodeHash { get; set; } = string.Empty;
-
-
-        [Column("NextAttempt")]
-        public DateTime NextAttempt { get; set; }
-
-        override public async Task StageDeletion<T>(PetCenterDBContext ctx, DbSet<T> set,CancellationToken cancel = default)
-        {
-            if(await ctx.Accounts.FindAsync(Id,cancel) is Account a) { await a.StageDeletion<Account>(ctx, ctx.Accounts,cancel);}
-            await base.StageDeletion<T>(ctx,set,cancel);
-        }
-
+       
 
     }
 }

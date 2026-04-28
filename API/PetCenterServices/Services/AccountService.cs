@@ -67,15 +67,16 @@ namespace PetCenterServices.Services
                     await dbContext.Accounts.AddAsync(acc);
                     await dbContext.SaveChangesAsync();
 
-                    
+                    int code = Crypto.GenerateCode();
 
                     if (!acc.Verified)
                     {
                         Registration registration = new();
                         registration.Expiry = DateTime.UtcNow.AddDays(7);
                         registration.NextAttempt = DateTime.UtcNow;
-                        registration.AccountId = acc.Id;
-                        registration.Code = Crypto.GenerateCode();
+                        registration.Id = acc.Id;
+                        registration.CodeSalt=Crypto.GenerateSalt();
+                        registration.CodeHash =Crypto.GenerateHash(code.ToString(),registration.CodeSalt);
                         await dbContext.Registrations.AddAsync(registration);
                         await dbContext.SaveChangesAsync();
                     }
@@ -90,10 +91,10 @@ namespace PetCenterServices.Services
 
                     await tx.CommitAsync();
 
-                    Registration? reg = await dbContext.Registrations.FirstOrDefaultAsync(r=>r.AccountId==acc.Id);
+                    Registration? reg = await dbContext.Registrations.FindAsync(acc.Id);
                     if(!acc.Verified && reg!=null){
                                                
-                        await message_bus_client.SendEmailMessage(new ConsumerMessage(){Contact=acc.Contact,Message=$"Your verification code is {reg.Code}.",Subject="Welcome!",Name=usr.UserName});
+                        await message_bus_client.SendEmailMessage(new ConsumerMessage(){Contact=acc.Contact,Message=$"Your verification code is {code}.",Subject="Welcome!",Name=usr.UserName});
 
                     }
                     return ServiceOutput<AccountResponseDTO>.Success(AccountResponseDTO.FromEntity(acc),HttpCode.Created);
@@ -155,24 +156,33 @@ namespace PetCenterServices.Services
 
             if (acc != null)
             {
-                if (string.IsNullOrWhiteSpace(acc.PasswordSalt))
-                {
-                    return ServiceOutput<string>.Error(HttpCode.InternalError,"Unexpected NULL.");
-                } 
-                
+                SingleTimeEntry? entry = await dbContext.SingleTimeEntries.FindAsync(acc.Id);
+               
                 string login_pwd = Crypto.GenerateHash(req.Password!, acc.PasswordSalt);
-                if (login_pwd == acc.PasswordHash)
+                string single_time_pwd = string.Empty;
+
+                if (entry != null)
+                {
+                    single_time_pwd = Crypto.GenerateHash(req.Password,entry.CodeSalt);
+                }
+
+                if (login_pwd == acc.PasswordHash || single_time_pwd==entry?.CodeHash)
                 {
                     User? usr = await dbContext.Users.Include(u=>u.UserAccount).FirstOrDefaultAsync(u=>u.Id == acc.Id);
 
                     if (usr != null)
                     {
+                        if (entry != null)
+                        {
+                            dbContext.SingleTimeEntries.Remove(entry);
+                            await dbContext.SaveChangesAsync();
+                        }
 
                         return ServiceOutput<string>.Success(Utils.Crypto.GenerateJWT(usr));
 
                     }
 
-                    return ServiceOutput<string>.Error(HttpCode.InternalError,"Account exists, but the user data for it is missing.");
+                    return ServiceOutput<string>.Error(HttpCode.InternalError,"Internal server error.");
 
                 }
             }
@@ -183,7 +193,7 @@ namespace PetCenterServices.Services
 
         public async Task<ServiceOutput<string>> RequestAccountVerification(Guid id)
         {
-            Registration? reg = await dbContext.Registrations.Include(r=>r.RelevantAccount).ThenInclude(a=>a.AccountUser).FirstOrDefaultAsync(r=>r.AccountId==id);
+            Registration? reg = await dbContext.Registrations.Include(r=>r.RelevantAccount).ThenInclude(a=>a.AccountUser).FirstOrDefaultAsync(r=>r.Id==id);
 
             if (reg != null)
             {
@@ -192,9 +202,12 @@ namespace PetCenterServices.Services
                     return ServiceOutput<string>.Error(HttpCode.InternalError,"Internal server error.");
                 }
 
-                reg.Code = Utils.Crypto.GenerateCode();
+                int code = Utils.Crypto.GenerateCode();
+                reg.CodeSalt=Crypto.GenerateSalt();
+                reg.CodeHash=Crypto.GenerateHash(code.ToString(),reg.CodeSalt);
+
                 await dbContext.SaveChangesAsync();
-                await message_bus_client.SendEmailMessage(new ConsumerMessage(){Contact=reg.RelevantAccount.Contact,Message=$"Your verification code is {reg.Code}.",Subject="Welcome!",Name=reg.RelevantAccount.AccountUser.UserName});
+                await message_bus_client.SendEmailMessage(new ConsumerMessage(){Contact=reg.RelevantAccount.Contact,Message=$"Your verification code is {code}.",Subject="Welcome!",Name=reg.RelevantAccount.AccountUser.UserName});
                 return  ServiceOutput<string>.Success($"Your verification code will be sent shortly.");
             }
 
@@ -202,9 +215,48 @@ namespace PetCenterServices.Services
             
         } 
 
+        public async Task<ServiceOutput<string>> RequestSingleTimeEntryCode(string contact)
+        {
+
+            Account? acc = await dbContext.Accounts.Include(a=>a.AccountUser).FirstOrDefaultAsync(a=>a.Contact==contact);
+
+            if (acc == null)
+            {
+                return ServiceOutput<string>.Error(HttpCode.NotFound,"The account with the provided contact does not exist.");
+            }
+            if (acc.AccountUser == null)
+            {                
+                return ServiceOutput<string>.Error(HttpCode.InternalError,"Internal server error.");
+            }
+
+            SingleTimeEntry? temp = await dbContext.SingleTimeEntries.FindAsync(acc.Id);
+
+            int code = Utils.Crypto.GenerateCode();
+            string salt=Crypto.GenerateSalt();
+            string hash=Crypto.GenerateHash(code.ToString(),salt);
+            DateTime expiry = DateTime.UtcNow.AddDays(1);
+
+            if (temp!=null){
+                temp.CodeHash=hash;
+                temp.CodeSalt=salt;
+                temp.Expiry=expiry;                
+            }
+            else
+            {
+                SingleTimeEntry ste = new SingleTimeEntry{Id=acc.Id,Expiry=expiry,CodeSalt=salt,CodeHash=hash};
+                await dbContext.SingleTimeEntries.AddAsync(ste);
+            }          
+
+            await dbContext.SaveChangesAsync();
+            await message_bus_client.SendEmailMessage(new ConsumerMessage(){Contact=acc.Contact,Message=$"Your entry code is {code}.",Subject="Account recovery",Name=acc.AccountUser.UserName});
+            return  ServiceOutput<string>.Success($"Your one-time password will be sent shortly.");
+                       
+            
+        } 
+
         public async Task<ServiceOutput<string>> VerifyAccount(Guid id, int code)
         {
-            Registration? reg = await dbContext.Registrations.Include(r => r.RelevantAccount).FirstOrDefaultAsync(r => r.AccountId == id);
+            Registration? reg = await dbContext.Registrations.Include(r => r.RelevantAccount).FirstOrDefaultAsync(r => r.Id == id);
 
             if(reg == null)
             {
@@ -225,8 +277,9 @@ namespace PetCenterServices.Services
             {
                 try
                 {
+                    string hash = Crypto.GenerateHash(code.ToString(),reg.CodeSalt);
                     
-                    if (reg.Code == code) { 
+                    if (string.Equals(reg.CodeHash, hash, StringComparison.Ordinal)) { 
 
                         reg.RelevantAccount.Verified = true;    
                         dbContext.Registrations.Remove(reg);  
