@@ -69,6 +69,21 @@ class ServiceOutput<T> {
   ServiceOutput({required this.statusCode, this.body, this.errorMessage});
 
   static bool isSuccess(http.Response response) {
+    Object? parsedBody;
+    if (response.body.isNotEmpty) {
+      try {
+        parsedBody = jsonDecode(response.body);
+      } catch (e) {
+        parsedBody = response.body;
+      }
+    }
+    if (parsedBody is Map<String, dynamic> && parsedBody.containsKey('error')) {
+      final msg = parsedBody['error']?.toString();
+      showSnackbar(msg ?? "Unknown error.");
+    } else if (parsedBody is String) {
+      showSnackbar(parsedBody);
+    }
+
     return (response.statusCode < 400);
   }
 

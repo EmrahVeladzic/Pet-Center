@@ -6,6 +6,7 @@ using System.Text;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using PetCenterModels.DBTables;
+using PetCenterModels.ModelUtils;
 
 namespace PetCenterModels.DataTransferObjects
 {
@@ -24,8 +25,9 @@ namespace PetCenterModels.DataTransferObjects
 
         public bool Validate()
         {
-            EmailAddressAttribute e = new();
-            return !string.IsNullOrWhiteSpace(FranchiseName) && e.IsValid(Contact);
+            Contact=Contact.ToLowerInvariant();
+           
+            return !string.IsNullOrWhiteSpace(FranchiseName) && ModelValidationUtils.ValidateContact(Contact);
         }
     }
 

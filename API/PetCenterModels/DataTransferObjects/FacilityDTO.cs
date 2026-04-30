@@ -8,6 +8,8 @@ using System.Linq;
 using System.Text;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
+using PetCenterModels.ModelUtils;
+
 
 namespace PetCenterModels.DataTransferObjects
 {
@@ -61,8 +63,8 @@ namespace PetCenterModels.DataTransferObjects
         public bool Validate()
         {
             Contact=Contact?.ToLowerInvariant();
-            EmailAddressAttribute e = new();
-            return(e.IsValid(Contact)&&!string.IsNullOrWhiteSpace(City)&&!string.IsNullOrWhiteSpace(Street)&&!(OwningFranchise==Guid.Empty));
+            
+            return(ModelValidationUtils.ValidateContact(Contact)&&!string.IsNullOrWhiteSpace(City)&&!string.IsNullOrWhiteSpace(Street)&&!(OwningFranchise==Guid.Empty));
         }
 
 

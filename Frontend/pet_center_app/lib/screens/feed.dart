@@ -23,7 +23,9 @@ class _FeedScreenState extends State<FeedScreen> {
 
     List<Widget> tabs = [
       const Tab(text: 'Announcements'),
-      const Tab(text: 'Notifications'),
+      if (role != Access.admin && role != Access.owner) ...{
+        const Tab(text: 'Notifications'),
+      },
       if (role == Access.admin || role == Access.owner) ...{
         const Tab(text: 'Reports'),
       },
@@ -40,23 +42,49 @@ class _FeedScreenState extends State<FeedScreen> {
     return DefaultTabController(
       length: tabs.length,
       child: Scaffold(
-        backgroundColor: mainTone,
         appBar: AppBar(
           leading: BackButton(),
-          title: const Text("Feed"),
-          bottom: TabBar(tabs: tabs),
-        ),
-        body: Center(
-          child: FractionallySizedBox(
-            widthFactor: design.bodyWMult,
-            heightFactor: 1.0,
-            child: ColoredBox(
-              color: listTone,
-              child: TabBarView(children: pages),
-            ),
+          title: SizedBox(
+            width: design.screenWidth * marqueeTitleWMult,
+            height: design.marqueeSize,
+            child: design.textMarquee('Feed'),
           ),
         ),
-        bottomNavigationBar: BottomAppBar(),
+        body: LayoutBuilder(
+          builder: (context, constraints) {
+            return Align(
+              alignment: Alignment.topCenter,
+              child: SizedBox(
+                width: constraints.maxWidth * design.bodyWMult,
+                child: ColoredBox(
+                  color: listTone,
+                  child: NestedScrollView(
+                    key: const PageStorageKey('feed_scroll'),
+                    headerSliverBuilder: (context, innerBoxIsScrolled) => [
+                      SliverAppBar(
+                        backgroundColor: listTone,
+
+                        pinned: true,
+
+                        toolbarHeight: 0,
+
+                        bottom: TabBar(tabs: tabs),
+                      ),
+                    ],
+                    body: ScrollConfiguration(
+                      behavior: ScrollConfiguration.of(
+                        context,
+                      ).copyWith(scrollbars: false),
+
+                      child: TabBarView(children: pages),
+                    ),
+                  ),
+                ),
+              ),
+            );
+          },
+        ),
+        bottomNavigationBar: const BottomAppBar(),
       ),
     );
   }

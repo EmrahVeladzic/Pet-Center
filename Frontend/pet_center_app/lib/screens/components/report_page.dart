@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:pet_center_app/models/data_transfer/listing/sub_dtos.dart';
 import 'package:pet_center_app/screens/components/report_card.dart';
+import 'package:pet_center_app/screens/listing_view.dart';
+import 'package:pet_center_app/services/listing_service.dart';
 import 'package:pet_center_app/services/static_data_service.dart';
+import 'package:pet_center_app/utils/helpers.dart';
 
 class ReportPage extends StatefulWidget {
   const ReportPage({super.key});
@@ -42,7 +45,27 @@ class _ReportPageState extends State<ReportPage>
     });
   }
 
-  void getRelevant() async {}
+  void getRelevant(ReportResponseSubDTO? report) async {
+    if (report == null) {
+      return;
+    }
+    if (validGuid(report.listingId)) {
+      final listing = await ListingService.getById(report.listingId);
+
+      if (listing != null) {
+        if (!mounted) {
+          return;
+        }
+
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ListingViewScreen(listing: listing),
+          ),
+        );
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -58,7 +81,7 @@ class _ReportPageState extends State<ReportPage>
           final id = _items[i].id;
           if (id == null) return;
           addIndex(id);
-          getRelevant();
+          getRelevant(_items[i]);
         },
       ),
     );

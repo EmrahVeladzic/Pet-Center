@@ -50,7 +50,7 @@ namespace PetCenterServices.Services
 
         public override async Task<ServiceOutput<UserResponseDTO>> GetById(Guid token_holder, Guid id, Access authorization_level)
         {
-            UserResponseDTO? output = UserResponseDTO.FromEntity(await dbSet.FindAsync(id));
+            UserResponseDTO? output = UserResponseDTO.FromEntity(await dbSet.Include(u=>u.UserAccount).FirstOrDefaultAsync(u=>u.Id==id));
 
             if (output == null) 
             {      

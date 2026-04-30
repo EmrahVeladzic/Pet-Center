@@ -49,6 +49,26 @@ class AccountService {
     }
   }
 
+  static Future<String?> forgotPassword(String contact) async {
+    try {
+      final response = await http.get(
+        Uri.parse(
+          "${AppConfig.apiBaseUrl}/api/Account/ForgotPassword/$contact",
+        ),
+      );
+
+      final result = await ServiceOutput.fromResponse<String>(
+        response,
+        (json) => json as String,
+      );
+
+      return result;
+    } catch (ex) {
+      showError(ex);
+      return null;
+    }
+  }
+
   static Future<String?> requestVerification() async {
     try {
       final response = await http.get(
@@ -84,6 +104,20 @@ class AccountService {
     } catch (ex) {
       showError(ex);
       return null;
+    }
+  }
+
+  static Future<bool> delete(String id) async {
+    try {
+      final response = await http.delete(
+        Uri.parse("${AppConfig.apiBaseUrl}/api/Account/$id"),
+        headers: {'Authorization': 'Bearer $rawToken'},
+      );
+
+      return ServiceOutput.isSuccess(response);
+    } catch (ex) {
+      showError(ex);
+      return false;
     }
   }
 }

@@ -12,6 +12,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using PetCenterServices.Recommender;
+using PetCenterModels.ModelUtils;
 
 
 namespace PetCenterServices.Services
@@ -179,7 +180,7 @@ namespace PetCenterServices.Services
                 return ServiceOutput<CommentResponseSubDTO>.Error(HttpCode.Unauthorized,"Invalid token.");
             }
 
-            if (self.UserAccount.RegistrationDate.AddDays(7) > DateTime.UtcNow)
+            if (!ModelValidationUtils.IsMature(self.UserAccount))
             {
                 return ServiceOutput<CommentResponseSubDTO>.Error(HttpCode.Forbidden,"Your account needs to be at least a week old to post reviews.");
             }
