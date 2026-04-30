@@ -91,6 +91,7 @@ class ListingService {
         Uri.parse("${AppConfig.apiBaseUrl}/api/Listing/Review/$id"),
         headers: {'Authorization': 'Bearer $rawToken'},
       );
+
       return ServiceOutput.isSuccess(response);
     } catch (ex) {
       showError(ex);

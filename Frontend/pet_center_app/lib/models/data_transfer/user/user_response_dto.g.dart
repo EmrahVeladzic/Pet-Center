@@ -83,12 +83,14 @@ UserResponseDTO _$UserResponseDTOFromJson(Map<String, dynamic> json) =>
       reports: (json['reports'] as List<dynamic>?)
           ?.map((e) => ReportResponseSubDTO.fromJson(e as Map<String, dynamic>))
           .toList(),
+      matureAccount: json['matureAccount'] as bool? ?? false,
     );
 
 Map<String, dynamic> _$UserResponseDTOToJson(UserResponseDTO instance) =>
     <String, dynamic>{
       'id': instance.id,
       'currentVersion': instance.currentVersion,
+      'matureAccount': instance.matureAccount,
       'userName': instance.userName,
       'notes': instance.notes?.map((e) => e.toJson()).toList(),
       'announcements': instance.announcements?.map((e) => e.toJson()).toList(),

@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
+using PetCenterModels.ModelUtils;
 
 namespace PetCenterModels.DataTransferObjects
 {
@@ -118,8 +119,8 @@ namespace PetCenterModels.DataTransferObjects
         {
             DefaultContact=DefaultContact.ToLowerInvariant();
             if(string.IsNullOrWhiteSpace(FranchiseName)){return false;}
-            EmailAddressAttribute e = new();
-            if(!e.IsValid(DefaultContact)){return false;}
+            
+            if(!ModelValidationUtils.ValidateContact(DefaultContact)){return false;}
             if(UserId==Guid.Empty){return false;}
             if(FormTemplateId==Guid.Empty){return false;}
 

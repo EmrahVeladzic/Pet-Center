@@ -318,6 +318,11 @@ namespace PetCenterServices.Seeder
                                 acc.Contact="unverified@example.com";
                             }
 
+                            if (i == 1)
+                            {
+                                acc.RegistrationDate=DateTime.UtcNow.AddDays(-10);
+                            }
+
                             await ctx.Accounts.AddAsync(acc);
                             await ctx.SaveChangesAsync();
                             usr.Id=acc.Id;

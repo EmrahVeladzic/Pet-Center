@@ -38,6 +38,8 @@ namespace PetCenterServices.Utils
             }
         }
 
+     
+
         public static async Task<int> GetTotalDailyUsageForCategory(PetCenterDBContext ctx, Guid CategoryId, Guid KindId , List<Individual> animals, CancellationToken cancel = default)
         {
             int output = 0;

@@ -70,6 +70,7 @@ class SuppliesSubDTO {
 class UserResponseDTO {
   String? id;
   String currentVersion;
+  bool matureAccount;
   String? userName;
   List<NoteSubDTO>? notes;
   List<AnnouncementSubDTO>? announcements;
@@ -84,6 +85,7 @@ class UserResponseDTO {
     this.announcements,
     this.notifications,
     this.reports,
+    this.matureAccount = false,
   });
 
   factory UserResponseDTO.fromJson(Map<String, dynamic> json) =>

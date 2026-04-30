@@ -3,9 +3,10 @@ import 'package:pet_center_app/models/data_transfer/listing/sub_dtos.dart';
 import 'package:pet_center_app/models/enums.dart';
 import 'package:pet_center_app/screens/components/deletion_dialog.dart';
 import 'package:pet_center_app/screens/components/report_dialog.dart';
+import 'package:pet_center_app/services/account_service.dart';
 import 'package:pet_center_app/services/listing_service.dart';
 import 'package:pet_center_app/services/static_data_service.dart';
-import 'package:pet_center_app/services/user_service.dart';
+
 import 'package:pet_center_app/utils/app_style.dart';
 import 'package:pet_center_app/utils/jwt_parser.dart';
 
@@ -26,7 +27,7 @@ class _CommentViewScreenState extends State<CommentViewScreen> {
   void deleteComment(bool ban) async {
     if (widget.comment.id != null) {
       final bool deleted = (ban)
-          ? await UserService.delete(widget.comment.posterId)
+          ? await AccountService.delete(widget.comment.posterId)
           : await ListingService.deleteReview(widget.comment.id!);
 
       if (!mounted) {
@@ -38,6 +39,10 @@ class _CommentViewScreenState extends State<CommentViewScreen> {
         Navigator.pop(context);
       }
     }
+  }
+
+  void reportComment() {
+    Navigator.pop(context);
   }
 
   @override
@@ -89,6 +94,7 @@ class _CommentViewScreenState extends State<CommentViewScreen> {
                         deleteComment(ban);
                       },
                       bannable: true,
+                      itemName: 'comment',
                     ),
                   );
                 },
@@ -100,6 +106,7 @@ class _CommentViewScreenState extends State<CommentViewScreen> {
                   showDialog(
                     context: context,
                     builder: (_) => ReportDialog(
+                      reportAction: reportComment,
                       listingId: widget.comment.listingId,
                       commentId: widget.comment.id,
                     ),

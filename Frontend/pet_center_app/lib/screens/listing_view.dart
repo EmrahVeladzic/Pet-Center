@@ -9,6 +9,7 @@ import 'package:pet_center_app/screens/components/comment_creator.dart';
 import 'package:pet_center_app/screens/components/image_display.dart';
 import 'package:pet_center_app/screens/components/listing_extension_card.dart';
 import 'package:pet_center_app/screens/components/note_card.dart';
+import 'package:pet_center_app/services/static_data_service.dart';
 import 'package:pet_center_app/utils/app_style.dart';
 import 'package:pet_center_app/utils/jwt_parser.dart';
 import 'package:pet_center_app/utils/pricing.dart';
@@ -22,6 +23,7 @@ class ListingViewScreen extends StatefulWidget {
 
 class _ListingViewScreenState extends State<ListingViewScreen> {
   Access role = userToken?.role ?? Access.user;
+  bool mature = self?.matureAccount ?? false;
 
   void showComment(CommentResponseSubDTO input) {
     setState(() {
@@ -120,20 +122,20 @@ class _ListingViewScreenState extends State<ListingViewScreen> {
                   ...widget.listing.availability.map(
                     (available) => AvailabilityCard(available: available),
                   ),
-                ] else ...[
-                  design.verticalGap(),
-                  Padding(
-                    padding: EdgeInsetsGeometry.symmetric(
-                      horizontal: design.spacing,
-                    ),
-                    child: design.textMarquee(
-                      'For more information, contact ${widget.listing.franchiseName} at ${widget.listing.contact}.',
-                    ),
-                  ),
                 ],
+                Padding(
+                  padding: EdgeInsetsGeometry.symmetric(
+                    horizontal: design.spacing,
+                  ),
+                  child: design.textMarquee(
+                    'For more information, you may${widget.listing.availability.isEmpty ? " " : " also "}contact ${widget.listing.franchiseName} at ${widget.listing.contact}.',
+                  ),
+                ),
 
                 if (widget.listing.comments.isNotEmpty ||
-                    (role == Access.user && widget.listing.id != null)) ...[
+                    (role == Access.user &&
+                        widget.listing.id != null &&
+                        mature)) ...[
                   design.verticalGap(),
                   Padding(
                     padding: EdgeInsetsGeometry.symmetric(
@@ -142,7 +144,9 @@ class _ListingViewScreenState extends State<ListingViewScreen> {
                     child: design.textMarquee('User reviews:'),
                   ),
 
-                  if (role == Access.user && widget.listing.id != null) ...[
+                  if (role == Access.user &&
+                      widget.listing.id != null &&
+                      mature) ...[
                     CommentCreator(
                       listingId: widget.listing.id!,
                       onPost: (comment) {

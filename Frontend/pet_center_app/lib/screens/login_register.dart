@@ -43,6 +43,17 @@ class _CredentialsScreenState extends State<CredentialsScreen> {
     }
   }
 
+  void _linkForgotPassword() async {
+    if (contact.isNotEmpty) {
+      final output = await AccountService.forgotPassword(contact);
+      if (output != null && output.isNotEmpty) {
+        showSnackbar(output);
+      }
+    } else {
+      showSnackbar("Please provide the contact in the appropriate field.");
+    }
+  }
+
   void onLogin() async {
     await StaticDataService.updateStaticData();
 
@@ -80,7 +91,7 @@ class _CredentialsScreenState extends State<CredentialsScreen> {
         }
       } else {
         final output = await AccountService.logIn(
-          AccountRequestDTO(contact: contact, password: password),
+          AccountRequestDTO(contact: contact.trim(), password: password.trim()),
         );
         if (!mounted) {
           return;
@@ -180,6 +191,12 @@ class _CredentialsScreenState extends State<CredentialsScreen> {
                                   ),
                                   Text('Business account'),
                                 ],
+                              ),
+                            ] else ...[
+                              const Spacer(flex: 1),
+                              TextButton(
+                                onPressed: _linkForgotPassword,
+                                child: Text('Forgot password?'),
                               ),
                             ],
                           ] else ...[

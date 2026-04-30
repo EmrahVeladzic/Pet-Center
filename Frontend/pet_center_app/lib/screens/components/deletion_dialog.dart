@@ -5,11 +5,13 @@ import 'package:pet_center_app/utils/jwt_parser.dart';
 
 class DeletionDialog extends StatefulWidget {
   final bool bannable;
+  final String? itemName;
   final void Function(bool ban) deletionAction;
   const DeletionDialog({
     super.key,
     required this.deletionAction,
     this.bannable = false,
+    this.itemName,
   });
 
   @override
@@ -27,48 +29,55 @@ class _DeletionDialogState extends State<DeletionDialog> {
       context,
     ).extension<ReactiveDesignSystem>()!;
 
-    return AlertDialog(
-      title: Row(
-        children: [
-          Expanded(child: design.textMarquee('Delete item?')),
-          IconButton(
-            icon: const Icon(Icons.close),
-            onPressed: () => Navigator.of(context).pop(),
-          ),
-        ],
-      ),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          design.textMarquee('You are about to delete this item.'),
-          if (widget.bannable &&
-              (role == Access.owner || role == Access.admin)) ...[
-            design.verticalGap(),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(child: design.textMarquee('Ban user')),
-                Switch(
-                  value: banUser,
-                  onChanged: (val) => setState(() => banUser = val),
-                ),
-              ],
+    return FittedBox(
+      fit: BoxFit.scaleDown,
+      child: AlertDialog(
+        title: Row(
+          children: [
+            Expanded(
+              child: design.textMarquee('Delete ${widget.itemName ?? 'item'}?'),
+            ),
+            IconButton(
+              icon: const Icon(Icons.close),
+              onPressed: () => Navigator.of(context).pop(),
             ),
           ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            design.textMarquee(
+              'You are about to delete this ${widget.itemName ?? 'item'}.',
+            ),
+            if (widget.bannable &&
+                (role == Access.owner || role == Access.admin)) ...[
+              design.verticalGap(),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(child: design.textMarquee('Ban user')),
+                  Switch(
+                    value: banUser,
+                    onChanged: (val) => setState(() => banUser = val),
+                  ),
+                ],
+              ),
+            ],
+          ],
+        ),
+        actions: [
+          ElevatedButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              widget.deletionAction(banUser);
+            },
+            child: design.textMarquee(
+              widget.bannable && banUser ? 'Delete & Ban' : 'Delete',
+            ),
+          ),
         ],
       ),
-      actions: [
-        ElevatedButton(
-          onPressed: () {
-            Navigator.of(context).pop();
-            widget.deletionAction(banUser);
-          },
-          child: design.textMarquee(
-            widget.bannable && banUser ? 'Delete & Ban' : 'Delete',
-          ),
-        ),
-      ],
     );
   }
 }

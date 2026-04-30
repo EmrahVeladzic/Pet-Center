@@ -14,6 +14,7 @@ using System.Text;
 using System.Threading.Tasks;
 using RabbitMQ.Client;
 using PetCenterShared;
+using PetCenterModels.ModelUtils;
 
 
 namespace PetCenterServices.Services
@@ -115,10 +116,25 @@ namespace PetCenterServices.Services
 
             if (acc != null)
             {                
+
+                bool updated_contact = false;
+                bool updated_password = false;
+
+
+                if(ModelValidationUtils.ValidateContact(req.Contact)){
                  
-                acc.Contact = req.Contact;
-               
-                acc.PasswordHash = Utils.Crypto.GenerateHash(req.Password!, acc.PasswordSalt!);
+                    acc.Contact = req.Contact;
+                    updated_contact = true;
+                }
+
+                if (!string.IsNullOrWhiteSpace(req.Password))
+                {
+                    acc.PasswordSalt=Utils.Crypto.GenerateSalt();
+                    acc.PasswordHash = Utils.Crypto.GenerateHash(req.Password!, acc.PasswordSalt!);
+                    updated_password = true;
+                }
+                
+
 
                 using (IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync())
                 {
@@ -134,9 +150,17 @@ namespace PetCenterServices.Services
                         return ServiceOutput<AccountResponseDTO>.FromException(ex);
                     }
                 }
-
                 
-                return ServiceOutput<AccountResponseDTO>.Success(AccountResponseDTO.FromEntity(acc));
+                AccountResponseDTO output = AccountResponseDTO.FromEntity(acc)!;
+
+                output.Notes = new();
+
+                const string changed = "changed.";
+                const string unchanged = "unchanged.";
+
+                output.Notes.Add(new NoteSubDTO{Title="Updates",Body=$"Contact - {(updated_contact? changed:unchanged)} Password - {(updated_password? changed: unchanged)}"});
+                
+                return ServiceOutput<AccountResponseDTO>.Success(output);
 
             }
 
@@ -218,6 +242,11 @@ namespace PetCenterServices.Services
         public async Task<ServiceOutput<string>> RequestSingleTimeEntryCode(string contact)
         {
 
+            if (!ModelValidationUtils.ValidateContact(contact))
+            {
+                return ServiceOutput<string>.Error(HttpCode.BadRequest,"Invalid contact");
+            }
+
             Account? acc = await dbContext.Accounts.Include(a=>a.AccountUser).FirstOrDefaultAsync(a=>a.Contact==contact);
 
             if (acc == null)
@@ -234,7 +263,7 @@ namespace PetCenterServices.Services
             int code = Utils.Crypto.GenerateCode();
             string salt=Crypto.GenerateSalt();
             string hash=Crypto.GenerateHash(code.ToString(),salt);
-            DateTime expiry = DateTime.UtcNow.AddDays(1);
+            DateTime expiry = DateTime.UtcNow.AddHours(6);
 
             if (temp!=null){
                 temp.CodeHash=hash;
@@ -248,8 +277,8 @@ namespace PetCenterServices.Services
             }          
 
             await dbContext.SaveChangesAsync();
-            await message_bus_client.SendEmailMessage(new ConsumerMessage(){Contact=acc.Contact,Message=$"Your entry code is {code}.",Subject="Account recovery",Name=acc.AccountUser.UserName});
-            return  ServiceOutput<string>.Success($"Your one-time password will be sent shortly.");
+            await message_bus_client.SendEmailMessage(new ConsumerMessage(){Contact=acc.Contact,Message=$"Your one-time entry code is {code}. You may use it once instead of your password.",Subject="Account recovery",Name=acc.AccountUser.UserName});
+            return  ServiceOutput<string>.Success($"Your one-time entry code will be sent shortly.");
                        
             
         } 

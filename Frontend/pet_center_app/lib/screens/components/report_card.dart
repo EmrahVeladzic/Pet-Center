@@ -27,12 +27,17 @@ class ReportCard extends StatelessWidget {
         decoration: design.panelDecoration(visited),
         child: Row(
           children: [
-            Expanded(flex: 3, child: Text(report.reason)),
+            Expanded(flex: 4, child: Text(report.reason)),
             Expanded(
               flex: 1,
-              child: ElevatedButton(
-                onPressed: onTap,
-                child: Icon(Icons.arrow_forward),
+              child: Align(
+                alignment: Alignment.center,
+                child: IconButton(
+                  onPressed: onTap,
+                  icon: const Icon(Icons.arrow_forward),
+                  padding: EdgeInsets.zero,
+                  visualDensity: VisualDensity.compact,
+                ),
               ),
             ),
           ],

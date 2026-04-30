@@ -25,17 +25,4 @@ class UserService {
       return null;
     }
   }
-
-  static Future<bool> delete(String id) async {
-    try {
-      final response = await http.delete(
-        Uri.parse("${AppConfig.apiBaseUrl}/api/User/$id"),
-        headers: {'Authorization': 'Bearer $rawToken'},
-      );
-      return ServiceOutput.isSuccess(response);
-    } catch (ex) {
-      showError(ex);
-      return false;
-    }
-  }
 }

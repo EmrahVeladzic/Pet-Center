@@ -7,6 +7,7 @@ using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using PetCenterModels.DataTransferObjects;
 using PetCenterModels.DBTables;
+using PetCenterModels.ModelUtils;
 
 
 namespace PetCenterModels.DataTransferObjects
@@ -105,6 +106,8 @@ namespace PetCenterModels.DataTransferObjects
 
         public List<ReportResponseSubDTO>? Reports {get; set;} = null;
 
+        public bool MatureAccount {get; set;} = false;
+
         public static UserResponseDTO? FromEntity(User? usr)
         {
             if (usr==null){return null;}
@@ -114,6 +117,7 @@ namespace PetCenterModels.DataTransferObjects
                 Id=usr.Id,
                 CurrentVersion=usr.CurrentVersion,
                 UserName=usr.UserName,
+                MatureAccount=ModelValidationUtils.IsMature(usr.UserAccount)
                
             };
         }

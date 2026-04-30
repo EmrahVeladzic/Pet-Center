@@ -5,8 +5,14 @@ import 'package:pet_center_app/utils/app_style.dart';
 
 class ReportDialog extends StatefulWidget {
   final String listingId;
+  final VoidCallback reportAction;
   final String? commentId;
-  const ReportDialog({super.key, required this.listingId, this.commentId});
+  const ReportDialog({
+    super.key,
+    required this.reportAction,
+    required this.listingId,
+    this.commentId,
+  });
 
   @override
   State<StatefulWidget> createState() => _ReportDialogState();
@@ -32,46 +38,55 @@ class _ReportDialogState extends State<ReportDialog> {
       context,
     ).extension<ReactiveDesignSystem>()!;
 
-    return AlertDialog(
-      title: Row(
-        children: [
-          Expanded(
-            child: design.textMarquee(
-              'Report ${(widget.commentId == null) ? 'listing' : 'comment'}?',
+    return FittedBox(
+      fit: BoxFit.scaleDown,
+      child: AlertDialog(
+        title: Row(
+          children: [
+            Expanded(
+              child: design.textMarquee(
+                'Report ${(widget.commentId != null) ? 'comment' : 'listing'}:',
+              ),
             ),
-          ),
-          IconButton(
-            icon: const Icon(Icons.close),
-            onPressed: () => Navigator.of(context).pop(),
-          ),
-        ],
-      ),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          ColoredBox(
-            color: listTone,
-            child: TextField(
-              controller: _controller,
-              maxLines: null,
-              maxLength: 255,
-              minLines: 3,
-              keyboardType: TextInputType.multiline,
-              decoration: InputDecoration(hintText: 'Reason:'),
+            IconButton(
+              icon: const Icon(Icons.close),
+              onPressed: () => Navigator.of(context).pop(),
             ),
-          ),
-        ],
-      ),
-      actions: [
-        ElevatedButton(
-          onPressed: () {
-            Navigator.of(context).pop();
-            sendReport();
-          },
-          child: design.textMarquee('Report'),
+          ],
         ),
-      ],
+        content: SizedBox(
+          width: design.dialogWidth,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ColoredBox(
+                  color: listTone,
+                  child: TextField(
+                    controller: _controller,
+                    maxLines: null,
+                    maxLength: 255,
+                    minLines: 3,
+                    keyboardType: TextInputType.multiline,
+                    decoration: InputDecoration(hintText: 'Reason:'),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        actions: [
+          ElevatedButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              sendReport();
+              widget.reportAction();
+            },
+            child: design.textMarquee('Send report'),
+          ),
+        ],
+      ),
     );
   }
 }

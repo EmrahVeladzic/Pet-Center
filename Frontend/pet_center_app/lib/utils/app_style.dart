@@ -50,6 +50,7 @@ class ReactiveDesignSystem extends ThemeExtension<ReactiveDesignSystem> {
   final double bodyWMult;
   final double screenWidth;
   final double screenHeight;
+  final double dialogWidth;
 
   ReactiveDesignSystem({
     required this.spacing,
@@ -59,6 +60,7 @@ class ReactiveDesignSystem extends ThemeExtension<ReactiveDesignSystem> {
     required this.marqueeSize,
     required this.screenWidth,
     required this.screenHeight,
+    required this.dialogWidth,
   });
 
   factory ReactiveDesignSystem.fromMediaQuery(MediaQueryData data) {
@@ -72,6 +74,8 @@ class ReactiveDesignSystem extends ThemeExtension<ReactiveDesignSystem> {
       spacing: isLandscape ? width * 0.015 : width * 0.04,
 
       fontSize: isLandscape ? shortSide * 0.02 : shortSide * 0.04,
+
+      dialogWidth: isLandscape ? shortSide * 0.5 : shortSide,
 
       layoutDirection: isLandscape ? Axis.horizontal : Axis.vertical,
 
@@ -145,6 +149,7 @@ class ReactiveDesignSystem extends ThemeExtension<ReactiveDesignSystem> {
     double? screenWidth,
     double? screenHeight,
     double? bodyWMult,
+    double? dialogWidth,
   }) {
     return ReactiveDesignSystem(
       spacing: spacing ?? this.spacing,
@@ -154,6 +159,7 @@ class ReactiveDesignSystem extends ThemeExtension<ReactiveDesignSystem> {
       screenWidth: screenWidth ?? this.screenWidth,
       screenHeight: screenHeight ?? this.screenHeight,
       bodyWMult: bodyWMult ?? this.bodyWMult,
+      dialogWidth: dialogWidth ?? this.dialogWidth,
     );
   }
 
@@ -172,6 +178,7 @@ class ReactiveDesignSystem extends ThemeExtension<ReactiveDesignSystem> {
           lerpDouble(screenHeight, other.screenHeight, t) ?? screenHeight,
       layoutDirection: t < 0.5 ? layoutDirection : other.layoutDirection,
       bodyWMult: lerpDouble(bodyWMult, other.bodyWMult, t) ?? bodyWMult,
+      dialogWidth: lerpDouble(dialogWidth, other.dialogWidth, t) ?? dialogWidth,
     );
   }
 }

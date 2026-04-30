@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:pet_center_app/models/enums.dart';
 import 'package:pet_center_app/screens/feed.dart';
+import 'package:pet_center_app/screens/user_view.dart';
+import 'package:pet_center_app/services/static_data_service.dart';
 import 'package:pet_center_app/utils/app_style.dart';
 import 'package:pet_center_app/utils/jwt_parser.dart';
 
@@ -12,12 +14,6 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen> {
   Access role = userToken?.role ?? Access.user;
-
-  void adoptionScreen() {}
-
-  void feedScreen() {
-    Navigator.push(context, MaterialPageRoute(builder: (_) => FeedScreen()));
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -32,7 +28,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           width: design.screenWidth * marqueeTitleWMult,
           height: design.marqueeSize,
           child: design.textMarquee(
-            "${(userToken?.username != null) ? userToken?.username : 'PetCenter'}",
+            "${(self?.userName != null) ? self?.userName : 'PetCenter'}",
           ),
         ),
       ),
@@ -59,7 +55,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             widthFactor: 0.5,
                             alignment: Alignment.center,
                             child: ElevatedButton(
-                              onPressed: adoptionScreen,
+                              onPressed: () {},
                               child: Text('Adopt a pet'),
                             ),
                           ),
@@ -87,7 +83,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           widthFactor: 0.5,
                           alignment: Alignment.center,
                           child: ElevatedButton(
-                            onPressed: feedScreen,
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (_) => FeedScreen()),
+                              );
+                            },
                             child: Text('Messages'),
                           ),
                         ),
@@ -96,7 +97,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           widthFactor: 0.5,
                           alignment: Alignment.center,
                           child: ElevatedButton(
-                            onPressed: () {},
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => UserViewScreen(),
+                                ),
+                              );
+                            },
                             child: Text('User'),
                           ),
                         ),

@@ -53,7 +53,7 @@ class PetCenterApp extends StatelessWidget {
             indicatorSize: TabBarIndicatorSize.tab,
             indicator: BoxDecoration(color: tabTone),
             labelColor: panelTone,
-            unselectedLabelColor: listTone,
+            unselectedLabelColor: mainTone,
           ),
 
           extensions: [ReactiveDesignSystem.fromMediaQuery(media)],
