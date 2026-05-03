@@ -17,11 +17,11 @@ namespace PetCenterModels.DataTransferObjects
 
         public byte[] CurrentVersion { get; set; } = Array.Empty<byte>();
 
-        [Required]
+        
         [MaxLength(255)]
         public string Contact { get; set; } = string.Empty;
         
-        [Required]
+       
         [MaxLength(255)]
         public string Password { get; set; } = string.Empty;
 

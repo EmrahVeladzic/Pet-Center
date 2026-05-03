@@ -1,5 +1,16 @@
 import 'package:json_annotation/json_annotation.dart';
 
+enum CacheEntityType {
+  @JsonValue('notification')
+  notification,
+
+  @JsonValue('announcement')
+  announcement,
+
+  @JsonValue('report')
+  report,
+}
+
 enum Access {
   @JsonValue(255)
   owner,

@@ -18,6 +18,7 @@ double marqueeNoteWMult = 0.95;
 double marqueeSpeed = 15.0;
 double marqueeBlank = 125.0;
 double imgWMult = 0.75;
+int dialogMinLines = 3;
 
 void showSnackbar(String message) {
   final messenger = rootScaffoldKey.currentState;

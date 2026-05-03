@@ -1,35 +1,30 @@
 import 'package:flutter/material.dart';
 
-import 'package:pet_center_app/services/listing_service.dart';
 import 'package:pet_center_app/utils/app_style.dart';
 
-class ReportDialog extends StatefulWidget {
-  final String listingId;
-  final VoidCallback reportAction;
-  final String? commentId;
-  const ReportDialog({
+class TextEntryDialog extends StatefulWidget {
+  final int limit;
+  final String? dialogName;
+  final void Function(String value) callback;
+  final bool hideText;
+  const TextEntryDialog({
     super.key,
-    required this.reportAction,
-    required this.listingId,
-    this.commentId,
+    required this.callback,
+    this.limit = 75,
+    this.hideText = false,
+    this.dialogName,
   });
 
   @override
-  State<StatefulWidget> createState() => _ReportDialogState();
+  State<StatefulWidget> createState() => _TextEntryDialogState();
 }
 
-class _ReportDialogState extends State<ReportDialog> {
+class _TextEntryDialogState extends State<TextEntryDialog> {
   final TextEditingController _controller = TextEditingController();
 
-  void sendReport() async {
-    final output = await ListingService.reportMisuse(
-      widget.listingId,
-      _controller.text.trim(),
-      widget.commentId,
-    );
-    if (output != null) {
-      showSnackbar("Report submitted.");
-    }
+  void invokeCallback() async {
+    final text = _controller.text.trim();
+    widget.callback(text);
   }
 
   @override
@@ -45,7 +40,7 @@ class _ReportDialogState extends State<ReportDialog> {
           children: [
             Expanded(
               child: design.textMarquee(
-                'Report ${(widget.commentId != null) ? 'comment' : 'listing'}:',
+                '${(widget.dialogName != null) ? widget.dialogName : 'Enter:'}:',
               ),
             ),
             IconButton(
@@ -65,11 +60,12 @@ class _ReportDialogState extends State<ReportDialog> {
                   color: listTone,
                   child: TextField(
                     controller: _controller,
-                    maxLines: null,
-                    maxLength: 255,
-                    minLines: dialogMinLines,
+                    maxLines: (widget.hideText) ? 1 : null,
+                    maxLength: widget.limit,
+                    minLines: (widget.hideText) ? 1 : dialogMinLines,
                     keyboardType: TextInputType.multiline,
-                    decoration: InputDecoration(hintText: 'Reason:'),
+                    obscureText: widget.hideText,
+                    decoration: InputDecoration(labelText: 'Text...'),
                   ),
                 ),
               ],
@@ -80,10 +76,9 @@ class _ReportDialogState extends State<ReportDialog> {
           ElevatedButton(
             onPressed: () {
               Navigator.of(context).pop();
-              sendReport();
-              widget.reportAction();
+              invokeCallback();
             },
-            child: design.textMarquee('Send report'),
+            child: design.textMarquee('Save'),
           ),
         ],
       ),

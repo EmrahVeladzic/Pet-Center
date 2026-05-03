@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:pet_center_app/models/data_transfer/account/account_request_dto.dart';
 import 'package:pet_center_app/models/data_transfer/account/account_response_dto.dart';
+import 'package:pet_center_app/services/static_data_service.dart';
 
 import 'package:pet_center_app/utils/app_config.dart';
 import 'package:pet_center_app/utils/app_style.dart';
@@ -34,6 +35,29 @@ class AccountService {
       final response = await http.post(
         Uri.parse("${AppConfig.apiBaseUrl}/api/Account"),
         headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(input.toJson()),
+      );
+
+      final result = await ServiceOutput.fromResponse<AccountResponseDTO>(
+        response,
+        (json) => AccountResponseDTO.fromJson(json as Map<String, dynamic>),
+      );
+
+      return result;
+    } catch (ex) {
+      showError(ex);
+      return null;
+    }
+  }
+
+  static Future<AccountResponseDTO?> update(AccountRequestDTO input) async {
+    try {
+      final response = await http.put(
+        Uri.parse("${AppConfig.apiBaseUrl}/api/Account/${self?.id}"),
+        headers: {
+          'Authorization': 'Bearer $rawToken',
+          'Content-Type': 'application/json',
+        },
         body: jsonEncode(input.toJson()),
       );
 
@@ -104,6 +128,20 @@ class AccountService {
     } catch (ex) {
       showError(ex);
       return null;
+    }
+  }
+
+  static Future<bool> logOut() async {
+    try {
+      final response = await http.delete(
+        Uri.parse("${AppConfig.apiBaseUrl}/api/Account/LogOut"),
+        headers: {'Authorization': 'Bearer $rawToken'},
+      );
+
+      return ServiceOutput.isSuccess(response);
+    } catch (ex) {
+      showError(ex);
+      return false;
     }
   }
 
