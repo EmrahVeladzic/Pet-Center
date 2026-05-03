@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:hive/hive.dart';
 import 'package:pet_center_app/providers/app_state.dart';
 import 'package:pet_center_app/screens/login_register.dart';
 import 'package:pet_center_app/utils/app_config.dart';
 import 'package:pet_center_app/utils/app_style.dart';
 import 'package:pet_center_app/utils/globals.dart';
+import 'package:pet_center_app/utils/hive_cache.dart';
 import 'package:provider/provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await AppConfig.load();
+  Hive.init(CacheManager.cacheName);
   runApp(
     ChangeNotifierProvider(create: (_) => AppState(), child: PetCenterApp()),
   );

@@ -67,5 +67,7 @@ namespace PetCenterServices
         public DbSet<LivingConditionField> LivingConditionFields {get;set;}
         public DbSet<LivingConditionEntry> LivingConditionEntries {get;set;}
 
+        public DbSet<InvalidatedToken> InvalidatedTokens {get; set;}
+
     }
 }

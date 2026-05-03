@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:pet_center_app/models/data_transfer/listing/sub_dtos.dart';
+import 'package:pet_center_app/models/enums.dart';
 import 'package:pet_center_app/screens/components/report_card.dart';
 import 'package:pet_center_app/screens/listing_view.dart';
 import 'package:pet_center_app/services/listing_service.dart';
 import 'package:pet_center_app/services/static_data_service.dart';
 import 'package:pet_center_app/utils/helpers.dart';
+import 'package:pet_center_app/utils/hive_cache.dart';
 
 class ReportPage extends StatefulWidget {
   const ReportPage({super.key});
@@ -27,17 +29,20 @@ class _ReportPageState extends State<ReportPage>
     load();
   }
 
-  void load() {
+  void load() async {
     final data = self?.reports ?? [];
+    final visited = await CacheManager.getAll(CacheEntityType.notification);
     if (mounted) {
       setState(() {
         _items = data;
+        visitedReportIndices = visited;
         _loading = false;
       });
     }
   }
 
-  void addIndex(String i) {
+  void addIndex(String i) async {
+    await CacheManager.write(i, CacheEntityType.report);
     setState(() {
       if (!visitedReportIndices.contains(i)) {
         visitedReportIndices.add(i);

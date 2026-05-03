@@ -35,7 +35,7 @@ class _DeletionDialogState extends State<DeletionDialog> {
         title: Row(
           children: [
             Expanded(
-              child: design.textMarquee('Delete ${widget.itemName ?? 'item'}?'),
+              child: design.textMarquee('Remove ${widget.itemName ?? 'item'}?'),
             ),
             IconButton(
               icon: const Icon(Icons.close),
@@ -48,7 +48,7 @@ class _DeletionDialogState extends State<DeletionDialog> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             design.textMarquee(
-              'You are about to delete this ${widget.itemName ?? 'item'}.',
+              'You are about to remove this ${widget.itemName ?? 'item'}.',
             ),
             if (widget.bannable &&
                 (role == Access.owner || role == Access.admin)) ...[
@@ -73,7 +73,7 @@ class _DeletionDialogState extends State<DeletionDialog> {
               widget.deletionAction(banUser);
             },
             child: design.textMarquee(
-              widget.bannable && banUser ? 'Delete & Ban' : 'Delete',
+              widget.bannable && banUser ? 'Remove & Ban' : 'Remove',
             ),
           ),
         ],

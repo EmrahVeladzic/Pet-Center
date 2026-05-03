@@ -25,6 +25,11 @@ class JwtData {
 JwtData? userToken;
 String? rawToken;
 
+void clearToken() {
+  rawToken = null;
+  userToken = null;
+}
+
 void parseJwt(String? token) {
   try {
     if (token == null) {

@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
+using PetCenterModels.ModelUtils;
 
 namespace PetCenterModels.DataTransferObjects
 {
@@ -52,7 +53,35 @@ namespace PetCenterModels.DataTransferObjects
 
         public bool Validate()
         {
-            return(!string.IsNullOrWhiteSpace(Data)&&(Width >= MinDimension && Width<=MaxDimension)&&(Height>=MinDimension && Height<=MaxDimension)&&Data.Length<MaxSize&&!(AlbumInsertId==Guid.Empty));
+            if(string.IsNullOrWhiteSpace(Data)||Width < MinDimension || Width > MaxDimension || Height < MinDimension || Height > MaxDimension || AlbumInsertId == Guid.Empty)
+            {
+                return false;
+            }        
+        
+            byte[] bytes;
+            try
+            {
+                bytes = Convert.FromBase64String(Data);
+            }
+            catch
+            {
+                return false;
+            }
+
+            if (bytes.Length > MaxSize)
+            {                
+                return false;
+            }
+
+         
+            if (!ModelValidationUtils.IsWebp(bytes,Width,Height))
+            {
+                return false;
+            }
+              
+        
+            return true;
+        
         }
 
         public Image? ToEntity()

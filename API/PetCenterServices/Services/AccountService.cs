@@ -42,7 +42,11 @@ namespace PetCenterServices.Services
 
         public override async Task<ServiceOutput<AccountResponseDTO>> Post(Guid token_holder,AccountRequestDTO req)
         {
-              
+            if (!req.Validate())
+            {
+                return ServiceOutput<AccountResponseDTO>.Error(HttpCode.BadRequest,"Please provide a valid contact and password.");
+            }
+
             Account acc = new();
             acc.PasswordSalt = Utils.Crypto.GenerateSalt();
             acc.PasswordHash = Utils.Crypto.GenerateHash(req.Password!, acc.PasswordSalt);
@@ -121,11 +125,7 @@ namespace PetCenterServices.Services
                 bool updated_password = false;
 
 
-                if(ModelValidationUtils.ValidateContact(req.Contact)){
-                 
-                    acc.Contact = req.Contact;
-                    updated_contact = true;
-                }
+                
 
                 if (!string.IsNullOrWhiteSpace(req.Password))
                 {
@@ -172,8 +172,9 @@ namespace PetCenterServices.Services
 
             if (!req.Validate())
             {
-                return ServiceOutput<string>.Error(HttpCode.BadRequest,"Invalid Contact and/or password.");
+                return ServiceOutput<string>.Error(HttpCode.BadRequest,"Please provide a valid contact and password.");
             }
+
 
             Account? acc = await dbContext.Accounts.FirstOrDefaultAsync(a => a.Contact == req.Contact);
             
@@ -353,6 +354,32 @@ namespace PetCenterServices.Services
 
         }
 
+        public async Task<ServiceOutput<object>> LogOut(Guid token_id, DateTime exp)
+        {          
+
+            try{
+
+                InvalidatedToken? jwt = await dbContext.InvalidatedTokens.FindAsync(token_id);
+
+                if (jwt == null)
+                {
+                    await dbContext.InvalidatedTokens.AddAsync(new InvalidatedToken{Id=token_id,Expiry=exp});
+                    await dbContext.SaveChangesAsync();
+                   
+                }                    
+
+                return ServiceOutput<object>.Success(null,HttpCode.NoContent);
+
+            }
+            catch(Exception ex)
+            {
+                   
+                return ServiceOutput<object>.FromException(ex);
+                    
+            }
+            
+        }
+
     
         public async Task<ServiceOutput<string>> SetRole(Guid owner_id, Guid id, Access role)
         {
@@ -461,11 +488,7 @@ namespace PetCenterServices.Services
         }
 
         public override Task<ServiceOutput<object>> IsClearedToUpdate(Guid token_holder, AccountRequestDTO resource)
-        {
-            if (!resource.Validate())
-            {
-                return Task.FromResult(ServiceOutput<object>.Error(HttpCode.BadRequest,"Request validation failure."));
-            }
+        {            
             if (token_holder == resource.Id)
             {
                 return Task.FromResult(ServiceOutput<object>.Success(null,HttpCode.NoContent));

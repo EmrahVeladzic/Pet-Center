@@ -46,6 +46,7 @@ namespace PetCenterServices.Utils
             SigningCredentials creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
             Claim[] claims = new[]
             {
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                 new Claim(ClaimTypes.Name, usr.UserName!),
                 new Claim(ClaimTypes.NameIdentifier, usr.Id.ToString()),
                 new Claim(ClaimTypes.Role, UserUtils.GetRole(usr.UserAccount!.AccessLevel)),

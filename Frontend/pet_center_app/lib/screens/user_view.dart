@@ -1,8 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:pet_center_app/models/enums.dart';
-import 'package:pet_center_app/screens/feed.dart';
+import 'package:pet_center_app/models/data_transfer/account/account_request_dto.dart';
+import 'package:pet_center_app/models/data_transfer/user/user_request_dto.dart';
+import 'package:pet_center_app/screens/components/confirmation_dialog.dart';
+import 'package:pet_center_app/screens/components/text_entry_dialog.dart';
+import 'package:pet_center_app/screens/login_register.dart';
+import 'package:pet_center_app/services/account_service.dart';
 import 'package:pet_center_app/services/static_data_service.dart';
+import 'package:pet_center_app/services/user_service.dart';
+
 import 'package:pet_center_app/utils/app_style.dart';
+import 'package:pet_center_app/utils/hive_cache.dart';
 import 'package:pet_center_app/utils/jwt_parser.dart';
 
 class UserViewScreen extends StatefulWidget {
@@ -12,12 +19,57 @@ class UserViewScreen extends StatefulWidget {
 }
 
 class _UserViewScreenState extends State<UserViewScreen> {
-  Access role = userToken?.role ?? Access.user;
+  void logOut() async {
+    await AccountService.logOut();
+    clearToken();
+    if (mounted) {
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (context) => CredentialsScreen()),
+        (route) => false,
+      );
+    }
+  }
 
-  void adoptionScreen() {}
+  void changeUsername(String usr) async {
+    final response = await UserService.update(UserRequestDTO(userName: usr));
+    if (response != null) {
+      setState(() {
+        self?.userName = response.userName;
+      });
+    }
+  }
 
-  void feedScreen() {
-    Navigator.push(context, MaterialPageRoute(builder: (_) => FeedScreen()));
+  void changePassword(String pwd) async {
+    final response = await AccountService.update(
+      AccountRequestDTO(password: pwd),
+    );
+    if (response != null) {
+      showSnackbar("Updated password.");
+    }
+  }
+
+  void clearCache() async {
+    await CacheManager.clear();
+  }
+
+  void resetUser() async {
+    final response = await UserService.reset();
+
+    if (mounted && response) {
+      logOut();
+    }
+  }
+
+  void deleteAccount() async {
+    final id = self?.id;
+
+    if (id == null) return;
+
+    await AccountService.delete(id);
+
+    if (!mounted) return;
+
+    logOut();
   }
 
   @override
@@ -54,7 +106,123 @@ class _UserViewScreenState extends State<UserViewScreen> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [],
+                      children: [
+                        FractionallySizedBox(
+                          widthFactor: 0.5,
+                          alignment: Alignment.center,
+                          child: ElevatedButton(
+                            onPressed: () {
+                              showDialog(
+                                context: context,
+                                builder: (_) => TextEntryDialog(
+                                  callback: (value) {
+                                    changeUsername(value);
+                                  },
+                                  dialogName: "Enter new username:",
+                                ),
+                              );
+                            },
+                            child: design.textMarquee('Change username'),
+                          ),
+                        ),
+                        SizedBox(height: design.spacing),
+                        FractionallySizedBox(
+                          widthFactor: 0.5,
+                          alignment: Alignment.center,
+                          child: ElevatedButton(
+                            onPressed: () {
+                              showDialog(
+                                context: context,
+                                builder: (_) => TextEntryDialog(
+                                  callback: (value) {
+                                    changePassword(value);
+                                  },
+                                  hideText: true,
+                                  dialogName: "Enter password:",
+                                ),
+                              );
+                            },
+                            child: design.textMarquee('Change password'),
+                          ),
+                        ),
+                        SizedBox(height: design.spacing),
+                        FractionallySizedBox(
+                          widthFactor: 0.5,
+                          alignment: Alignment.center,
+                          child: ElevatedButton(
+                            onPressed: () {
+                              showDialog(
+                                context: context,
+                                builder: (_) => ConfirmationDialog(
+                                  confirmAction: logOut,
+                                  title: "Log out",
+                                  body: "Are you sure you wish to log out?",
+                                ),
+                              );
+                            },
+                            child: design.textMarquee('Log out'),
+                          ),
+                        ),
+                        SizedBox(height: design.spacing),
+                        FractionallySizedBox(
+                          widthFactor: 0.5,
+                          alignment: Alignment.center,
+                          child: ElevatedButton(
+                            onPressed: () {
+                              showDialog(
+                                context: context,
+                                builder: (_) => ConfirmationDialog(
+                                  confirmAction: clearCache,
+                                  title: "Clear cache",
+                                  body:
+                                      "Are you sure you wish to clear your cache?",
+                                ),
+                              );
+                            },
+                            child: design.textMarquee(
+                              'Clear cache for this user',
+                            ),
+                          ),
+                        ),
+                        SizedBox(height: design.spacing),
+                        FractionallySizedBox(
+                          widthFactor: 0.5,
+                          alignment: Alignment.center,
+                          child: ElevatedButton(
+                            onPressed: () {
+                              showDialog(
+                                context: context,
+                                builder: (_) => ConfirmationDialog(
+                                  confirmAction: resetUser,
+                                  title: "Reset",
+                                  body:
+                                      "Are you sure you wish to reset your profile?",
+                                ),
+                              );
+                            },
+                            child: design.textMarquee('Clear user data'),
+                          ),
+                        ),
+                        SizedBox(height: design.spacing),
+                        FractionallySizedBox(
+                          widthFactor: 0.5,
+                          alignment: Alignment.center,
+                          child: ElevatedButton(
+                            onPressed: () {
+                              showDialog(
+                                context: context,
+                                builder: (_) => ConfirmationDialog(
+                                  confirmAction: deleteAccount,
+                                  title: "Deactivate account",
+                                  body:
+                                      "Are you sure you wish to deactivate your account?",
+                                ),
+                              );
+                            },
+                            child: design.textMarquee('Delete account'),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 );
