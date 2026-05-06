@@ -6,6 +6,7 @@ using System.Text;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using PetCenterModels.DBTables;
+using PetCenterModels.ModelUtils;
 
 namespace PetCenterModels.DataTransferObjects
 {
@@ -16,10 +17,12 @@ namespace PetCenterModels.DataTransferObjects
 
         public byte[] CurrentVersion { get; set; } = Array.Empty<byte>();
 
-        [Required]
+        
+        [MaxLength(255)]
         public string Contact { get; set; } = string.Empty;
         
-        [Required]
+       
+        [MaxLength(255)]
         public string Password { get; set; } = string.Empty;
 
         [Required]
@@ -27,9 +30,9 @@ namespace PetCenterModels.DataTransferObjects
     
 
         public bool Validate()
-        {
-            EmailAddressAttribute e = new();
-            return (e.IsValid(Contact)&& !string.IsNullOrWhiteSpace(Password));
+        {            
+            Contact=Contact.ToLowerInvariant();
+            return (ModelValidationUtils.ValidateContact(Contact)&& !string.IsNullOrWhiteSpace(Password));
         }
     }
 }

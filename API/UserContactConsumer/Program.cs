@@ -4,6 +4,7 @@ class Program
 {
     static async Task Main(string[] args)
     {
+   
         IConfigurationBuilder builder = new ConfigurationBuilder()
             .SetBasePath(Directory.GetCurrentDirectory())
             .AddJsonFile("appsettings.json")
@@ -14,8 +15,10 @@ class Program
         EmailService email_service = new(configuration);
         ContactConsumer consumer = await ContactConsumer.CreateAsync(configuration, email_service);
 
+
         await consumer.StartListening();
 
-        Thread.Sleep(Timeout.Infinite);
+        await Task.Delay(Timeout.Infinite);
+
     }
 }

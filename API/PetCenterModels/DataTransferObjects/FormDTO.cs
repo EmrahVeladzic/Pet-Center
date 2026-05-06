@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
+using PetCenterModels.ModelUtils;
 
 namespace PetCenterModels.DataTransferObjects
 {
@@ -22,6 +23,7 @@ namespace PetCenterModels.DataTransferObjects
 
         public Guid FormTemplateFieldId {get; set;} = Guid.Empty;
 
+        [MaxLength(255)]
         public string Serialized {get; set;} = string.Empty;
         public List<NoteSubDTO>? Notes {get; set;} = null;
 
@@ -65,8 +67,10 @@ namespace PetCenterModels.DataTransferObjects
 
         public List<NoteSubDTO>? Notes {get; set;} = null;
 
+        [MaxLength(75)]
         public string FranchiseName {get; set;} = string.Empty;
 
+        [MaxLength(255)]
         public string DefaultContact {get; set;} = string.Empty;
         
         public List<FormEntrySubDTO> Entries {get; set;} = new();
@@ -115,8 +119,8 @@ namespace PetCenterModels.DataTransferObjects
         {
             DefaultContact=DefaultContact.ToLowerInvariant();
             if(string.IsNullOrWhiteSpace(FranchiseName)){return false;}
-            EmailAddressAttribute e = new();
-            if(!e.IsValid(DefaultContact)){return false;}
+            
+            if(!ModelValidationUtils.ValidateContact(DefaultContact)){return false;}
             if(UserId==Guid.Empty){return false;}
             if(FormTemplateId==Guid.Empty){return false;}
 

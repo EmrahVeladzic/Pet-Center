@@ -15,6 +15,7 @@ using PetCenterServices.Recommender;
 using PetCenterServices.Workers;
 using PetCenterServices.Seeder;
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using System.IdentityModel.Tokens.Jwt;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -120,6 +121,34 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidIssuer = builder.Configuration["Jwt:Issuer"],
             ValidAudience = builder.Configuration["Jwt:Audience"],
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!))
+        };
+
+        options.Events = new JwtBearerEvents
+        {
+            OnTokenValidated = async context =>
+            {
+                var jti = context.Principal?
+                    .FindFirst(JwtRegisteredClaimNames.Jti)?.Value;
+
+              
+                if (jti == null || !Guid.TryParse(jti, out var parsedJti))
+                {
+                    context.Fail("Invalid token.");
+                    return;
+                }
+
+                var db = context.HttpContext.RequestServices
+                    .GetRequiredService<PetCenterDBContext>();
+
+                var isInvalidated = await db.InvalidatedTokens
+                    .AnyAsync(t => t.Id == parsedJti
+                                && t.Expiry > DateTime.UtcNow);
+
+                if (isInvalidated)
+                {
+                    context.Fail("Token has been invalidated.");
+                }
+            }
         };
     });
 

@@ -7,6 +7,7 @@ using System.Text;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using PetCenterModels.ModelUtils;
 using PetCenterServices;
 
 
@@ -23,6 +24,7 @@ namespace PetCenterModels.DBTables
 
         public override async Task StageDeletion<T>(PetCenterDBContext ctx, DbSet<T> set,CancellationToken cancel = default)
         {
+            DBUtils.EnsureInTransaction(ctx);
             if(await ctx.AnimalBreeds.Where(b=>b.KindId==Id).ToListAsync(cancel) is List<Breed> b){foreach(Breed br in b){await br.StageDeletion<Breed>(ctx,ctx.AnimalBreeds,cancel);}}
             if(await ctx.MedicalProcedureSpecifications.Where(m=>m.KindId==Id).ToListAsync(cancel) is List<MedicalProcedureSpecification> m){foreach (MedicalProcedureSpecification med in m){await med.StageDeletion<MedicalProcedureSpecification>(ctx,ctx.MedicalProcedureSpecifications,cancel);}}
             if(await ctx.Items.Where(i=>i.KindId==Id).ToListAsync(cancel) is List<Item> i){foreach(Item itm in i){await itm.StageDeletion<Item>(ctx,ctx.Items,cancel);}}

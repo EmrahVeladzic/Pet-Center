@@ -12,6 +12,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using PetCenterServices.Recommender;
+using PetCenterModels.ModelUtils;
 
 
 namespace PetCenterServices.Services
@@ -103,6 +104,19 @@ namespace PetCenterServices.Services
                 
                 }
 
+                else if (search.Type == ListingType.Medical)
+                {
+                    List<Individual> individuals = await dbContext.IndividualAnimals.Where(i=>i.Owned==true&&i.OwnerId==token_holder).ToListAsync();
+
+                    for(int i = 0; (i< output.Count && i<entities.Count); i++)
+                    {
+                        if (entities[i]!=null && output[i]!=null && entities[i].MedicalExtension != null)
+                        {                                                    
+                            output[i].Notes = await recommender.AddInfoToMedicalListing(dbContext,entities[i].MedicalExtension!,individuals);
+                        }
+                    }
+                }
+
 
 
             }
@@ -150,6 +164,19 @@ namespace PetCenterServices.Services
 
                     dto.Notes= new List<NoteSubDTO>{await recommender.AddUsageInfoToProductListing(dbContext,output.ProductExtension,usage,supplies)};
                 }
+                else if(output.Type ==ListingType.Medical && output.MedicalExtension != null)
+                {
+                
+                    List<Individual> individuals = await dbContext.IndividualAnimals.Where(i=>i.Owned==true&&i.OwnerId==token_holder).ToListAsync();
+
+                    
+                    dto.Notes = await recommender.AddInfoToMedicalListing(dbContext,output.MedicalExtension!,individuals);
+                        
+                }
+                
+                
+
+
             }
 
             else
@@ -172,13 +199,33 @@ namespace PetCenterServices.Services
             }
 
             Comment? comment = await dbContext.Comments.FirstOrDefaultAsync(c=>c.PosterId==token_holder && c.ListingId==ListingId);
+            User? self = await dbContext.Users.Include(u=>u.UserAccount).FirstOrDefaultAsync(u=>u.Id==token_holder);
+
+            if (self == null || self.UserAccount==null)
+            {
+                return ServiceOutput<CommentResponseSubDTO>.Error(HttpCode.Unauthorized,"Invalid token.");
+            }
+
+            if (!ModelValidationUtils.IsMature(self.UserAccount))
+            {
+                return ServiceOutput<CommentResponseSubDTO>.Error(HttpCode.Forbidden,"Your account needs to be at least a week old to post reviews.");
+            }
 
             if (comment != null)
             {
                 comment.Message=message;
                 comment.LastEditDate=DateTime.UtcNow;  
                 await dbContext.SaveChangesAsync();  
-                return ServiceOutput<CommentResponseSubDTO>.Success(CommentResponseSubDTO.FromEntity(comment));        
+
+
+                CommentResponseSubDTO? output = CommentResponseSubDTO.FromEntity(comment);
+
+                if(output!=null && !string.IsNullOrWhiteSpace(self.UserName))
+                {
+                    output.PosterName=self.UserName;
+                }
+
+                return ServiceOutput<CommentResponseSubDTO>.Success(output);        
             }
             else
             {
@@ -196,7 +243,15 @@ namespace PetCenterServices.Services
                 await dbContext.Comments.AddAsync(new_comment);
                 await dbContext.SaveChangesAsync();
                 comment=new_comment;
-                return ServiceOutput<CommentResponseSubDTO>.Success(CommentResponseSubDTO.FromEntity(comment),HttpCode.Created);
+                
+                CommentResponseSubDTO? output = CommentResponseSubDTO.FromEntity(comment);
+
+                if(output!=null && !string.IsNullOrWhiteSpace(self.UserName))
+                {
+                    output.PosterName=self.UserName;
+                }
+
+                return ServiceOutput<CommentResponseSubDTO>.Success(output,HttpCode.Created);
             }
             
         }
@@ -258,6 +313,10 @@ namespace PetCenterServices.Services
 
                 await dbContext.SaveChangesAsync();
 
+                
+                await recommender.RecommendListingToUsers(dbContext,listing);
+                
+
                 return ServiceOutput<object>.Success(null,HttpCode.NoContent);
             }
             return ServiceOutput<object>.Error(HttpCode.NotFound,"One or more resources needed for this operation are missing.");
@@ -277,6 +336,9 @@ namespace PetCenterServices.Services
 
                 listing.Visible = visible;
                 await dbContext.SaveChangesAsync();
+                
+                await recommender.RecommendListingToUsers(dbContext,listing);
+                
                 return ServiceOutput<object>.Success(null);
 
             }
@@ -374,7 +436,7 @@ namespace PetCenterServices.Services
                     new_discount.PercentDiscount=percentage;
                     await dbContext.Discounts.AddAsync(new_discount);
                     await dbContext.SaveChangesAsync();
-                    await recommender.RecommendListingToUsers(dbContext,new_discount);
+                    await recommender.RecommendListingToUsers(dbContext,listing);
 
                     await tx.CommitAsync();
                     return ServiceOutput<DiscountResponseSubDTO>.Success(DiscountResponseSubDTO.FromEntity(new_discount),HttpCode.Created);
@@ -468,10 +530,11 @@ namespace PetCenterServices.Services
 
                         lst.ProductExtension=plst;
                         lst.AnimalExtension=alst;
-                        lst.MedicalExtension=mlst;
+                        lst.MedicalExtension=mlst;                        
                         
                        
                         await tx.CommitAsync();
+                        
                         return ServiceOutput<ListingResponseDTO>.Success(ListingResponseDTO.FromEntity(lst),HttpCode.Created);
                     }
                     catch(Exception ex)

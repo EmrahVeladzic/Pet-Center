@@ -7,22 +7,25 @@ using System.Text;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using PetCenterModels.ModelUtils;
 using PetCenterServices;
 
 namespace PetCenterModels.DBTables
 {
     [Table("Registration", Schema = "Pending")]
     public class Registration : ExpirableTableEntity
-    {       
-        [Column("AccountID")]
-        public Guid AccountId { get; set; }
+    {      
+       
 
         [JsonIgnore]
-        [ForeignKey(nameof(AccountId))]
+        [ForeignKey(nameof(Id))]
         public Account RelevantAccount { get; set; } = null!;
 
-        [Column("Code")]
-        public int Code { get; set; }
+        [Column("CodeSalt")]
+        public string CodeSalt { get; set; } = string.Empty;
+
+        [Column("CodeHash")]
+        public string CodeHash { get; set; } = string.Empty;
 
 
         [Column("NextAttempt")]
@@ -30,7 +33,8 @@ namespace PetCenterModels.DBTables
 
         override public async Task StageDeletion<T>(PetCenterDBContext ctx, DbSet<T> set,CancellationToken cancel = default)
         {
-            if(await ctx.Accounts.FirstOrDefaultAsync(a => a.Id == AccountId,cancel) is Account a) { await a.StageDeletion<Account>(ctx, ctx.Accounts,cancel);}
+            DBUtils.EnsureInTransaction(ctx);
+            if(await ctx.Accounts.FindAsync(Id,cancel) is Account a) { await a.StageDeletion<Account>(ctx, ctx.Accounts,cancel);}
             await base.StageDeletion<T>(ctx,set,cancel);
         }
 

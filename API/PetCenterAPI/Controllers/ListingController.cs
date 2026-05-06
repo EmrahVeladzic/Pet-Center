@@ -17,7 +17,16 @@ namespace PetCenterAPI.Controllers
     {
         public ListingController(IListingService s):base(s) { }
        
-       
+        [Authorize]
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetById([FromRoute] Guid id)
+        {
+            if(TryGetUserId(out Guid user_id))
+            {
+                return ResultConverter.Convert<ListingResponseDTO>(await service.GetById(user_id,id,SpecifySearchAuthority()));
+            }
+            return StatusCode(401,"Invalid token.");
+        }
 
         [Authorize(Roles ="Employee")]
         [HttpPut("{id}")]
@@ -87,6 +96,10 @@ namespace PetCenterAPI.Controllers
         {
             if(TryGetUserId(out Guid user_id))
             {
+                if (Reason.Length > 255)
+                {
+                    return StatusCode(400,"The stated reason is too long.");
+                }
                 return ResultConverter.Convert<ReportResponseSubDTO>(await service.ReportMisuse(user_id,listing_id,comment_id,Reason));
             }
             return StatusCode(401,"Invalid token.");

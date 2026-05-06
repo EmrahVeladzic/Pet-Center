@@ -17,6 +17,7 @@ using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Formats.Webp;
 using PetCenterServices.Services;
+using PetCenterServices.Utils;
 
 namespace PetCenterServices.Seeder
 {
@@ -258,10 +259,10 @@ namespace PetCenterServices.Seeder
                         await ctx.MedicalProcedureSpecifications.AddAsync(new MedicalProcedureSpecification{ProcedureId=proc.Id,KindId=afflicted_breed.KindId,BreedId=afflicted_breed.Id,SexSpecific=null,Optional=false,IntervalDays=null,ApproximateAge=rng.Next(100,400)});
                     }                   
 
-                    await ctx.Announcements.AddAsync(new Announcement{Body="Users and employees can see this.",UserVisible=true,BusinessVisible=true,Expiry=DateTime.UtcNow.AddDays(3)});
-                    await ctx.Announcements.AddAsync(new Announcement{Body="Users specific.",UserVisible=true,BusinessVisible=false,Expiry=DateTime.UtcNow.AddDays(3)});
-                    await ctx.Announcements.AddAsync(new Announcement{Body="Employee specific.",UserVisible=false,BusinessVisible=true,Expiry=DateTime.UtcNow.AddDays(3)});
-                    await ctx.Announcements.AddAsync(new Announcement{Body="Internal modmail.",UserVisible=false,BusinessVisible=false,Expiry=DateTime.UtcNow.AddDays(3)});
+                    await ctx.Announcements.AddAsync(new Announcement{Body="Users and employees can see this.",UserVisible=true,BusinessVisible=true});
+                    await ctx.Announcements.AddAsync(new Announcement{Body="Users specific.",UserVisible=true,BusinessVisible=false});
+                    await ctx.Announcements.AddAsync(new Announcement{Body="Employee specific.",UserVisible=false,BusinessVisible=true});
+                    await ctx.Announcements.AddAsync(new Announcement{Body="Internal modmail.",UserVisible=false,BusinessVisible=false});
 
 
                     foreach(Category cat in categories){
@@ -317,6 +318,11 @@ namespace PetCenterServices.Seeder
                                 acc.Contact="unverified@example.com";
                             }
 
+                            if (i == 1)
+                            {
+                                acc.RegistrationDate=DateTime.UtcNow.AddDays(-10);
+                            }
+
                             await ctx.Accounts.AddAsync(acc);
                             await ctx.SaveChangesAsync();
                             usr.Id=acc.Id;
@@ -324,7 +330,10 @@ namespace PetCenterServices.Seeder
 
                             if (!acc.Verified)
                             {
-                                await ctx.Registrations.AddAsync(new Registration{AccountId=acc.Id,Expiry=DateTime.UtcNow.AddHours(1),NextAttempt=DateTime.UtcNow,Code=12345678});
+                                string salt = Crypto.GenerateSalt();
+                                string hash = Crypto.GenerateHash("12345678",salt);
+
+                                await ctx.Registrations.AddAsync(new Registration{Id=acc.Id,Expiry=DateTime.UtcNow.AddHours(1),NextAttempt=DateTime.UtcNow,CodeHash=hash,CodeSalt=salt});
                             }
 
                             await ctx.SaveChangesAsync();
@@ -334,10 +343,12 @@ namespace PetCenterServices.Seeder
                         await ctx.Franchises.AddAsync(franch);
 
                         await ctx.SaveChangesAsync();
+                       
 
-                        await ctx.Notifications.AddAsync(new Notification{UserId=franch.OwnerId,FranchiseId=null,ListingId=null,Title="Notification - OWNER", Body="Only you can see this notification."});
-                        await ctx.Notifications.AddAsync(new Notification{UserId=franch.OwnerId,FranchiseId=franch.Id,ListingId=null,Title="Notification - FRANCHISE", Body="You and your employees can see this notification."});
+                        await ctx.Notifications.AddAsync(new Notification{UserId=franch.OwnerId,FranchiseId=null,ListingId=null,Title="Notification - OWNER", Body="Only you, the owner, can see this notification."});
+                        await ctx.Notifications.AddAsync(new Notification{UserId=franch.OwnerId,FranchiseId=franch.Id,ListingId=null,Title="Notification - FRANCHISE", Body="The franchise owner and employees can see this notification."});
 
+                       
 
                         Facility facility = new Facility{Contact="mega.uk@example.com",City="London",Street="MainSt no.1",FranchiseId=franch.Id};
                         await ctx.Facilities.AddAsync(facility);
@@ -533,6 +544,8 @@ namespace PetCenterServices.Seeder
 
                         await ctx.SaveChangesAsync();
 
+                        
+
                         await ctx.MedicalListings.AddAsync(new MedicalListing{Id=visible_medical.Id,ProcedureId=proc.Id});
 
                         await ctx.ListingAvailable.AddAsync(new Available{ListingId=visible_medical.Id,FacilityId=facility.Id});
@@ -545,6 +558,24 @@ namespace PetCenterServices.Seeder
                         await ctx.Listings.AddAsync(new Listing{FranchiseId=franch.Id,PriceMinor=rng.Next(10000),AlbumId=generic_listing_album_ids[3],Approved=true,Updated=false,Visible=false,ListingName="Generic invisible listing.",ListingDescription="Workers should see this listing."});
 
                         await ctx.Listings.AddAsync(new Listing{FranchiseId=franch.Id,PriceMinor=rng.Next(10000),AlbumId=generic_listing_album_ids[4],Approved=false,Updated=true,Visible=true,ListingName="Image-free listing.",ListingDescription="Workers should see this listing."});
+
+                        await ctx.SaveChangesAsync();
+
+
+                        await ctx.Comments.AddAsync(new Comment{PosterId = Users[1].Id,ListingId=visible_medical.Id,Message="Feel free to report, or delete this review."});
+                        await ctx.Comments.AddAsync(new Comment{PosterId = Users[2].Id,ListingId=visible_medical.Id,Message="Feel free to ban me as an admin over this review."});
+
+
+
+                        for(int i = 0; i<3; i++){
+
+                            await ctx.Notifications.AddAsync(new Notification{UserId=Users[i].Id,Title="Blank",Body="This notification does not link a listing."});
+                            await ctx.Notifications.AddAsync(new Notification{UserId=Users[i].Id,Title="Not blank",Body="This notification links a listing.", ListingId = visible_medical.Id});
+
+                            await ctx.Notifications.AddAsync(new Notification{UserId=Employees[i].Id,Title="Blank",Body="This notification does not link a listing."});
+                            await ctx.Notifications.AddAsync(new Notification{UserId=Employees[i].Id,Title="Not blank",Body="This notification links a listing.", ListingId = visible_medical.Id});
+                           
+                        }
 
                         await ctx.SaveChangesAsync();
 
@@ -699,12 +730,12 @@ namespace PetCenterServices.Seeder
                                 switch (choice)
                                 {
                                     case 0 : {
-                                        await ctx.Reports.AddAsync(new Report{ReporterId=Users[0].Id,Expiry=DateTime.UtcNow.AddDays(rng.Next(1,4)),Reason="Listing.",ListingId=comments[i].ListingId,CommentId=null});
+                                        await ctx.Reports.AddAsync(new Report{ReporterId=Users[0].Id,Reason="Listing.",ListingId=comments[i].ListingId,CommentId=null});
                                         reported_listings.Add(comments[i].ListingId);
                                         break;
                                     }
                                     case 1 : {
-                                        await ctx.Reports.AddAsync(new Report{ReporterId=Users[0].Id,Expiry=DateTime.UtcNow.AddDays(rng.Next(1,4)),Reason="Comment only.",ListingId=comments[i].ListingId,CommentId=comments[i].Id});
+                                        await ctx.Reports.AddAsync(new Report{ReporterId=Users[0].Id,Reason="Comment only.",ListingId=comments[i].ListingId,CommentId=comments[i].Id});
                                         reported_listings.Add(comments[i].ListingId);
                                         break;
                                     }
@@ -731,6 +762,9 @@ namespace PetCenterServices.Seeder
                     }
 
                     
+
+                    
+
 
                     await tx.CommitAsync();
                     return true;

@@ -7,6 +7,7 @@ using PetCenterModels.SearchObjects;
 using PetCenterServices.Interfaces;
 using PetCenterServices.Utils;
 using System.Security.Claims;
+using Microsoft.IdentityModel.JsonWebTokens;
 
 
 namespace PetCenterAPI.Controllers
@@ -19,15 +20,64 @@ namespace PetCenterAPI.Controllers
 
         public AccountController(IAccountService s):base(s) { }
 
+
+        protected bool TryGetJTI(out Guid token_id){
+
+            token_id = default;
+
+            return Guid.TryParse(User.FindFirst(JwtRegisteredClaimNames.Jti)?.Value,out token_id);
+
+        }
+
+        protected bool TryGetJWTExpiry(out DateTime exp){
+
+            exp = default;
+
+            string? value = User.FindFirst(JwtRegisteredClaimNames.Exp)?.Value;
+
+            if (value == null || !long.TryParse(value, out long seconds)){
+                return false;
+            }
+
+            exp = DateTimeOffset.FromUnixTimeSeconds(seconds).UtcDateTime;
+
+            return true;
+        }
+
+        [HttpGet("Count")]
+        [NonAction]
+        public override Task<IActionResult> Count([FromQuery] AccountSearchObject search)
+        {
+            throw new NotImplementedException();
+        }
+
+        [HttpGet("Transfer/{old_code}/{new_code}")]
+        public async Task<IActionResult> Transfer([FromRoute] int old_code, [FromRoute] int new_code)
+        {
+            if (TryGetUserId(out Guid id))
+            {
+                return ResultConverter.Convert<string>(await service.TransferAccount(id,old_code,new_code));
+            }
+            return StatusCode(401,"Invalid token.");
+        }
+
+        [HttpGet("RequestTransfer")]
+        public async Task<IActionResult> RequestTransfer()
+        {
+            if (TryGetUserId(out Guid id))
+            {
+                return ResultConverter.Convert<string>(await service.RequestAccountTransfer(id,null));
+            }
+            return StatusCode(401,"Invalid token.");
+        }
+
         [HttpGet]
         [Authorize(Roles ="Owner,Admin")]
         public override async Task<IActionResult>Get([FromQuery] AccountSearchObject search)
         {           
             return await base.Get(search);
         }
-
        
-
         [HttpPost]
         [AllowAnonymous]
         public override async Task<IActionResult> Post([FromBody] AccountRequestDTO req)
@@ -74,6 +124,26 @@ namespace PetCenterAPI.Controllers
             return StatusCode(401,"Invalid token.");
         }
 
+         
+        [HttpGet ("ForgotPassword/{contact}")]
+        [AllowAnonymous]
+        public async Task<IActionResult> ForgotPassword([FromRoute]string contact)
+        {
+            
+            return ResultConverter.Convert<string>(await service.RequestSingleTimeEntryCode(contact.ToLowerInvariant()));
+            
+        }
+
+
+        [HttpGet("LogOut")]
+        public async Task<IActionResult> LogOut()
+        {
+            if(TryGetJTI(out Guid jti) && TryGetJWTExpiry(out DateTime exp))
+            {
+                return ResultConverter.Convert<object>(await service.LogOut(jti,exp));
+            }
+            return StatusCode(401,"Invalid token.");
+        }
         
         [HttpPost("Verify/{code}")]
         [AllowUnverified]

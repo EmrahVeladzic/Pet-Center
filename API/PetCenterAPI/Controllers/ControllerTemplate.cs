@@ -24,7 +24,7 @@ namespace PetCenterAPI.Controllers
             return Guid.TryParse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value,out user_id);
 
         }
-
+       
         protected Access SpecifySearchAuthority()
         {
             if (User.IsInRole("Admin")||User.IsInRole("Owner"))

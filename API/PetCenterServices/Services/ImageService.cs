@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore.Storage;
 using PetCenterModels.DataTransferObjects;
 using PetCenterModels.DBTables;
+using PetCenterModels.ModelUtils;
 using PetCenterModels.SearchObjects;
 using PetCenterServices.Interfaces;
 using PetCenterServices.Utils;
@@ -116,8 +117,9 @@ namespace PetCenterServices.Services
 
 
 
-        public static async Task<ServiceOutput<object>> EvaluateUploadAttempt(Guid token_holder, ImageDTO img, PetCenterDBContext ctx)
+        private static async Task<ServiceOutput<object>> EvaluateUploadAttempt(Guid token_holder, ImageDTO img, PetCenterDBContext ctx)
         {
+            
 
             if (!img.Validate())
             {
@@ -152,6 +154,7 @@ namespace PetCenterServices.Services
 
         public static async Task<ServiceOutput<ImageDTO>> UploadImage(Guid token_holder,ImageDTO img, PetCenterDBContext ctx)
         {
+            DBUtils.EnsureInTransaction(ctx);
             ServiceOutput<object> evaluation = await EvaluateUploadAttempt(token_holder, img, ctx);
             if (!ServiceOutput<object>.IsSuccess(evaluation))
             {
@@ -187,6 +190,7 @@ namespace PetCenterServices.Services
 
         public static async Task<Guid> CreateAlbum(Guid? token_holder,PetCenterDBContext ctx, byte cap)
         {
+            DBUtils.EnsureInTransaction(ctx);
             Album alb = new(cap);
             alb.PosterID = token_holder;
             await ctx.Albums.AddAsync(alb);
@@ -196,6 +200,7 @@ namespace PetCenterServices.Services
 
         public static async Task ClearAlbum(Guid token_holder, PetCenterDBContext ctx, Guid album_id)
         {
+            DBUtils.EnsureInTransaction(ctx);
             Album? alb = await ctx.Albums.FindAsync(album_id);
             if(alb==null || alb.PosterID!=token_holder || alb.Locked){return;}
             await alb.StageDeletion<Album>(ctx,ctx.Albums);

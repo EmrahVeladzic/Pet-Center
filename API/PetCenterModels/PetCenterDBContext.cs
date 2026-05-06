@@ -38,6 +38,7 @@ namespace PetCenterServices
         public DbSet<Franchise> Franchises { get;set; }
         public DbSet<Listing> Listings { get; set; }
         public DbSet<Registration> Registrations { get; set; }
+        public DbSet<SingleTimeEntry> SingleTimeEntries {get; set;}
         public DbSet<Comment> Comments {get; set;}
         public DbSet<Kind> AnimalKinds {get; set;}
         public DbSet<Breed> AnimalBreeds {get;set;}
@@ -65,6 +66,8 @@ namespace PetCenterServices
         public DbSet<Discount> Discounts {get;set;}
         public DbSet<LivingConditionField> LivingConditionFields {get;set;}
         public DbSet<LivingConditionEntry> LivingConditionEntries {get;set;}
+        public DbSet<ContactTransfer> ContactTransfers {get; set;}
+        public DbSet<InvalidatedToken> InvalidatedTokens {get; set;}
 
     }
 }

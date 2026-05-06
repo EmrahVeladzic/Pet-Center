@@ -18,7 +18,12 @@ namespace PetCenterAPI.Controllers
 
         public CategoryController(ICategoryService s):base(s) { }
 
-      
+        [HttpGet("Count")]
+        [NonAction]
+        public override Task<IActionResult> Count([FromQuery] CategorySearchObject search)
+        {
+            throw new NotImplementedException();
+        }
 
         [Authorize(Roles = "Admin,Owner")]
         [HttpPut("{id}")]

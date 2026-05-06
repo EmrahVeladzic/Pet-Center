@@ -63,6 +63,7 @@ namespace PetCenterModels.DataTransferObjects
                 FranchiseName="No provided name.",
                 PriceMinor=entity.PriceMinor,
                 Type=entity.Type,
+                AlbumId=entity.AlbumId,
                 ProductListingExtension=ProductListingSubDTO.FromEntity(entity.ProductExtension),
                 MedicalListingExtension=MedicalListingSubDTO.FromEntity(entity.MedicalExtension),
                 AnimalListingExtension=AnimalListingSubDTO.FromEntity(entity.AnimalExtension),
