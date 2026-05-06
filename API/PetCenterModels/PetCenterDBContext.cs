@@ -66,7 +66,7 @@ namespace PetCenterServices
         public DbSet<Discount> Discounts {get;set;}
         public DbSet<LivingConditionField> LivingConditionFields {get;set;}
         public DbSet<LivingConditionEntry> LivingConditionEntries {get;set;}
-
+        public DbSet<ContactTransfer> ContactTransfers {get; set;}
         public DbSet<InvalidatedToken> InvalidatedTokens {get; set;}
 
     }

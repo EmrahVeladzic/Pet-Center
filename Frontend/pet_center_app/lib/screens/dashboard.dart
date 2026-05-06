@@ -56,7 +56,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             alignment: Alignment.center,
                             child: ElevatedButton(
                               onPressed: () {},
-                              child: design.textMarquee('Adopt a pet'),
+                              child: design.fittedText('Adopt a pet'),
                             ),
                           ),
                           SizedBox(height: design.spacing),
@@ -65,7 +65,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             alignment: Alignment.center,
                             child: ElevatedButton(
                               onPressed: () {},
-                              child: design.textMarquee('Market'),
+                              child: design.fittedText('Market'),
                             ),
                           ),
                           SizedBox(height: design.spacing),
@@ -74,7 +74,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             alignment: Alignment.center,
                             child: ElevatedButton(
                               onPressed: () {},
-                              child: design.textMarquee('My pets'),
+                              child: design.fittedText('My pets'),
                             ),
                           ),
                         ] else if (role == Access.business) ...[
@@ -83,7 +83,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             alignment: Alignment.center,
                             child: ElevatedButton(
                               onPressed: () {},
-                              child: design.textMarquee('My workplaces'),
+                              child: design.fittedText('My workplaces'),
                             ),
                           ),
 
@@ -93,7 +93,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             alignment: Alignment.center,
                             child: ElevatedButton(
                               onPressed: () {},
-                              child: design.textMarquee('My pets'),
+                              child: design.fittedText('My pets'),
                             ),
                           ),
                         ],
@@ -108,7 +108,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 MaterialPageRoute(builder: (_) => FeedScreen()),
                               );
                             },
-                            child: design.textMarquee('Messages'),
+                            child: design.fittedText('Messages'),
                           ),
                         ),
                         SizedBox(height: design.spacing),
@@ -124,7 +124,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 ),
                               );
                             },
-                            child: design.textMarquee('User'),
+                            child: design.fittedText('User'),
                           ),
                         ),
                       ],

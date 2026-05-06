@@ -104,6 +104,19 @@ namespace PetCenterServices.Services
                 
                 }
 
+                else if (search.Type == ListingType.Medical)
+                {
+                    List<Individual> individuals = await dbContext.IndividualAnimals.Where(i=>i.Owned==true&&i.OwnerId==token_holder).ToListAsync();
+
+                    for(int i = 0; (i< output.Count && i<entities.Count); i++)
+                    {
+                        if (entities[i]!=null && output[i]!=null && entities[i].MedicalExtension != null)
+                        {                                                    
+                            output[i].Notes = await recommender.AddInfoToMedicalListing(dbContext,entities[i].MedicalExtension!,individuals);
+                        }
+                    }
+                }
+
 
 
             }
@@ -151,6 +164,19 @@ namespace PetCenterServices.Services
 
                     dto.Notes= new List<NoteSubDTO>{await recommender.AddUsageInfoToProductListing(dbContext,output.ProductExtension,usage,supplies)};
                 }
+                else if(output.Type ==ListingType.Medical && output.MedicalExtension != null)
+                {
+                
+                    List<Individual> individuals = await dbContext.IndividualAnimals.Where(i=>i.Owned==true&&i.OwnerId==token_holder).ToListAsync();
+
+                    
+                    dto.Notes = await recommender.AddInfoToMedicalListing(dbContext,output.MedicalExtension!,individuals);
+                        
+                }
+                
+                
+
+
             }
 
             else

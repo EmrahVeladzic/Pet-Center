@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:pet_center_app/models/data_transfer/account/account_request_dto.dart';
 import 'package:pet_center_app/models/data_transfer/user/user_request_dto.dart';
 import 'package:pet_center_app/screens/components/confirmation_dialog.dart';
+import 'package:pet_center_app/screens/components/dual_text_entry_dialog.dart';
 import 'package:pet_center_app/screens/components/text_entry_dialog.dart';
 import 'package:pet_center_app/screens/login_register.dart';
 import 'package:pet_center_app/services/account_service.dart';
@@ -22,6 +23,7 @@ class _UserViewScreenState extends State<UserViewScreen> {
   void logOut() async {
     await AccountService.logOut();
     clearToken();
+    clearStaticData();
     if (mounted) {
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(builder: (context) => CredentialsScreen()),
@@ -39,7 +41,11 @@ class _UserViewScreenState extends State<UserViewScreen> {
     }
   }
 
-  void changePassword(String pwd) async {
+  void changePassword(String pwd, String confirm) async {
+    if (pwd != confirm) {
+      showSnackbar("You did not enter the same password twice.");
+      return;
+    }
     final response = await AccountService.update(
       AccountRequestDTO(password: pwd),
     );
@@ -107,6 +113,12 @@ class _UserViewScreenState extends State<UserViewScreen> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
+                        design.textMarquee(
+                          "Account details:",
+                          design.bodyWMult * design.screenWidth,
+                          1.0,
+                          1.5,
+                        ),
                         FractionallySizedBox(
                           widthFactor: 0.5,
                           alignment: Alignment.center,
@@ -122,7 +134,7 @@ class _UserViewScreenState extends State<UserViewScreen> {
                                 ),
                               );
                             },
-                            child: design.textMarquee('Change username'),
+                            child: design.fittedText('Change username'),
                           ),
                         ),
                         SizedBox(height: design.spacing),
@@ -133,19 +145,25 @@ class _UserViewScreenState extends State<UserViewScreen> {
                             onPressed: () {
                               showDialog(
                                 context: context,
-                                builder: (_) => TextEntryDialog(
-                                  callback: (value) {
-                                    changePassword(value);
+                                builder: (_) => DualTextEntryDialog(
+                                  callback: (value, confirm) {
+                                    changePassword(value, confirm);
                                   },
                                   hideText: true,
-                                  dialogName: "Enter password:",
+                                  dialogName: "Enter your new password twice:",
                                 ),
                               );
                             },
-                            child: design.textMarquee('Change password'),
+                            child: design.fittedText('Change password'),
                           ),
                         ),
                         SizedBox(height: design.spacing),
+                        design.textMarquee(
+                          "Session and cache:",
+                          design.bodyWMult * design.screenWidth,
+                          1.0,
+                          1.5,
+                        ),
                         FractionallySizedBox(
                           widthFactor: 0.5,
                           alignment: Alignment.center,
@@ -160,7 +178,7 @@ class _UserViewScreenState extends State<UserViewScreen> {
                                 ),
                               );
                             },
-                            child: design.textMarquee('Log out'),
+                            child: design.fittedText('Log out'),
                           ),
                         ),
                         SizedBox(height: design.spacing),
@@ -173,18 +191,22 @@ class _UserViewScreenState extends State<UserViewScreen> {
                                 context: context,
                                 builder: (_) => ConfirmationDialog(
                                   confirmAction: clearCache,
-                                  title: "Clear cache",
+                                  title: "Clear user cache",
                                   body:
                                       "Are you sure you wish to clear your cache?",
                                 ),
                               );
                             },
-                            child: design.textMarquee(
-                              'Clear cache for this user',
-                            ),
+                            child: design.fittedText('Clear cache'),
                           ),
                         ),
                         SizedBox(height: design.spacing),
+                        design.textMarquee(
+                          "Advanced:",
+                          design.bodyWMult * design.screenWidth,
+                          1.0,
+                          1.5,
+                        ),
                         FractionallySizedBox(
                           widthFactor: 0.5,
                           alignment: Alignment.center,
@@ -200,7 +222,7 @@ class _UserViewScreenState extends State<UserViewScreen> {
                                 ),
                               );
                             },
-                            child: design.textMarquee('Clear user data'),
+                            child: design.fittedText('Wipe user data'),
                           ),
                         ),
                         SizedBox(height: design.spacing),
@@ -219,7 +241,7 @@ class _UserViewScreenState extends State<UserViewScreen> {
                                 ),
                               );
                             },
-                            child: design.textMarquee('Delete account'),
+                            child: design.fittedText('Delete account'),
                           ),
                         ),
                       ],

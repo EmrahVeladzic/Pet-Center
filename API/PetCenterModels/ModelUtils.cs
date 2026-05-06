@@ -8,10 +8,29 @@ using System.Text;
 using System.Threading.Tasks;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats.Webp;
+using PetCenterServices;
 
 
 namespace PetCenterModels.ModelUtils
 {
+
+    public sealed class MissingTransactionException : Exception
+    {
+        public MissingTransactionException():base("This operation requires an active transaction."){}
+        public MissingTransactionException(string message):base(message){}
+    }
+
+    public static class DBUtils
+    {
+        public static void EnsureInTransaction(PetCenterDBContext ctx)
+        {
+            if (ctx.Database.CurrentTransaction == null)
+            {
+                throw new MissingTransactionException();
+            }
+        }
+    }
+
     public static class ModelValidationUtils
     {
         public static bool ValidateContact(string? contact)

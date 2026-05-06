@@ -4,8 +4,15 @@ import 'package:pet_center_app/utils/app_style.dart';
 
 class AnnouncementCard extends StatelessWidget {
   final AnnouncementSubDTO announcement;
+  final bool visited;
+  final VoidCallback onTap;
 
-  const AnnouncementCard({super.key, required this.announcement});
+  const AnnouncementCard({
+    super.key,
+    required this.announcement,
+    required this.visited,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -17,8 +24,25 @@ class AnnouncementCard extends StatelessWidget {
       padding: EdgeInsetsGeometry.symmetric(horizontal: 0, vertical: 1),
       child: Container(
         padding: EdgeInsets.all(design.spacing),
-        decoration: design.panelDecoration(),
-        child: Text(announcement.body),
+        decoration: design.panelDecoration(visited),
+        child: Row(
+          children: [
+            Expanded(flex: 4, child: Text(announcement.body)),
+            Expanded(
+              flex: 1,
+
+              child: Align(
+                alignment: Alignment.center,
+                child: IconButton(
+                  onPressed: onTap,
+                  icon: const Icon(Icons.arrow_forward),
+                  padding: EdgeInsets.zero,
+                  visualDensity: VisualDensity.compact,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

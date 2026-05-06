@@ -48,7 +48,7 @@ class _ConfirmationDialogState extends State<ConfirmationDialog> {
               Navigator.of(context).pop();
               widget.confirmAction();
             },
-            child: design.textMarquee('OK'),
+            child: design.fittedText('OK'),
           ),
         ],
       ),

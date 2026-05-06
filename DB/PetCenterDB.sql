@@ -149,6 +149,20 @@ CREATE TABLE [Pending].[SingleTimeEntry](
 );
 GO
 
+CREATE TABLE [Pending].[ContactTransfer](
+    ID UNIQUEIDENTIFIER NOT NULL PRIMARY KEY,
+    CurrentVersion ROWVERSION NOT NULL,
+    NewContact VARCHAR(255) NOT NULL,
+    OldCodeHash VARCHAR(44) NOT NULL,
+    OldCodeSalt VARCHAR(24) NOT NULL,
+    NewCodeHash VARCHAR(44) NOT NULL,
+    NewCodeSalt VARCHAR(24) NOT NULL,
+    Expiry DATETIME2 NOT NULL,
+
+    CONSTRAINT FK_ContactTransfer_Account FOREIGN KEY (ID) REFERENCES [Person].[Account](ID) ON DELETE CASCADE
+);
+GO
+
 CREATE TABLE [Person].[InvalidatedToken](  
     ID UNIQUEIDENTIFIER NOT NULL PRIMARY KEY,
     CurrentVersion ROWVERSION NOT NULL,

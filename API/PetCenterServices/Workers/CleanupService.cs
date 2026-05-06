@@ -77,7 +77,8 @@ namespace PetCenterServices.Workers
                 await CleanupEntity<Report>(dBContext,dBContext.Reports,stoppingToken);
                 await CleanupEntity<Discount>(dBContext,dBContext.Discounts,stoppingToken);
                 await CleanupEntity<SingleTimeEntry>(dBContext,dBContext.SingleTimeEntries,stoppingToken);
-                 await CleanupEntity<InvalidatedToken>(dBContext,dBContext.InvalidatedTokens,stoppingToken);
+                await CleanupEntity<InvalidatedToken>(dBContext,dBContext.InvalidatedTokens,stoppingToken);
+                await CleanupEntity<ContactTransfer>(dBContext,dBContext.ContactTransfers,stoppingToken);
                 
             }
             catch (OperationCanceledException)

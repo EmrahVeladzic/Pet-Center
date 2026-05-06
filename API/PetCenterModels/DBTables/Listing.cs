@@ -7,6 +7,7 @@ using System.Text;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using PetCenterModels.ModelUtils;
 using PetCenterServices;
 
 namespace PetCenterModels.DBTables
@@ -74,6 +75,7 @@ namespace PetCenterModels.DBTables
 
         public override async Task StageDeletion<T>(PetCenterDBContext ctx, DbSet<T> set,CancellationToken cancel = default)
         {
+            DBUtils.EnsureInTransaction(ctx);
             if(await ctx.AnimalListings.FirstOrDefaultAsync(a=>a.Id == Id,cancel) is AnimalListing al){ctx.AnimalListings.Remove(al);}
             if(await ctx.ProductListings.FirstOrDefaultAsync(p=>p.Id == Id,cancel) is ProductListing pl){ctx.ProductListings.Remove(pl);}
             if(await ctx.MedicalListings.FirstOrDefaultAsync(m=>m.Id == Id,cancel) is MedicalListing ml){ctx.MedicalListings.Remove(ml);}

@@ -71,7 +71,10 @@ class _NotificationViewScreenState extends State<NotificationViewScreen> {
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
             if (validGuid(notif.listingId)) ...[
-              ElevatedButton(onPressed: getRelevant, child: Text("Go")),
+              ElevatedButton(
+                onPressed: getRelevant,
+                child: design.fittedText("Go"),
+              ),
             ],
           ],
         ),

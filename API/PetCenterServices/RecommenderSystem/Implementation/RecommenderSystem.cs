@@ -209,6 +209,59 @@ namespace PetCenterServices.Recommender
             return Task.FromResult<NoteSubDTO>(output);
             
         }
+
+        public async Task<List<NoteSubDTO>> AddInfoToMedicalListing(PetCenterDBContext ctx, MedicalListing listing, List<Individual> animals)
+        {
+            List<NoteSubDTO> output = new();
+           
+
+            Procedure? proc = await ctx.MedicalProcedures.Include(p=>p.Specifications).FirstOrDefaultAsync(p=>p.Id==listing.ProcedureId);
+
+            if (proc != null && animals.Count>0)
+            {       
+
+                HashSet<Guid> ids = animals.Select(a=>a.Id).ToHashSet();                        
+
+                List<Individual> potential = await ctx.IndividualAnimals
+                .Include(i => i.MedicalRecord).Include(i=>i.AnimalBreed).Where(a=>ids.Contains(a.Id))              
+                .Where(a => ctx.MedicalProcedureSpecifications
+                    .Any(s => s.ProcedureId == listing.ProcedureId
+                        && (s.BreedId == a.BreedId || s.KindId==a.AnimalBreed.KindId) && s.ApproximateAge!=null))
+                .ToListAsync();
+
+                foreach(Individual animal in potential)
+                {
+                    MedicalProcedureSpecification? spec = proc.Specifications.FirstOrDefault(s=>s.BreedId==animal.BreedId && (s.SexSpecific==animal.Sex||s.SexSpecific==null));
+                    if (spec == null)
+                    {
+                        spec = proc.Specifications.FirstOrDefault(s=>s.KindId==animal.AnimalBreed?.KindId && (s.SexSpecific==animal.Sex||s.SexSpecific==null));
+                    }
+                    if(spec!=null && spec.ApproximateAge!=null){
+                    
+                        int age_days = (DateTime.UtcNow-animal.BirthDate).Days;
+                        MedicalRecordEntry? ent = animal.MedicalRecord.FirstOrDefault(m=>m.ProcedureId==listing.ProcedureId);
+                        bool make_note = false;
+                        if (ent == null)
+                        {
+                            make_note=age_days>=spec.ApproximateAge;
+                        }
+                        else if (ent!=null && spec.IntervalDays != null)
+                        {
+                            int proc_days = (DateTime.UtcNow-ent.DatePerformed).Days;
+                            make_note=proc_days>=spec.IntervalDays;
+                        }
+
+                        if (make_note)
+                        {
+                            output.Add(new NoteSubDTO{Title=$"Note ({animal.Name}): ",Body=$"{animal.Name} {((spec.Optional)? "might want to ":"should ")}have this procedure performed soon."});
+                        }
+                    }
+
+                }
+            }
+        
+            return output;
+        }
         
         public async Task<NoteSubDTO> ShoppingList(PetCenterDBContext ctx, Guid UserId){
 

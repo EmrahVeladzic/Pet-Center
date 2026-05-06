@@ -114,6 +114,8 @@ class _CredentialsScreenState extends State<CredentialsScreen> {
         return;
       }
       if (output != null) {
+        rawToken = output;
+        parseJwt(rawToken);
         onLogin();
       }
     }
@@ -218,7 +220,7 @@ class _CredentialsScreenState extends State<CredentialsScreen> {
 
                           ElevatedButton(
                             onPressed: _sendRequest,
-                            child: Text(
+                            child: design.fittedText(
                               unverified
                                   ? "Verify"
                                   : registerMode

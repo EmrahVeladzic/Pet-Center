@@ -20,6 +20,12 @@ namespace PetCenterAPI.Controllers
         public IndividualController(IIndividualService s):base(s) { }
 
       
+        [HttpGet("Count")]
+        [NonAction]
+        public override Task<IActionResult> Count([FromQuery] IndividualSearchObject search)
+        {
+            throw new NotImplementedException();
+        }
 
         [Authorize(Roles ="Employee,User")]
         [HttpPost]

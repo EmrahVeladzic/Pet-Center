@@ -74,6 +74,7 @@ public class ContactConsumer
 
     public static async Task<ContactConsumer> CreateAsync(IConfiguration c, EmailService e)
     {
+
         ContactConsumer consumer = new(c, e);
 
         ConnectionFactory factory = new ConnectionFactory()
@@ -87,6 +88,7 @@ public class ContactConsumer
 
         while (repeat)
         {
+
             try{
                 repeat=false;
                 consumer.connection = await factory.CreateConnectionAsync();
@@ -108,6 +110,7 @@ public class ContactConsumer
 
     public async Task StopAsync()
     {
+        
         if (channel != null)
         {
             await channel.DisposeAsync();
@@ -122,44 +125,46 @@ public class ContactConsumer
 
     public async Task StartListening()
     {
+
         if (channel != null)
         {
             AsyncEventingBasicConsumer consumer = new AsyncEventingBasicConsumer(channel);
         
-        
+              
             consumer.ReceivedAsync += async (sender, input) =>
             {
 
-                if(sender is IChannel chn){
-
-                    byte[] body = input.Body.ToArray();
-                    string json = Encoding.UTF8.GetString(body);
-                    ConsumerMessage? msg = JsonSerializer.Deserialize<ConsumerMessage>(json);
-
-                    
-
-                    if (msg != null && !string.IsNullOrWhiteSpace(msg.Contact))
+                if (this.channel != null)
+                {
+                    try 
                     {
+                        byte[] body = input.Body.ToArray();
+                        string json = Encoding.UTF8.GetString(body);
+                        ConsumerMessage? msg = JsonSerializer.Deserialize<ConsumerMessage>(json);
 
-                        EmailAddressAttribute attribute = new EmailAddressAttribute();
-                        if (attribute.IsValid(msg.Contact)){
-
+                        if (msg != null && !string.IsNullOrWhiteSpace(msg.Contact))
+                        {
+                          
                             await email_service.SendEmail(msg.Contact, msg.Message, msg.Subject, msg.Name);
-
                         }
-                
 
-                    }  
-
-                    await chn.BasicAckAsync(input.DeliveryTag,false);    
-
-                }      
-
+                     
+                        await this.channel.BasicAckAsync(input.DeliveryTag, false);
+                        
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine(ex.ToString());
+                        
+                        await this.channel.BasicNackAsync(input.DeliveryTag, false, true);
+                    }
+                  
+                }
             };
+
 
             await channel!.BasicConsumeAsync(queue:rabbitmq!.queue!,autoAck:false,consumer:consumer);
 
-        
         }
          
 

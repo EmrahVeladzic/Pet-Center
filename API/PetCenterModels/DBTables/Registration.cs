@@ -7,6 +7,7 @@ using System.Text;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using PetCenterModels.ModelUtils;
 using PetCenterServices;
 
 namespace PetCenterModels.DBTables
@@ -32,6 +33,7 @@ namespace PetCenterModels.DBTables
 
         override public async Task StageDeletion<T>(PetCenterDBContext ctx, DbSet<T> set,CancellationToken cancel = default)
         {
+            DBUtils.EnsureInTransaction(ctx);
             if(await ctx.Accounts.FindAsync(Id,cancel) is Account a) { await a.StageDeletion<Account>(ctx, ctx.Accounts,cancel);}
             await base.StageDeletion<T>(ctx,set,cancel);
         }

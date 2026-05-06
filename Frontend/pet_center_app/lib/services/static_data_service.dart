@@ -33,8 +33,25 @@ List<LivingConditionEntrySubDTO> condition = [];
 List<ProcedureDTO> procedures = [];
 List<FranchiseResponseDTO> workplaces = [];
 
+Set<String> visitedAnnouncementIndices = {};
 Set<String> visitedNotifIndices = {};
 Set<String> visitedReportIndices = {};
+
+void clearStaticData() {
+  currentStaticDataVersion = StaticDataDTO();
+  kinds = [];
+  categories = [];
+  items = [];
+  self = null;
+  templates = [];
+  condition = [];
+  procedures = [];
+  workplaces = [];
+
+  visitedAnnouncementIndices = {};
+  visitedNotifIndices = {};
+  visitedReportIndices = {};
+}
 
 class StaticDataService {
   static Future<void> updateStaticData() async {
