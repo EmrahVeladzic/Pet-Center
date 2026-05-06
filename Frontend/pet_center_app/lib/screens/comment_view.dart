@@ -98,7 +98,7 @@ class _CommentViewScreenState extends State<CommentViewScreen> {
                     ),
                   );
                 },
-                child: Text('Delete'),
+                child: design.fittedText('Delete'),
               ),
             ] else ...[
               ElevatedButton(
@@ -112,7 +112,7 @@ class _CommentViewScreenState extends State<CommentViewScreen> {
                     ),
                   );
                 },
-                child: Text('Report'),
+                child: design.fittedText('Report'),
               ),
             ],
           ],

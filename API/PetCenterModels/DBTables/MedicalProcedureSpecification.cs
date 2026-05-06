@@ -6,6 +6,9 @@ using System.Linq;
 using System.Text;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
+using PetCenterModels.ModelUtils;
+using PetCenterServices;
 
 
 namespace PetCenterModels.DBTables
@@ -46,6 +49,16 @@ namespace PetCenterModels.DBTables
 
         [Column("IntervalDays")]
         public short? IntervalDays {get; set;}
+
+        public override async Task StageDeletion<T>(PetCenterDBContext ctx, DbSet<T> set, CancellationToken cancel = default)
+        {
+            DBUtils.EnsureInTransaction(ctx);
+            if (BreedId == null)
+            {
+                if(await ctx.MedicalProcedureSpecifications.Where(s=>s.KindId==KindId&&s.BreedId!=null&&s.ProcedureId==ProcedureId&&s.ApproximateAge==null).ToArrayAsync() is MedicalProcedureSpecification[] s){ctx.MedicalProcedureSpecifications.RemoveRange(s);}
+            }
+            await base.StageDeletion(ctx, set, cancel);
+        }
 
     }
 }

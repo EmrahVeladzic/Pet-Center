@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using PetCenterModels.ModelUtils;
 using PetCenterServices;
 
 namespace PetCenterModels.DBTables
@@ -28,6 +29,7 @@ namespace PetCenterModels.DBTables
 
         public virtual Task StageDeletion<T>(PetCenterDBContext ctx, DbSet<T> set, CancellationToken cancel = default) where T: BaseTableEntity
         {
+            DBUtils.EnsureInTransaction(ctx);
             set.Remove((T)this);
             return Task.CompletedTask;
         }

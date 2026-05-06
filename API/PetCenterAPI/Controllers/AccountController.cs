@@ -44,6 +44,33 @@ namespace PetCenterAPI.Controllers
             return true;
         }
 
+        [HttpGet("Count")]
+        [NonAction]
+        public override Task<IActionResult> Count([FromQuery] AccountSearchObject search)
+        {
+            throw new NotImplementedException();
+        }
+
+        [HttpGet("Transfer/{old_code}/{new_code}")]
+        public async Task<IActionResult> Transfer([FromRoute] int old_code, [FromRoute] int new_code)
+        {
+            if (TryGetUserId(out Guid id))
+            {
+                return ResultConverter.Convert<string>(await service.TransferAccount(id,old_code,new_code));
+            }
+            return StatusCode(401,"Invalid token.");
+        }
+
+        [HttpGet("RequestTransfer")]
+        public async Task<IActionResult> RequestTransfer()
+        {
+            if (TryGetUserId(out Guid id))
+            {
+                return ResultConverter.Convert<string>(await service.RequestAccountTransfer(id,null));
+            }
+            return StatusCode(401,"Invalid token.");
+        }
+
         [HttpGet]
         [Authorize(Roles ="Owner,Admin")]
         public override async Task<IActionResult>Get([FromQuery] AccountSearchObject search)
@@ -51,7 +78,6 @@ namespace PetCenterAPI.Controllers
             return await base.Get(search);
         }
        
-
         [HttpPost]
         [AllowAnonymous]
         public override async Task<IActionResult> Post([FromBody] AccountRequestDTO req)

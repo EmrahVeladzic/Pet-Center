@@ -72,7 +72,7 @@ class _DeletionDialogState extends State<DeletionDialog> {
               Navigator.of(context).pop();
               widget.deletionAction(banUser);
             },
-            child: design.textMarquee(
+            child: design.fittedText(
               widget.bannable && banUser ? 'Remove & Ban' : 'Remove',
             ),
           ),

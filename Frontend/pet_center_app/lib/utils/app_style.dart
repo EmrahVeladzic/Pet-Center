@@ -90,6 +90,10 @@ class ReactiveDesignSystem extends ThemeExtension<ReactiveDesignSystem> {
     );
   }
 
+  Widget fittedText(String text, [BoxFit fit = BoxFit.scaleDown]) {
+    return FittedBox(fit: fit, child: Text(text));
+  }
+
   Widget textMarquee(
     String text, [
     double? limit,
@@ -119,6 +123,7 @@ class ReactiveDesignSystem extends ThemeExtension<ReactiveDesignSystem> {
             text: text,
             velocity: marqueeSpeed,
             blankSpace: marqueeBlank,
+            style: TextStyle(fontSize: size),
           ),
         ),
       );

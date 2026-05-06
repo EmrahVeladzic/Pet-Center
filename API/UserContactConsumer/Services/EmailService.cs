@@ -74,7 +74,7 @@ namespace UserContactConsumer.Services
             {
                 smtp.port = pt;
             }
-
+            
         }
 
         public async Task SendEmail(string email,string message, string? subject, string? name)
@@ -100,17 +100,23 @@ namespace UserContactConsumer.Services
             msg.To.Add(new MailboxAddress(name, email));
             msg.Body = new TextPart("plain"){ Text = message };
 
+             
             using(SmtpClient client = new())
             {
                 try
                 {
+                   
                     MailKit.Security.SecureSocketOptions security = (smtp.port == 1025) 
                     ? MailKit.Security.SecureSocketOptions.None 
                     : MailKit.Security.SecureSocketOptions.StartTls;
 
+
                     await client.ConnectAsync(smtp.server, smtp.port.GetValueOrDefault(1025), security);
+                    
+             
                     if (!string.IsNullOrWhiteSpace(smtp.user) && !string.IsNullOrWhiteSpace(smtp.password))
                     {
+                    
                         await client.AuthenticateAsync(smtp.user, smtp.password);
                         await client.SendAsync(msg);
                     }

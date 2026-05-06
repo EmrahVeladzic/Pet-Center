@@ -2,29 +2,34 @@ import 'package:flutter/material.dart';
 
 import 'package:pet_center_app/utils/app_style.dart';
 
-class TextEntryDialog extends StatefulWidget {
+class DualTextEntryDialog extends StatefulWidget {
   final int limit;
   final String? dialogName;
-  final void Function(String value) callback;
+  final String? linkName;
+  final VoidCallback? linkCallback;
+  final void Function(String first, String second) callback;
   final bool hideText;
-  const TextEntryDialog({
+  const DualTextEntryDialog({
     super.key,
     required this.callback,
     this.limit = 75,
     this.hideText = false,
     this.dialogName,
+    this.linkName,
+    this.linkCallback,
   });
 
   @override
-  State<StatefulWidget> createState() => _TextEntryDialogState();
+  State<StatefulWidget> createState() => _DualTextEntryDialogState();
 }
 
-class _TextEntryDialogState extends State<TextEntryDialog> {
-  final TextEditingController _controller = TextEditingController();
-
+class _DualTextEntryDialogState extends State<DualTextEntryDialog> {
+  final TextEditingController _firstController = TextEditingController();
+  final TextEditingController _secondController = TextEditingController();
   void invokeCallback() async {
-    final text = _controller.text.trim();
-    widget.callback(text);
+    final firstText = _firstController.text.trim();
+    final secondText = _secondController.text.trim();
+    widget.callback(firstText, secondText);
   }
 
   @override
@@ -59,15 +64,39 @@ class _TextEntryDialogState extends State<TextEntryDialog> {
                 ColoredBox(
                   color: listTone,
                   child: TextField(
-                    controller: _controller,
-                    maxLines: (widget.hideText) ? 1 : null,
+                    controller: _firstController,
+                    maxLines: 1,
                     maxLength: widget.limit,
-                    minLines: (widget.hideText) ? 1 : dialogMinLines,
+                    minLines: 1,
                     keyboardType: TextInputType.multiline,
                     obscureText: widget.hideText,
                     decoration: InputDecoration(labelText: 'Text...'),
                   ),
                 ),
+                design.verticalGap(design.spacing / 2),
+                ColoredBox(
+                  color: listTone,
+                  child: TextField(
+                    controller: _secondController,
+                    maxLines: 1,
+                    maxLength: widget.limit,
+                    minLines: 1,
+                    keyboardType: TextInputType.multiline,
+                    obscureText: widget.hideText,
+                    decoration: InputDecoration(labelText: 'Text...'),
+                  ),
+                ),
+                if (widget.linkCallback != null) ...[
+                  design.verticalGap(design.spacing / 2),
+                  TextButton(
+                    onPressed: widget.linkCallback,
+                    child: design.fittedText(
+                      ((widget.linkName != null)
+                          ? widget.linkName!
+                          : 'Problem?'),
+                    ),
+                  ),
+                ],
               ],
             ),
           ),

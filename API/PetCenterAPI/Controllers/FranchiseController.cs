@@ -18,6 +18,12 @@ namespace PetCenterAPI.Controllers
 
         public FranchiseController(IFranchiseService s):base(s) { }
 
+        [HttpGet("Count")]
+        [NonAction]
+        public override Task<IActionResult> Count([FromQuery] FranchiseSearchObject search)
+        {
+            throw new NotImplementedException();
+        }
 
         [HttpPost]
         [Authorize(Roles = "Owner,Admin")]

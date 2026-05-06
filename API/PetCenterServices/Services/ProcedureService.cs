@@ -94,6 +94,17 @@ namespace PetCenterServices.Services
                 return ServiceOutput<ProcedureSpecificationSubDTO>.Error(HttpCode.NotFound,"The selected animal breed does not exist.");
             }
 
+            if(breed_id==null && age == null)
+            {
+                return ServiceOutput<ProcedureSpecificationSubDTO>.Error(HttpCode.BadRequest,"Kind-wide exemptions for a procedure are implied by default.");
+            }
+
+            else if(breed_id!=null && age == null && ! await dbContext.MedicalProcedureSpecifications.AnyAsync(p=>p.ProcedureId==procedure_id&&p.KindId == kind_id&&p.BreedId==null))
+            {
+                return ServiceOutput<ProcedureSpecificationSubDTO>.Error(HttpCode.BadRequest,"This kind is already exempt from the procedure. The breed-specific exemption does not make sense.");
+            }
+
+          
             MedicalProcedureSpecification? existing = await dbContext.MedicalProcedureSpecifications.FirstOrDefaultAsync(p=>p.ProcedureId==procedure_id&&p.KindId==kind_id&&p.BreedId==breed_id&&p.SexSpecific==sex_specific);
 
             if (existing != null)

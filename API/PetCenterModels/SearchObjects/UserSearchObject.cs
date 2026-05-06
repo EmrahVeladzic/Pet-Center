@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using PetCenterModels.DBTables;
 
@@ -13,6 +14,9 @@ namespace PetCenterModels.SearchObjects
         public string UserName { get; set; } = String.Empty;
 
         public Guid? EmployedBy {get; set;} = null;
+
+        [JsonIgnore]
+        public override int PageSize => int.MaxValue;
 
     }
 }

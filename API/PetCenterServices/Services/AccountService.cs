@@ -64,7 +64,7 @@ namespace PetCenterServices.Services
                 acc.Verified = true;
             }
 
-             using (IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync())
+            using (IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync())
             {
                 try
                 {
@@ -77,7 +77,7 @@ namespace PetCenterServices.Services
                     if (!acc.Verified)
                     {
                         Registration registration = new();
-                        registration.Expiry = DateTime.UtcNow.AddDays(7);
+                        registration.Expiry = DateTime.UtcNow.AddDays(1);
                         registration.NextAttempt = DateTime.UtcNow;
                         registration.Id = acc.Id;
                         registration.CodeSalt=Crypto.GenerateSalt();
@@ -113,6 +113,128 @@ namespace PetCenterServices.Services
             }
         }
 
+        public async Task<ServiceOutput<string>> TransferAccount(Guid token_holder, int old_code, int new_code)
+        {
+            ContactTransfer? ct = await dbContext.ContactTransfers.Include(c=>c.RelevantAccount).FirstOrDefaultAsync(c=>c.Id==token_holder);
+            if (ct == null)
+            {
+                return ServiceOutput<string>.Error(HttpCode.NotFound,"No pending contact transfer for this account found.");
+            }
+            if (ct.RelevantAccount == null)
+            {
+                return ServiceOutput<string>.Error(HttpCode.NotFound,"No account with this ID exists.");
+            }
+
+            using (IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync())
+            {
+                try
+                {
+                    string old_hash = Crypto.GenerateHash(old_code.ToString(),ct.OldCodeSalt);
+                    string new_hash = Crypto.GenerateHash(new_code.ToString(),ct.NewCodeSalt);
+
+                    if(old_hash!=ct.OldCodeHash || new_hash!= ct.NewCodeHash)
+                    {
+                        return ServiceOutput<string>.Error(HttpCode.BadRequest,"One or both of the sent codes are not correct.");
+                    }
+
+                    if (!ModelValidationUtils.ValidateContact(ct.NewContact))
+                    {
+                        return ServiceOutput<string>.Error(HttpCode.InternalError,"Internal server error.");
+                    }
+
+                    Account? acc = await dbSet.FirstOrDefaultAsync(a=>a.Contact==ct.NewContact);
+                    if (acc != null)
+                    {
+                        return ServiceOutput<string>.Error(HttpCode.Conflict,"An account with this contact already exists.");
+                    }
+
+                    ct.RelevantAccount.Contact=ct.NewContact;
+                    await dbContext.SaveChangesAsync();
+
+                    await ct.StageDeletion<ContactTransfer>(dbContext,dbContext.ContactTransfers);
+                    await dbContext.SaveChangesAsync();
+
+                    await tx.CommitAsync();
+                }
+                catch(Exception ex)
+                {
+                    await tx.RollbackAsync();
+                    return ServiceOutput<string>.FromException(ex);
+                }
+            }
+            
+            return ServiceOutput<string>.Success("Account transfered to new contact.");
+            
+
+        }
+
+        public async Task<ServiceOutput<string>> RequestAccountTransfer(Guid token_holder, string? contact_overwrite)
+        {
+            Account? acc = await dbSet.Include(a=>a.AccountUser).FirstOrDefaultAsync(a=>a.Id == token_holder);
+            ContactTransfer? ctf = await dbContext.ContactTransfers.FindAsync(token_holder);
+            if (acc == null)
+            {
+                return ServiceOutput<string>.Error(HttpCode.NotFound,"No account with this ID exists.");
+            }
+            if (acc.AccountUser == null)
+            {
+                return ServiceOutput<string>.Error(HttpCode.InternalError,"Internal server error.");
+            }
+            if (acc.Contact == contact_overwrite)
+            {
+                return ServiceOutput<string>.Error(HttpCode.Conflict,"You already use this contact.");
+            }
+            if(ctf==null && !ModelValidationUtils.ValidateContact(contact_overwrite))
+            {
+                return ServiceOutput<string>.Error(HttpCode.BadRequest,"Please provide a valid contact to transfer your account to.");
+            }
+            int old_code = Crypto.GenerateCode();
+            int new_code = Crypto.GenerateCode();
+            string old_salt= Crypto.GenerateSalt();
+            string new_salt= Crypto.GenerateSalt();
+            string old_hash = Crypto.GenerateHash(old_code.ToString(),old_salt);
+            string new_hash = Crypto.GenerateHash(new_code.ToString(),new_salt);
+            DateTime expiry = DateTime.UtcNow.AddHours(6);
+            ContactTransfer transfer=new();
+            try{
+                
+                if (ctf == null)
+                {
+                    transfer.Id=token_holder;
+                    transfer.NewContact=contact_overwrite!;
+                    transfer.Expiry = expiry;
+                    transfer.OldCodeSalt=old_salt;
+                    transfer.OldCodeHash=old_hash;
+                    transfer.NewCodeSalt=new_salt;
+                    transfer.NewCodeHash=new_hash;
+                    await dbContext.ContactTransfers.AddAsync(transfer);
+                }
+                else
+                {                   
+                    if (ModelValidationUtils.ValidateContact(contact_overwrite))
+                    {                       
+                        ctf.NewContact=contact_overwrite!;
+                    }
+                    ctf.Expiry=expiry;
+                    ctf.OldCodeSalt=old_salt;
+                    ctf.OldCodeHash=old_hash;
+                    ctf.NewCodeSalt=new_salt;
+                    ctf.NewCodeHash=new_hash;
+
+                    transfer=ctf;
+                }
+                await dbContext.SaveChangesAsync();
+            }
+            catch(Exception ex)
+            {
+                return ServiceOutput<string>.FromException(ex);
+            }
+            await message_bus_client.SendEmailMessage(new ConsumerMessage(){Contact=acc.Contact,Message=$"Your first transfer code is {old_code}.",Subject="Account transfer",Name=acc.AccountUser.UserName});
+            await message_bus_client.SendEmailMessage(new ConsumerMessage(){Contact=transfer.NewContact,Message=$"Your second transfer code is {new_code}.",Subject="Account transfer",Name=acc.AccountUser.UserName});
+
+            return ServiceOutput<string>.Success("Your account transfer code pair will be sent shortly.");
+        }
+
         public override async Task<ServiceOutput<AccountResponseDTO>> Put(Guid token_holder,AccountRequestDTO req)
         {      
 
@@ -124,7 +246,14 @@ namespace PetCenterServices.Services
                 bool updated_contact = false;
                 bool updated_password = false;
 
+                if (ModelValidationUtils.ValidateContact(req.Contact))
+                {
+                    ServiceOutput<string> s_out = await RequestAccountTransfer(token_holder,req.Contact);
+                    
+                    updated_contact = ServiceOutput<string>.IsSuccess(s_out);
 
+                    if(string.IsNullOrWhiteSpace(req.Password)){return ServiceOutput<AccountResponseDTO>.Error(s_out.Code,s_out.ErrorMessage!);}
+                }
                 
 
                 if (!string.IsNullOrWhiteSpace(req.Password))
@@ -133,32 +262,38 @@ namespace PetCenterServices.Services
                     acc.PasswordHash = Utils.Crypto.GenerateHash(req.Password!, acc.PasswordSalt!);
                     updated_password = true;
                 }
-                
-
-
-                using (IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync())
+                else
                 {
-                    try
+                    if (string.IsNullOrEmpty(req.Contact))
                     {
-                        acc.CurrentVersion=req.CurrentVersion;
-                        await dbContext.SaveChangesAsync();
-                        await tx.CommitAsync();
+                        if(string.IsNullOrWhiteSpace(req.Password)){return ServiceOutput<AccountResponseDTO>.Error(HttpCode.BadRequest,"You cannot have an empty password.");}
                     }
-                    catch(Exception ex)
-                    {
-                        await tx.RollbackAsync();
-                        return ServiceOutput<AccountResponseDTO>.FromException(ex);
-                    }
+                } 
+
+                
+               
+                try
+                {
+                    acc.CurrentVersion=req.CurrentVersion;
+                    await dbContext.SaveChangesAsync();
+                       
                 }
+                catch(Exception ex)
+                {
+                        
+                    return ServiceOutput<AccountResponseDTO>.FromException(ex);
+                }
+                
                 
                 AccountResponseDTO output = AccountResponseDTO.FromEntity(acc)!;
 
                 output.Notes = new();
 
+                const string pending = "pending.";
                 const string changed = "changed.";
                 const string unchanged = "unchanged.";
 
-                output.Notes.Add(new NoteSubDTO{Title="Updates",Body=$"Contact - {(updated_contact? changed:unchanged)} Password - {(updated_password? changed: unchanged)}"});
+                output.Notes.Add(new NoteSubDTO{Title="Updates",Body=$"Contact - {(updated_contact? pending:unchanged)} Password - {(updated_password? changed: unchanged)}"});
                 
                 return ServiceOutput<AccountResponseDTO>.Success(output);
 
@@ -264,7 +399,7 @@ namespace PetCenterServices.Services
             int code = Utils.Crypto.GenerateCode();
             string salt=Crypto.GenerateSalt();
             string hash=Crypto.GenerateHash(code.ToString(),salt);
-            DateTime expiry = DateTime.UtcNow.AddHours(6);
+            DateTime expiry = DateTime.UtcNow.AddHours(3);
 
             if (temp!=null){
                 temp.CodeHash=hash;
