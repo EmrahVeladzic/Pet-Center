@@ -7,6 +7,7 @@ using System.Text;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using PetCenterModels.ModelUtils;
 using PetCenterServices;
 
 namespace PetCenterModels.DBTables
@@ -35,6 +36,10 @@ namespace PetCenterModels.DBTables
         [JsonIgnore]
         public string PasswordSalt { get; set; } = string.Empty;
 
+        [Column("RegistrationDate")]
+        [JsonIgnore]
+        public DateTime RegistrationDate {get; set;} = DateTime.UtcNow;
+
         [Column("AccessLevel")]
         [JsonIgnore]
         public Access AccessLevel { get; set; }
@@ -48,6 +53,7 @@ namespace PetCenterModels.DBTables
 
         public override async Task StageDeletion<T>(PetCenterDBContext ctx, DbSet<T> set, CancellationToken cancel = default)
         {
+            DBUtils.EnsureInTransaction(ctx);
             if(await ctx.Users.FindAsync(Id,cancel) is User u) {await u.StageDeletion<User>(ctx, ctx.Users,cancel);  ctx.Users.Remove(u);}
             if(await ctx.Albums.Where(a=>a.PosterID==Id).ToArrayAsync(cancel) is Album[]a){ctx.Albums.RemoveRange(a);}
             await base.StageDeletion<T>(ctx,set,cancel);

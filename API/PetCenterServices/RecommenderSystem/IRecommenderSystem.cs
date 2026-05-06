@@ -19,9 +19,10 @@ namespace PetCenterServices.Recommender
     {
        
         public Task<IQueryable<Breed>> GetMostCompatibleBreeds(PetCenterDBContext ctx, IQueryable<Breed> filter, User user);
-        public Task RecommendListingToUsers(PetCenterDBContext ctx, Discount discount);
+        public Task RecommendListingToUsers(PetCenterDBContext ctx, Listing listing);
         public Task<List<NoteSubDTO>> AddNotesToPet(PetCenterDBContext ctx, Individual pet);
         public Task<NoteSubDTO> AddUsageInfoToProductListing(PetCenterDBContext ctx, ProductListing listing,int usage, int supplies);
+        public Task<List<NoteSubDTO>> AddInfoToMedicalListing(PetCenterDBContext ctx, MedicalListing listing, List<Individual> animals);
         public Task<NoteSubDTO> ShoppingList(PetCenterDBContext ctx, Guid UserId);
 
     }

@@ -20,17 +20,25 @@ namespace PetCenterAPI.Controllers
         public IndividualController(IIndividualService s):base(s) { }
 
       
+        [HttpGet("Count")]
+        [NonAction]
+        public override Task<IActionResult> Count([FromQuery] IndividualSearchObject search)
+        {
+            throw new NotImplementedException();
+        }
 
         [Authorize(Roles ="Employee,User")]
         [HttpPost]
         public override async Task<IActionResult> Post([FromBody] IndividualRequestDTO ent)
         {
+            ent.AuthoritySpecifier=SpecifySearchAuthority();
             return await base.Post(ent);
         }
         [Authorize(Roles ="Employee,User")]
         [HttpPut("{id}")]
         public override async Task<IActionResult> Put([FromRoute] Guid id, [FromBody] IndividualRequestDTO ent)
         {
+            ent.AuthoritySpecifier=SpecifySearchAuthority();
             return await base.Put(id, ent);
         }
         [Authorize(Roles ="Employee,User")]

@@ -20,6 +20,7 @@ namespace PetCenterModels.DataTransferObjects
 
         public List<NoteSubDTO>? Notes {get; set;} = null;
 
+        [MaxLength(30)]
         public string Title {get; set;} = string.Empty;
 
         public List<BreedDTO> Breeds {get; set;} = new();

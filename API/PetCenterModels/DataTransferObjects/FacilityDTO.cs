@@ -8,6 +8,8 @@ using System.Linq;
 using System.Text;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
+using PetCenterModels.ModelUtils;
+
 
 namespace PetCenterModels.DataTransferObjects
 {
@@ -22,10 +24,13 @@ namespace PetCenterModels.DataTransferObjects
 
         public Guid OwningFranchise {get; set;} = Guid.Empty;
 
+        [MaxLength(150)]
         public string Street {get; set;} = string.Empty;
 
+        [MaxLength(100)]
         public string City {get; set;} = string.Empty;
 
+        [MaxLength(255)]
         public string? Contact {get; set;} = null;
 
 
@@ -58,8 +63,8 @@ namespace PetCenterModels.DataTransferObjects
         public bool Validate()
         {
             Contact=Contact?.ToLowerInvariant();
-            EmailAddressAttribute e = new();
-            return(e.IsValid(Contact)&&!string.IsNullOrWhiteSpace(City)&&!string.IsNullOrWhiteSpace(Street)&&!(OwningFranchise==Guid.Empty));
+            
+            return(ModelValidationUtils.ValidateContact(Contact)&&!string.IsNullOrWhiteSpace(City)&&!string.IsNullOrWhiteSpace(Street)&&!(OwningFranchise==Guid.Empty));
         }
 
 

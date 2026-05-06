@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using PetCenterModels.ModelUtils;
 using PetCenterServices;
 
 namespace PetCenterModels.DBTables
@@ -36,6 +37,7 @@ namespace PetCenterModels.DBTables
 
         public override async Task StageDeletion<T>(PetCenterDBContext ctx, DbSet<T> set,CancellationToken cancel = default)
         {
+            DBUtils.EnsureInTransaction(ctx);
             if(await ctx.ProductListings.Where(p=>p.ProductId==Id).ToListAsync(cancel) is List<ProductListing> p){foreach(ProductListing pl in p){await pl.StageDeletion<ProductListing>(ctx,ctx.ProductListings,cancel);}}
             await base.StageDeletion(ctx, set,cancel);
         }

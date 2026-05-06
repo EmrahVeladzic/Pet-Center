@@ -79,14 +79,18 @@ namespace PetCenterServices.Recommender
             return filter.OrderBy(expression);
         }
 
-        public async Task RecommendListingToUsers(PetCenterDBContext ctx, Discount discount)
-        {
-            ProductListing? listing = await ctx.ProductListings.Include(l=>l.Product).FirstOrDefaultAsync(l=>l.Id == discount.ListingId);
-            if (listing != null && listing.Product!=null)
+        public async Task RecommendListingToUsers(PetCenterDBContext ctx,Listing listing)
+        {         
+            if(listing.Type!=ListingType.Product||!listing.Visible||!listing.Approved){return;}
+            listing.ProductExtension=await ctx.ProductListings.Include(pl=>pl.Product).FirstOrDefaultAsync(pl=>pl.Id==listing.Id);
+            listing.ListingDiscount=await ctx.Discounts.FirstOrDefaultAsync(d=>d.ListingId==listing.Id);
+
+
+            if (listing.ProductExtension != null && listing.ProductExtension.Product!=null)
             {
-                string ProductTitle = listing.Product.Title.ToLowerInvariant();
-                List<Wishlist> wishlists = await ctx.Wishlists.Include(w=>w.RelevantUser).ThenInclude(r=>r.OwnedAnimals).ThenInclude(o=>o.AnimalBreed).Where(w=>ProductTitle.Contains(w.Term.ToLower())).ToListAsync();
-                wishlists = wishlists.Where(w=>w.RelevantUser!=null && w.RelevantUser.OwnedAnimals.Any(o=>o.AnimalBreed!=null && (listing.Product.TargetKind==null ||o.AnimalBreed.KindId==listing.Product.KindId) && (listing.Product.TargetScale==null||listing.Product.TargetScale==o.AnimalBreed.Scale))).ToList();
+                string ProductTitle = listing.ProductExtension.Product.Title.ToLowerInvariant();
+                List<Wishlist> wishlists = await ctx.Wishlists.Include(w=>w.RelevantUser).ThenInclude(r=>r.OwnedAnimals).ThenInclude(o=>o.AnimalBreed).Where(w=>ProductTitle.Contains(w.Term.ToLower())).Include(w=>w.RelevantUser).ThenInclude(r=>r.Notifications).ToListAsync();
+                wishlists = wishlists.Where(w=>w.RelevantUser!=null && !w.RelevantUser.Notifications.Any(n=>n.ListingId==listing.Id)  && w.RelevantUser.OwnedAnimals.Any(o=>o.AnimalBreed!=null && (listing.ProductExtension.Product.TargetKind==null ||o.AnimalBreed.KindId==listing.ProductExtension.Product.KindId) && (listing.ProductExtension.Product.TargetScale==null||listing.ProductExtension.Product.TargetScale==o.AnimalBreed.Scale))).ToList();
 
 
                 int progress = 0;
@@ -95,13 +99,24 @@ namespace PetCenterServices.Recommender
                     Notification notif = new();
                     notif.UserId=w.UserId;
                     notif.FranchiseId=null;
-                    notif.ListingId = discount.ListingId;
-                    notif.Expiry=discount.Expiry;
-                    notif.Title = $"Discount - {w.Term}";
-                    notif.Body = $"A new discount of {(int)discount.PercentDiscount}% has been applied to a product you might want.";
-                    
-                    await ctx.Notifications.AddAsync(notif);
+                    notif.ListingId = listing.Id;
 
+                    if (listing.ListingDiscount != null)
+                    {
+                 
+                        notif.Expiry=listing.ListingDiscount.Expiry;
+                        notif.Title = $"Discount - {w.Term}";
+                        notif.Body = $"A new discount of {(int)listing.ListingDiscount.PercentDiscount}% has been applied to a product you might want.";
+                    
+                    }
+                    else
+                    {
+                        notif.Expiry=DateTime.UtcNow.AddDays(3);
+                        notif.Title=$"New listing - {w.Term}";
+                        notif.Body=$"A new listing including the term \"{w.Term}\" that you may be interested in has just been made visible.";
+                    }
+
+                    await ctx.Notifications.AddAsync(notif);
                     progress++;
                     if (progress >= 100)
                     {
@@ -193,6 +208,59 @@ namespace PetCenterServices.Recommender
             
             return Task.FromResult<NoteSubDTO>(output);
             
+        }
+
+        public async Task<List<NoteSubDTO>> AddInfoToMedicalListing(PetCenterDBContext ctx, MedicalListing listing, List<Individual> animals)
+        {
+            List<NoteSubDTO> output = new();
+           
+
+            Procedure? proc = await ctx.MedicalProcedures.Include(p=>p.Specifications).FirstOrDefaultAsync(p=>p.Id==listing.ProcedureId);
+
+            if (proc != null && animals.Count>0)
+            {       
+
+                HashSet<Guid> ids = animals.Select(a=>a.Id).ToHashSet();                        
+
+                List<Individual> potential = await ctx.IndividualAnimals
+                .Include(i => i.MedicalRecord).Include(i=>i.AnimalBreed).Where(a=>ids.Contains(a.Id))              
+                .Where(a => ctx.MedicalProcedureSpecifications
+                    .Any(s => s.ProcedureId == listing.ProcedureId
+                        && (s.BreedId == a.BreedId || s.KindId==a.AnimalBreed.KindId) && s.ApproximateAge!=null))
+                .ToListAsync();
+
+                foreach(Individual animal in potential)
+                {
+                    MedicalProcedureSpecification? spec = proc.Specifications.FirstOrDefault(s=>s.BreedId==animal.BreedId && (s.SexSpecific==animal.Sex||s.SexSpecific==null));
+                    if (spec == null)
+                    {
+                        spec = proc.Specifications.FirstOrDefault(s=>s.KindId==animal.AnimalBreed?.KindId && (s.SexSpecific==animal.Sex||s.SexSpecific==null));
+                    }
+                    if(spec!=null && spec.ApproximateAge!=null){
+                    
+                        int age_days = (DateTime.UtcNow-animal.BirthDate).Days;
+                        MedicalRecordEntry? ent = animal.MedicalRecord.FirstOrDefault(m=>m.ProcedureId==listing.ProcedureId);
+                        bool make_note = false;
+                        if (ent == null)
+                        {
+                            make_note=age_days>=spec.ApproximateAge;
+                        }
+                        else if (ent!=null && spec.IntervalDays != null)
+                        {
+                            int proc_days = (DateTime.UtcNow-ent.DatePerformed).Days;
+                            make_note=proc_days>=spec.IntervalDays;
+                        }
+
+                        if (make_note)
+                        {
+                            output.Add(new NoteSubDTO{Title=$"Note ({animal.Name}): ",Body=$"{animal.Name} {((spec.Optional)? "might want to ":"should ")}have this procedure performed soon."});
+                        }
+                    }
+
+                }
+            }
+        
+            return output;
         }
         
         public async Task<NoteSubDTO> ShoppingList(PetCenterDBContext ctx, Guid UserId){

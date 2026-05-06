@@ -138,10 +138,13 @@ namespace PetCenterModels.DataTransferObjects
 
         public byte[] CurrentVersion { get; set; } = Array.Empty<byte>();
 
+        public Guid ListingId {get; set;} = Guid.Empty;
+
         public Guid PosterId {get; set;} = Guid.Empty;
 
         public string PosterName {get; set;} = string.Empty;
 
+        [MaxLength(150)]
         public string Contents {get; set;} = string.Empty;
 
         public List<NoteSubDTO>? Notes {get; set;} = null;
@@ -153,6 +156,7 @@ namespace PetCenterModels.DataTransferObjects
             {
                 Id=entity.Id,
                 CurrentVersion=entity.CurrentVersion,
+                ListingId=entity.ListingId,
                 PosterId=entity.PosterId,
                 PosterName="Anonymous",
                 Contents=entity.Message
@@ -193,8 +197,8 @@ namespace PetCenterModels.DataTransferObjects
                 CurrentVersion=entity.CurrentVersion,
                 FacilityId=entity.FacilityId,
                 Contact="No contact provided.",
-                City=entity.RelevantFacility.City="No city provided.",
-                Street=entity.RelevantFacility.Street="No street provided."
+                City="No city provided.",
+                Street="No street provided."
 
             };
 

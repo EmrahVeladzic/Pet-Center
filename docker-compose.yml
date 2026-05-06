@@ -1,6 +1,6 @@
 services:
   mssql:
-    image: mcr.microsoft.com/mssql/server:2022-latest
+    image: mcr.microsoft.com/mssql/server:2022-CU14-ubuntu-22.04
     container_name: mssql
     environment:
       - ACCEPT_EULA=Y    
@@ -11,7 +11,7 @@ services:
       - mssql_data:/var/opt/mssql
     healthcheck:
       test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P \"$${SA_PASSWORD}\" -C -Q 'SELECT 1'"]
-      interval: 20s
+      interval: 5s
       retries: 15
     networks:
       - petcenter-network
@@ -23,7 +23,7 @@ services:
           memory: ${MSSQL_MEM_RESERVE:-2G}
 
   mssql-init:
-    image: mcr.microsoft.com/mssql/server:2022-latest
+    image: mcr.microsoft.com/mssql/server:2022-CU14-ubuntu-22.04
     depends_on:
       mssql:
         condition: service_healthy
@@ -39,7 +39,7 @@ services:
       - petcenter-network
 
   rabbitmq:
-    image: rabbitmq:3-management
+    image: rabbitmq:3.13.7-management
     container_name: rabbitmq
     environment:
       - RABBITMQ_DEFAULT_USER=${RABBITMQ_USERNAME}
@@ -55,6 +55,11 @@ services:
           memory: ${RABBITMQ_MEM_LIMIT:-512M}
         reservations:
           memory: ${RABBITMQ_MEM_RESERVE:-256M}
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_running"]
+      interval: 5s
+      timeout: 5s
+      retries: 15
 
 
   #petcenter-api:
@@ -88,6 +93,9 @@ services:
       context: .
       dockerfile: API/UserContactConsumer/Dockerfile
     environment:
+      - DOTNET_SYSTEM_CONSOLE_ALLOW_ANSI_COLOR_REDIRECTION=true
+      - DOTNET_RUNNING_IN_CONTAINER=true
+      - STDOUT_LOGGING=true
       - RABBITMQ_HOSTNAME=${RABBITMQ_HOSTNAME}
       - RABBITMQ_QUEUENAME=${RABBITMQ_QUEUENAME}
       - RABBITMQ_USERNAME=${RABBITMQ_USERNAME}
@@ -98,7 +106,8 @@ services:
       - SMTP_PORT=${SMTP_PORT}
       - APP_EMAIL=${APP_EMAIL}      
     depends_on:
-      - rabbitmq
+        rabbitmq:
+          condition: service_healthy
     networks:
       - petcenter-network
     deploy:
@@ -109,7 +118,7 @@ services:
           memory: ${CONSUMER_MEM_RESERVE:-128M}
 
   mailhog:
-    image: mailhog/mailhog:latest
+    image: mailhog/mailhog:v1.0.1
     container_name: mailhog
     environment:
       - MH_STORAGE=memory
