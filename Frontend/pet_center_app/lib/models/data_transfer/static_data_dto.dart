@@ -16,6 +16,8 @@ class StaticDataDTO {
 
   String announcementVersion;
 
+  String reportVersion;
+
   String formTemplateVersion;
 
   String livingConditionVersion;
@@ -31,6 +33,7 @@ class StaticDataDTO {
     this.productVersion = '',
     this.usageVersion = '',
     this.announcementVersion = '',
+    this.reportVersion = '',
     this.formTemplateVersion = '',
     this.livingConditionVersion = '',
     this.procedureVersion = '',

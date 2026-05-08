@@ -60,7 +60,7 @@ namespace PetCenterServices.Services
 
                 if(ent!=null){
 
-                    using (IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync())
+                await using(IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync())
                     {
                         try
                         {

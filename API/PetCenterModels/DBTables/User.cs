@@ -22,6 +22,9 @@ namespace PetCenterModels.DBTables
         [Column("UserName")]
         public string UserName { get; set; } = string.Empty;
 
+        [Column("UserState")]
+        public Guid UserState {get; set;} = Guid.NewGuid();
+
         [InverseProperty(nameof(Individual.Owner))]
         public List<Individual> OwnedAnimals {get; set;} = new();
 

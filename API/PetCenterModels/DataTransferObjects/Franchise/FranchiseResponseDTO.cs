@@ -18,11 +18,9 @@ namespace PetCenterModels.DataTransferObjects
 
         public byte[] CurrentVersion { get; set; } = Array.Empty<byte>();
         public string? FranchiseName { get; set; }
-        public string? Contact { get; set; }
-    
-        public Guid AlbumId {get; set;}
+        public string? Contact { get; set; }   
 
-        public List<ImageDTO?>? Images { get; set; }
+        public List<FacilityDTO> Facilities {get; set;} = new List<FacilityDTO>();
 
         public List<NoteSubDTO>? Notes {get; set;}
 
@@ -38,7 +36,10 @@ namespace PetCenterModels.DataTransferObjects
                 CurrentVersion=model.CurrentVersion,
                 FranchiseName = model.FranchiseName,
                 Contact = model.Contact,
+                Facilities = model.Facilities.Select(e=>FacilityDTO.FromEntity(e)!).ToList()
             };
+
+            
         }
 
 
@@ -46,16 +47,23 @@ namespace PetCenterModels.DataTransferObjects
         {
             if(model==null){return null;}
 
-            return new FranchiseResponseDTO
+            FranchiseResponseDTO output = new FranchiseResponseDTO
             {
                 Id = model.Id,
                 CurrentVersion=model.CurrentVersion,
                 FranchiseName = model.FranchiseName,
                 Contact = model.Contact,  
-                Owned = owned             
+                Owned = owned,
+                
+                         
             };
 
-          
+            if (output.Owned==true)
+            {
+                output.Facilities = model.Facilities.Select(e=>FacilityDTO.FromEntity(e)!).ToList();
+            }
+
+            return output;
         }
     }
 

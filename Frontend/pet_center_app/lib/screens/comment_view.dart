@@ -5,7 +5,7 @@ import 'package:pet_center_app/screens/components/deletion_dialog.dart';
 import 'package:pet_center_app/screens/components/report_dialog.dart';
 import 'package:pet_center_app/services/account_service.dart';
 import 'package:pet_center_app/services/listing_service.dart';
-import 'package:pet_center_app/services/static_data_service.dart';
+import 'package:pet_center_app/services/static_user_data_service.dart';
 
 import 'package:pet_center_app/utils/app_style.dart';
 import 'package:pet_center_app/utils/jwt_parser.dart';

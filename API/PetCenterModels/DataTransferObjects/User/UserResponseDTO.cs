@@ -100,11 +100,13 @@ namespace PetCenterModels.DataTransferObjects
         public string? UserName {get; set;}
         public List<NoteSubDTO>? Notes {get; set;}
 
-        public List<AnnouncementSubDTO>? Announcements {get; set;} = null;
+        public List<NotificationSubDTO>? Notifications {get; set;} = null;  
 
-        public List<NotificationSubDTO>? Notifications {get; set;} = null;
+        public List<SuppliesSubDTO>? UserSupplies {get; set;} = null; 
 
-        public List<ReportResponseSubDTO>? Reports {get; set;} = null;
+        public List<FranchiseResponseDTO>? Workplaces {get; set;} = null;
+
+        public List<IndividualResponseDTO>? OwnedAnimals {get; set;} = null;
 
         public bool MatureAccount {get; set;} = false;
 

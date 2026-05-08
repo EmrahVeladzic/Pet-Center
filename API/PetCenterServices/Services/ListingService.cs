@@ -265,8 +265,24 @@ namespace PetCenterServices.Services
                 
                 if(authorization_level==Access.Admin || comment.PosterId == token_holder)
                 {
-                    await comment.StageDeletion<Comment>(dbContext,dbContext.Comments);
-                    await dbContext.SaveChangesAsync();
+                await using(IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync())
+                    {
+
+                        try
+                        {
+                        
+
+                            await comment.StageDeletion<Comment>(dbContext,dbContext.Comments);
+                            await dbContext.SaveChangesAsync();
+                            await tx.CommitAsync();
+
+                        }
+                        catch(Exception ex)
+                        {
+                            await tx.RollbackAsync();
+                            return ServiceOutput<object>.FromException(ex);
+                        }
+                    }
                 }
                 else
                 {
@@ -393,6 +409,8 @@ namespace PetCenterServices.Services
             await dbContext.Reports.AddAsync(new_report);
             await dbContext.SaveChangesAsync();
 
+            StaticDataVersionHolder.ReportVersion=Guid.NewGuid();
+
             return ServiceOutput<ReportResponseSubDTO>.Success(ReportResponseSubDTO.FromEntity(new_report),HttpCode.Created);
 
         }
@@ -425,7 +443,7 @@ namespace PetCenterServices.Services
                 return ServiceOutput<DiscountResponseSubDTO>.Error(HttpCode.Conflict,"You may not apply new discounts while there are active discounts present.");
             }
 
-            using (IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync())
+        await using(IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync())
             {
 
                 try
@@ -505,7 +523,7 @@ namespace PetCenterServices.Services
             if(lst!=null && ((lst.Type==ListingType.Product&&plst!=null)||(lst.Type==ListingType.Medical&&mlst!=null)||(lst.Type==ListingType.Pet&&alst!=null)))
             {
 
-                using(IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync())
+                await using(IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync())
                 {
                     try
                     {
@@ -560,7 +578,7 @@ namespace PetCenterServices.Services
 
             if (listing != null)
             {
-                using(IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync())
+                await using(IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync())
                 {
                     try
                     {

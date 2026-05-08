@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:pet_center_app/models/data_transfer/user/user_response_dto.dart';
 import 'package:pet_center_app/models/enums.dart';
 import 'package:pet_center_app/screens/components/announcement_card.dart';
-import 'package:pet_center_app/services/static_data_service.dart';
+import 'package:pet_center_app/services/static_user_data_service.dart';
 import 'package:pet_center_app/utils/hive_cache.dart';
 
 class AnnouncementPage extends StatefulWidget {
@@ -27,7 +27,7 @@ class _AnnouncementPageState extends State<AnnouncementPage>
   }
 
   void load() async {
-    final data = self?.announcements ?? [];
+    final data = announcements;
     final visited = await CacheManager.getAll(CacheEntityType.announcement);
     if (mounted) {
       setState(() {

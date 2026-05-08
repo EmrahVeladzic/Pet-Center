@@ -76,7 +76,7 @@ namespace PetCenterServices.Services
             };
 
 
-            using (IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync())
+        await using(IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync())
             {
                 try
                 {                 
@@ -106,7 +106,7 @@ namespace PetCenterServices.Services
             franch.Contact = req.Contact;
             franch.FranchiseName = req.FranchiseName;
 
-            using (IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync())
+        await using(IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync())
             {
                 try
                 {

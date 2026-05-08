@@ -79,6 +79,8 @@ namespace PetCenterAPI.Controllers
             return StatusCode(401,"Invalid token.");
         }
 
+      
+
         [Authorize(Roles ="Employee")]
         [HttpPut("Available/{listing_id}/{facility_id}")]
         public async Task<IActionResult> SetAvailability([FromRoute] Guid listing_id,[FromRoute] Guid facility_id, [FromQuery] bool add_remove)
@@ -91,7 +93,7 @@ namespace PetCenterAPI.Controllers
         }
 
         [Authorize(Roles ="Employee,User")]
-        [HttpPut("Report/{listing_id}")]
+        [HttpPost("Report/{listing_id}")]
         public async Task<IActionResult> ReportMisuse([FromRoute] Guid listing_id,[FromQuery] Guid? comment_id, [FromQuery] string Reason)
         {
             if(TryGetUserId(out Guid user_id))

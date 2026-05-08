@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:pet_center_app/utils/app_style.dart';
+import 'package:pet_center_app/utils/globals.dart';
 
 class DualTextEntryDialog extends StatefulWidget {
   final int limit;
@@ -9,6 +10,8 @@ class DualTextEntryDialog extends StatefulWidget {
   final VoidCallback? linkCallback;
   final void Function(String first, String second) callback;
   final bool hideText;
+  final String? firstDecor;
+  final String? secondDecor;
   const DualTextEntryDialog({
     super.key,
     required this.callback,
@@ -17,6 +20,8 @@ class DualTextEntryDialog extends StatefulWidget {
     this.dialogName,
     this.linkName,
     this.linkCallback,
+    this.firstDecor,
+    this.secondDecor,
   });
 
   @override
@@ -44,9 +49,7 @@ class _DualTextEntryDialogState extends State<DualTextEntryDialog> {
         title: Row(
           children: [
             Expanded(
-              child: design.textMarquee(
-                '${(widget.dialogName != null) ? widget.dialogName : 'Enter:'}:',
-              ),
+              child: design.textMarquee('${widget.dialogName ?? 'Enter:'}:'),
             ),
             IconButton(
               icon: const Icon(Icons.close),
@@ -70,7 +73,9 @@ class _DualTextEntryDialogState extends State<DualTextEntryDialog> {
                     minLines: 1,
                     keyboardType: TextInputType.multiline,
                     obscureText: widget.hideText,
-                    decoration: InputDecoration(labelText: 'Text...'),
+                    decoration: InputDecoration(
+                      labelText: widget.firstDecor ?? 'Text...',
+                    ),
                   ),
                 ),
                 design.verticalGap(design.spacing / 2),
@@ -83,18 +88,20 @@ class _DualTextEntryDialogState extends State<DualTextEntryDialog> {
                     minLines: 1,
                     keyboardType: TextInputType.multiline,
                     obscureText: widget.hideText,
-                    decoration: InputDecoration(labelText: 'Text...'),
+                    decoration: InputDecoration(
+                      labelText: widget.secondDecor ?? 'Text...',
+                    ),
                   ),
                 ),
                 if (widget.linkCallback != null) ...[
                   design.verticalGap(design.spacing / 2),
                   TextButton(
-                    onPressed: widget.linkCallback,
-                    child: design.fittedText(
-                      ((widget.linkName != null)
-                          ? widget.linkName!
-                          : 'Problem?'),
-                    ),
+                    onPressed: () {
+                      if (widget.linkCallback != null && !apiServiceBusy) {
+                        widget.linkCallback!();
+                      }
+                    },
+                    child: design.fittedText((widget.linkName ?? 'Problem?')),
                   ),
                 ],
               ],
@@ -104,6 +111,9 @@ class _DualTextEntryDialogState extends State<DualTextEntryDialog> {
         actions: [
           ElevatedButton(
             onPressed: () {
+              if (apiServiceBusy) {
+                return;
+              }
               Navigator.of(context).pop();
               invokeCallback();
             },

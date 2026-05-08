@@ -3,7 +3,7 @@ import 'package:pet_center_app/models/data_transfer/user/user_response_dto.dart'
 import 'package:pet_center_app/models/enums.dart';
 import 'package:pet_center_app/screens/components/notification_card.dart';
 import 'package:pet_center_app/screens/notification_view.dart';
-import 'package:pet_center_app/services/static_data_service.dart';
+import 'package:pet_center_app/services/static_user_data_service.dart';
 import 'package:pet_center_app/utils/hive_cache.dart';
 
 class NotificationPage extends StatefulWidget {

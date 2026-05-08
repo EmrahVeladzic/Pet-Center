@@ -38,8 +38,9 @@ namespace PetCenterServices.Workers
 
         }
 
-        private async Task CleanupEntity<TEntity>(PetCenterDBContext dBContext,DbSet<TEntity> set,CancellationToken stoppingToken) where TEntity : ExpirableTableEntity
+        private async Task<bool> CleanupEntity<TEntity>(PetCenterDBContext dBContext,DbSet<TEntity> set,CancellationToken stoppingToken) where TEntity : ExpirableTableEntity
         {
+            bool had_work = false;
             bool proceed = true;
             while(proceed && !stoppingToken.IsCancellationRequested)
             {
@@ -49,6 +50,10 @@ namespace PetCenterServices.Workers
                     {
                         List<TEntity> expired = await set.Where(e=>e.Expiry<DateTime.UtcNow).OrderBy(e=>e.Id).Take(50).ToListAsync(stoppingToken);
                         proceed = expired.Count>0;
+                        if (expired.Count > 0)
+                        {
+                            had_work = true;
+                        }
                         foreach(TEntity exp in expired)
                         {
                             await exp.StageDeletion<TEntity>(dBContext,set,stoppingToken);
@@ -63,7 +68,7 @@ namespace PetCenterServices.Workers
                     }
                 }                    
             }
-            
+            return had_work;
         }
 
         private async Task RunCleanup(PetCenterDBContext dBContext,IHostEnvironment environment, CancellationToken stoppingToken)

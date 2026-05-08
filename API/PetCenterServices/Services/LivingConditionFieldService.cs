@@ -124,17 +124,22 @@ namespace PetCenterServices.Services
                     return ServiceOutput<object>.Error(HttpCode.Forbidden,"You do not own this entry.");
                 }
 
-                try
+            await using(IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync())
                 {
-                    await entry.StageDeletion<LivingConditionEntry>(dbContext,dbContext.LivingConditionEntries);
-                    await dbContext.SaveChangesAsync();
-                }
-                catch(Exception ex)
-                {
-                    return ServiceOutput<object>.FromException(ex);
-                }
 
-                
+                    try
+                    {
+                        await entry.StageDeletion<LivingConditionEntry>(dbContext,dbContext.LivingConditionEntries);
+                        await dbContext.SaveChangesAsync();
+                        await tx.CommitAsync();
+                    }
+                    catch(Exception ex)
+                    {
+                        await tx.RollbackAsync();
+                        return ServiceOutput<object>.FromException(ex);
+                    }
+
+                }
             }
             Touch();
             return ServiceOutput<object>.Success(null,HttpCode.NoContent);

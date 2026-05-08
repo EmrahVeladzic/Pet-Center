@@ -28,6 +28,16 @@ namespace PetCenterAPI.Controllers
             return StatusCode(401,"Invalid token.");  
         }
 
+        [HttpGet("Status")]
+        public async Task<IActionResult> GetState()
+        {
+            if(TryGetUserId(out Guid user_id))
+            {
+                return ResultConverter.Convert<Guid>(await service.GetUserState(user_id));
+            }
+            return StatusCode(401,"Invalid token.");  
+        }
+
         
         [HttpGet("Count")]
         [NonAction]
@@ -61,6 +71,21 @@ namespace PetCenterAPI.Controllers
                 return ResultConverter.Convert<string>(await service.SetWishlistTerm(caller_id,term,add_remove));
             }
             return StatusCode(401,"Invalid token.");  
+        }
+
+        [HttpGet("Report")]       
+        [Authorize(Roles = "Owner,Admin")]
+        public async Task<IActionResult> GetReports()
+        {            
+            return ResultConverter.Convert<List<ReportResponseSubDTO>>(await service.GetReports());             
+        }      
+
+        [HttpGet("Announcement")]       
+        public async Task<IActionResult> GetAnnouncements([FromRoute] Guid announcement_id)
+        {
+            
+            return ResultConverter.Convert<List<AnnouncementSubDTO>>(await service.GetAnnouncements(SpecifySearchAuthority()));
+             
         }
 
 

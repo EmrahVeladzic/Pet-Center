@@ -23,5 +23,11 @@ namespace PetCenterServices.Interfaces
         public Task<ServiceOutput<NotificationSubDTO>> AddNotification(string title, string body, Guid user_id, Guid? franchise_id, Guid? listing_id, int expiry);
 
         public Task<ServiceOutput<string>> RemoveNotification(Guid announcement_id);
+
+        public Task<ServiceOutput<Guid>> GetUserState(Guid tokenHolder);
+
+        public Task<ServiceOutput<List<AnnouncementSubDTO>>> GetAnnouncements(Access role);
+
+        public Task<ServiceOutput<List<ReportResponseSubDTO>>> GetReports();
     }
 }

@@ -3,7 +3,7 @@ import 'package:pet_center_app/models/data_transfer/item_dto.dart';
 import 'package:pet_center_app/models/data_transfer/listing/listing_response_dto.dart';
 import 'package:pet_center_app/models/data_transfer/procedure_dto.dart';
 import 'package:pet_center_app/models/enums.dart';
-import 'package:pet_center_app/services/static_data_service.dart';
+import 'package:pet_center_app/services/static_user_data_service.dart';
 import 'package:pet_center_app/utils/app_style.dart';
 
 class ListingExtensionCard extends StatelessWidget {

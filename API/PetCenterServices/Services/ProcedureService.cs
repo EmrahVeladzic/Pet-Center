@@ -148,7 +148,7 @@ namespace PetCenterServices.Services
 
             if (existing != null)
             {
-                using (IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync())
+            await using(IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync())
                 {                    
                 
                     try

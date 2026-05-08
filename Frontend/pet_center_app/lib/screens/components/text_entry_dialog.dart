@@ -5,6 +5,7 @@ import 'package:pet_center_app/utils/app_style.dart';
 class TextEntryDialog extends StatefulWidget {
   final int limit;
   final String? dialogName;
+  final String? inputDecoration;
   final void Function(String value) callback;
   final bool hideText;
   const TextEntryDialog({
@@ -13,6 +14,7 @@ class TextEntryDialog extends StatefulWidget {
     this.limit = 75,
     this.hideText = false,
     this.dialogName,
+    this.inputDecoration,
   });
 
   @override
@@ -65,7 +67,9 @@ class _TextEntryDialogState extends State<TextEntryDialog> {
                     minLines: (widget.hideText) ? 1 : dialogMinLines,
                     keyboardType: TextInputType.multiline,
                     obscureText: widget.hideText,
-                    decoration: InputDecoration(labelText: 'Text...'),
+                    decoration: InputDecoration(
+                      labelText: widget.inputDecoration ?? "Text...",
+                    ),
                   ),
                 ),
               ],

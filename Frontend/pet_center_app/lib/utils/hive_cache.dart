@@ -1,6 +1,6 @@
 import 'package:hive/hive.dart';
 import 'package:pet_center_app/models/enums.dart';
-import 'package:pet_center_app/services/static_data_service.dart';
+import 'package:pet_center_app/services/static_user_data_service.dart';
 
 class CacheManager {
   static const String cacheName = 'cache';
