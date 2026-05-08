@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:pet_center_app/services/listing_service.dart';
 import 'package:pet_center_app/utils/app_style.dart';
+import 'package:pet_center_app/utils/globals.dart';
 
 class ReportDialog extends StatefulWidget {
   final String listingId;
@@ -79,6 +80,9 @@ class _ReportDialogState extends State<ReportDialog> {
         actions: [
           ElevatedButton(
             onPressed: () {
+              if (apiServiceBusy) {
+                return;
+              }
               Navigator.of(context).pop();
               sendReport();
               widget.reportAction();

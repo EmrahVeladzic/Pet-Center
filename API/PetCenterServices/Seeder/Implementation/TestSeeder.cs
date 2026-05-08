@@ -84,7 +84,7 @@ namespace PetCenterServices.Seeder
             "Fresh","Compact","Light","Cozy","Fun","Playful","Safe","Sturdy","Portable",
             "Colorful","Deluxe","Scented","Fresh" };
 
-            using(IDbContextTransaction tx = await ctx.Database.BeginTransactionAsync())
+            await using(IDbContextTransaction tx = await ctx.Database.BeginTransactionAsync())
             {
                 try
                 {
@@ -260,7 +260,7 @@ namespace PetCenterServices.Seeder
                     }                   
 
                     await ctx.Announcements.AddAsync(new Announcement{Body="Users and employees can see this.",UserVisible=true,BusinessVisible=true});
-                    await ctx.Announcements.AddAsync(new Announcement{Body="Users specific.",UserVisible=true,BusinessVisible=false});
+                    await ctx.Announcements.AddAsync(new Announcement{Body="User specific.",UserVisible=true,BusinessVisible=false});
                     await ctx.Announcements.AddAsync(new Announcement{Body="Employee specific.",UserVisible=false,BusinessVisible=true});
                     await ctx.Announcements.AddAsync(new Announcement{Body="Internal modmail.",UserVisible=false,BusinessVisible=false});
 

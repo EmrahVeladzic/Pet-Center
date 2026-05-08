@@ -1,5 +1,7 @@
 import 'package:json_annotation/json_annotation.dart';
-import 'package:pet_center_app/models/data_transfer/listing/sub_dtos.dart';
+import 'package:pet_center_app/models/data_transfer/franchise/franchise_response_dto.dart';
+import 'package:pet_center_app/models/data_transfer/individual/individual_response_dto.dart';
+
 import 'package:pet_center_app/models/data_transfer/note_sub_dto.dart';
 part 'user_response_dto.g.dart';
 
@@ -73,19 +75,21 @@ class UserResponseDTO {
   bool matureAccount;
   String? userName;
   List<NoteSubDTO>? notes;
-  List<AnnouncementSubDTO>? announcements;
   List<NotificationSubDTO>? notifications;
-  List<ReportResponseSubDTO>? reports;
+  List<SuppliesSubDTO>? userSupplies;
+  List<FranchiseResponseDTO>? workplaces;
+  List<IndividualResponseDTO>? ownedAnimals;
 
   UserResponseDTO({
     this.id,
     this.currentVersion = '',
     this.userName,
     this.notes,
-    this.announcements,
+    this.userSupplies,
     this.notifications,
-    this.reports,
     this.matureAccount = false,
+    this.ownedAnimals,
+    this.workplaces,
   });
 
   factory UserResponseDTO.fromJson(Map<String, dynamic> json) =>

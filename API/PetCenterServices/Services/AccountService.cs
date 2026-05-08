@@ -64,7 +64,7 @@ namespace PetCenterServices.Services
                 acc.Verified = true;
             }
 
-            using (IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync())
+        await using(IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync())
             {
                 try
                 {
@@ -125,7 +125,7 @@ namespace PetCenterServices.Services
                 return ServiceOutput<string>.Error(HttpCode.NotFound,"No account with this ID exists.");
             }
 
-            using (IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync())
+        await using(IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync())
             {
                 try
                 {
@@ -170,6 +170,10 @@ namespace PetCenterServices.Services
 
         public async Task<ServiceOutput<string>> RequestAccountTransfer(Guid token_holder, string? contact_overwrite)
         {
+            if(contact_overwrite!=null && !ModelValidationUtils.ValidateContact(contact_overwrite))
+            {
+                return ServiceOutput<string>.Error(HttpCode.BadRequest,"Please make sure you have entered a valid contact.");
+            }
             Account? acc = await dbSet.Include(a=>a.AccountUser).FirstOrDefaultAsync(a=>a.Id == token_holder);
             ContactTransfer? ctf = await dbContext.ContactTransfers.FindAsync(token_holder);
             if (acc == null)
@@ -186,7 +190,7 @@ namespace PetCenterServices.Services
             }
             if(ctf==null && !ModelValidationUtils.ValidateContact(contact_overwrite))
             {
-                return ServiceOutput<string>.Error(HttpCode.BadRequest,"Please provide a valid contact to transfer your account to.");
+                return ServiceOutput<string>.Error(HttpCode.BadRequest,"Please provide a contact to transfer your account to.");
             }
             int old_code = Crypto.GenerateCode();
             int new_code = Crypto.GenerateCode();
@@ -246,13 +250,13 @@ namespace PetCenterServices.Services
                 bool updated_contact = false;
                 bool updated_password = false;
 
-                if (ModelValidationUtils.ValidateContact(req.Contact))
+                if (!string.IsNullOrWhiteSpace(req.Contact))
                 {
                     ServiceOutput<string> s_out = await RequestAccountTransfer(token_holder,req.Contact);
                     
                     updated_contact = ServiceOutput<string>.IsSuccess(s_out);
 
-                    if(string.IsNullOrWhiteSpace(req.Password)){return ServiceOutput<AccountResponseDTO>.Error(s_out.Code,s_out.ErrorMessage!);}
+                    if(!updated_contact){return ServiceOutput<AccountResponseDTO>.Error(s_out.Code,s_out.ErrorMessage!);}
                 }
                 
 
@@ -438,7 +442,7 @@ namespace PetCenterServices.Services
                 return ServiceOutput<string>.Error(HttpCode.TooManyRequests,"Too early for next attempt.");
             }
 
-            using (IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync())
+        await using(IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync())
             {
                 try
                 {
@@ -519,7 +523,7 @@ namespace PetCenterServices.Services
         public async Task<ServiceOutput<string>> SetRole(Guid owner_id, Guid id, Access role)
         {
 
-            using (IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync(IsolationLevel.Serializable))
+        await using(IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync(IsolationLevel.Serializable))
             {
                 try
                 {
@@ -567,7 +571,7 @@ namespace PetCenterServices.Services
 
         public override async Task <ServiceOutput<object>> Delete(Guid token_holder,Guid id)
         {
-            using (IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync(IsolationLevel.Serializable))
+        await using(IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync(IsolationLevel.Serializable))
             {
                 try
                 {

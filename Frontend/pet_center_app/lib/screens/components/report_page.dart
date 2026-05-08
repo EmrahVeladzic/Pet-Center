@@ -4,7 +4,7 @@ import 'package:pet_center_app/models/enums.dart';
 import 'package:pet_center_app/screens/components/report_card.dart';
 import 'package:pet_center_app/screens/listing_view.dart';
 import 'package:pet_center_app/services/listing_service.dart';
-import 'package:pet_center_app/services/static_data_service.dart';
+import 'package:pet_center_app/services/static_user_data_service.dart';
 import 'package:pet_center_app/utils/helpers.dart';
 import 'package:pet_center_app/utils/hive_cache.dart';
 
@@ -30,7 +30,7 @@ class _ReportPageState extends State<ReportPage>
   }
 
   void load() async {
-    final data = self?.reports ?? [];
+    final data = reports;
     final visited = await CacheManager.getAll(CacheEntityType.notification);
     if (mounted) {
       setState(() {

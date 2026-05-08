@@ -3,6 +3,7 @@ import 'package:pet_center_app/models/data_transfer/user/user_response_dto.dart'
 import 'package:pet_center_app/screens/listing_view.dart';
 import 'package:pet_center_app/services/listing_service.dart';
 import 'package:pet_center_app/utils/app_style.dart';
+import 'package:pet_center_app/utils/globals.dart';
 import 'package:pet_center_app/utils/helpers.dart';
 
 class NotificationViewScreen extends StatefulWidget {
@@ -15,6 +16,9 @@ class NotificationViewScreen extends StatefulWidget {
 
 class _NotificationViewScreenState extends State<NotificationViewScreen> {
   void getRelevant() async {
+    if (apiServiceBusy) {
+      return;
+    }
     if (validGuid(widget.notification.listingId)) {
       final listing = await ListingService.getById(
         widget.notification.listingId!,

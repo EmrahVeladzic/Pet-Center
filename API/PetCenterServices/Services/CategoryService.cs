@@ -49,7 +49,7 @@ namespace PetCenterServices.Services
                 {
 
 
-                    using (IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync())
+                await using(IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync())
                     {
                         try
                         {
@@ -185,16 +185,21 @@ namespace PetCenterServices.Services
                     return ServiceOutput<object>.Error(HttpCode.Forbidden,"You do not own this record.");
                 }
 
-                try
+            await using(IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync())
                 {
-                    await supply_record.StageDeletion<Supplies>(dbContext,dbContext.SupplyRecords);
-                    await dbContext.SaveChangesAsync();
-                }
-                catch(Exception ex)
-                {
-                    return ServiceOutput<object>.FromException(ex);
-                }
 
+                    try
+                    {
+                        await supply_record.StageDeletion<Supplies>(dbContext,dbContext.SupplyRecords);
+                        await dbContext.SaveChangesAsync();
+                        await tx.CommitAsync();
+                    }
+                    catch(Exception ex)
+                    {
+                        await tx.RollbackAsync();
+                        return ServiceOutput<object>.FromException(ex);
+                    }
+                }
                 
             }
 
@@ -262,15 +267,21 @@ namespace PetCenterServices.Services
             if (usage_record != null)
             {
 
-                try
+            await using(IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync())
                 {
-                    await usage_record.StageDeletion<Usage>(dbContext,dbContext.UsageEstimates);
-                    await dbContext.SaveChangesAsync();
-                    StaticDataVersionHolder.UsageVersion=Guid.NewGuid();
-                }
-                catch(Exception ex)
-                {
-                    return ServiceOutput<object>.FromException(ex);
+
+                    try
+                    {
+                        await usage_record.StageDeletion<Usage>(dbContext,dbContext.UsageEstimates);
+                        await dbContext.SaveChangesAsync();
+                        StaticDataVersionHolder.UsageVersion=Guid.NewGuid();
+                        await tx.CommitAsync();
+                    }
+                    catch(Exception ex)
+                    {
+                        await tx.RollbackAsync();
+                        return ServiceOutput<object>.FromException(ex);
+                    }
                 }
 
             }

@@ -1,6 +1,6 @@
 import 'package:json_annotation/json_annotation.dart';
+import 'package:pet_center_app/models/data_transfer/facility_dto.dart';
 import 'package:pet_center_app/models/data_transfer/note_sub_dto.dart';
-import 'package:pet_center_app/models/data_transfer/image_dto.dart';
 part 'franchise_response_dto.g.dart';
 
 @JsonSerializable(explicitToJson: true)
@@ -9,9 +9,8 @@ class FranchiseResponseDTO {
   String currentVersion;
   String? franchiseName;
   String? contact;
-  String albumId;
-  List<ImageDTO?>? images;
   List<NoteSubDTO>? notes;
+  List<FacilityDTO> facilities;
   bool? owned;
 
   FranchiseResponseDTO({
@@ -19,10 +18,9 @@ class FranchiseResponseDTO {
     this.currentVersion = '',
     this.franchiseName,
     this.contact,
-    this.albumId = '',
-    this.images,
     this.notes,
     this.owned,
+    this.facilities = const [],
   });
 
   factory FranchiseResponseDTO.fromJson(Map<String, dynamic> json) =>

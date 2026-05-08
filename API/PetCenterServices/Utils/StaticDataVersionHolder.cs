@@ -13,6 +13,8 @@ namespace PetCenterServices.Utils
         public Guid UsageVersion {get; set;} = StaticDataVersionHolder.UsageVersion;
 
         public Guid AnnouncementVersion {get; set;} = StaticDataVersionHolder.AnnouncementVersion;
+
+         public Guid ReportVersion {get; set;} = StaticDataVersionHolder.ReportVersion;
         
         public Guid FormTemplateVersion {get; set;} = StaticDataVersionHolder.FormTemplateVersion;
 
@@ -39,6 +41,8 @@ namespace PetCenterServices.Utils
 
         public static Guid AnnouncementVersion {get; set;} = Guid.NewGuid();
         
+        public static Guid ReportVersion {get; set;} = Guid.NewGuid();
+
         public static Guid FormTemplateVersion {get; set;} = Guid.NewGuid();
 
         public static Guid LivingConditionVersion {get; set;} = Guid.NewGuid();

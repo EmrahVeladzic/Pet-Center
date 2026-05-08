@@ -38,7 +38,7 @@ namespace PetCenterServices.Services
 
                 dbContext.Images.Remove(img);
 
-                using (IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync())
+            await using(IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync())
                 {
                     try
                     {
@@ -62,7 +62,7 @@ namespace PetCenterServices.Services
         public override async Task<ServiceOutput<ImageDTO>> Post(Guid token_holder,ImageDTO img)
         {
             ServiceOutput<ImageDTO> output;
-            using (IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync())
+        await using(IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync())
             {
                 try
                 {

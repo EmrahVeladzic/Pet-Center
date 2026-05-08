@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:pet_center_app/models/data_transfer/account/account_request_dto.dart';
 import 'package:pet_center_app/screens/dashboard.dart';
 import 'package:pet_center_app/services/account_service.dart';
-import 'package:pet_center_app/services/static_data_service.dart';
+import 'package:pet_center_app/services/static_user_data_service.dart';
 
 import 'package:pet_center_app/utils/app_style.dart';
+import 'package:pet_center_app/utils/globals.dart';
 import 'package:pet_center_app/utils/jwt_parser.dart';
 
 class CredentialsScreen extends StatefulWidget {
@@ -44,6 +45,9 @@ class _CredentialsScreenState extends State<CredentialsScreen> {
   }
 
   void _linkForgotPassword() async {
+    if (apiServiceBusy) {
+      return;
+    }
     if (contact.isNotEmpty) {
       final output = await AccountService.forgotPassword(contact);
       if (output != null && output.isNotEmpty) {
@@ -55,7 +59,7 @@ class _CredentialsScreenState extends State<CredentialsScreen> {
   }
 
   void onLogin() async {
-    await StaticDataService.updateStaticData();
+    await StaticAndUserDataService.updateData();
 
     if (self == null) {
       return;
@@ -71,6 +75,9 @@ class _CredentialsScreenState extends State<CredentialsScreen> {
   }
 
   void _sendRequest() async {
+    if (apiServiceBusy) {
+      return;
+    }
     if (!unverified) {
       if (registerMode) {
         final output = await AccountService.register(

@@ -82,7 +82,7 @@ namespace PetCenterServices.Services
 
                 if(ent!=null){
 
-                    using (IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync())
+                await using(IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync())
                     {
                         try
                         {
@@ -124,7 +124,7 @@ namespace PetCenterServices.Services
                     {
                         
 
-                        using (IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync())
+                    await using(IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync())
                         {
                             try
                             {
@@ -173,7 +173,7 @@ namespace PetCenterServices.Services
             if (current != null)
             {
 
-                using (IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync())
+            await using(IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync())
                 {
                     try
                     {

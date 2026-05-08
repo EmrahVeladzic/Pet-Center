@@ -6,7 +6,7 @@ import 'package:pet_center_app/screens/components/dual_text_entry_dialog.dart';
 import 'package:pet_center_app/screens/components/text_entry_dialog.dart';
 import 'package:pet_center_app/screens/login_register.dart';
 import 'package:pet_center_app/services/account_service.dart';
-import 'package:pet_center_app/services/static_data_service.dart';
+import 'package:pet_center_app/services/static_user_data_service.dart';
 import 'package:pet_center_app/services/user_service.dart';
 
 import 'package:pet_center_app/utils/app_style.dart';
@@ -23,7 +23,7 @@ class _UserViewScreenState extends State<UserViewScreen> {
   void logOut() async {
     await AccountService.logOut();
     clearToken();
-    clearStaticData();
+    clearObtainedData();
     if (mounted) {
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(builder: (context) => CredentialsScreen()),
@@ -38,6 +38,50 @@ class _UserViewScreenState extends State<UserViewScreen> {
       setState(() {
         self?.userName = response.userName;
       });
+    }
+  }
+
+  void transferAccount(String oldCode, String newCode) async {
+    int? oldC = int.tryParse(oldCode);
+    int? newC = int.tryParse(newCode);
+
+    if (oldC == null || newC == null) {
+      showSnackbar("Please make sure both codes are valid.");
+      return;
+    }
+    final response = await AccountService.transferAccount(oldC, newC);
+    if (response != null) {
+      showSnackbar(response);
+    }
+  }
+
+  void requestNewCodes() async {
+    final response = await AccountService.requestTransfer();
+    if (response != null) {
+      showSnackbar(response);
+    }
+  }
+
+  void setupAccountTransfer(String contact) async {
+    final response = await AccountService.update(
+      AccountRequestDTO(contact: contact),
+    );
+    if (response != null) {
+      if (mounted) {
+        showDialog(
+          context: context,
+          builder: (_) => DualTextEntryDialog(
+            callback: (oldCode, newCode) {
+              transferAccount(oldCode, newCode);
+            },
+            dialogName: "Enter your transfer codes:",
+            linkCallback: requestNewCodes,
+            linkName: "Send new codes.",
+            firstDecor: "First code...",
+            secondDecor: "Second code...",
+          ),
+        );
+      }
     }
   }
 
@@ -131,13 +175,14 @@ class _UserViewScreenState extends State<UserViewScreen> {
                                     changeUsername(value);
                                   },
                                   dialogName: "Enter new username:",
+                                  inputDecoration: "Username...",
                                 ),
                               );
                             },
                             child: design.fittedText('Change username'),
                           ),
                         ),
-                        SizedBox(height: design.spacing),
+                        design.verticalGap(design.spacing),
                         FractionallySizedBox(
                           widthFactor: 0.5,
                           alignment: Alignment.center,
@@ -151,13 +196,35 @@ class _UserViewScreenState extends State<UserViewScreen> {
                                   },
                                   hideText: true,
                                   dialogName: "Enter your new password twice:",
+                                  firstDecor: "Password...",
+                                  secondDecor: "Confirm...",
                                 ),
                               );
                             },
                             child: design.fittedText('Change password'),
                           ),
                         ),
-                        SizedBox(height: design.spacing),
+                        design.verticalGap(design.spacing),
+                        FractionallySizedBox(
+                          widthFactor: 0.5,
+                          alignment: Alignment.center,
+                          child: ElevatedButton(
+                            onPressed: () {
+                              showDialog(
+                                context: context,
+                                builder: (_) => TextEntryDialog(
+                                  callback: (value) {
+                                    setupAccountTransfer(value);
+                                  },
+                                  dialogName: "Enter new contact:",
+                                  inputDecoration: "Contact...",
+                                ),
+                              );
+                            },
+                            child: design.fittedText('Transfer account'),
+                          ),
+                        ),
+                        design.verticalGap(design.spacing),
                         design.textMarquee(
                           "Session and cache:",
                           design.bodyWMult * design.screenWidth,
@@ -181,7 +248,7 @@ class _UserViewScreenState extends State<UserViewScreen> {
                             child: design.fittedText('Log out'),
                           ),
                         ),
-                        SizedBox(height: design.spacing),
+                        design.verticalGap(design.spacing),
                         FractionallySizedBox(
                           widthFactor: 0.5,
                           alignment: Alignment.center,
@@ -200,7 +267,7 @@ class _UserViewScreenState extends State<UserViewScreen> {
                             child: design.fittedText('Clear cache'),
                           ),
                         ),
-                        SizedBox(height: design.spacing),
+                        design.verticalGap(design.spacing),
                         design.textMarquee(
                           "Advanced:",
                           design.bodyWMult * design.screenWidth,
@@ -225,7 +292,7 @@ class _UserViewScreenState extends State<UserViewScreen> {
                             child: design.fittedText('Wipe user data'),
                           ),
                         ),
-                        SizedBox(height: design.spacing),
+                        design.verticalGap(design.spacing),
                         FractionallySizedBox(
                           widthFactor: 0.5,
                           alignment: Alignment.center,

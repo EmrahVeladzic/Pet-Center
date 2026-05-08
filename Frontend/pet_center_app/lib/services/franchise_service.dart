@@ -3,11 +3,13 @@ import 'package:pet_center_app/models/data_transfer/franchise/franchise_response
 
 import 'package:pet_center_app/utils/app_config.dart';
 import 'package:pet_center_app/utils/app_style.dart';
+import 'package:pet_center_app/utils/globals.dart';
 import 'package:pet_center_app/utils/jwt_parser.dart';
 import 'package:pet_center_app/utils/service_output.dart';
 
 class FranchiseService {
   static Future<List<FranchiseResponseDTO>?> get([String? relatedUser]) async {
+    apiServiceBusy = true;
     try {
       final query = <String, String>{};
       query['page'] = 0.toString();
@@ -19,7 +21,10 @@ class FranchiseService {
         Uri.parse(
           "${AppConfig.apiBaseUrl}/api/Franchise",
         ).replace(queryParameters: query),
-        headers: {'Authorization': 'Bearer $rawToken'},
+        headers: {
+          'Authorization': 'Bearer $rawToken',
+          'Accept': 'application/json',
+        },
       );
 
       final result =
@@ -33,9 +38,11 @@ class FranchiseService {
                 .toList(),
           );
 
+      apiServiceBusy = false;
       return result;
     } catch (ex) {
       showError(ex);
+      apiServiceBusy = false;
       return null;
     }
   }

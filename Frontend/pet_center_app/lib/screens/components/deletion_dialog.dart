@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:pet_center_app/models/enums.dart';
 import 'package:pet_center_app/utils/app_style.dart';
+import 'package:pet_center_app/utils/globals.dart';
 import 'package:pet_center_app/utils/jwt_parser.dart';
 
 class DeletionDialog extends StatefulWidget {
@@ -69,6 +70,9 @@ class _DeletionDialogState extends State<DeletionDialog> {
         actions: [
           ElevatedButton(
             onPressed: () {
+              if (apiServiceBusy) {
+                return;
+              }
               Navigator.of(context).pop();
               widget.deletionAction(banUser);
             },

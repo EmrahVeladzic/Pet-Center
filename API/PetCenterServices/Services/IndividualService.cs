@@ -71,7 +71,7 @@ namespace PetCenterServices.Services
                 return ServiceOutput<IndividualResponseDTO>.Error(HttpCode.NotFound,"The specified animal does not exist.");
             }
 
-            using (IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync())
+        await using(IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync())
             {
 
                 try
@@ -317,7 +317,7 @@ namespace PetCenterServices.Services
                 }
             } 
 
-            using (IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync())
+        await using(IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync())
             {
                 try
                 {
