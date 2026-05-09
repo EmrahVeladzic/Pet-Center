@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using PetCenterModels.DBTables;
+using Microsoft.Extensions.Logging;
 
 namespace PetCenterServices.Workers
 {
@@ -14,9 +15,11 @@ namespace PetCenterServices.Workers
     {
         
         private readonly IServiceScopeFactory scope_factory;
-        public CleanupService(IServiceScopeFactory factory)
+        private readonly ILogger<CleanupService> logger; 
+        public CleanupService(IServiceScopeFactory factory, ILogger<CleanupService> _logger)
         {
             scope_factory = factory;
+            logger=_logger;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -29,7 +32,8 @@ namespace PetCenterServices.Workers
                 {
                     PetCenterDBContext dBContext = scope.ServiceProvider.GetRequiredService<PetCenterDBContext>();
                     IHostEnvironment environment = scope.ServiceProvider.GetRequiredService<IHostEnvironment>();
-                    await RunCleanup(dBContext,environment,stoppingToken);
+                   
+                    await RunCleanup(dBContext,environment,logger,stoppingToken);
                 }
 
                 
@@ -71,7 +75,7 @@ namespace PetCenterServices.Workers
             return had_work;
         }
 
-        private async Task RunCleanup(PetCenterDBContext dBContext,IHostEnvironment environment, CancellationToken stoppingToken)
+        private async Task RunCleanup(PetCenterDBContext dBContext,IHostEnvironment environment,ILogger logger, CancellationToken stoppingToken)
         {
             
             try
@@ -90,14 +94,15 @@ namespace PetCenterServices.Workers
             {
                 if (environment.IsDevelopment())
                 {
-                    Console.WriteLine("Cleanup aborted due to host shutdown.");
+                    logger.LogInformation("Cleanup aborted due to host shutdown.");
                 }
+                
             }
             catch (Exception ex)
             {
                 if (environment.IsDevelopment())
                 {
-                    Console.WriteLine($"[ERROR] {ex.GetType().Name}: {ex.Message}");
+                    logger.LogError(ex,"Cleanup exception.");
                 } 
             }
 

@@ -13,6 +13,7 @@ using System.Text;
 using System.Threading.Tasks;
 using PetCenterServices.Recommender;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.Extensions.Logging;
 
 namespace PetCenterServices.Services
 {
@@ -21,7 +22,7 @@ namespace PetCenterServices.Services
 
         private readonly IRecommenderSystem recommender;
 
-        public UserService(PetCenterDBContext ctx, IRecommenderSystem rec) : base(ctx)
+        public UserService(PetCenterDBContext ctx,ILoggerFactory _ilogger, IRecommenderSystem rec) : base(ctx,_ilogger)
         {
             dbSet = ctx.Users;
             recommender = rec;
@@ -140,7 +141,7 @@ namespace PetCenterServices.Services
                     catch(Exception ex)
                     {
                         await tx.RollbackAsync();
-                        return ServiceOutput<UserResponseDTO>.FromException(ex);
+                        return ServiceOutput<UserResponseDTO>.FromException(ex,logger);
                     }
                 }
 
@@ -247,7 +248,7 @@ namespace PetCenterServices.Services
                 {
                     
                     await tx.RollbackAsync();
-                    return ServiceOutput<string>.FromException(ex);
+                    return ServiceOutput<string>.FromException(ex,logger);
                 }
 
 
@@ -322,7 +323,7 @@ namespace PetCenterServices.Services
                             await dbContext.SaveChangesAsync();
                             await tx.CommitAsync();
                         }
-                        catch(Exception ex){await tx.RollbackAsync(); return ServiceOutput<string>.FromException(ex);}
+                        catch(Exception ex){await tx.RollbackAsync(); return ServiceOutput<string>.FromException(ex,logger);}
                     }
                 }
                 return ServiceOutput<string>.Success("Term removed from wishlist.");
@@ -363,7 +364,7 @@ namespace PetCenterServices.Services
             }
             catch(Exception ex)
             {
-                return ServiceOutput<AnnouncementSubDTO>.FromException(ex);
+                return ServiceOutput<AnnouncementSubDTO>.FromException(ex,logger);
             }
 
             StaticDataVersionHolder.AnnouncementVersion=Guid.NewGuid();
@@ -390,7 +391,7 @@ namespace PetCenterServices.Services
                     catch(Exception ex)
                     {
                         await tx.RollbackAsync();
-                        return ServiceOutput<string>.FromException(ex);
+                        return ServiceOutput<string>.FromException(ex,logger);
                     }
 
                 }
@@ -491,7 +492,7 @@ namespace PetCenterServices.Services
                 catch (Exception ex)
                 {
                     await tx.RollbackAsync();
-                    return ServiceOutput<NotificationSubDTO>.FromException(ex);
+                    return ServiceOutput<NotificationSubDTO>.FromException(ex,logger);
                 }
 
             }
@@ -515,7 +516,7 @@ namespace PetCenterServices.Services
                     catch(Exception ex)
                     {
                         await tx.RollbackAsync();
-                        return ServiceOutput<string>.FromException(ex);
+                        return ServiceOutput<string>.FromException(ex,logger);
                     }
                 }
                 

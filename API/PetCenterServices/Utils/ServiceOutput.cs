@@ -1,6 +1,7 @@
 
 using System.ComponentModel.DataAnnotations;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace PetCenterServices.Utils
 {
@@ -36,8 +37,13 @@ namespace PetCenterServices.Utils
         public static ServiceOutput<T> Success(T? body, HttpCode code = HttpCode.OK) => new(code, body, null);
         public static ServiceOutput<T> Error(HttpCode code, string message) => new(code, default, message);
 
-        public static ServiceOutput<T> FromException(Exception ex)
+        public static ServiceOutput<T> FromException(Exception ex, ILogger? logger = default)
         {
+            if (logger != null)
+            {
+                logger?.LogError(ex, "Service exception.");
+            }
+
             return (ex) switch    
             {
                 DbUpdateConcurrencyException => ServiceOutput<T>.Error(HttpCode.Conflict, "The resource was modified by another process."),

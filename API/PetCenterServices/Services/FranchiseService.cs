@@ -11,6 +11,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 
 
 namespace PetCenterServices.Services
@@ -18,7 +19,7 @@ namespace PetCenterServices.Services
     public class FranchiseService : BaseCRUDService<Franchise,FranchiseSearchObject,FranchiseRequestDTO,FranchiseResponseDTO>, IFranchiseService    
     {
 
-        public FranchiseService(PetCenterDBContext ctx) : base(ctx)
+        public FranchiseService(PetCenterDBContext ctx,ILoggerFactory _logger) : base(ctx,_logger)
         {
             dbSet = ctx.Franchises;
         }
@@ -89,7 +90,7 @@ namespace PetCenterServices.Services
                 catch(Exception ex)
                 {
                     await tx.RollbackAsync();
-                    return ServiceOutput<FranchiseResponseDTO>.FromException(ex);
+                    return ServiceOutput<FranchiseResponseDTO>.FromException(ex,logger);
                 }
             }
 
@@ -117,7 +118,7 @@ namespace PetCenterServices.Services
                 catch(Exception ex)
                 {
                     await tx.RollbackAsync();
-                    return ServiceOutput<FranchiseResponseDTO>.FromException(ex);
+                    return ServiceOutput<FranchiseResponseDTO>.FromException(ex,logger);
                 }
             }
 

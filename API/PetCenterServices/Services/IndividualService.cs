@@ -12,6 +12,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using PetCenterServices.Recommender;
+using Microsoft.Extensions.Logging;
 
 
 namespace PetCenterServices.Services
@@ -21,7 +22,7 @@ namespace PetCenterServices.Services
        
         private readonly IRecommenderSystem recommender;
 
-        public IndividualService(PetCenterDBContext ctx,IRecommenderSystem rec) : base(ctx)
+        public IndividualService(PetCenterDBContext ctx,ILoggerFactory _logger,IRecommenderSystem rec) : base(ctx,_logger)
         {
             dbSet = ctx.IndividualAnimals;
             recommender=rec;   
@@ -88,7 +89,7 @@ namespace PetCenterServices.Services
                 catch(Exception ex)
                 {
                     await tx.RollbackAsync();   
-                    return ServiceOutput<IndividualResponseDTO>.FromException(ex);
+                    return ServiceOutput<IndividualResponseDTO>.FromException(ex,logger);
                 }
 
 
@@ -345,7 +346,7 @@ namespace PetCenterServices.Services
                 catch(Exception ex)
                 {
                     await tx.RollbackAsync();
-                    return ServiceOutput<IndividualResponseDTO>.FromException(ex);
+                    return ServiceOutput<IndividualResponseDTO>.FromException(ex,logger);
                 }
 
             }

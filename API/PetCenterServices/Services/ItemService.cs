@@ -11,6 +11,7 @@ using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 
 namespace PetCenterServices.Services
 {
@@ -18,7 +19,7 @@ namespace PetCenterServices.Services
     {
 
 
-        public ItemService(PetCenterDBContext ctx) : base(ctx)
+        public ItemService(PetCenterDBContext ctx,ILoggerFactory _logger) : base(ctx,_logger)
         {
             dbSet = ctx.Items;
         }

@@ -12,6 +12,7 @@ import 'package:pet_center_app/services/user_service.dart';
 import 'package:pet_center_app/utils/app_style.dart';
 import 'package:pet_center_app/utils/hive_cache.dart';
 import 'package:pet_center_app/utils/jwt_parser.dart';
+import 'package:pet_center_app/utils/validators.dart';
 
 class UserViewScreen extends StatefulWidget {
   const UserViewScreen({super.key});
@@ -79,6 +80,7 @@ class _UserViewScreenState extends State<UserViewScreen> {
             linkName: "Send new codes.",
             firstDecor: "First code...",
             secondDecor: "Second code...",
+            sharedValidation: (value) => validateCode(value),
           ),
         );
       }
@@ -176,6 +178,7 @@ class _UserViewScreenState extends State<UserViewScreen> {
                                   },
                                   dialogName: "Enter new username:",
                                   inputDecoration: "Username...",
+                                  validation: (value) => validateGeneric(value),
                                 ),
                               );
                             },
@@ -198,6 +201,8 @@ class _UserViewScreenState extends State<UserViewScreen> {
                                   dialogName: "Enter your new password twice:",
                                   firstDecor: "Password...",
                                   secondDecor: "Confirm...",
+                                  sharedValidation: (value) =>
+                                      validatePassword(value),
                                 ),
                               );
                             },
@@ -218,6 +223,7 @@ class _UserViewScreenState extends State<UserViewScreen> {
                                   },
                                   dialogName: "Enter new contact:",
                                   inputDecoration: "Contact...",
+                                  validation: (value) => validateContact(value),
                                 ),
                               );
                             },

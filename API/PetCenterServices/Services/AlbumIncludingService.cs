@@ -11,13 +11,14 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 
 
 namespace PetCenterServices.Services
 {
     public class AlbumIncludingService<TEntity,TSearch,TRequest,TResponse> : BaseCRUDService<TEntity,TSearch,TRequest,TResponse> where TEntity:AlbumIncludingTableEntity where TSearch: BaseSearchObject where TRequest: IBaseRequestDTO where TResponse : IAlbumCarryingDTO<TEntity,TResponse>
     {
-        public AlbumIncludingService(PetCenterDBContext ctx) : base(ctx)
+        public AlbumIncludingService(PetCenterDBContext ctx, ILoggerFactory _logger) : base(ctx,_logger)
         {
             
         }
@@ -73,7 +74,7 @@ namespace PetCenterServices.Services
                         catch(Exception ex)
                         {
                             await tx.RollbackAsync();
-                            return ServiceOutput<TResponse>.FromException(ex);
+                            return ServiceOutput<TResponse>.FromException(ex,logger);
                         }
                     }
 

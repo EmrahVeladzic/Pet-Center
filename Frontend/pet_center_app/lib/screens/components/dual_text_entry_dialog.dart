@@ -12,6 +12,9 @@ class DualTextEntryDialog extends StatefulWidget {
   final bool hideText;
   final String? firstDecor;
   final String? secondDecor;
+  final String? Function(String? value)? sharedValidation;
+  final String? Function(String? value)? firstValidation;
+  final String? Function(String? value)? secondValidation;
   const DualTextEntryDialog({
     super.key,
     required this.callback,
@@ -22,6 +25,9 @@ class DualTextEntryDialog extends StatefulWidget {
     this.linkCallback,
     this.firstDecor,
     this.secondDecor,
+    this.firstValidation,
+    this.secondValidation,
+    this.sharedValidation,
   });
 
   @override
@@ -29,12 +35,20 @@ class DualTextEntryDialog extends StatefulWidget {
 }
 
 class _DualTextEntryDialogState extends State<DualTextEntryDialog> {
+  final _formKey = GlobalKey<FormState>();
   final TextEditingController _firstController = TextEditingController();
   final TextEditingController _secondController = TextEditingController();
   void invokeCallback() async {
     final firstText = _firstController.text.trim();
     final secondText = _secondController.text.trim();
     widget.callback(firstText, secondText);
+  }
+
+  @override
+  void dispose() {
+    _firstController.dispose();
+    _secondController.dispose();
+    super.dispose();
   }
 
   @override
@@ -45,81 +59,105 @@ class _DualTextEntryDialogState extends State<DualTextEntryDialog> {
 
     return FittedBox(
       fit: BoxFit.scaleDown,
-      child: AlertDialog(
-        title: Row(
-          children: [
-            Expanded(
-              child: design.textMarquee('${widget.dialogName ?? 'Enter:'}:'),
+      child: Form(
+        key: _formKey,
+        child: AlertDialog(
+          title: Row(
+            children: [
+              Expanded(
+                child: design.textMarquee('${widget.dialogName ?? 'Enter:'}:'),
+              ),
+              IconButton(
+                icon: const Icon(Icons.close),
+                onPressed: () => Navigator.of(context).pop(),
+              ),
+            ],
+          ),
+          content: SizedBox(
+            width: design.dialogWidth,
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  ColoredBox(
+                    color: listTone,
+                    child: TextFormField(
+                      controller: _firstController,
+                      maxLines: 1,
+                      maxLength: widget.limit,
+                      minLines: 1,
+                      keyboardType: TextInputType.text,
+                      obscureText: widget.hideText,
+                      decoration: InputDecoration(
+                        labelText: widget.firstDecor ?? 'Text...',
+                      ),
+                      validator: (value) {
+                        if (widget.sharedValidation != null) {
+                          return widget.sharedValidation!(value);
+                        } else if (widget.firstValidation != null) {
+                          return widget.firstValidation!(value);
+                        } else {
+                          return null;
+                        }
+                      },
+                    ),
+                  ),
+                  design.verticalGap(design.spacing / 2),
+                  ColoredBox(
+                    color: listTone,
+                    child: TextFormField(
+                      controller: _secondController,
+                      maxLines: 1,
+                      maxLength: widget.limit,
+                      minLines: 1,
+                      keyboardType: TextInputType.text,
+                      obscureText: widget.hideText,
+                      decoration: InputDecoration(
+                        labelText: widget.secondDecor ?? 'Text...',
+                      ),
+                      validator: (value) {
+                        if (widget.sharedValidation != null) {
+                          return widget.sharedValidation!(value);
+                        } else if (widget.secondValidation != null) {
+                          return widget.secondValidation!(value);
+                        } else {
+                          return null;
+                        }
+                      },
+                    ),
+                  ),
+                  if (widget.linkCallback != null) ...[
+                    design.verticalGap(design.spacing / 2),
+                    TextButton(
+                      onPressed: () {
+                        if (widget.linkCallback != null && !apiServiceBusy) {
+                          widget.linkCallback!();
+                        }
+                      },
+                      child: design.fittedText((widget.linkName ?? 'Problem?')),
+                    ),
+                  ],
+                ],
+              ),
             ),
-            IconButton(
-              icon: const Icon(Icons.close),
-              onPressed: () => Navigator.of(context).pop(),
+          ),
+          actions: [
+            ElevatedButton(
+              onPressed: () {
+                if (_formKey.currentState != null &&
+                    _formKey.currentState!.validate()) {
+                  if (apiServiceBusy) {
+                    return;
+                  }
+                  Navigator.of(context).pop();
+                  invokeCallback();
+                }
+              },
+              child: design.fittedText('Save'),
             ),
           ],
         ),
-        content: SizedBox(
-          width: design.dialogWidth,
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                ColoredBox(
-                  color: listTone,
-                  child: TextField(
-                    controller: _firstController,
-                    maxLines: 1,
-                    maxLength: widget.limit,
-                    minLines: 1,
-                    keyboardType: TextInputType.multiline,
-                    obscureText: widget.hideText,
-                    decoration: InputDecoration(
-                      labelText: widget.firstDecor ?? 'Text...',
-                    ),
-                  ),
-                ),
-                design.verticalGap(design.spacing / 2),
-                ColoredBox(
-                  color: listTone,
-                  child: TextField(
-                    controller: _secondController,
-                    maxLines: 1,
-                    maxLength: widget.limit,
-                    minLines: 1,
-                    keyboardType: TextInputType.multiline,
-                    obscureText: widget.hideText,
-                    decoration: InputDecoration(
-                      labelText: widget.secondDecor ?? 'Text...',
-                    ),
-                  ),
-                ),
-                if (widget.linkCallback != null) ...[
-                  design.verticalGap(design.spacing / 2),
-                  TextButton(
-                    onPressed: () {
-                      if (widget.linkCallback != null && !apiServiceBusy) {
-                        widget.linkCallback!();
-                      }
-                    },
-                    child: design.fittedText((widget.linkName ?? 'Problem?')),
-                  ),
-                ],
-              ],
-            ),
-          ),
-        ),
-        actions: [
-          ElevatedButton(
-            onPressed: () {
-              if (apiServiceBusy) {
-                return;
-              }
-              Navigator.of(context).pop();
-              invokeCallback();
-            },
-            child: design.fittedText('Save'),
-          ),
-        ],
       ),
     );
   }

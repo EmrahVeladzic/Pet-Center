@@ -11,6 +11,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 
 
 namespace PetCenterServices.Services
@@ -18,7 +19,7 @@ namespace PetCenterServices.Services
     public class LivingconditionFieldService : BaseCRUDService<LivingConditionField,LivingConditionSearchObject,LivingConditionFieldDTO,LivingConditionFieldDTO>, ILivingConditionFieldService    
     {
 
-        public LivingconditionFieldService(PetCenterDBContext ctx) : base(ctx)
+        public LivingconditionFieldService(PetCenterDBContext ctx,ILoggerFactory _logger) : base(ctx,_logger)
         {
             dbSet = ctx.LivingConditionFields;
         }
@@ -107,7 +108,7 @@ namespace PetCenterServices.Services
             }
             catch(Exception ex)
             {
-                return ServiceOutput<LivingConditionEntrySubDTO>.FromException(ex);
+                return ServiceOutput<LivingConditionEntrySubDTO>.FromException(ex,logger);
             }
 
 
@@ -136,7 +137,7 @@ namespace PetCenterServices.Services
                     catch(Exception ex)
                     {
                         await tx.RollbackAsync();
-                        return ServiceOutput<object>.FromException(ex);
+                        return ServiceOutput<object>.FromException(ex,logger);
                     }
 
                 }

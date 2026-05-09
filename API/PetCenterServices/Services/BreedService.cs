@@ -12,6 +12,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using PetCenterServices.Recommender;
+using Microsoft.Extensions.Logging;
 
 
 namespace PetCenterServices.Services
@@ -20,7 +21,7 @@ namespace PetCenterServices.Services
     {
         private readonly IRecommenderSystem recommender;
 
-        public BreedService(PetCenterDBContext ctx, IRecommenderSystem rec) : base(ctx)
+        public BreedService(PetCenterDBContext ctx,ILoggerFactory _logger, IRecommenderSystem rec) : base(ctx,_logger)
         {
             dbSet = ctx.AnimalBreeds;
             recommender = rec;

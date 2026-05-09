@@ -95,19 +95,29 @@ builder.Services.AddScoped<IListingService,ListingService>();
 
 builder.Services.AddScoped<IMessageBusClient, MessageBusClient>();
 
+string? dbConnection = builder.Configuration.GetConnectionString("DefaultConnection");
+dbConnection= Environment.GetEnvironmentVariable("DB_CONNECTION_STRING")??dbConnection;
+
 builder.Services.AddDbContext<PetCenterDBContext>(options =>
 {
 
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
+    options.UseSqlServer(dbConnection);
 
-    if (builder.Environment.IsDevelopment())
-    {
-        options.EnableDetailedErrors().LogTo(Console.WriteLine,LogLevel.Warning);
-    }
+    
+    options.EnableDetailedErrors();
+    
 
     options.ConfigureWarnings(w =>  w.Ignore(RelationalEventId.MultipleCollectionIncludeWarning));
 
 });
+
+string? jwtValidIssuer = builder.Configuration["Jwt:Issuer"];
+string? jwtValidAudience = builder.Configuration["Jwt:Audience"];
+string? jwtKey = builder.Configuration["Jwt:Key"];
+
+jwtValidIssuer=Environment.GetEnvironmentVariable("JWT_ISSUER")??jwtValidIssuer;
+jwtValidAudience=Environment.GetEnvironmentVariable("JWT_AUDIENCE")??jwtValidAudience;
+jwtKey=Environment.GetEnvironmentVariable("JWT_KEY")??jwtKey;
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -118,9 +128,9 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateAudience = false,
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
-            ValidIssuer = builder.Configuration["Jwt:Issuer"],
-            ValidAudience = builder.Configuration["Jwt:Audience"],
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!))
+            ValidIssuer = jwtValidIssuer,
+            ValidAudience = jwtValidAudience,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey!))
         };
 
         options.Events = new JwtBearerEvents
@@ -169,6 +179,9 @@ PetCenterServices.Utils.Crypto.Configuration = builder.Configuration;
 
 var app = builder.Build();
 
+ILogger<Program> logger = app.Services.GetRequiredService<ILogger<Program>>();
+
+
 app.UseExceptionHandler(errorApp =>
 {
     errorApp.Run(async context =>
@@ -181,7 +194,7 @@ app.UseExceptionHandler(errorApp =>
         {
             if (app.Environment.IsDevelopment())
             {
-                Console.WriteLine($"[ERROR] {ex.GetType().Name}: {ex.Message}");
+                logger.LogError($"[ERROR] {ex.GetType().Name}: {ex.Message}");
             }
 
             if(ex is NotImplementedException)
@@ -257,8 +270,19 @@ while (retry)
 
                     await svc.Post(Guid.Empty,owner_req);
 
-                    await seeder.SeedDatabase(ctx,true);
-                  
+                    bool seeder_static =bool.TryParse(Environment.GetEnvironmentVariable("SEEDER_STATIC"), out var result)&& result;
+
+                    if(int.TryParse(Environment.GetEnvironmentVariable("SEEDER_SEED"),out int seed))
+                    {
+                        await seeder.SeedDatabase(ctx,!seeder_static,seed);
+                    
+                    }
+                    else
+                    {
+                        await seeder.SeedDatabase(ctx,!seeder_static);
+                    }
+
+                   
                 }
 
                 await Task.Delay(2500);
