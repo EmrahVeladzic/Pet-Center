@@ -8,6 +8,7 @@ using UserContactConsumer.Services;
 using PetCenterShared;
 using System.Text.Json;
 using System.ComponentModel.DataAnnotations;
+using Microsoft.Extensions.Logging;
 
 public class RabbitMQCfg
 {
@@ -19,14 +20,17 @@ public class RabbitMQCfg
 public class ContactConsumer
 {
     private readonly IConfiguration cfg;
+
+    private readonly ILogger logger;
     private IChannel? channel;
     private readonly EmailService email_service;
     private readonly RabbitMQCfg rabbitmq;
     private IConnection? connection;
 
-    public ContactConsumer(IConfiguration c, EmailService e)
+    public ContactConsumer(IConfiguration c, EmailService e, ILogger _logger)
     {
         cfg = c;
+        logger=_logger;
         email_service= e;
         IConfigurationSection rabbitmq_cfg = cfg.GetSection("RabbitMQ");
 
@@ -72,10 +76,10 @@ public class ContactConsumer
       
     }
 
-    public static async Task<ContactConsumer> CreateAsync(IConfiguration c, EmailService e)
+    public static async Task<ContactConsumer> CreateAsync(IConfiguration c, EmailService e, ILogger _logger)
     {
 
-        ContactConsumer consumer = new(c, e);
+        ContactConsumer consumer = new(c, e,_logger);
 
         ConnectionFactory factory = new ConnectionFactory()
         {
@@ -154,7 +158,7 @@ public class ContactConsumer
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine(ex.ToString());
+                        logger.LogError(ex,"Contact consumer exception.");
                         
                         await this.channel.BasicNackAsync(input.DeliveryTag, false, true);
                     }

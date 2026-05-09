@@ -11,6 +11,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 
 
 namespace PetCenterServices.Services
@@ -18,7 +19,7 @@ namespace PetCenterServices.Services
     public class FacilityService : BaseCRUDService<Facility,FacilitySearchObject,FacilityDTO,FacilityDTO>, IFacilityService    
     {
 
-        public FacilityService(PetCenterDBContext ctx) : base(ctx)
+        public FacilityService(PetCenterDBContext ctx,ILoggerFactory _logger) : base(ctx,_logger)
         {
             dbSet = ctx.Facilities;
         }

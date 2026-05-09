@@ -13,6 +13,7 @@ using System.Text;
 using System.Threading.Tasks;
 using PetCenterServices.Recommender;
 using PetCenterModels.ModelUtils;
+using Microsoft.Extensions.Logging;
 
 
 namespace PetCenterServices.Services
@@ -21,7 +22,7 @@ namespace PetCenterServices.Services
     {
         private readonly IRecommenderSystem recommender;
 
-        public ListingService(PetCenterDBContext ctx, IRecommenderSystem rec) : base(ctx)
+        public ListingService(PetCenterDBContext ctx,ILoggerFactory _logger, IRecommenderSystem rec) : base(ctx,_logger)
         {
             dbSet = ctx.Listings;
             recommender = rec;
@@ -280,7 +281,7 @@ namespace PetCenterServices.Services
                         catch(Exception ex)
                         {
                             await tx.RollbackAsync();
-                            return ServiceOutput<object>.FromException(ex);
+                            return ServiceOutput<object>.FromException(ex,logger);
                         }
                     }
                 }
@@ -462,7 +463,7 @@ namespace PetCenterServices.Services
                 catch(Exception ex)
                 {
                     await tx.RollbackAsync();
-                    return ServiceOutput<DiscountResponseSubDTO>.FromException(ex);
+                    return ServiceOutput<DiscountResponseSubDTO>.FromException(ex,logger);
                 }
 
 
@@ -558,7 +559,7 @@ namespace PetCenterServices.Services
                     catch(Exception ex)
                     {
                         await tx.RollbackAsync();
-                        return ServiceOutput<ListingResponseDTO>.FromException(ex);
+                        return ServiceOutput<ListingResponseDTO>.FromException(ex,logger);
                     
                     }
 
@@ -602,7 +603,7 @@ namespace PetCenterServices.Services
                     catch(Exception ex)
                     {
                         await tx.RollbackAsync();
-                        return ServiceOutput<ListingResponseDTO>.FromException(ex);
+                        return ServiceOutput<ListingResponseDTO>.FromException(ex,logger);
                     }
 
                 }

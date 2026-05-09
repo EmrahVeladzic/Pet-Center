@@ -11,6 +11,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 
 
 namespace PetCenterServices.Services
@@ -20,9 +21,12 @@ namespace PetCenterServices.Services
         protected PetCenterDBContext dbContext;
         protected DbSet<TEntity> dbSet;
 
-        public BaseCRUDService(PetCenterDBContext ctx)
+        protected ILogger logger;
+
+        public BaseCRUDService(PetCenterDBContext ctx,ILoggerFactory _logger)
         {
             dbContext = ctx;
+            logger=_logger.CreateLogger(GetType());
             dbSet = dbContext.Set<TEntity>();
         }
 
@@ -95,7 +99,7 @@ namespace PetCenterServices.Services
                         catch(Exception ex)
                         {
                             await tx.RollbackAsync();
-                            return ServiceOutput<TResponse>.FromException(ex);
+                            return ServiceOutput<TResponse>.FromException(ex,logger);
                         }
                     }
 
@@ -149,7 +153,7 @@ namespace PetCenterServices.Services
                             catch(Exception ex)
                             {
                                 await tx.RollbackAsync();
-                                return ServiceOutput<TResponse>.FromException(ex);
+                                return ServiceOutput<TResponse>.FromException(ex,logger);
                             }
                         }
 
@@ -185,7 +189,7 @@ namespace PetCenterServices.Services
                     catch(Exception ex)
                     {
                         await tx.RollbackAsync();
-                        return ServiceOutput<object>.FromException(ex);
+                        return ServiceOutput<object>.FromException(ex,logger);
 
                     }
                 }

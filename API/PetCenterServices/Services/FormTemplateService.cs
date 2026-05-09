@@ -11,6 +11,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 
 
 namespace PetCenterServices.Services
@@ -18,7 +19,7 @@ namespace PetCenterServices.Services
     public class FormTemplateService : BaseCRUDService<FormTemplate,FormTemplateSearchObject,FormTemplateDTO,FormTemplateDTO>, IFormTemplateService    
     {
 
-        public FormTemplateService(PetCenterDBContext ctx) : base(ctx)
+        public FormTemplateService(PetCenterDBContext ctx,ILoggerFactory _logger) : base(ctx,_logger)
         {
             dbSet = ctx.FormTemplates;
         }
@@ -121,7 +122,7 @@ namespace PetCenterServices.Services
                     catch(Exception ex)
                     {
                         await tx.RollbackAsync();
-                        return ServiceOutput<object>.FromException(ex);
+                        return ServiceOutput<object>.FromException(ex,logger);
                     }
                 }
             }

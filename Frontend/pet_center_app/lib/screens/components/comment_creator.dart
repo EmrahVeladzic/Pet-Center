@@ -3,6 +3,7 @@ import 'package:pet_center_app/models/data_transfer/listing/sub_dtos.dart';
 import 'package:pet_center_app/services/listing_service.dart';
 import 'package:pet_center_app/utils/app_style.dart';
 import 'package:pet_center_app/utils/globals.dart';
+import 'package:pet_center_app/utils/validators.dart';
 
 class CommentCreator extends StatefulWidget {
   final String listingId;
@@ -20,6 +21,7 @@ class CommentCreator extends StatefulWidget {
 
 class _CommentCreatorState extends State<CommentCreator> {
   final TextEditingController _controller = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
 
   @override
   void dispose() {
@@ -54,36 +56,47 @@ class _CommentCreatorState extends State<CommentCreator> {
       child: Container(
         padding: EdgeInsets.all(design.spacing),
         decoration: design.panelDecoration(),
-        child: Row(
-          children: [
-            Expanded(
-              flex: 4,
+        child: Form(
+          key: _formKey,
+          child: Row(
+            children: [
+              Expanded(
+                flex: 4,
+                child: ColoredBox(
+                  color: listTone,
 
-              child: ColoredBox(
-                color: listTone,
-                child: TextField(
-                  controller: _controller,
-                  maxLines: null,
-                  maxLength: 150,
-                  minLines: 3,
-                  keyboardType: TextInputType.multiline,
-                  decoration: InputDecoration(hintText: 'Write a review...'),
+                  child: TextFormField(
+                    controller: _controller,
+                    maxLines: null,
+                    maxLength: 150,
+                    minLines: 3,
+                    keyboardType: TextInputType.multiline,
+                    decoration: InputDecoration(hintText: 'Write a review...'),
+                    validator: (value) {
+                      return validateGeneric(value);
+                    },
+                  ),
                 ),
               ),
-            ),
-            Expanded(
-              flex: 1,
-              child: Align(
-                alignment: Alignment.center,
-                child: IconButton(
-                  onPressed: sendReview,
-                  icon: const Icon(Icons.arrow_forward),
-                  padding: EdgeInsets.zero,
-                  visualDensity: VisualDensity.compact,
+              Expanded(
+                flex: 1,
+                child: Align(
+                  alignment: Alignment.center,
+                  child: IconButton(
+                    onPressed: () {
+                      if (_formKey.currentState != null &&
+                          _formKey.currentState!.validate()) {
+                        sendReview();
+                      }
+                    },
+                    icon: const Icon(Icons.arrow_forward),
+                    padding: EdgeInsets.zero,
+                    visualDensity: VisualDensity.compact,
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

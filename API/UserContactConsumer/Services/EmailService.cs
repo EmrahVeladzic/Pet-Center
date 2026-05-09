@@ -6,6 +6,7 @@ using Microsoft.Extensions.Configuration;
 using System.Threading.Tasks;
 using MimeKit;
 using MailKit.Net.Smtp;
+using Microsoft.Extensions.Logging;
 
 namespace UserContactConsumer.Services
 {
@@ -25,9 +26,12 @@ namespace UserContactConsumer.Services
         private readonly IConfiguration cfg;
         private readonly SmtpCfg smtp;
 
-        public EmailService(IConfiguration c)
+        private readonly ILogger logger;
+
+        public EmailService(IConfiguration c, ILogger _logger)
         {
-            cfg = c;           
+            cfg = c; 
+            logger=_logger;
 
             IConfigurationSection email_cfg = cfg.GetSection("Email");
             int.TryParse(email_cfg["SmtpPort"], out int p);
@@ -111,7 +115,7 @@ namespace UserContactConsumer.Services
                     : MailKit.Security.SecureSocketOptions.StartTls;
 
 
-                    await client.ConnectAsync(smtp.server, smtp.port.GetValueOrDefault(1025), security);
+                    await client.ConnectAsync(smtp.server!, smtp.port.GetValueOrDefault(1025), security);
                     
              
                     if (!string.IsNullOrWhiteSpace(smtp.user) && !string.IsNullOrWhiteSpace(smtp.password))
@@ -125,7 +129,7 @@ namespace UserContactConsumer.Services
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine(ex.ToString());
+                    logger.LogError(ex,"E-mail serivce exception.");
                 }
                 finally
                 {

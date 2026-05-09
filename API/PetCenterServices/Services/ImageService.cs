@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.Extensions.Logging;
 using PetCenterModels.DataTransferObjects;
 using PetCenterModels.DBTables;
 using PetCenterModels.ModelUtils;
@@ -18,7 +19,7 @@ namespace PetCenterServices.Services
 {
     public class ImageService : BaseCRUDService<Image,ImageSearchObject,ImageDTO,ImageDTO>, IImageService
     {
-        public ImageService(PetCenterDBContext ctx) : base(ctx)
+        public ImageService(PetCenterDBContext ctx, ILoggerFactory _logger) : base(ctx,_logger)
         {            
             dbSet = ctx.Images;
         }
@@ -48,7 +49,7 @@ namespace PetCenterServices.Services
                     catch(Exception ex)
                     {
                         await tx.RollbackAsync();
-                        return ServiceOutput<object>.FromException(ex);
+                        return ServiceOutput<object>.FromException(ex,logger);
                     }
                 }
 
@@ -72,7 +73,7 @@ namespace PetCenterServices.Services
                 catch(Exception ex)
                 {
                     await tx.RollbackAsync();
-                    output = ServiceOutput<ImageDTO>.FromException(ex);
+                    output = ServiceOutput<ImageDTO>.FromException(ex,logger);
 
                 }
             }

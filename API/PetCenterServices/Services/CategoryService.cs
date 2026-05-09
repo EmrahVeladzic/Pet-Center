@@ -11,6 +11,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 
 
 namespace PetCenterServices.Services
@@ -18,7 +19,7 @@ namespace PetCenterServices.Services
     public class CategoryService : BaseCRUDService<Category,CategorySearchObject,CategoryDTO,CategoryDTO>, ICategoryService    
     {
 
-        public CategoryService(PetCenterDBContext ctx) : base(ctx)
+        public CategoryService(PetCenterDBContext ctx,ILoggerFactory _logger) : base(ctx,_logger)
         {
             dbSet = ctx.Categories;
         }
@@ -70,7 +71,7 @@ namespace PetCenterServices.Services
                         catch(Exception ex)
                         {
                             await tx.RollbackAsync();
-                            return ServiceOutput<CategoryDTO>.FromException(ex);
+                            return ServiceOutput<CategoryDTO>.FromException(ex,logger);
                         }
                     }
 
@@ -169,7 +170,7 @@ namespace PetCenterServices.Services
             }
             catch(Exception ex)
             {
-                return ServiceOutput<SuppliesSubDTO>.FromException(ex);
+                return ServiceOutput<SuppliesSubDTO>.FromException(ex,logger);
             }
 
 
@@ -197,7 +198,7 @@ namespace PetCenterServices.Services
                     catch(Exception ex)
                     {
                         await tx.RollbackAsync();
-                        return ServiceOutput<object>.FromException(ex);
+                        return ServiceOutput<object>.FromException(ex,logger);
                     }
                 }
                 
@@ -255,7 +256,7 @@ namespace PetCenterServices.Services
             }
             catch(Exception ex)
             {
-                return ServiceOutput<UsageSubDTO>.FromException(ex);
+                return ServiceOutput<UsageSubDTO>.FromException(ex,logger);
             }
 
         }
@@ -280,7 +281,7 @@ namespace PetCenterServices.Services
                     catch(Exception ex)
                     {
                         await tx.RollbackAsync();
-                        return ServiceOutput<object>.FromException(ex);
+                        return ServiceOutput<object>.FromException(ex,logger);
                     }
                 }
 

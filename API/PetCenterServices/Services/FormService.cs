@@ -12,6 +12,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using PetCenterServices.Recommender;
+using Microsoft.Extensions.Logging;
 
 
 namespace PetCenterServices.Services
@@ -20,7 +21,7 @@ namespace PetCenterServices.Services
     {
        
 
-        public FormService(PetCenterDBContext ctx) : base(ctx)
+        public FormService(PetCenterDBContext ctx,ILoggerFactory _logger) : base(ctx,_logger)
         {
             dbSet = ctx.Forms;
             
@@ -71,7 +72,7 @@ namespace PetCenterServices.Services
                     catch(Exception ex)
                     {
                         await tx.RollbackAsync();
-                        return ServiceOutput<FormDTO>.FromException(ex);
+                        return ServiceOutput<FormDTO>.FromException(ex,logger);
                     }
                 }
 
@@ -160,7 +161,7 @@ namespace PetCenterServices.Services
                     catch(Exception ex)
                     {
                         await tx.RollbackAsync();
-                        return ServiceOutput<object>.FromException(ex);
+                        return ServiceOutput<object>.FromException(ex,logger);
                     }
 
                 }

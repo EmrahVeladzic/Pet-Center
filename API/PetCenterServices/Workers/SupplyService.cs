@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using PetCenterModels.DBTables;
+using Microsoft.Extensions.Logging;
 
 namespace PetCenterServices.Workers
 {
@@ -14,9 +15,12 @@ namespace PetCenterServices.Workers
     {
         
         private readonly IServiceScopeFactory scope_factory;
-        public SupplyService(IServiceScopeFactory factory)
+
+        private readonly ILogger<SupplyService> logger; 
+        public SupplyService(IServiceScopeFactory factory, ILogger<SupplyService> _logger)
         {
             scope_factory = factory;
+            logger=_logger;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -29,7 +33,8 @@ namespace PetCenterServices.Workers
                 {
                     PetCenterDBContext dBContext = scope.ServiceProvider.GetRequiredService<PetCenterDBContext>();
                     IHostEnvironment environment = scope.ServiceProvider.GetRequiredService<IHostEnvironment>();
-                    await RunRecalculation(dBContext,environment,stoppingToken);
+                   
+                    await RunRecalculation(dBContext,environment,logger,stoppingToken);
                 }
 
                 
@@ -38,7 +43,7 @@ namespace PetCenterServices.Workers
 
         }
 
-        private async Task RunRecalculation(PetCenterDBContext dBContext,IHostEnvironment environment, CancellationToken stoppingToken)
+        private async Task RunRecalculation(PetCenterDBContext dBContext,IHostEnvironment environment,ILogger logger, CancellationToken stoppingToken)
         {
             
             try
@@ -77,14 +82,14 @@ namespace PetCenterServices.Workers
             {
                 if (environment.IsDevelopment())
                 {
-                    Console.WriteLine("Cleanup aborted due to host shutdown.");
+                    logger.LogInformation("Supply update aborted due to host shutdown.");
                 }
             }
             catch (Exception ex)
             {
                 if (environment.IsDevelopment())
                 {
-                    Console.WriteLine($"[ERROR] {ex.GetType().Name}: {ex.Message}");
+                    logger.LogError(ex,"Supply worker exception.");
                 } 
             }
 

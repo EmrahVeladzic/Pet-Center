@@ -15,6 +15,7 @@ using System.Threading.Tasks;
 using RabbitMQ.Client;
 using PetCenterShared;
 using PetCenterModels.ModelUtils;
+using Microsoft.Extensions.Logging;
 
 
 namespace PetCenterServices.Services
@@ -24,7 +25,7 @@ namespace PetCenterServices.Services
 
         private IMessageBusClient message_bus_client;
 
-        public AccountService(PetCenterDBContext ctx,IMessageBusClient client):base(ctx)
+        public AccountService(PetCenterDBContext ctx,ILoggerFactory _logger,IMessageBusClient client):base(ctx,_logger)
         {
             dbSet = ctx.Accounts;
             message_bus_client=client;
@@ -107,7 +108,7 @@ namespace PetCenterServices.Services
                 catch(Exception ex)
                 {
                     await tx.RollbackAsync();
-                    return ServiceOutput<AccountResponseDTO>.FromException(ex);
+                    return ServiceOutput<AccountResponseDTO>.FromException(ex,logger);
                     
                 }
             }
@@ -159,7 +160,7 @@ namespace PetCenterServices.Services
                 catch(Exception ex)
                 {
                     await tx.RollbackAsync();
-                    return ServiceOutput<string>.FromException(ex);
+                    return ServiceOutput<string>.FromException(ex,logger);
                 }
             }
             
@@ -231,7 +232,7 @@ namespace PetCenterServices.Services
             }
             catch(Exception ex)
             {
-                return ServiceOutput<string>.FromException(ex);
+                return ServiceOutput<string>.FromException(ex,logger);
             }
             await message_bus_client.SendEmailMessage(new ConsumerMessage(){Contact=acc.Contact,Message=$"Your first transfer code is {old_code}.",Subject="Account transfer",Name=acc.AccountUser.UserName});
             await message_bus_client.SendEmailMessage(new ConsumerMessage(){Contact=transfer.NewContact,Message=$"Your second transfer code is {new_code}.",Subject="Account transfer",Name=acc.AccountUser.UserName});
@@ -285,7 +286,7 @@ namespace PetCenterServices.Services
                 catch(Exception ex)
                 {
                         
-                    return ServiceOutput<AccountResponseDTO>.FromException(ex);
+                    return ServiceOutput<AccountResponseDTO>.FromException(ex,logger);
                 }
                 
                 
@@ -483,7 +484,7 @@ namespace PetCenterServices.Services
                 catch(Exception ex)
                 {
                     await tx.RollbackAsync();
-                    return ServiceOutput<string>.FromException(ex);
+                    return ServiceOutput<string>.FromException(ex,logger);
                     
                 }
             }
@@ -513,7 +514,7 @@ namespace PetCenterServices.Services
             catch(Exception ex)
             {
                    
-                return ServiceOutput<object>.FromException(ex);
+                return ServiceOutput<object>.FromException(ex,logger);
                     
             }
             
@@ -562,7 +563,7 @@ namespace PetCenterServices.Services
                 catch(Exception ex)
                 {
                     await tx.RollbackAsync();
-                    return ServiceOutput<string>.FromException(ex);                    
+                    return ServiceOutput<string>.FromException(ex,logger);                    
 
                 }
             }
@@ -600,7 +601,7 @@ namespace PetCenterServices.Services
                 catch(Exception ex)
                 {
                     await tx.RollbackAsync();
-                    return ServiceOutput<object>.FromException(ex);
+                    return ServiceOutput<object>.FromException(ex,logger);
                     
 
                 }

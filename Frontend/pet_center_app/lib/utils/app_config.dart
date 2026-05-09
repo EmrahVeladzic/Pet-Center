@@ -13,5 +13,11 @@ class AppConfig {
     apiBaseUrl = data['API_BASE_URL'] ?? 'http://localhost:5000';
     currency = data['CURRENCY_SYMBOL'] ?? "\$";
     pricingMult = max(data['PRICE_MINOR_MULTIPLIER'] ?? 1, 1);
+    final String apiBaseUrlOverride = const String.fromEnvironment(
+      'API_BASE_URL',
+    );
+    if (apiBaseUrlOverride.isNotEmpty) {
+      apiBaseUrl = apiBaseUrlOverride;
+    }
   }
 }
