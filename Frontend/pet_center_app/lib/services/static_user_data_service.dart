@@ -87,7 +87,7 @@ class StaticAndUserDataService {
       if (result != null) {
         if (currentStaticDataVersion.kindVersion != result.kindVersion ||
             currentStaticDataVersion.breedVersion != result.breedVersion) {
-          final newKinds = await KindService.get(false);
+          final newKinds = await KindService.get();
           if (newKinds != null) {
             kinds = newKinds;
             currentStaticDataVersion.kindVersion = result.kindVersion;

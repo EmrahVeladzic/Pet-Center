@@ -13,11 +13,12 @@ using System.Text;
 using System.Threading.Tasks;
 using PetCenterServices.Recommender;
 using Microsoft.Extensions.Logging;
+using PetCenterModels.ModelUtils;
 
 
 namespace PetCenterServices.Services
 {
-    public class BreedService : AlbumIncludingService<Breed,BreedSearchObject,BreedDTO,BreedDTO>, IBreedService    
+    public class BreedService : AlbumIncludingService<Breed,BreedSearchObject,BreedDTO,BreedDTO,ImageDTO,Image,ImageMetadata>, IBreedService    
     {
         private readonly IRecommenderSystem recommender;
 
@@ -35,7 +36,7 @@ namespace PetCenterServices.Services
         protected override async Task<IQueryable<Breed>> Filter(Guid token_holder, BreedSearchObject search)
         {
             
-            IQueryable<Breed> query = dbSet.OrderBy(b=>b.Id);
+            IQueryable<Breed> query = WithAlbum();
             User? usr = await dbContext.Users.FindAsync(token_holder);
 
             if(search.AuthoritySpecifier == Access.Admin && search.Incomplete)
@@ -46,14 +47,9 @@ namespace PetCenterServices.Services
             if(search.AuthoritySpecifier == Access.User && search.AdoptionPurposes && usr!=null)
             {
                 
-                query = WithAlbum();
+               
                 query = query.Where(b=> b.Album.Reserved>0);               
-                query = query.Where(b =>
-                dbContext.AnimalListings.Any(al =>
-                al.Animal.AnimalBreed.Id == b.Id && b.KindId==search.KindId &&
-                al.Base.Approved &&
-                al.Base.Visible &&
-                al.Base.Type == ListingType.Pet));
+                
                 query=await recommender.GetMostCompatibleBreeds(dbContext,query,usr);
 
 
@@ -66,17 +62,20 @@ namespace PetCenterServices.Services
 
         public override async Task<ServiceOutput<List<BreedDTO>>> Get(Guid token_holder, BreedSearchObject search)
         {
+            if(search.Incomplete && search.AuthoritySpecifier == Access.Admin)
+            {
+                search.FileRW = FileScope.Write;
+            }
             if(search.AdoptionPurposes && search.AuthoritySpecifier == Access.User)
             {
-                return await base.Get(token_holder, search);
+                search.FileRW = FileScope.ReadOnly;                
             }
             else
             {
-                IQueryable<Breed> breeds = await Filter(token_holder,search);
-                List<Breed> output = await breeds.ToListAsync();
-
-                return ServiceOutput<List<BreedDTO>>.Success(output.Select(b=>BreedDTO.FromEntity(b)!).ToList());
+                search.FileRW=FileScope.Invalid;
             }
+
+            return await base.Get(token_holder, search);
             
         }
 

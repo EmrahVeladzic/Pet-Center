@@ -5,6 +5,7 @@ using System.Text;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using PetCenterModels.DBTables;
+using PetCenterModels.ModelUtils;
 
 namespace PetCenterModels.SearchObjects
 {
@@ -14,6 +15,9 @@ namespace PetCenterModels.SearchObjects
 
         [JsonIgnore]
         public virtual int PageSize {get;} = 25;
+
+        [JsonIgnore]
+        public virtual FileScope FileRW {get; set;} = FileScope.Invalid;
 
 
         [JsonIgnore]

@@ -12,7 +12,7 @@ using PetCenterModels.SearchObjects;
 
 namespace PetCenterModels.DataTransferObjects
 {
-    public class ListingResponseDTO : IAlbumCarryingDTO<Listing,ListingResponseDTO>
+    public class ListingResponseDTO : IAlbumCarryingDTO<Listing,ListingResponseDTO,ImageDTO,Image,ImageMetadata>
     {
        
         public Guid? Id {get; set;} = null;      
@@ -23,7 +23,9 @@ namespace PetCenterModels.DataTransferObjects
 
         public Guid AlbumId {get; set;} = Guid.Empty;
 
-        public List<ImageDTO> Images {get; set;} = new();
+        public List<ImageDTO> Media {get; set;} = new();
+
+        public bool Locked {get; set;} = true;
 
         public string Name {get; set;} = string.Empty;
 
@@ -48,6 +50,8 @@ namespace PetCenterModels.DataTransferObjects
         public List<AvailabilityResponseSubDTO> Availability {get; set;} = new();
 
         public List<CommentResponseSubDTO> Comments {get; set;} = new();
+
+        public string? MediaCreationToken {get; set;} = string.Empty;
 
         public static ListingResponseDTO? FromEntity(Listing? entity)
         {
@@ -80,14 +84,26 @@ namespace PetCenterModels.DataTransferObjects
 
             if (entity.Album != null)
             {
-                output.Images = entity.Album.Images.Select(i=>ImageDTO.FromEntity(i)!).ToList();
+                output.Locked=entity.Album.Locked;
+                output.Media = entity.Album.Images.Select(i=>ImageDTO.FromEntity(i)!).ToList();
             }
 
             return output;
         }
 
 
+        public static ListingResponseDTO? FromEntity(Listing? entity, string token)
+        {
+            ListingResponseDTO? output = FromEntity(entity);
 
+            if (output != null)
+            {
+                output.MediaCreationToken=token;
+            }
+
+
+            return output;
+        }
 
 
     }

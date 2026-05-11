@@ -69,5 +69,7 @@ namespace PetCenterServices
         public DbSet<ContactTransfer> ContactTransfers {get; set;}
         public DbSet<InvalidatedToken> InvalidatedTokens {get; set;}
 
+        public DbSet<ImageBLOB> ImageBLOBs {get; set;}
+
     }
 }

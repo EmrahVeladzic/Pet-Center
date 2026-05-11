@@ -13,11 +13,12 @@ using System.Text;
 using System.Threading.Tasks;
 using PetCenterServices.Recommender;
 using Microsoft.Extensions.Logging;
+using PetCenterModels.ModelUtils;
 
 
 namespace PetCenterServices.Services
 {
-    public class FormService : AlbumIncludingService<Form,FormSearchObject,FormDTO,FormDTO>, IFormService    
+    public class FormService : AlbumIncludingService<Form,FormSearchObject,FormDTO,FormDTO,ImageDTO,Image,ImageMetadata>, IFormService    
     {
        
 
@@ -35,11 +36,13 @@ namespace PetCenterServices.Services
             if (search.AuthoritySpecifier == Access.Admin)
             {
                 query=query.Where(f=>f.Album.Reserved>0);
+                search.FileRW=FileScope.ReadOnly;
             }
 
             else
             {
                 query=query.Where(f=>f.UserId==token_holder);
+                search.FileRW=FileScope.Write;
             }
 
 
@@ -67,7 +70,7 @@ namespace PetCenterServices.Services
                         }
                         await dbContext.SaveChangesAsync();
                         await tx.CommitAsync();
-                        return ServiceOutput<FormDTO>.Success(FormDTO.FromEntity(ent),HttpCode.Created);
+                        return ServiceOutput<FormDTO>.Success(FormDTO.FromEntity(ent,Crypto.GenerateFileToken("",Purpose,FileScope.Write,ent.AlbumId)),HttpCode.Created);
                     }
                     catch(Exception ex)
                     {
