@@ -8,12 +8,11 @@ import 'package:pet_center_app/utils/jwt_parser.dart';
 import 'package:pet_center_app/utils/service_output.dart';
 
 class KindService {
-  static Future<List<KindDTO>?> get(bool adoptionPurposes) async {
+  static Future<List<KindDTO>?> get() async {
     apiServiceBusy = true;
     try {
       final query = <String, String>{};
       query['page'] = 0.toString();
-      query['adoptionPurposes'] = adoptionPurposes.toString();
 
       final response = await http.get(
         Uri.parse(

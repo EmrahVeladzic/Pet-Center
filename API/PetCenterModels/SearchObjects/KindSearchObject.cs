@@ -10,9 +10,7 @@ namespace PetCenterModels.SearchObjects
 {
     public class KindSearchObject : BaseSearchObject
     {
-        public bool AdoptionPurposes {get; set;} = false;
-
-
+      
         [JsonIgnore]
         public override int PageSize {get;} = int.MaxValue;
 

@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using PetCenterModels.DataTransferObjects;
 using PetCenterModels.DBTables;
@@ -20,7 +21,7 @@ namespace PetCenterServices.Seeder
         
 
 
-        public Task<bool> SeedDatabase(PetCenterDBContext ctx, bool non_static_data = default, int? seed = default);
+        public Task<bool> SeedDatabase(PetCenterDBContext ctx, bool non_static_data = default, int? seed = default, ILogger? logger = default);
 
 
 

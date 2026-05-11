@@ -12,7 +12,7 @@ using PetCenterModels.SearchObjects;
 
 namespace PetCenterModels.DataTransferObjects
 {
-    public class BreedDTO : ISerializableRequestDTO<Breed>, IAlbumCarryingDTO<Breed,BreedDTO>
+    public class BreedDTO : ISerializableRequestDTO<Breed>, IAlbumCarryingDTO<Breed,BreedDTO,ImageDTO,Image,ImageMetadata>
     {
        
         public Guid? Id {get; set;} = null;
@@ -21,13 +21,18 @@ namespace PetCenterModels.DataTransferObjects
 
         public Guid KindId {get; set;} = Guid.Empty;
 
+        public bool Locked {get; set;} = true;
+
         public AnimalScale Scale {get; set;}
+
 
         public float Investment {get; set;} = 0.0f;
         public float Territory {get; set;} = 0.0f;
         public float Pricing {get; set;} = 0.0f;
         public float Longevity {get; set;} = 0.0f;
         public float Cohabitation {get; set;} = 0.0f;
+
+        public string? MediaCreationToken {get; set;} = string.Empty;
 
         public List<NoteSubDTO>? Notes {get; set;} = null;
 
@@ -36,7 +41,7 @@ namespace PetCenterModels.DataTransferObjects
 
         public Guid AlbumId {get; set;} = Guid.Empty;
 
-        public List<ImageDTO> Images {get; set;} = new();
+        public List<ImageDTO> Media {get; set;} = new();
 
 
         public static BreedDTO? FromEntity(Breed? entity)
@@ -59,8 +64,22 @@ namespace PetCenterModels.DataTransferObjects
 
             if (entity.Album != null)
             {
-                output.Images = entity.Album.Images.Select(i=>ImageDTO.FromEntity(i)!).ToList();
+                output.Media = entity.Album.Images.Select(i=>ImageDTO.FromEntity(i)!).ToList();
+                output.Locked=entity.Album.Locked;
             }
+
+            return output;
+        }
+
+        public static BreedDTO? FromEntity(Breed? entity, string token)
+        {
+            BreedDTO? output = FromEntity(entity);
+
+            if (output != null)
+            {
+                output.MediaCreationToken=token;
+            }
+
 
             return output;
         }
@@ -80,6 +99,8 @@ namespace PetCenterModels.DataTransferObjects
             breed.Title=Title;
             return breed;
         }
+
+        
         
         
         public bool Validate()

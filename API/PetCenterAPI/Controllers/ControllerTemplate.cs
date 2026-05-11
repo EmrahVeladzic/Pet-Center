@@ -7,6 +7,7 @@ using PetCenterServices.Interfaces;
 using PetCenterModels.DataTransferObjects;
 using PetCenterServices.Utils;
 using System.Security.Claims;
+using PetCenterModels.ModelUtils;
 
 namespace PetCenterAPI.Controllers
 {
@@ -23,6 +24,63 @@ namespace PetCenterAPI.Controllers
 
             return Guid.TryParse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value,out user_id);
 
+        }
+
+        protected bool TryParseFileToken(out Guid user_id, out Guid album_id, out string file_hash, out string purpose, out PetCenterModels.ModelUtils.FileScope scope)
+        {
+            user_id = Guid.Empty;
+            album_id = Guid.Empty;
+            file_hash = string.Empty;
+            purpose = string.Empty;
+            scope = default;
+
+            try
+            {
+                
+                string? albumClaim = User.FindFirst("album_id")?.Value;
+                string? hashClaim = User.FindFirst("file_hash")?.Value;
+                string? purposeClaim = User.FindFirst("purpose")?.Value;
+                string? scopeClaim = User.FindFirst("scope")?.Value;
+
+                if(!TryGetUserId(out user_id))
+                {
+                    return false;
+                }
+
+                if (!Guid.TryParse(albumClaim, out album_id)){
+                    return false;
+                }
+
+                if (hashClaim==null){
+                    return false;
+                }
+
+                file_hash = hashClaim;
+
+                if (string.IsNullOrWhiteSpace(purposeClaim)){
+                    return false;
+                }
+
+                purpose = purposeClaim;
+
+                PetCenterModels.ModelUtils.FileScope? parsedScope = Crypto.ValidateScope(scopeClaim ?? "");
+                if (parsedScope == null){
+                    return false;
+                }
+
+                scope = parsedScope.Value;
+
+                if(scope==FileScope.ReadOnly && string.IsNullOrWhiteSpace(file_hash))
+                {
+                    return false;
+                }
+
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
        
         protected Access SpecifySearchAuthority()
@@ -140,29 +198,6 @@ namespace PetCenterAPI.Controllers
 
     }
 
-    public static class ResultConverter
-{
-    public static IActionResult Convert<T>(ServiceOutput<T> output){
-        if (output.Code == HttpCode.NoContent)
-        {
-            return new Microsoft.AspNetCore.Mvc.NoContentResult(); 
-        }
-       
-        if (!ServiceOutput<T>.IsSuccess(output))
-        {
-            return new ObjectResult(new { error = output.ErrorMessage }) 
-            { 
-                StatusCode = (int)output.Code 
-            };
-        }
-
-        return new ObjectResult(output.Body) 
-        { 
-            StatusCode = (int)output.Code 
-        };
-    }
-
-
-}
+   
 
 }

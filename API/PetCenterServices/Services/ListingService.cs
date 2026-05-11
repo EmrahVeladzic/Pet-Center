@@ -18,7 +18,7 @@ using Microsoft.Extensions.Logging;
 
 namespace PetCenterServices.Services
 {
-    public class ListingService : AlbumIncludingService<Listing,ListingSearchObject,ListingRequestDTO,ListingResponseDTO>, IListingService    
+    public class ListingService : AlbumIncludingService<Listing,ListingSearchObject,ListingRequestDTO,ListingResponseDTO,ImageDTO,Image,ImageMetadata>, IListingService    
     {
         private readonly IRecommenderSystem recommender;
 
@@ -34,11 +34,13 @@ namespace PetCenterServices.Services
             IQueryable<Listing> query = WithAlbum().Include(l=>l.Business).Include(l=>l.Comments).ThenInclude(c=>c.Poster).Include(l=>l.AvailabilityRecords).ThenInclude(a=>a.RelevantFacility).Include(l=>l.ListingDiscount)
             .Include(l=>l.AnimalExtension).ThenInclude(a=>a!.Animal).Include(l=>l.MedicalExtension).ThenInclude(m=>m!.Procedure).ThenInclude(mp=>mp.Specifications).Include(l=>l.ProductExtension).ThenInclude(p=>p!.Product).ThenInclude(pr=>pr.ItemCategory);
 
+            search.FileRW=FileScope.ReadOnly;
+
             switch (search.AuthoritySpecifier)
             {
                 case Access.User: {query=query.Where(q=>q.Visible&&q.Approved&&q.Album!=null&&q.Album.Reserved>0);break;}
                 case Access.Admin: {query=query.Where(q=>q.Album!=null&&q.Album.Reserved>0&&((!q.Approved&&q.Updated)||search.ShowApprovedAndPending));break;}
-                case Access.BusinessAccount : { query = query.Where(q =>
+                case Access.BusinessAccount : {search.FileRW=FileScope.Write; query = query.Where(q =>
                 q.Business.OwnerId == token_holder ||
                 q.Business.EmployeeRecords.Any(e => e.UserId == token_holder));
                 break; }
@@ -83,6 +85,7 @@ namespace PetCenterServices.Services
 
             if (search.AuthoritySpecifier == Access.User)
             {
+                
 
                 if (search.Type == ListingType.Product)
                 {
@@ -122,11 +125,18 @@ namespace PetCenterServices.Services
 
             }
 
+            foreach(ListingResponseDTO response in output)
+            {
+                AttachTokensIfNeeded(response,search.FileRW);
+            }
+
             return ServiceOutput<List<ListingResponseDTO>>.Success(output);
         }
 
-        public override async Task<ServiceOutput<ListingResponseDTO>> GetById(Guid token_holder, Guid id, Access authorization_level)
+        public override async Task<ServiceOutput<ListingResponseDTO>> GetById(Guid token_holder, Guid id, Access authorization_level, FileScope fileScope = FileScope.ReadOnly)
         {
+            fileScope=FileScope.ReadOnly;
+
             Listing? output = await WithAlbum().Include(l=>l.Business).Include(l=>l.Comments).ThenInclude(c=>c.Poster).Include(l=>l.AvailabilityRecords).ThenInclude(a=>a.RelevantFacility).Include(l=>l.ListingDiscount)
             .Include(l=>l.AnimalExtension).ThenInclude(a=>a!.Animal).Include(l=>l.MedicalExtension).ThenInclude(m=>m!.Procedure).ThenInclude(mp=>mp.Specifications).Include(l=>l.ProductExtension).ThenInclude(p=>p!.Product).ThenInclude(pr=>pr.ItemCategory).FirstOrDefaultAsync(l=>l.Id==id);
 
@@ -139,6 +149,8 @@ namespace PetCenterServices.Services
 
             if (authorization_level == Access.Admin)
             {
+                
+
                 if (output.Album == null || output.Album.Reserved <= 0)
                 {
                     return ServiceOutput<ListingResponseDTO>.Error(HttpCode.Forbidden,"This listing is not ready for evaluation.");
@@ -147,6 +159,7 @@ namespace PetCenterServices.Services
 
             else if (authorization_level == Access.User)
             {
+
 
                 if (!output.Visible || !output.Approved || output.Album == null || output.Album.Reserved <= 0)
                 {
@@ -182,11 +195,15 @@ namespace PetCenterServices.Services
 
             else
             {
+                fileScope=FileScope.Write;
+
                 if(!await FranchiseService.IsEmployeeOfFranchise(dbContext, token_holder, output.FranchiseId))
                 {
                     return ServiceOutput<ListingResponseDTO>.Error(HttpCode.Forbidden,"This listing was not made by a franchise you are employed by.");   
                 }
             }
+
+            AttachTokensIfNeeded(dto,fileScope);
           
             return ServiceOutput<ListingResponseDTO>.Success(dto);
         }
@@ -554,7 +571,7 @@ namespace PetCenterServices.Services
                        
                         await tx.CommitAsync();
                         
-                        return ServiceOutput<ListingResponseDTO>.Success(ListingResponseDTO.FromEntity(lst),HttpCode.Created);
+                        return ServiceOutput<ListingResponseDTO>.Success(ListingResponseDTO.FromEntity(lst,Crypto.GenerateFileToken("",Purpose,FileScope.Write,lst.AlbumId)),HttpCode.Created);
                     }
                     catch(Exception ex)
                     {
@@ -598,7 +615,15 @@ namespace PetCenterServices.Services
                         await dbContext.SaveChangesAsync();
                         
                         await tx.CommitAsync();
-                        return ServiceOutput<ListingResponseDTO>.Success(ListingResponseDTO.FromEntity(listing));
+
+                        ListingResponseDTO? response = ListingResponseDTO.FromEntity(listing);
+
+                        if (response != null)
+                        {
+                            AttachTokensIfNeeded(response,FileScope.Write);
+                        }
+
+                        return ServiceOutput<ListingResponseDTO>.Success(response);
                     }
                     catch(Exception ex)
                     {

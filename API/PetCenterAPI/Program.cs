@@ -42,14 +42,23 @@ builder.Services.AddSwaggerGen(cfg =>
 {
     cfg.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo { Title = "PetCenter API", Version = "v1" });
 
-    // Add JWT Authentication
+    // Main JWT
     cfg.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
     {
         Name = "Authorization",
         Type = Microsoft.OpenApi.Models.SecuritySchemeType.Http,
         Scheme = "Bearer",
         BearerFormat = "JWT",
-        In = Microsoft.OpenApi.Models.ParameterLocation.Header,       
+        In = Microsoft.OpenApi.Models.ParameterLocation.Header,
+    });
+
+    
+    cfg.AddSecurityDefinition("FileToken", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+    {
+        Name = "X-File-Token",
+        Type = Microsoft.OpenApi.Models.SecuritySchemeType.ApiKey,
+        In = Microsoft.OpenApi.Models.ParameterLocation.Header,
+        Description = "File context token for BLOB operations"
     });
 
     cfg.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
@@ -64,11 +73,23 @@ builder.Services.AddSwaggerGen(cfg =>
                 }
             },
             new string[] {}
+        },
+        {
+            new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+            {
+                Reference = new Microsoft.OpenApi.Models.OpenApiReference
+                {
+                    Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
+                    Id = "FileToken"
+                }
+            },
+            new string[] {}
         }
     });
 
     cfg.SchemaFilter<CurrentVersionSchemaFilter>();
 });
+
 
 builder.Services.AddSingleton<IRecommenderSystem,RecommenderSystem>();
 builder.Services.AddSingleton<ISeeder,TestSeeder>();
@@ -182,34 +203,17 @@ var app = builder.Build();
 ILogger<Program> logger = app.Services.GetRequiredService<ILogger<Program>>();
 
 
+
 app.UseExceptionHandler(errorApp =>
 {
     errorApp.Run(async context =>
     {
-        Exception? ex = context.Features
-        .Get<IExceptionHandlerFeature>()?
-        .Error;
-
-        if (ex != null)
-        {
-            if (app.Environment.IsDevelopment())
-            {
-                logger.LogError($"[ERROR] {ex.GetType().Name}: {ex.Message}");
-            }
-
-            if(ex is NotImplementedException)
-            {
-                context.Response.StatusCode = 501;
-                await context.Response.WriteAsync(JsonSerializer.Serialize(new { error = "Invalid action." }));
-                return;
-            }
-
-        }
-
-        context.Response.StatusCode = 500;
-        await context.Response.WriteAsync(JsonSerializer.Serialize(new { error = "Internal server error." }));
+        Exception? ex = context.Features.Get<IExceptionHandlerFeature>()?.Error;
+        ServiceOutput<object> output = ServiceOutput<object>.FromException(ex, logger);
+        await PetCenterAPI.Controllers.ResultConverter.WriteAsync(context, output);
     });
 });
+
 
 
 app.UseRouting();

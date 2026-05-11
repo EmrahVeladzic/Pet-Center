@@ -12,6 +12,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using PetCenterModels.ModelUtils;
 
 
 namespace PetCenterServices.Services
@@ -59,7 +60,7 @@ namespace PetCenterServices.Services
             return  ServiceOutput<List<TResponse>>.Success(entities.Select(e=>TResponse.FromEntity(e)!).ToList());
         }
 
-        public virtual async Task<ServiceOutput<TResponse>> GetById(Guid token_holder,Guid id, Access authorization_level)
+        public virtual async Task<ServiceOutput<TResponse>> GetById(Guid token_holder,Guid id, Access authorization_level, FileScope fileScope = FileScope.Invalid)
         {
             TEntity? entity = await dbSet.FindAsync(id);
 

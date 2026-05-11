@@ -7,6 +7,7 @@ using PetCenterModels.SearchObjects;
 using PetCenterServices.Interfaces;
 using PetCenterServices.Utils;
 using System.Security.Claims;
+using PetCenterModels.ModelUtils;
 
 
 namespace PetCenterAPI.Controllers
@@ -23,7 +24,7 @@ namespace PetCenterAPI.Controllers
         {
             if(TryGetUserId(out Guid user_id))
             {
-                return ResultConverter.Convert<UserResponseDTO>(await service.GetById(user_id,user_id,SpecifySearchAuthority()));
+                return ResultConverter.Convert<UserResponseDTO>(await service.GetById(user_id,user_id,SpecifySearchAuthority(),FileScope.Invalid));
             }
             return StatusCode(401,"Invalid token.");  
         }

@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using PetCenterModels.DataTransferObjects;
 using PetCenterModels.DBTables;
+using PetCenterModels.ModelUtils;
 using PetCenterModels.SearchObjects;
 using PetCenterServices.Interfaces;
 using PetCenterServices.Utils;
@@ -23,7 +24,7 @@ namespace PetCenterAPI.Controllers
         {
             if(TryGetUserId(out Guid user_id))
             {
-                return ResultConverter.Convert<ListingResponseDTO>(await service.GetById(user_id,id,SpecifySearchAuthority()));
+                return ResultConverter.Convert<ListingResponseDTO>(await service.GetById(user_id,id,SpecifySearchAuthority(),FileScope.Invalid));
             }
             return StatusCode(401,"Invalid token.");
         }

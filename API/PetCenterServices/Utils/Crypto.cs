@@ -63,6 +63,61 @@ namespace PetCenterServices.Utils
             return new JwtSecurityTokenHandler().WriteToken(token);
 
 
+        }       
+
+        public static string GetFilePurpose(PetCenterModels.ModelUtils.FilePurpose input)
+        {
+            switch (input)
+            {
+                case PetCenterModels.ModelUtils.FilePurpose.Image: return "Image";       
+                default: throw new ArgumentOutOfRangeException(nameof(input), input, "Invalid FilePurpose.");
+            }
         }
+
+        public static string GetFileScope(PetCenterModels.ModelUtils.FileScope input)
+        {
+            switch (input)
+            {
+                case PetCenterModels.ModelUtils.FileScope.Write: return "W";    
+                case PetCenterModels.ModelUtils.FileScope.ReadOnly: return "R";   
+                default: throw new ArgumentOutOfRangeException(nameof(input), input, "Invalid FileScope.");
+            }
+        }
+
+        public static PetCenterModels.ModelUtils.FileScope? ValidateScope(string input)
+        {
+            return (input) switch
+            {
+                "W"=>PetCenterModels.ModelUtils.FileScope.Write,
+                "R"=>PetCenterModels.ModelUtils.FileScope.ReadOnly,
+                _=>null
+            };
+        }
+
+        public static string GenerateFileToken(String file_hash,PetCenterModels.ModelUtils.FilePurpose purpose, PetCenterModels.ModelUtils.FileScope scope, Guid album_id)
+        {
+            SymmetricSecurityKey key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration["Jwt:Key"]!));
+            SigningCredentials creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+            Claim[] claims = new[]
+            {             
+                new Claim("file_hash",file_hash),
+                new Claim("album_id",album_id.ToString()),
+                new Claim("purpose",GetFilePurpose(purpose)),
+                new Claim("scope", GetFileScope(scope)),
+
+            };
+
+            JwtSecurityToken token = new JwtSecurityToken(
+                Configuration["Jwt:Issuer"],
+                Configuration["Jwt:Audience"],
+                claims,
+                expires: DateTime.UtcNow.AddHours(8),
+                signingCredentials: creds);
+
+            return new JwtSecurityTokenHandler().WriteToken(token);
+
+
+        }
+
     }
 }

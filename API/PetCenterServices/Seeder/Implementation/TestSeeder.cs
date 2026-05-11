@@ -18,6 +18,8 @@ using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Formats.Webp;
 using PetCenterServices.Services;
 using PetCenterServices.Utils;
+using Microsoft.Extensions.Logging;
+using PetCenterModels.ModelUtils;
 
 namespace PetCenterServices.Seeder
 {
@@ -26,7 +28,7 @@ namespace PetCenterServices.Seeder
     public class TestSeeder : ISeeder
     {      
 
-        public PetCenterModels.DBTables.Image CreateRandomImage(Guid album_id,Random rng, short w = 32, short h=32)
+        public async Task<PetCenterModels.DBTables.Image> CreateRandomImage(PetCenterDBContext ctx,  Guid album_id,Random rng, short w = 32, short h=32)
         {
             PetCenterModels.DBTables.Image output = new();
             output.AlbumId=album_id;
@@ -60,12 +62,19 @@ namespace PetCenterServices.Seeder
                 Quality = 50
             });
 
-            output.Data = "data:image/webp;base64," + Convert.ToBase64String(ms.ToArray());
+            ImageBLOB blob = new();
+            blob.Data=ms.ToArray();
+            blob.Id=BLOBHandler.CreateHash(blob.Data);
+
+            await ctx.ImageBLOBs.AddAsync(blob);
+            await ctx.SaveChangesAsync();
+
+            output.BLOBId=blob.Id;
 
             return output;
         }
 
-        public async Task<bool> SeedDatabase(PetCenterDBContext ctx, bool non_static_data,int? seed)
+        public async Task<bool> SeedDatabase(PetCenterDBContext ctx, bool non_static_data,int? seed, ILogger? logger)
         {
 
             List<string> countries = new List<string> { "Scottish","Japanese","Siamese","German","French","Italian","Russian","Norwegian","Swedish","American","British","Turkish","Egyptian","Chinese","Thai","Canadian","Australian","Belgian" };
@@ -185,7 +194,7 @@ namespace PetCenterServices.Seeder
 
                         breed.AlbumId=await ImageService.CreateAlbum(null,ctx,1);
 
-                        await ctx.Images.AddAsync(CreateRandomImage(breed.AlbumId,rng));
+                        await ctx.Images.AddAsync(await CreateRandomImage(ctx,breed.AlbumId,rng));
 
                         breed.Investment=rng.NextSingle();
                         breed.Territory=rng.NextSingle();
@@ -377,7 +386,7 @@ namespace PetCenterServices.Seeder
 
                             if (visible)
                             {
-                                await ctx.Images.AddAsync(CreateRandomImage(frm.AlbumId,rng));
+                                await ctx.Images.AddAsync(await CreateRandomImage(ctx,frm.AlbumId,rng));
                             }
 
                             foreach(FormTemplateField ftf in template.Entries)
@@ -523,7 +532,7 @@ namespace PetCenterServices.Seeder
 
                             if (i != 4)
                             {
-                                await ctx.Images.AddAsync(CreateRandomImage(generic_listing_album_ids[i],rng));
+                                await ctx.Images.AddAsync(await CreateRandomImage(ctx,generic_listing_album_ids[i],rng));
                             }
                         }
 
@@ -597,7 +606,7 @@ namespace PetCenterServices.Seeder
                             {
                                 
                                 Guid album_id = await ImageService.CreateAlbum(franch.OwnerId,ctx,1);
-                                await ctx.Images.AddAsync(CreateRandomImage(album_id,rng));
+                                await ctx.Images.AddAsync(await CreateRandomImage(ctx,album_id,rng));
 
 
 
@@ -633,7 +642,7 @@ namespace PetCenterServices.Seeder
                             {
                                 
                                 Guid album_id = await ImageService.CreateAlbum(franch.OwnerId,ctx,1);
-                                await ctx.Images.AddAsync(CreateRandomImage(album_id,rng));
+                                await ctx.Images.AddAsync(await CreateRandomImage(ctx,album_id,rng));
 
                                 Listing new_listing = new Listing{Type=ListingType.Product,FranchiseId=franch.Id,PriceMinor=rng.Next(10000),AlbumId=album_id,Approved=true,Updated=false,Visible=true,ListingName=$"{itm.Title}-{marketables}",ListingDescription=$"A great choice of {itm.ItemCategory.Title} for yout pet.",Posted=creation};
                                 await ctx.Listings.AddAsync(new_listing);
@@ -658,7 +667,7 @@ namespace PetCenterServices.Seeder
 
                             
                             Guid album_id = await ImageService.CreateAlbum(franch.OwnerId,ctx,1);
-                            await ctx.Images.AddAsync(CreateRandomImage(album_id,rng));
+                            await ctx.Images.AddAsync(await CreateRandomImage(ctx,album_id,rng));
 
                             Listing new_listing = new Listing{Type=ListingType.Generic,FranchiseId=franch.Id,PriceMinor=price,AlbumId=album_id,Approved=true,Updated=false,Visible=true,ListingName=$"Generic listing no. {i}",ListingDescription=$"Test.",Posted=creation};
                             await ctx.Listings.AddAsync(new_listing);
@@ -769,8 +778,12 @@ namespace PetCenterServices.Seeder
                     await tx.CommitAsync();
                     return true;
                 }
-                catch
+                catch(Exception ex)
                 {
+                    if (logger != null)
+                    {
+                        logger.LogError(ex,"Seeder exception.");
+                    }
                     await tx.RollbackAsync();                    
                     return false;
                 }

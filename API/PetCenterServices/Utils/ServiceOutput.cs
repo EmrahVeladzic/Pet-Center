@@ -37,11 +37,11 @@ namespace PetCenterServices.Utils
         public static ServiceOutput<T> Success(T? body, HttpCode code = HttpCode.OK) => new(code, body, null);
         public static ServiceOutput<T> Error(HttpCode code, string message) => new(code, default, message);
 
-        public static ServiceOutput<T> FromException(Exception ex, ILogger? logger = default)
+        public static ServiceOutput<T> FromException(Exception? ex, ILogger? logger = default)
         {
             if (logger != null)
             {
-                logger?.LogError(ex, "Service exception.");
+                logger.LogError(ex, "Service exception.");
             }
 
             return (ex) switch    

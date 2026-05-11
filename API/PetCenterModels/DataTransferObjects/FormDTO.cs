@@ -58,7 +58,7 @@ namespace PetCenterModels.DataTransferObjects
 
     }
 
-    public class FormDTO : ISerializableRequestDTO<Form>, IAlbumCarryingDTO<Form,FormDTO>
+    public class FormDTO : ISerializableRequestDTO<Form>, IAlbumCarryingDTO<Form,FormDTO,ImageDTO,Image,ImageMetadata>
     {
        
         public Guid? Id {get; set;} = null;
@@ -81,13 +81,17 @@ namespace PetCenterModels.DataTransferObjects
 
         public Guid AlbumId {get; set;} = Guid.Empty;
 
-        public List<ImageDTO> Images {get; set;} = new();
+        public bool Locked {get; set;} = true;
+
+        public List<ImageDTO> Media {get; set;} = new();
+
+        public string? MediaCreationToken {get; set;} = string.Empty;
 
 
         public static FormDTO? FromEntity(Form? entity)
         {
             if(entity==null){return null;}
-            return new FormDTO
+            FormDTO output = new FormDTO
             {
                 Id = entity.Id,
                 CurrentVersion = entity.CurrentVersion,
@@ -95,10 +99,30 @@ namespace PetCenterModels.DataTransferObjects
                 FranchiseName=entity.FranchiseName,
                 UserId=entity.UserId,
                 FormTemplateId=entity.FormTemplateId,
-                AlbumId=entity.AlbumId,
-                Images = entity.Album.Images.Select(i=>ImageDTO.FromEntity(i)!).ToList(),
+                AlbumId=entity.AlbumId,                
                 Entries = entity.Entries.Select(f=>FormEntrySubDTO.FromEntity(f)!).ToList()
             };
+
+            if (entity.Album != null)
+            {
+                output.Media = entity.Album.Images.Select(i=>ImageDTO.FromEntity(i)!).ToList();
+                output.Locked=entity.Album.Locked;
+            }
+
+            return output;
+        }
+
+        public static FormDTO? FromEntity(Form? entity, string token)
+        {
+            FormDTO? output = FromEntity(entity);
+
+            if (output != null)
+            {
+                output.MediaCreationToken=token;
+            }
+
+
+            return output;
         }
 
         public Form? ToEntity()

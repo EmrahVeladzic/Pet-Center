@@ -42,13 +42,31 @@ namespace PetCenterModels.DataTransferObjects
 
     }
     
-    public interface IAlbumCarryingDTO<TEntity,TSelf> : IBaseResponseDTO<TEntity,TSelf> where TEntity : AlbumIncludingTableEntity where TSelf : IBaseResponseDTO<TEntity,TSelf> 
+    public interface IBLOBReferencingDTO<TEntity,TSelf,TMeta> : IBaseResponseDTO<TEntity,TSelf> where TEntity: BLOBReferencingEntity<TMeta> where TSelf : IBaseResponseDTO<TEntity, TSelf> where TMeta : IMetadataOutput
     {
-        public List<ImageDTO> Images { get; set; }
+        public string? Token {get; set;}
+
+        public string Hash {get; set;}
+
+        public static abstract TSelf? FromEntity(TEntity? entity, String token);
+
+    }
+ 
+
+    public interface IAlbumCarryingDTO<TEntity,TSelf,TMedia,TBLOBRef,TMeta> : IBaseResponseDTO<TEntity,TSelf> where TEntity : AlbumIncludingTableEntity where TSelf : IBaseResponseDTO<TEntity,TSelf> where TBLOBRef : BLOBReferencingEntity<TMeta>  where TMedia : IBLOBReferencingDTO<TBLOBRef,TMedia,TMeta> where TMeta:IMetadataOutput
+    {
+        public List<TMedia> Media { get; set; }
 
         public Guid AlbumId {get; set;}
 
-        public new static abstract TSelf? FromEntity(TEntity? entity);
+        public bool Locked {get; set;}
+
+        public string? MediaCreationToken {get; set;}
+
+        public static abstract new TSelf? FromEntity(TEntity? entity);
+
+        public static abstract TSelf? FromEntity(TEntity? entity, String token);
     }
- 
+
+  
 }

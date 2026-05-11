@@ -14,6 +14,7 @@ using System.Threading.Tasks;
 using PetCenterServices.Recommender;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.Extensions.Logging;
+using PetCenterModels.ModelUtils;
 
 namespace PetCenterServices.Services
 {
@@ -50,7 +51,7 @@ namespace PetCenterServices.Services
             return Task.FromResult(output);
         }
 
-        public override async Task<ServiceOutput<UserResponseDTO>> GetById(Guid token_holder, Guid id, Access authorization_level)
+        public override async Task<ServiceOutput<UserResponseDTO>> GetById(Guid token_holder, Guid id, Access authorization_level, FileScope fileScope = FileScope.Invalid)
         {
             UserResponseDTO? output = UserResponseDTO.FromEntity(await dbSet.Include(u=>u.UserAccount).FirstOrDefaultAsync(u=>u.Id==id));
 
