@@ -50,6 +50,7 @@ void clearObtainedData() {
   announcements = [];
   reports = [];
   self = null;
+  userStatus = '';
   visitedAnnouncementIndices = {};
   visitedNotifIndices = {};
   visitedReportIndices = {};

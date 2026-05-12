@@ -58,7 +58,7 @@ class PetCenterApp extends StatelessWidget {
             labelColor: panelTone,
             unselectedLabelColor: mainTone,
           ),
-
+          iconTheme: IconThemeData(color: mainTone),
           extensions: [ReactiveDesignSystem.fromMediaQuery(media)],
         );
 

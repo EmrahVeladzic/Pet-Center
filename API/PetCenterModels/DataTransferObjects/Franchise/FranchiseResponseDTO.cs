@@ -17,8 +17,8 @@ namespace PetCenterModels.DataTransferObjects
         public Guid? Id { get; set; }
 
         public byte[] CurrentVersion { get; set; } = Array.Empty<byte>();
-        public string? FranchiseName { get; set; }
-        public string? Contact { get; set; }   
+        public string FranchiseName { get; set; } = string.Empty;
+        public string Contact { get; set; }   =string.Empty;
 
         public List<FacilityDTO> Facilities {get; set;} = new List<FacilityDTO>();
 

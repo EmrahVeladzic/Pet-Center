@@ -18,7 +18,9 @@ class BreedDTO {
   List<NoteSubDTO>? notes;
   String title;
   String albumId;
-  List<ImageDTO> images;
+  List<ImageDTO> media;
+  bool locked;
+  String? mediaCreationToken;
 
   BreedDTO({
     this.id,
@@ -33,8 +35,10 @@ class BreedDTO {
     this.notes,
     this.title = '',
     this.albumId = '',
-    List<ImageDTO>? images,
-  }) : images = images ?? [];
+    this.locked = true,
+    this.mediaCreationToken,
+    List<ImageDTO>? media,
+  }) : media = media ?? [];
 
   factory BreedDTO.fromJson(Map<String, dynamic> json) =>
       _$BreedDTOFromJson(json);

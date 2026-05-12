@@ -151,15 +151,6 @@ namespace PetCenterServices.Services
             return ServiceOutput<object>.Success(null,HttpCode.NoContent);
         }
 
-        public static async Task<Guid> CreateAlbum(Guid? token_holder,PetCenterDBContext ctx, byte cap)
-        {
-            DBUtils.EnsureInTransaction(ctx);
-            Album alb = new(cap);
-            alb.PosterID = token_holder;
-            await ctx.Albums.AddAsync(alb);
-            await ctx.SaveChangesAsync();
-            return alb.Id;
-        }
-       
+     
     }
 }

@@ -14,7 +14,7 @@ ListingResponseDTO _$ListingResponseDTOFromJson(Map<String, dynamic> json) =>
           ?.map((e) => NoteSubDTO.fromJson(e as Map<String, dynamic>))
           .toList(),
       albumId: json['albumId'] as String? ?? '',
-      images: (json['images'] as List<dynamic>?)
+      media: (json['media'] as List<dynamic>?)
           ?.map((e) => ImageDTO.fromJson(e as Map<String, dynamic>))
           .toList(),
       name: json['name'] as String? ?? '',
@@ -22,6 +22,7 @@ ListingResponseDTO _$ListingResponseDTOFromJson(Map<String, dynamic> json) =>
       franchiseId: json['franchiseId'] as String? ?? '',
       contact: json['contact'] as String? ?? '',
       franchiseName: json['franchiseName'] as String? ?? '',
+      locked: json['locked'] as bool? ?? true,
       priceMinor: (json['priceMinor'] as num?)?.toInt() ?? 0,
       type:
           $enumDecodeNullable(_$ListingTypeEnumMap, json['type']) ??
@@ -46,6 +47,7 @@ ListingResponseDTO _$ListingResponseDTOFromJson(Map<String, dynamic> json) =>
           : DiscountResponseSubDTO.fromJson(
               json['listingDiscount'] as Map<String, dynamic>,
             ),
+      mediaCreationToken: json['mediaCreationToken'] as String?,
       availability: (json['availability'] as List<dynamic>?)
           ?.map(
             (e) =>
@@ -65,7 +67,8 @@ Map<String, dynamic> _$ListingResponseDTOToJson(ListingResponseDTO instance) =>
       'currentVersion': instance.currentVersion,
       'notes': instance.notes?.map((e) => e.toJson()).toList(),
       'albumId': instance.albumId,
-      'images': instance.images.map((e) => e.toJson()).toList(),
+      'media': instance.media.map((e) => e.toJson()).toList(),
+      'locked': instance.locked,
       'name': instance.name,
       'description': instance.description,
       'franchiseId': instance.franchiseId,
@@ -79,6 +82,7 @@ Map<String, dynamic> _$ListingResponseDTOToJson(ListingResponseDTO instance) =>
       'listingDiscount': instance.listingDiscount?.toJson(),
       'availability': instance.availability.map((e) => e.toJson()).toList(),
       'comments': instance.comments.map((e) => e.toJson()).toList(),
+      'mediaCreationToken': instance.mediaCreationToken,
     };
 
 const _$ListingTypeEnumMap = {

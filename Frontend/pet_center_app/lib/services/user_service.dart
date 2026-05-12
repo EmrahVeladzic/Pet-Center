@@ -153,6 +153,7 @@ class UserService {
         headers: {'Authorization': 'Bearer $rawToken'},
       );
 
+      apiServiceBusy = false;
       return ServiceOutput.isSuccess(response);
     } catch (ex) {
       showError(ex);

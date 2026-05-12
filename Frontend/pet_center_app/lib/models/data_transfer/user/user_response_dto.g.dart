@@ -70,7 +70,7 @@ UserResponseDTO _$UserResponseDTOFromJson(Map<String, dynamic> json) =>
     UserResponseDTO(
       id: json['id'] as String?,
       currentVersion: json['currentVersion'] as String? ?? '',
-      userName: json['userName'] as String?,
+      userName: json['userName'] as String? ?? '',
       notes: (json['notes'] as List<dynamic>?)
           ?.map((e) => NoteSubDTO.fromJson(e as Map<String, dynamic>))
           .toList(),
@@ -81,6 +81,14 @@ UserResponseDTO _$UserResponseDTOFromJson(Map<String, dynamic> json) =>
           ?.map((e) => NotificationSubDTO.fromJson(e as Map<String, dynamic>))
           .toList(),
       matureAccount: json['matureAccount'] as bool? ?? false,
+      ownedAnimals: (json['ownedAnimals'] as List<dynamic>?)
+          ?.map(
+            (e) => IndividualResponseDTO.fromJson(e as Map<String, dynamic>),
+          )
+          .toList(),
+      workplaces: (json['workplaces'] as List<dynamic>?)
+          ?.map((e) => FranchiseResponseDTO.fromJson(e as Map<String, dynamic>))
+          .toList(),
     );
 
 Map<String, dynamic> _$UserResponseDTOToJson(UserResponseDTO instance) =>
@@ -92,4 +100,6 @@ Map<String, dynamic> _$UserResponseDTOToJson(UserResponseDTO instance) =>
       'notes': instance.notes?.map((e) => e.toJson()).toList(),
       'notifications': instance.notifications?.map((e) => e.toJson()).toList(),
       'userSupplies': instance.userSupplies?.map((e) => e.toJson()).toList(),
+      'workplaces': instance.workplaces?.map((e) => e.toJson()).toList(),
+      'ownedAnimals': instance.ownedAnimals?.map((e) => e.toJson()).toList(),
     };

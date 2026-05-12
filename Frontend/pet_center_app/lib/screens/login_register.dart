@@ -32,6 +32,9 @@ class _CredentialsScreenState extends State<CredentialsScreen> {
 
   void _linkAction() async {
     if (unverified) {
+      if (apiServiceBusy) {
+        return;
+      }
       final output = await AccountService.requestVerification();
       if (!mounted) {
         return;
@@ -51,6 +54,9 @@ class _CredentialsScreenState extends State<CredentialsScreen> {
       return;
     }
     if (contact.isNotEmpty) {
+      if (apiServiceBusy) {
+        return;
+      }
       final output = await AccountService.forgotPassword(contact);
       if (output != null && output.isNotEmpty) {
         showSnackbar(output);
@@ -82,6 +88,9 @@ class _CredentialsScreenState extends State<CredentialsScreen> {
     }
     if (!unverified) {
       if (registerMode) {
+        if (apiServiceBusy) {
+          return;
+        }
         final output = await AccountService.register(
           AccountRequestDTO(
             contact: contact,
@@ -99,6 +108,9 @@ class _CredentialsScreenState extends State<CredentialsScreen> {
           });
         }
       } else {
+        if (apiServiceBusy) {
+          return;
+        }
         final output = await AccountService.logIn(
           AccountRequestDTO(contact: contact.trim(), password: password.trim()),
         );
@@ -118,6 +130,9 @@ class _CredentialsScreenState extends State<CredentialsScreen> {
         }
       }
     } else {
+      if (apiServiceBusy) {
+        return;
+      }
       final output = await AccountService.verify(verificationCode);
       if (!mounted) {
         return;

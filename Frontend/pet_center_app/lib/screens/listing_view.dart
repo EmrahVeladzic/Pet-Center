@@ -74,8 +74,12 @@ class _ListingViewScreenState extends State<ListingViewScreen> {
             child: ListView(
               children: [
                 design.verticalGap(),
-                ...widget.listing.images.map(
-                  (img) => ImageDisplay(dataSource: img),
+                ...widget.listing.media.map(
+                  (img) => ImageDisplay(
+                    dataSource: img,
+                    creationToken: widget.listing.mediaCreationToken,
+                    locked: widget.listing.locked,
+                  ),
                 ),
                 design.verticalGap(),
                 Padding(

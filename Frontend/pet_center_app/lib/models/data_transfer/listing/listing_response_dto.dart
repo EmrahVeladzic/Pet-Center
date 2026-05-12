@@ -11,7 +11,8 @@ class ListingResponseDTO {
   String currentVersion;
   List<NoteSubDTO>? notes;
   String albumId;
-  List<ImageDTO> images;
+  List<ImageDTO> media;
+  bool locked;
   String name;
   String description;
   String franchiseId;
@@ -25,27 +26,30 @@ class ListingResponseDTO {
   DiscountResponseSubDTO? listingDiscount;
   List<AvailabilityResponseSubDTO> availability;
   List<CommentResponseSubDTO> comments;
+  String? mediaCreationToken;
 
   ListingResponseDTO({
     this.id,
     this.currentVersion = '',
     this.notes,
     this.albumId = '',
-    List<ImageDTO>? images,
+    List<ImageDTO>? media,
     this.name = '',
     this.description = '',
     this.franchiseId = '',
     this.contact = '',
     this.franchiseName = '',
+    this.locked = true,
     this.priceMinor = 0,
     this.type = ListingType.generic,
     this.productListingExtension,
     this.medicalListingExtension,
     this.animalListingExtension,
     this.listingDiscount,
+    this.mediaCreationToken,
     List<AvailabilityResponseSubDTO>? availability,
     List<CommentResponseSubDTO>? comments,
-  }) : images = images ?? [],
+  }) : media = media ?? [],
        availability = availability ?? [],
        comments = comments ?? [];
 

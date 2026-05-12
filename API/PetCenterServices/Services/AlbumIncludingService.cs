@@ -31,6 +31,17 @@ namespace PetCenterServices.Services
            return dbSet.Include(e=>e.Album).ThenInclude(a=>a!.Images);
         }
 
+        public static async Task<Guid> CreateAlbum(Guid? token_holder,PetCenterDBContext ctx, byte cap)
+        {
+            DBUtils.EnsureInTransaction(ctx);
+            Album alb = new(cap);
+            alb.PosterID = token_holder;
+            await ctx.Albums.AddAsync(alb);
+            await ctx.SaveChangesAsync();
+            return alb.Id;
+        }
+       
+
         protected override Task<IQueryable<TEntity>> Filter(Guid token_holder, TSearch search)
         {           
             return Task.FromResult<IQueryable<TEntity>>(WithAlbum().OrderBy(o=>o.Id));
@@ -50,6 +61,7 @@ namespace PetCenterServices.Services
             }
             foreach(TMedia media in response.Media)
             {
+                media.CanWrite=(scope==FileScope.Write);
                 media.Token=Crypto.GenerateFileToken(media.Hash,Purpose,scope,response.AlbumId);
             }
         }
@@ -110,7 +122,7 @@ namespace PetCenterServices.Services
                     {
                         try
                         {
-                            ent.AlbumId = await ImageService.CreateAlbum(null,dbContext,ent.AlbumCapacity);
+                            ent.AlbumId = await CreateAlbum(null,dbContext,ent.AlbumCapacity);
                             await dbSet.AddAsync(ent);
                             await dbContext.SaveChangesAsync();
                             await tx.CommitAsync();

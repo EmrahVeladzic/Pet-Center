@@ -42,7 +42,9 @@ FormDTO _$FormDTOFromJson(Map<String, dynamic> json) => FormDTO(
   userId: json['userId'] as String? ?? '',
   formTemplateId: json['formTemplateId'] as String? ?? '',
   albumId: json['albumId'] as String? ?? '',
-  images: (json['images'] as List<dynamic>?)
+  mediaCreationToken: json['mediaCreationToken'] as String?,
+  locked: json['locked'] as bool? ?? true,
+  media: (json['media'] as List<dynamic>?)
       ?.map((e) => ImageDTO.fromJson(e as Map<String, dynamic>))
       .toList(),
 );
@@ -57,5 +59,7 @@ Map<String, dynamic> _$FormDTOToJson(FormDTO instance) => <String, dynamic>{
   'userId': instance.userId,
   'formTemplateId': instance.formTemplateId,
   'albumId': instance.albumId,
-  'images': instance.images.map((e) => e.toJson()).toList(),
+  'media': instance.media.map((e) => e.toJson()).toList(),
+  'locked': instance.locked,
+  'mediaCreationToken': instance.mediaCreationToken,
 };

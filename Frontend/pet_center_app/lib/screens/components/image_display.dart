@@ -1,14 +1,22 @@
-import 'dart:convert';
 import 'dart:typed_data';
-
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:pet_center_app/models/data_transfer/image_dto.dart';
+import 'package:pet_center_app/services/image_service.dart';
 import 'package:pet_center_app/utils/app_style.dart';
+import 'package:pet_center_app/utils/globals.dart';
 
 class ImageDisplay extends StatefulWidget {
-  final ImageDTO dataSource;
+  final ImageDTO? dataSource;
+  final String? creationToken;
+  final bool locked;
 
-  const ImageDisplay({super.key, required this.dataSource});
+  const ImageDisplay({
+    super.key,
+    required this.dataSource,
+    required this.creationToken,
+    required this.locked,
+  });
 
   @override
   State<ImageDisplay> createState() => _ImageDisplayState();
@@ -16,58 +24,177 @@ class ImageDisplay extends StatefulWidget {
 
 class _ImageDisplayState extends State<ImageDisplay> {
   Uint8List? _decoded;
+  ImageDTO? dataSrc;
+  bool _loading = true;
+  bool _error = false;
 
   @override
   void initState() {
     super.initState();
+    dataSrc = widget.dataSource;
     _decode();
   }
 
-  void _decode() {
-    final b64 = widget.dataSource.data?.split(',').last;
-
-    if (b64 != null &&
-        widget.dataSource.width > 0 &&
-        widget.dataSource.height > 0) {
-      _decoded = base64Decode(b64);
+  Future<void> _decode() async {
+    if (dataSrc?.token != null) {
+      final bytes = await ImageService.get(dataSrc?.token);
+      if (mounted) {
+        setState(() {
+          _decoded = bytes;
+          _loading = false;
+          _error = (_decoded == null);
+        });
+      }
     } else {
-      _decoded = null;
+      if (mounted) {
+        setState(() => _loading = false);
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final design = Theme.of(context).extension<ReactiveDesignSystem>()!;
+    final double w = design.screenWidth * design.bodyWMult * imgWMult;
+    final double h = w * ((dataSrc?.height ?? 64) / (dataSrc?.width ?? 64));
 
-    if (_decoded != null) {
-      return Image.memory(
-        _decoded!,
-        width: design.screenWidth * design.bodyWMult * imgWMult,
-        height:
-            design.screenWidth *
-            (widget.dataSource.height / widget.dataSource.width) *
-            design.bodyWMult *
-            imgWMult,
-        fit: BoxFit.contain,
-        filterQuality: FilterQuality.none,
-      );
-    } else {
-      return Padding(
-        padding: EdgeInsetsGeometry.all(design.spacing),
-        child: SizedBox(
-          width: design.screenWidth * design.bodyWMult * imgWMult * imgWMult,
-          height:
-              design.screenWidth *
-              (widget.dataSource.height / widget.dataSource.width) *
-              design.bodyWMult *
-              imgWMult,
+    final double nw = (dataSrc?.width ?? 64).toDouble();
+    final double nh = (dataSrc?.height ?? 64).toDouble();
 
-          child: ColoredBox(
-            color: visitedPanelTone,
-            child: const Icon(Icons.error_outline),
+    if (_loading) {
+      return SizedBox(
+        width: w,
+        height: h,
+        child: FittedBox(
+          fit: BoxFit.contain,
+          child: SizedBox(
+            width: nw,
+            height: nh,
+            child: ColoredBox(
+              color: visitedPanelTone,
+              child: Center(
+                child: SizedBox(
+                  width: nw * 0.5,
+                  height: nh * 0.5,
+                  child: const CircularProgressIndicator(strokeWidth: 1),
+                ),
+              ),
+            ),
           ),
         ),
       );
+    }
+
+    if (_decoded != null) {
+      return SizedBox(
+        width: w,
+        height: h,
+        child: FittedBox(
+          fit: BoxFit.contain,
+          child: Stack(
+            children: [
+              SizedBox(
+                width: nw,
+                height: nh,
+                child: Image.memory(
+                  _decoded!,
+                  fit: BoxFit.contain,
+                  filterQuality: FilterQuality.none,
+                ),
+              ),
+              if (dataSrc?.canWrite == true && !widget.locked)
+                Positioned(
+                  top: 0,
+                  right: 0,
+                  child: GestureDetector(
+                    onTap: _onDelete,
+                    child: ColoredBox(
+                      color: visitedPanelTone,
+                      child: Icon(Icons.delete_outline, size: nw * 0.125),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return SizedBox(
+      width: w,
+      height: h,
+      child: FittedBox(
+        fit: BoxFit.contain,
+        child: Stack(
+          children: [
+            SizedBox(
+              width: nw,
+              height: nh,
+              child: ColoredBox(
+                color: visitedPanelTone,
+                child: Icon(
+                  (_error) ? Icons.error_outline : Icons.image,
+                  size: nw * 0.5,
+                ),
+              ),
+            ),
+            if (widget.creationToken != null && !widget.locked)
+              Positioned(
+                top: 0,
+                right: 0,
+                child: GestureDetector(
+                  onTap: _onCreate,
+                  child: ColoredBox(
+                    color: visitedPanelTone,
+                    child: Icon(Icons.create_outlined, size: nw * 0.125),
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _onDelete() async {
+    if (apiServiceBusy) {
+      return;
+    }
+    final success = await ImageService.delete(dataSrc?.token);
+    if (success) {
+      setState(() {
+        _decoded = null;
+        dataSrc = null;
+      });
+    }
+  }
+
+  Future<void> _onCreate() async {
+    if (apiServiceBusy) {
+      return;
+    }
+    final result = await FilePicker.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['webp', 'png', 'jpg', 'jpeg', 'bmp', 'gif'],
+      withData: true,
+    );
+
+    if (result == null) {
+      return;
+    }
+
+    final bytes = result.files.single.bytes;
+    if (bytes == null) {
+      showSnackbar("Could not read file data.");
+      return;
+    }
+
+    final dto = await ImageService.post(widget.creationToken, bytes);
+    if (dto != null) {
+      setState(() {
+        dataSrc = dto;
+        _decoded = bytes;
+      });
     }
   }
 }

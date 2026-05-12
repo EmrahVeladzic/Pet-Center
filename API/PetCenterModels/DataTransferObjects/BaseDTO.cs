@@ -48,6 +48,8 @@ namespace PetCenterModels.DataTransferObjects
 
         public string Hash {get; set;}
 
+        public bool CanWrite {get; set;}
+
         public static abstract TSelf? FromEntity(TEntity? entity, String token);
 
     }
