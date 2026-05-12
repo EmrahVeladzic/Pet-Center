@@ -28,11 +28,10 @@ class _AnnouncementPageState extends State<AnnouncementPage>
 
   void load() async {
     final data = announcements;
-    final visited = await CacheManager.getAll(CacheEntityType.announcement);
     if (mounted) {
       setState(() {
         _items = data;
-        visitedAnnouncementIndices = visited;
+
         _loading = false;
       });
     }

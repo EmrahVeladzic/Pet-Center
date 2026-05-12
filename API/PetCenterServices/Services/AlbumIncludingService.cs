@@ -39,6 +39,7 @@ namespace PetCenterServices.Services
             await ctx.Albums.AddAsync(alb);
             await ctx.SaveChangesAsync();
             return alb.Id;
+            
         }
        
 

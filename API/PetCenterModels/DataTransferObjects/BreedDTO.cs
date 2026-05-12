@@ -25,6 +25,8 @@ namespace PetCenterModels.DataTransferObjects
 
         public AnimalScale Scale {get; set;}
 
+        public bool Full {get; set;}=true;
+
 
         public float Investment {get; set;} = 0.0f;
         public float Territory {get; set;} = 0.0f;
@@ -66,6 +68,7 @@ namespace PetCenterModels.DataTransferObjects
             {
                 output.Media = entity.Album.Images.Select(i=>ImageDTO.FromEntity(i)!).ToList();
                 output.Locked=entity.Album.Locked;
+                output.Full=entity.Album.Reserved>=entity.Album.Capacity;
             }
 
             return output;

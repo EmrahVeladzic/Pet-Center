@@ -23,6 +23,7 @@ ListingResponseDTO _$ListingResponseDTOFromJson(Map<String, dynamic> json) =>
       contact: json['contact'] as String? ?? '',
       franchiseName: json['franchiseName'] as String? ?? '',
       locked: json['locked'] as bool? ?? true,
+      full: json['full'] as bool? ?? true,
       priceMinor: (json['priceMinor'] as num?)?.toInt() ?? 0,
       type:
           $enumDecodeNullable(_$ListingTypeEnumMap, json['type']) ??
@@ -69,6 +70,7 @@ Map<String, dynamic> _$ListingResponseDTOToJson(ListingResponseDTO instance) =>
       'albumId': instance.albumId,
       'media': instance.media.map((e) => e.toJson()).toList(),
       'locked': instance.locked,
+      'full': instance.full,
       'name': instance.name,
       'description': instance.description,
       'franchiseId': instance.franchiseId,

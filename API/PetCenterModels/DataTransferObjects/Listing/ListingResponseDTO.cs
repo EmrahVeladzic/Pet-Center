@@ -39,6 +39,8 @@ namespace PetCenterModels.DataTransferObjects
 
         public long PriceMinor {get; set;} = 0;
 
+        public bool Full {get; set;}=true;
+
         public ListingType Type  {get; set;} = ListingType.Generic;
 
         public ProductListingSubDTO? ProductListingExtension {get;set;} = null;
@@ -86,6 +88,7 @@ namespace PetCenterModels.DataTransferObjects
             {
                 output.Locked=entity.Album.Locked;
                 output.Media = entity.Album.Images.Select(i=>ImageDTO.FromEntity(i)!).ToList();
+                output.Full=entity.Album.Reserved>=entity.Album.Capacity;
             }
 
             return output;

@@ -24,7 +24,7 @@ class _UserViewScreenState extends State<UserViewScreen> {
   void logOut() async {
     await AccountService.logOut();
     clearToken();
-    clearObtainedData();
+    StaticAndUserDataService.clearObtainedData();
     if (mounted) {
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(builder: (context) => CredentialsScreen()),
@@ -117,11 +117,10 @@ class _UserViewScreenState extends State<UserViewScreen> {
 
     if (id == null) return;
 
-    await AccountService.delete(id);
-
-    if (!mounted) return;
-
-    logOut();
+    final success = await AccountService.delete(id);
+    if (success) {
+      logOut();
+    }
   }
 
   @override

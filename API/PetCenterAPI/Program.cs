@@ -20,15 +20,28 @@ using System.IdentityModel.Tokens.Jwt;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+
+
+string[] allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
+
+allowedOrigins = builder.Configuration["CORS_ALLOWED_ORIGINS"]?.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)?? allowedOrigins;
+
 
 builder.Services.AddCors(options =>
 {
     options.AddPolicy(name: "DEFAULT", policy =>
     {
 
-        policy.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod();
-
+        if (allowedOrigins.Contains("*"))
+        {
+            policy.AllowAnyOrigin();
+        }
+        else
+        {
+            policy.WithOrigins(allowedOrigins);
+        }
+        policy.WithHeaders("Authorization","Content-Type","Accept","X-File-Token");
+        policy.WithMethods("GET", "POST", "PUT", "DELETE", "OPTIONS");
     });
     
 

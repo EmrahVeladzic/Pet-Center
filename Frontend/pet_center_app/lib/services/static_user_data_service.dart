@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:http/http.dart' as http;
 import 'package:pet_center_app/models/data_transfer/category_dto.dart';
 import 'package:pet_center_app/models/data_transfer/form_template_dto.dart';
@@ -38,26 +40,36 @@ List<ReportResponseSubDTO> reports = [];
 Set<String> visitedAnnouncementIndices = {};
 Set<String> visitedNotifIndices = {};
 Set<String> visitedReportIndices = {};
-
-void clearObtainedData() {
-  currentStaticDataVersion = StaticDataDTO();
-  kinds = [];
-  categories = [];
-  items = [];
-  templates = [];
-  condition = [];
-  procedures = [];
-  announcements = [];
-  reports = [];
-  self = null;
-  userStatus = '';
-  visitedAnnouncementIndices = {};
-  visitedNotifIndices = {};
-  visitedReportIndices = {};
-}
+Set<String> visitedListingIndices = {};
 
 class StaticAndUserDataService {
+  static Timer? _timer;
+  static const int periodSeconds = 300;
+
+  static void clearObtainedData() {
+    _timer?.cancel();
+    _timer = null;
+    currentStaticDataVersion = StaticDataDTO();
+    kinds = [];
+    categories = [];
+    items = [];
+    templates = [];
+    condition = [];
+    procedures = [];
+    announcements = [];
+    reports = [];
+    self = null;
+    userStatus = '';
+    visitedAnnouncementIndices = {};
+    visitedNotifIndices = {};
+    visitedReportIndices = {};
+    visitedListingIndices = {};
+  }
+
   static Future<void> updateData() async {
+    _timer?.cancel();
+    _timer = null;
+
     apiServiceBusy = true;
     Access role = userToken?.role ?? Access.user;
     try {
@@ -161,8 +173,15 @@ class StaticAndUserDataService {
           }
         }
       }
+
+      if (rawToken != null) {
+        _timer = Timer(const Duration(seconds: periodSeconds), updateData);
+      }
       apiServiceBusy = false;
     } catch (ex) {
+      if (rawToken != null) {
+        _timer = Timer(const Duration(seconds: periodSeconds), updateData);
+      }
       apiServiceBusy = false;
       showError(ex);
     }

@@ -20,10 +20,12 @@ double marqueeBlank = 125.0;
 double imgWMult = 0.75;
 int dialogMinLines = 3;
 
-void showSnackbar(String message) {
+void showSnackbar(String message, [bool overwrite = true]) {
   final messenger = rootScaffoldKey.currentState;
   if (messenger != null) {
-    messenger.clearSnackBars();
+    if (overwrite) {
+      messenger.clearSnackBars();
+    }
     messenger.showSnackBar(SnackBar(content: Text(message)));
   }
 }
@@ -141,7 +143,9 @@ class ReactiveDesignSystem extends ThemeExtension<ReactiveDesignSystem> {
   BoxDecoration panelDecoration([bool visited = false]) {
     return BoxDecoration(
       color: visited ? visitedPanelTone : panelTone,
-      boxShadow: [BoxShadow(blurRadius: spacing, color: shadowTone)],
+      boxShadow: visited
+          ? []
+          : [BoxShadow(blurRadius: spacing / 2, color: shadowTone)],
     );
   }
 

@@ -20,6 +20,7 @@ class BreedDTO {
   String albumId;
   List<ImageDTO> media;
   bool locked;
+  bool full;
   String? mediaCreationToken;
 
   BreedDTO({
@@ -36,6 +37,7 @@ class BreedDTO {
     this.title = '',
     this.albumId = '',
     this.locked = true,
+    this.full = true,
     this.mediaCreationToken,
     List<ImageDTO>? media,
   }) : media = media ?? [];

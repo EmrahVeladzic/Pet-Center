@@ -116,7 +116,6 @@ class _ListingViewScreenState extends State<ListingViewScreen> {
                   ...widget.listing.notes!.map((note) => NoteCard(note: note)),
                 ],
                 if (widget.listing.availability.isNotEmpty) ...[
-                  design.verticalGap(),
                   Padding(
                     padding: EdgeInsetsGeometry.symmetric(
                       horizontal: design.spacing,

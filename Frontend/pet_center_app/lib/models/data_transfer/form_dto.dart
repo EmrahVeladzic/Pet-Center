@@ -39,6 +39,7 @@ class FormDTO {
   String albumId;
   List<ImageDTO> media;
   bool locked;
+  bool full;
   String? mediaCreationToken;
 
   FormDTO({
@@ -53,6 +54,7 @@ class FormDTO {
     this.albumId = '',
     this.mediaCreationToken,
     this.locked = true,
+    this.full = true,
     List<ImageDTO>? media,
   }) : entries = entries ?? [],
        media = media ?? [];
