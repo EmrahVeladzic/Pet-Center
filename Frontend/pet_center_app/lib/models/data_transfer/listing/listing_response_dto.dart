@@ -13,6 +13,7 @@ class ListingResponseDTO {
   String albumId;
   List<ImageDTO> media;
   bool locked;
+  bool full;
   String name;
   String description;
   String franchiseId;
@@ -40,6 +41,7 @@ class ListingResponseDTO {
     this.contact = '',
     this.franchiseName = '',
     this.locked = true,
+    this.full = true,
     this.priceMinor = 0,
     this.type = ListingType.generic,
     this.productListingExtension,

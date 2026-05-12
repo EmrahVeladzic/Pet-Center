@@ -5,6 +5,7 @@ import 'package:pet_center_app/models/data_transfer/image_dto.dart';
 import 'package:pet_center_app/services/image_service.dart';
 import 'package:pet_center_app/utils/app_style.dart';
 import 'package:pet_center_app/utils/globals.dart';
+import 'package:pet_center_app/utils/image_cache_service.dart';
 
 class ImageDisplay extends StatefulWidget {
   final ImageDTO? dataSource;
@@ -37,7 +38,18 @@ class _ImageDisplayState extends State<ImageDisplay> {
 
   Future<void> _decode() async {
     if (dataSrc?.token != null) {
+      final cached = ImageCacheService.instance.get(dataSrc!.hash);
+      if (cached != null) {
+        if (mounted) {
+          setState(() {
+            _decoded = cached;
+            _loading = false;
+          });
+        }
+        return;
+      }
       final bytes = await ImageService.get(dataSrc?.token);
+      if (bytes != null) ImageCacheService.instance.put(dataSrc!.hash, bytes);
       if (mounted) {
         setState(() {
           _decoded = bytes;
@@ -162,6 +174,7 @@ class _ImageDisplayState extends State<ImageDisplay> {
     }
     final success = await ImageService.delete(dataSrc?.token);
     if (success) {
+      ImageCacheService.instance.invalidate(dataSrc!.hash);
       setState(() {
         _decoded = null;
         dataSrc = null;

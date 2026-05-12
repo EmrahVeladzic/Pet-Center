@@ -29,11 +29,11 @@ class _NotificationPageState extends State<NotificationPage>
 
   void load() async {
     final data = self?.notifications ?? [];
-    final visited = await CacheManager.getAll(CacheEntityType.notification);
+
     if (mounted) {
       setState(() {
         _items = data;
-        visitedNotifIndices = visited;
+
         _loading = false;
       });
     }

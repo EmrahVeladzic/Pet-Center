@@ -31,11 +31,11 @@ class _ReportPageState extends State<ReportPage>
 
   void load() async {
     final data = reports;
-    final visited = await CacheManager.getAll(CacheEntityType.notification);
+
     if (mounted) {
       setState(() {
         _items = data;
-        visitedReportIndices = visited;
+
         _loading = false;
       });
     }

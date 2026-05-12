@@ -28,12 +28,14 @@ namespace PetCenterServices.Workers
 
             while (!stoppingToken.IsCancellationRequested)
             {
+                
+
                 await using(AsyncServiceScope scope = scope_factory.CreateAsyncScope())
                 {
                     PetCenterDBContext dBContext = scope.ServiceProvider.GetRequiredService<PetCenterDBContext>();
-                    IHostEnvironment environment = scope.ServiceProvider.GetRequiredService<IHostEnvironment>();
+                    
                    
-                    await RunCleanup(dBContext,environment,logger,stoppingToken);
+                    await RunCleanup(dBContext,logger,stoppingToken);
                 }
 
                 
@@ -41,6 +43,39 @@ namespace PetCenterServices.Workers
             }
 
         }
+
+
+        private async Task<bool> CleanupBLOB<TBLOB,TEntity,TMeta>(PetCenterDBContext dBContext,DbSet<TEntity> metaSet, DbSet<TBLOB> blobSet,CancellationToken stoppingToken) where TEntity : BLOBReferencingEntity<TMeta> where TBLOB :BaseBLOBEntity<TMeta> where TMeta : IMetadataOutput , new()
+        {
+            bool had_work = false;
+            bool proceed = true;
+            while(proceed && !stoppingToken.IsCancellationRequested)
+            {
+                await using (IDbContextTransaction tx = await dBContext.Database.BeginTransactionAsync(stoppingToken))
+                {
+                    try
+                    {
+                        TBLOB[] orphaned = await blobSet.Where(b => !metaSet.Select(e => e.BLOBId).Contains(b.Id)).OrderBy(e=>e.Id).Take(50).ToArrayAsync(stoppingToken);
+                        proceed = orphaned.Length>0;
+                        if (orphaned.Length > 0)
+                        {
+                            had_work = true;
+                        }
+                        blobSet.RemoveRange(orphaned);
+                        
+                        await dBContext.SaveChangesAsync(stoppingToken);
+                        await tx.CommitAsync(stoppingToken);
+                    }
+                    catch
+                    {
+                        await tx.RollbackAsync(stoppingToken);
+                        throw;
+                    }
+                }                    
+            }
+            return had_work;
+        }
+
 
         private async Task<bool> CleanupEntity<TEntity>(PetCenterDBContext dBContext,DbSet<TEntity> set,CancellationToken stoppingToken) where TEntity : ExpirableTableEntity
         {
@@ -75,7 +110,7 @@ namespace PetCenterServices.Workers
             return had_work;
         }
 
-        private async Task RunCleanup(PetCenterDBContext dBContext,IHostEnvironment environment,ILogger logger, CancellationToken stoppingToken)
+        private async Task RunCleanup(PetCenterDBContext dBContext,ILogger logger, CancellationToken stoppingToken)
         {
             
             try
@@ -88,22 +123,21 @@ namespace PetCenterServices.Workers
                 await CleanupEntity<SingleTimeEntry>(dBContext,dBContext.SingleTimeEntries,stoppingToken);
                 await CleanupEntity<InvalidatedToken>(dBContext,dBContext.InvalidatedTokens,stoppingToken);
                 await CleanupEntity<ContactTransfer>(dBContext,dBContext.ContactTransfers,stoppingToken);
-                
+
+                await CleanupBLOB<ImageBLOB,Image,ImageMetadata>(dBContext,dBContext.Images,dBContext.ImageBLOBs,stoppingToken); 
             }
             catch (OperationCanceledException)
             {
-                if (environment.IsDevelopment())
-                {
-                    logger.LogInformation("Cleanup aborted due to host shutdown.");
-                }
+                
+                logger.LogInformation("Cleanup aborted due to host shutdown.");
+                
                 
             }
             catch (Exception ex)
             {
-                if (environment.IsDevelopment())
-                {
-                    logger.LogError(ex,"Cleanup exception.");
-                } 
+                
+                logger.LogError(ex,"Cleanup exception.");
+                 
             }
 
         }

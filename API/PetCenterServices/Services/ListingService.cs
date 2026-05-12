@@ -551,7 +551,7 @@ namespace PetCenterServices.Services
                         Franchise? franch = await dbContext.Franchises.FindAsync(req?.FranchiseId);
                         Guid? owner = franch?.OwnerId??null;
 
-                        lst.AlbumId=await CreateAlbum(owner,dbContext,1);
+                        lst.AlbumId=await CreateAlbum(owner,dbContext,lst.AlbumCapacity);
                         lst.Updated=true;
 
                         await dbSet.AddAsync(lst);

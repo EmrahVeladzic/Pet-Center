@@ -24,6 +24,7 @@ BreedDTO _$BreedDTOFromJson(Map<String, dynamic> json) => BreedDTO(
   title: json['title'] as String? ?? '',
   albumId: json['albumId'] as String? ?? '',
   locked: json['locked'] as bool? ?? true,
+  full: json['full'] as bool? ?? true,
   mediaCreationToken: json['mediaCreationToken'] as String?,
   media: (json['media'] as List<dynamic>?)
       ?.map((e) => ImageDTO.fromJson(e as Map<String, dynamic>))
@@ -45,6 +46,7 @@ Map<String, dynamic> _$BreedDTOToJson(BreedDTO instance) => <String, dynamic>{
   'albumId': instance.albumId,
   'media': instance.media.map((e) => e.toJson()).toList(),
   'locked': instance.locked,
+  'full': instance.full,
   'mediaCreationToken': instance.mediaCreationToken,
 };
 

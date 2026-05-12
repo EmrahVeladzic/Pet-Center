@@ -41,6 +41,7 @@ class ImageService {
         headers: {
           'Authorization': 'Bearer $rawToken',
           'Content-Type': 'application/octet-stream',
+          'Accept': 'application/json',
           'X-File-Token': token ?? '',
         },
         body: data,
@@ -67,7 +68,6 @@ class ImageService {
         Uri.parse("${AppConfig.apiBaseUrl}/api/Image"),
         headers: {
           'Authorization': 'Bearer $rawToken',
-          'Accept': 'application/octet-stream',
           'X-File-Token': token ?? '',
         },
       );

@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:pet_center_app/models/data_transfer/account/account_request_dto.dart';
+import 'package:pet_center_app/models/enums.dart';
 import 'package:pet_center_app/screens/dashboard.dart';
 import 'package:pet_center_app/services/account_service.dart';
 import 'package:pet_center_app/services/static_user_data_service.dart';
 
 import 'package:pet_center_app/utils/app_style.dart';
 import 'package:pet_center_app/utils/globals.dart';
+import 'package:pet_center_app/utils/hive_cache.dart';
 import 'package:pet_center_app/utils/jwt_parser.dart';
 import 'package:pet_center_app/utils/validators.dart';
 
@@ -72,6 +74,16 @@ class _CredentialsScreenState extends State<CredentialsScreen> {
     if (self == null) {
       return;
     }
+
+    visitedAnnouncementIndices = await CacheManager.getAll(
+      CacheEntityType.announcement,
+    );
+    visitedNotifIndices = await CacheManager.getAll(
+      CacheEntityType.notification,
+    );
+    visitedReportIndices = await CacheManager.getAll(CacheEntityType.report);
+
+    visitedListingIndices = await CacheManager.getAll(CacheEntityType.listing);
 
     if (!mounted) {
       return;
@@ -177,13 +189,15 @@ class _CredentialsScreenState extends State<CredentialsScreen> {
                           mainAxisSize: MainAxisSize.max,
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Text(
-                              unverified
+                            design.textMarquee(
+                              (unverified
                                   ? "Account verification"
                                   : registerMode
                                   ? 'Register'
-                                  : 'Login',
-                              style: TextStyle(fontSize: design.fontSize * 2),
+                                  : 'Login'),
+                              null,
+                              1.0,
+                              2.0,
                             ),
 
                             const Spacer(flex: 1),
@@ -223,14 +237,14 @@ class _CredentialsScreenState extends State<CredentialsScreen> {
                                       value: businessPurposes,
                                       onChanged: (_) => _toggleBusiness(),
                                     ),
-                                    Text('Business account'),
+                                    design.fittedText('Business account'),
                                   ],
                                 ),
                               ] else ...[
                                 const Spacer(flex: 1),
                                 TextButton(
                                   onPressed: _linkForgotPassword,
-                                  child: Text('Forgot password?'),
+                                  child: design.fittedText('Forgot password?'),
                                 ),
                               ],
                             ] else ...[
@@ -272,7 +286,7 @@ class _CredentialsScreenState extends State<CredentialsScreen> {
 
                             TextButton(
                               onPressed: _linkAction,
-                              child: Text(
+                              child: design.fittedText(
                                 unverified
                                     ? "Send a new code."
                                     : registerMode

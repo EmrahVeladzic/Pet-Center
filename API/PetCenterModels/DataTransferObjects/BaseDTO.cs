@@ -63,6 +63,8 @@ namespace PetCenterModels.DataTransferObjects
 
         public bool Locked {get; set;}
 
+        public bool Full {get; set;}
+
         public string? MediaCreationToken {get; set;}
 
         public static abstract new TSelf? FromEntity(TEntity? entity);

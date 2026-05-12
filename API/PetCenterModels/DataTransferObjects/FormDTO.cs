@@ -26,6 +26,7 @@ namespace PetCenterModels.DataTransferObjects
         [MaxLength(255)]
         public string Serialized {get; set;} = string.Empty;
         public List<NoteSubDTO>? Notes {get; set;} = null;
+        
 
         public static FormEntrySubDTO? FromEntity(FormFieldEntry? entity)
         {
@@ -87,7 +88,7 @@ namespace PetCenterModels.DataTransferObjects
 
         public string? MediaCreationToken {get; set;} = string.Empty;
 
-
+        public bool Full {get; set;} = true;
         public static FormDTO? FromEntity(Form? entity)
         {
             if(entity==null){return null;}
@@ -107,6 +108,7 @@ namespace PetCenterModels.DataTransferObjects
             {
                 output.Media = entity.Album.Images.Select(i=>ImageDTO.FromEntity(i)!).ToList();
                 output.Locked=entity.Album.Locked;
+                output.Full=entity.Album.Reserved>=entity.Album.Capacity;
             }
 
             return output;

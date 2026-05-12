@@ -9,6 +9,9 @@ enum CacheEntityType {
 
   @JsonValue('report')
   report,
+
+  @JsonValue('listing')
+  listing,
 }
 
 enum Access {

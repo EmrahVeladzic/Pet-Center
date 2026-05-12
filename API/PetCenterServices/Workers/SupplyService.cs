@@ -32,9 +32,9 @@ namespace PetCenterServices.Workers
                 await using(AsyncServiceScope scope = scope_factory.CreateAsyncScope())
                 {
                     PetCenterDBContext dBContext = scope.ServiceProvider.GetRequiredService<PetCenterDBContext>();
-                    IHostEnvironment environment = scope.ServiceProvider.GetRequiredService<IHostEnvironment>();
+                    
                    
-                    await RunRecalculation(dBContext,environment,logger,stoppingToken);
+                    await RunRecalculation(dBContext,logger,stoppingToken);
                 }
 
                 
@@ -43,7 +43,7 @@ namespace PetCenterServices.Workers
 
         }
 
-        private async Task RunRecalculation(PetCenterDBContext dBContext,IHostEnvironment environment,ILogger logger, CancellationToken stoppingToken)
+        private async Task RunRecalculation(PetCenterDBContext dBContext,ILogger logger, CancellationToken stoppingToken)
         {
             
             try
@@ -80,17 +80,14 @@ namespace PetCenterServices.Workers
             }
             catch (OperationCanceledException)
             {
-                if (environment.IsDevelopment())
-                {
-                    logger.LogInformation("Supply update aborted due to host shutdown.");
-                }
+                logger.LogInformation("Supply update aborted due to host shutdown.");
+                
             }
             catch (Exception ex)
             {
-                if (environment.IsDevelopment())
-                {
-                    logger.LogError(ex,"Supply worker exception.");
-                } 
+               
+                logger.LogError(ex,"Supply worker exception.");
+                
             }
 
         }
