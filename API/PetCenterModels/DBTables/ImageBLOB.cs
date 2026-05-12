@@ -29,30 +29,6 @@ namespace PetCenterModels.DBTables
         public static new ImageBLOB? TryCreateFromOctet(byte[] input, out ImageMetadata metadata)
         {
             metadata=new();
-
-
-            if (input.Length < 12)
-                return null;
-
-            
-            bool riff =
-                input[0] == 0x52 &&
-                input[1] == 0x49 &&
-                input[2] == 0x46 &&
-                input[3] == 0x46;
-
-           
-            bool webp =
-                input[8] == 0x57 &&
-                input[9] == 0x45 &&
-                input[10] == 0x42 &&
-                input[11] == 0x50;
-
-
-            if (!(riff && webp))
-            {
-                return null;
-            }
            
             try
             {

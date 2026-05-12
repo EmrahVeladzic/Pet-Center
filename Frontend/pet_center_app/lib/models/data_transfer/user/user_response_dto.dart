@@ -73,7 +73,7 @@ class UserResponseDTO {
   String? id;
   String currentVersion;
   bool matureAccount;
-  String? userName;
+  String userName;
   List<NoteSubDTO>? notes;
   List<NotificationSubDTO>? notifications;
   List<SuppliesSubDTO>? userSupplies;
@@ -83,7 +83,7 @@ class UserResponseDTO {
   UserResponseDTO({
     this.id,
     this.currentVersion = '',
-    this.userName,
+    this.userName = '',
     this.notes,
     this.userSupplies,
     this.notifications,

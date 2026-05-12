@@ -7,8 +7,8 @@ part 'franchise_response_dto.g.dart';
 class FranchiseResponseDTO {
   String? id;
   String currentVersion;
-  String? franchiseName;
-  String? contact;
+  String franchiseName;
+  String contact;
   List<NoteSubDTO>? notes;
   List<FacilityDTO> facilities;
   bool? owned;
@@ -16,8 +16,8 @@ class FranchiseResponseDTO {
   FranchiseResponseDTO({
     this.id,
     this.currentVersion = '',
-    this.franchiseName,
-    this.contact,
+    this.franchiseName = '',
+    this.contact = '',
     this.notes,
     this.owned,
     this.facilities = const [],

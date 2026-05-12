@@ -23,7 +23,9 @@ BreedDTO _$BreedDTOFromJson(Map<String, dynamic> json) => BreedDTO(
       .toList(),
   title: json['title'] as String? ?? '',
   albumId: json['albumId'] as String? ?? '',
-  images: (json['images'] as List<dynamic>?)
+  locked: json['locked'] as bool? ?? true,
+  mediaCreationToken: json['mediaCreationToken'] as String?,
+  media: (json['media'] as List<dynamic>?)
       ?.map((e) => ImageDTO.fromJson(e as Map<String, dynamic>))
       .toList(),
 );
@@ -41,7 +43,9 @@ Map<String, dynamic> _$BreedDTOToJson(BreedDTO instance) => <String, dynamic>{
   'notes': instance.notes?.map((e) => e.toJson()).toList(),
   'title': instance.title,
   'albumId': instance.albumId,
-  'images': instance.images.map((e) => e.toJson()).toList(),
+  'media': instance.media.map((e) => e.toJson()).toList(),
+  'locked': instance.locked,
+  'mediaCreationToken': instance.mediaCreationToken,
 };
 
 const _$AnimalScaleEnumMap = {

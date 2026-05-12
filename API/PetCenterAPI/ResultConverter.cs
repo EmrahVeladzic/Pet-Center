@@ -31,10 +31,20 @@ namespace PetCenterAPI.Controllers
             
             bool isPrimitive = output.Body is string or ValueType;
 
+            if (isPrimitive)
+            {
+                return new ContentResult
+                {
+                    StatusCode = (int)output.Code,
+                    Content = output.Body?.ToString(),
+                    ContentType = "text/plain"
+                };
+            }
+
             return new ObjectResult(output.Body)
             {
                 StatusCode = (int)output.Code,
-                ContentTypes = { isPrimitive ? "text/plain" : "application/json" }
+                ContentTypes = { "application/json" }
             };
         }
 

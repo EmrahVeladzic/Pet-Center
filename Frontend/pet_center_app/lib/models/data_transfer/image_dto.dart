@@ -10,14 +10,20 @@ class ImageDTO {
   String albumInsertId;
   int width;
   int height;
-  String? data;
+  String? token;
+  String hash;
+  bool canWrite;
   List<NoteSubDTO>? notes;
   ImageDTO({
     this.id,
     this.currentVersion = '',
     this.albumInsertId = '',
-    this.width = 0,
-    this.height = 0,
+    this.width = 64,
+    this.height = 64,
+    this.token,
+    this.hash = '',
+    this.notes,
+    this.canWrite = false,
   });
 
   factory ImageDTO.fromJson(Map<String, dynamic> json) =>

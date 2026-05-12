@@ -1,8 +1,7 @@
 import 'dart:convert';
-
+import 'dart:typed_data';
 import 'app_style.dart';
 import 'package:json_annotation/json_annotation.dart';
-
 import 'package:http/http.dart' as http;
 
 enum HttpCode {
@@ -12,7 +11,6 @@ enum HttpCode {
   created,
   @JsonValue(204)
   noContent,
-
   @JsonValue(400)
   badRequest,
   @JsonValue(401)
@@ -25,7 +23,6 @@ enum HttpCode {
   conflict,
   @JsonValue(429)
   tooManyRequests,
-
   @JsonValue(500)
   internalError,
   @JsonValue(501)
@@ -68,69 +65,65 @@ class ServiceOutput<T> {
 
   ServiceOutput({required this.statusCode, this.body, this.errorMessage});
 
-  static bool isSuccess(http.Response response) {
-    Object? parsedBody;
-    if (response.body.isNotEmpty) {
-      try {
-        parsedBody = jsonDecode(response.body);
-      } catch (e) {
-        parsedBody = response.body;
-      }
+  static Object? _parseBody(http.Response response) {
+    if (response.body.isEmpty) return null;
+    try {
+      return jsonDecode(response.body);
+    } catch (_) {
+      return response.body;
     }
-    if (parsedBody is Map<String, dynamic> && parsedBody.containsKey('error')) {
-      final msg = parsedBody['error']?.toString();
-      showSnackbar(msg ?? "Unknown error.");
-    } else if (parsedBody is String) {
-      showSnackbar(parsedBody);
-    }
-
-    return (response.statusCode < 400);
   }
 
-  static Future<T?> fromResponse<T>(
-    http.Response response,
-    T Function(Object? json) fromJsonT,
-  ) async {
-    final status = response.statusCode;
-
-    Object? parsedBody;
-    if (response.body.isNotEmpty) {
-      try {
-        parsedBody = jsonDecode(response.body);
-      } catch (e) {
-        parsedBody = response.body;
-      }
-    }
-
-    if (status >= 200 && status < 300) {
-      if (response.body.isEmpty) {
-        return null;
-      }
-
-      try {
-        return fromJsonT(parsedBody);
-      } catch (e) {
-        showSnackbar("Invalid server response.");
-        return null;
-      }
-    }
-
+  static void _handleError(int status, Object? parsedBody) {
     if (parsedBody is Map<String, dynamic> && parsedBody.containsKey('error')) {
-      final msg = parsedBody['error']?.toString();
-      showSnackbar(msg ?? "Unknown error.");
-      return null;
+      showSnackbar(parsedBody['error']?.toString() ?? "Unknown error.");
+      return;
     }
-
     if (parsedBody is Map<String, dynamic> &&
         parsedBody.containsKey('errors')) {
       final message = (parsedBody['errors'] as Map<String, dynamic>).values
           .expand((e) => (e as List?) ?? [])
           .join('\n');
       showSnackbar(message);
-      return null;
+      return;
     }
-
+    if (parsedBody is String && parsedBody.isNotEmpty) {
+      showSnackbar(parsedBody);
+      return;
+    }
     showSnackbar("Unexpected error - $status.");
+  }
+
+  static bool isSuccess(http.Response response) {
+    if (response.statusCode >= 400) {
+      _handleError(response.statusCode, _parseBody(response));
+    }
+    return response.statusCode < 400;
+  }
+
+  static Future<Uint8List?> fromBytes(http.Response response) async {
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      return response.bodyBytes.isEmpty ? null : response.bodyBytes;
+    }
+    _handleError(response.statusCode, _parseBody(response));
+    return null;
+  }
+
+  static Future<T?> fromResponse<T>(
+    http.Response response,
+    T Function(Object? json) fromJsonT,
+  ) async {
+    final parsed = _parseBody(response);
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      if (response.body.isEmpty) return null;
+      try {
+        return fromJsonT(parsed);
+      } catch (_) {
+        showSnackbar("Invalid server response.");
+        return null;
+      }
+    }
+    _handleError(response.statusCode, parsed);
     return null;
   }
 }

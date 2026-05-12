@@ -125,8 +125,11 @@ namespace PetCenterServices.Services
 
             }
 
+
             foreach(ListingResponseDTO response in output)
             {
+                
+
                 AttachTokensIfNeeded(response,search.FileRW);
             }
 
@@ -548,7 +551,7 @@ namespace PetCenterServices.Services
                         Franchise? franch = await dbContext.Franchises.FindAsync(req?.FranchiseId);
                         Guid? owner = franch?.OwnerId??null;
 
-                        lst.AlbumId=await ImageService.CreateAlbum(owner,dbContext,1);
+                        lst.AlbumId=await CreateAlbum(owner,dbContext,1);
                         lst.Updated=true;
 
                         await dbSet.AddAsync(lst);

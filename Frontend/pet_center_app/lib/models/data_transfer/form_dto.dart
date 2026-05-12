@@ -37,7 +37,9 @@ class FormDTO {
   String userId;
   String formTemplateId;
   String albumId;
-  List<ImageDTO> images;
+  List<ImageDTO> media;
+  bool locked;
+  String? mediaCreationToken;
 
   FormDTO({
     this.id,
@@ -49,9 +51,11 @@ class FormDTO {
     this.userId = '',
     this.formTemplateId = '',
     this.albumId = '',
-    List<ImageDTO>? images,
+    this.mediaCreationToken,
+    this.locked = true,
+    List<ImageDTO>? media,
   }) : entries = entries ?? [],
-       images = images ?? [];
+       media = media ?? [];
 
   factory FormDTO.fromJson(Map<String, dynamic> json) =>
       _$FormDTOFromJson(json);

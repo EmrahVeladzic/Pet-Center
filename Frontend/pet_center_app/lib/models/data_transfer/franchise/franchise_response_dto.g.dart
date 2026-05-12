@@ -11,8 +11,8 @@ FranchiseResponseDTO _$FranchiseResponseDTOFromJson(
 ) => FranchiseResponseDTO(
   id: json['id'] as String?,
   currentVersion: json['currentVersion'] as String? ?? '',
-  franchiseName: json['franchiseName'] as String?,
-  contact: json['contact'] as String?,
+  franchiseName: json['franchiseName'] as String? ?? '',
+  contact: json['contact'] as String? ?? '',
   notes: (json['notes'] as List<dynamic>?)
       ?.map((e) => NoteSubDTO.fromJson(e as Map<String, dynamic>))
       .toList(),

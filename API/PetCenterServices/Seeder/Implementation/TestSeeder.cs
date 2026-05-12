@@ -192,7 +192,7 @@ namespace PetCenterServices.Seeder
 
                         breed.KindId=kinds[rng.Next(kinds.Count)].Id;
 
-                        breed.AlbumId=await ImageService.CreateAlbum(null,ctx,1);
+                        breed.AlbumId=await BreedService.CreateAlbum(null,ctx,1);
 
                         await ctx.Images.AddAsync(await CreateRandomImage(ctx,breed.AlbumId,rng));
 
@@ -378,7 +378,7 @@ namespace PetCenterServices.Seeder
                             bool visible = i==0;
                             string base_name = (visible)? "Visible":"Invisible";
                             
-                            Form frm = new Form{FormTemplateId=template.Id,UserId=Employees[0].Id,FranchiseName=$"{base_name}Corp",DefaultContact=$"{base_name.ToLower()}@example.com",AlbumId=await ImageService.CreateAlbum(Employees[0].Id,ctx,1)};
+                            Form frm = new Form{FormTemplateId=template.Id,UserId=Employees[0].Id,FranchiseName=$"{base_name}Corp",DefaultContact=$"{base_name.ToLower()}@example.com",AlbumId=await FormService.CreateAlbum(Employees[0].Id,ctx,1)};
 
                             await ctx.Forms.AddAsync(frm);
 
@@ -528,11 +528,12 @@ namespace PetCenterServices.Seeder
                         for(int i = 0; i<5; i++)
                         {
 
-                            generic_listing_album_ids.Add(await ImageService.CreateAlbum(franch.OwnerId,ctx,1));
+                            generic_listing_album_ids.Add(await ListingService.CreateAlbum(franch.OwnerId,ctx,1));
 
                             if (i != 4)
                             {
                                 await ctx.Images.AddAsync(await CreateRandomImage(ctx,generic_listing_album_ids[i],rng));
+                                
                             }
                         }
 
@@ -605,7 +606,7 @@ namespace PetCenterServices.Seeder
                             if (up_for_adoption)
                             {
                                 
-                                Guid album_id = await ImageService.CreateAlbum(franch.OwnerId,ctx,1);
+                                Guid album_id = await ListingService.CreateAlbum(franch.OwnerId,ctx,1);
                                 await ctx.Images.AddAsync(await CreateRandomImage(ctx,album_id,rng));
 
 
@@ -641,7 +642,7 @@ namespace PetCenterServices.Seeder
                             if (for_sale)
                             {
                                 
-                                Guid album_id = await ImageService.CreateAlbum(franch.OwnerId,ctx,1);
+                                Guid album_id = await ListingService.CreateAlbum(franch.OwnerId,ctx,1);
                                 await ctx.Images.AddAsync(await CreateRandomImage(ctx,album_id,rng));
 
                                 Listing new_listing = new Listing{Type=ListingType.Product,FranchiseId=franch.Id,PriceMinor=rng.Next(10000),AlbumId=album_id,Approved=true,Updated=false,Visible=true,ListingName=$"{itm.Title}-{marketables}",ListingDescription=$"A great choice of {itm.ItemCategory.Title} for yout pet.",Posted=creation};
@@ -666,7 +667,7 @@ namespace PetCenterServices.Seeder
                             DateTime creation = DateTime.UtcNow.AddDays(-rng.Next(100));                          
 
                             
-                            Guid album_id = await ImageService.CreateAlbum(franch.OwnerId,ctx,1);
+                            Guid album_id = await ListingService.CreateAlbum(franch.OwnerId,ctx,1);
                             await ctx.Images.AddAsync(await CreateRandomImage(ctx,album_id,rng));
 
                             Listing new_listing = new Listing{Type=ListingType.Generic,FranchiseId=franch.Id,PriceMinor=price,AlbumId=album_id,Approved=true,Updated=false,Visible=true,ListingName=$"Generic listing no. {i}",ListingDescription=$"Test.",Posted=creation};
@@ -772,7 +773,14 @@ namespace PetCenterServices.Seeder
 
                     
 
-                    
+                    List<Album> locked = await ctx.Albums.Where(a=> ctx.Listings.Any(l=>l.AlbumId==a.Id) && a.Reserved!=0).ToListAsync();
+
+                    foreach(Album lockedAlbum in locked)
+                    {
+                        lockedAlbum.Locked=true;
+                    }
+
+                    await ctx.SaveChangesAsync();
 
 
                     await tx.CommitAsync();

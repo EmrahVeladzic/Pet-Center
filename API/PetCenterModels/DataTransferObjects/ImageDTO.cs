@@ -29,6 +29,8 @@ namespace PetCenterModels.DataTransferObjects
         public string? Token {get; set;} = null;
 
         public string Hash {get; set;} = string.Empty;   
+
+        public bool CanWrite {get; set;} = false;
   
 
         public List<NoteSubDTO>? Notes {get; set;} = null;

@@ -204,7 +204,7 @@ class AccountService {
   static Future<bool> logOut() async {
     apiServiceBusy = true;
     try {
-      final response = await http.delete(
+      final response = await http.get(
         Uri.parse("${AppConfig.apiBaseUrl}/api/Account/LogOut"),
         headers: {'Authorization': 'Bearer $rawToken'},
       );

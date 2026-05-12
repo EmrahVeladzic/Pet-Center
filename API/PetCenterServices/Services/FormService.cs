@@ -60,7 +60,7 @@ namespace PetCenterServices.Services
                 {
                     try
                     {
-                        ent.AlbumId = await ImageService.CreateAlbum(token_holder,dbContext,ent.AlbumCapacity);
+                        ent.AlbumId = await CreateAlbum(token_holder,dbContext,ent.AlbumCapacity);
                         await dbSet.AddAsync(ent);
                         await dbContext.SaveChangesAsync();
                         foreach(FormEntrySubDTO entry in resource.Entries)

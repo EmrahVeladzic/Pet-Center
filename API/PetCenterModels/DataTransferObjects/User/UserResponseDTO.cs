@@ -97,7 +97,7 @@ namespace PetCenterModels.DataTransferObjects
 
         public byte[] CurrentVersion { get; set; } = Array.Empty<byte>();
 
-        public string? UserName {get; set;}
+        public string UserName {get; set;} = string.Empty;
         public List<NoteSubDTO>? Notes {get; set;}
 
         public List<NotificationSubDTO>? Notifications {get; set;} = null;  
