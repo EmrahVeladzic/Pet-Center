@@ -47,7 +47,10 @@ class _FeedScreenState extends State<FeedScreen> {
           title: SizedBox(
             width: design.screenWidth * marqueeTitleWMult,
             height: design.marqueeSize,
-            child: design.textMarquee('Feed'),
+            child: design.textMarquee(
+              'Feed',
+              design.screenWidth * marqueeTitleWMult,
+            ),
           ),
         ),
         body: LayoutBuilder(

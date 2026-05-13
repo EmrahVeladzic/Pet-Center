@@ -14,8 +14,7 @@ namespace PetCenterModels.SearchObjects
         
         public Access? Role {get; set;} = null;
 
-        [JsonIgnore]
-        public override int PageSize => int.MaxValue;
+       
 
         
 

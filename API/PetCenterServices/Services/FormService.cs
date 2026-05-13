@@ -56,7 +56,7 @@ namespace PetCenterServices.Services
 
             if(ent!=null){
 
-            await using(IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync())
+                await using(IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync())
                 {
                     try
                     {
@@ -82,7 +82,39 @@ namespace PetCenterServices.Services
                    
             }   
 
-            return ServiceOutput<FormDTO>.Error(HttpCode.InternalError,"Internal server error."); 
+            return ServiceOutput<FormDTO>.Error(HttpCode.NotFound,"Internal server error."); 
+        }
+
+        public override async Task<ServiceOutput<FormDTO>> Put(Guid token_holder, FormDTO resource)
+        {
+            Form? ent = await dbSet.FirstOrDefaultAsync(f=>f.Id==resource.Id && f.UserId==token_holder);
+
+            if(ent!=null){
+
+                ent.DefaultContact=resource.DefaultContact;
+                ent.FranchiseName=resource.FranchiseName;
+
+                await dbContext.SaveChangesAsync();
+                return ServiceOutput<FormDTO>.Success(FormDTO.FromEntity(ent));
+                   
+            }   
+
+            return ServiceOutput<FormDTO>.Error(HttpCode.NotFound,"This form does not exist."); 
+        }
+
+        public override async Task<ServiceOutput<object>> IsClearedToUpdate(Guid token_holder, FormDTO resource)
+        {
+            if (!ModelValidationUtils.ValidateContact(resource.DefaultContact) || string.IsNullOrWhiteSpace(resource.FranchiseName))
+            {
+                return ServiceOutput<object>.Error(HttpCode.BadRequest,"You need to provide a valid contact and the name of your franchise.");
+            }
+
+            Form? frm = await dbSet.FirstOrDefaultAsync(f=>f.Id==resource.Id&&f.UserId==token_holder);
+            if (frm == null)
+            {
+                return ServiceOutput<object>.Error(HttpCode.NotFound,"Could not find the specified form.");
+            }
+            return ServiceOutput<object>.Success(null);
         }
 
         public override async Task<ServiceOutput<object>> IsClearedToCreate(Guid token_holder, FormDTO resource)

@@ -18,12 +18,7 @@ namespace PetCenterAPI.Controllers
 
         public ProcedureController(IProcedureService s):base(s) { }
 
-        [HttpGet("Count")]
-        [NonAction]
-        public override Task<IActionResult> Count([FromQuery] ProcedureSearchObject search)
-        {
-            throw new NotImplementedException();
-        }
+       
 
         [Authorize(Roles = "Admin,Owner")]
         [HttpPut("{id}")]

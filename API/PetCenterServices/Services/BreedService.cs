@@ -39,6 +39,11 @@ namespace PetCenterServices.Services
             IQueryable<Breed> query = WithAlbum();
             User? usr = await dbContext.Users.FindAsync(token_holder);
 
+            if (search.KindId != null)
+            {
+                query=query.Where(b=>b.KindId==search.KindId);
+            }
+
             if(search.AuthoritySpecifier == Access.Admin && search.Incomplete)
             {
                 query = query.Where(b=>b.Album.Reserved==0);
@@ -66,13 +71,9 @@ namespace PetCenterServices.Services
             {
                 search.FileRW = FileScope.Write;
             }
-            if(search.AdoptionPurposes && search.AuthoritySpecifier == Access.User)
-            {
-                search.FileRW = FileScope.ReadOnly;                
-            }
             else
             {
-                search.FileRW=FileScope.Invalid;
+                search.FileRW=FileScope.ReadOnly;
             }
 
             return await base.Get(token_holder, search);

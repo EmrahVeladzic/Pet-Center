@@ -40,12 +40,7 @@ namespace PetCenterAPI.Controllers
         }
 
         
-        [HttpGet("Count")]
-        [NonAction]
-        public override Task<IActionResult> Count([FromQuery] UserSearchObject search)
-        {
-            throw new NotImplementedException();
-        }
+       
 
         [HttpPut("SetEmployee/{usr_id}/{franchise_id}")]
         [Authorize(Roles = "BusinessAccount")]

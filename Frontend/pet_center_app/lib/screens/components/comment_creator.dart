@@ -80,18 +80,27 @@ class _CommentCreatorState extends State<CommentCreator> {
               ),
               Expanded(
                 flex: 1,
+
                 child: Align(
                   alignment: Alignment.center,
-                  child: IconButton(
-                    onPressed: () {
-                      if (_formKey.currentState != null &&
-                          _formKey.currentState!.validate()) {
-                        sendReview();
-                      }
-                    },
-                    icon: const Icon(Icons.arrow_forward),
-                    padding: EdgeInsets.zero,
-                    visualDensity: VisualDensity.compact,
+                  child: SizedBox(
+                    width: design.boundedIconSize,
+                    height: design.boundedIconSize,
+                    child: FittedBox(
+                      fit: BoxFit.contain,
+                      child: IconButton(
+                        onPressed: () {
+                          if (_formKey.currentState != null &&
+                              _formKey.currentState!.validate()) {
+                            sendReview();
+                          }
+                        },
+                        icon: const Icon(Icons.arrow_forward),
+                        padding: EdgeInsets.zero,
+                        visualDensity: VisualDensity.compact,
+                        constraints: const BoxConstraints(),
+                      ),
+                    ),
                   ),
                 ),
               ),

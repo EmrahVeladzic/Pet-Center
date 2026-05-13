@@ -11,8 +11,7 @@ namespace PetCenterModels.SearchObjects
     public class KindSearchObject : BaseSearchObject
     {
       
-        [JsonIgnore]
-        public override int PageSize {get;} = int.MaxValue;
+        
 
     }
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:pet_center_app/models/enums.dart';
 import 'package:pet_center_app/screens/feed.dart';
+import 'package:pet_center_app/screens/kind_selection.dart';
 import 'package:pet_center_app/screens/user_view.dart';
 import 'package:pet_center_app/services/static_user_data_service.dart';
 import 'package:pet_center_app/utils/app_style.dart';
@@ -29,6 +30,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           height: design.marqueeSize,
           child: design.textMarquee(
             "${(self?.userName != null) ? self?.userName : 'PetCenter'}",
+            design.screenWidth * marqueeTitleWMult,
           ),
         ),
       ),
@@ -55,7 +57,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             widthFactor: 0.5,
                             alignment: Alignment.center,
                             child: ElevatedButton(
-                              onPressed: () {},
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => KindSelectionScreen(),
+                                  ),
+                                );
+                              },
                               child: design.fittedText('Adopt a pet'),
                             ),
                           ),

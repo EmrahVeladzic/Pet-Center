@@ -18,12 +18,7 @@ namespace PetCenterAPI.Controllers
 
         public ItemController(IItemService s):base(s) { }
 
-        [HttpGet("Count")]
-        [NonAction]
-        public override Task<IActionResult> Count([FromQuery] ItemSearchObject search)
-        {
-            throw new NotImplementedException();
-        }
+       
       
         [Authorize(Roles = "Admin,Owner")]
         [HttpPut("{id}")]

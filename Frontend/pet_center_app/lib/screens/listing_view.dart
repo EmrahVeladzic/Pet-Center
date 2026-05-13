@@ -62,7 +62,10 @@ class _ListingViewScreenState extends State<ListingViewScreen> {
         title: SizedBox(
           width: design.screenWidth * marqueeTitleWMult,
           height: design.marqueeSize,
-          child: design.textMarquee(widget.listing.name),
+          child: design.textMarquee(
+            widget.listing.name,
+            design.screenWidth * marqueeTitleWMult,
+          ),
         ),
       ),
       body: Center(

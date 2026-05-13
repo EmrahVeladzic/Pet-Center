@@ -137,6 +137,7 @@ class _UserViewScreenState extends State<UserViewScreen> {
           height: design.marqueeSize,
           child: design.textMarquee(
             "${(self?.userName != null) ? self?.userName : 'User details'}",
+            design.screenWidth * marqueeTitleWMult,
           ),
         ),
       ),
