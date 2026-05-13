@@ -18,12 +18,7 @@ namespace PetCenterAPI.Controllers
 
         public LivingConditionFieldController(ILivingConditionFieldService s):base(s) { }
 
-        [HttpGet("Count")]
-        [NonAction]
-        public override Task<IActionResult> Count([FromQuery] LivingConditionSearchObject search)
-        {
-            throw new NotImplementedException();
-        }
+      
        
 
         [Authorize(Roles = "Admin,Owner")]

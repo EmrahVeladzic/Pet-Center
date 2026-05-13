@@ -38,7 +38,7 @@ namespace PetCenterModels.SearchObjects
 
 
         [JsonIgnore]
-        public override int PageSize =>10;
+        public override int PageSize {get;} = 10;
 
     }
 }

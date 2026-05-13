@@ -10,8 +10,7 @@ namespace PetCenterModels.SearchObjects
 {
     public class FormTemplateSearchObject : BaseSearchObject
     {
-        [JsonIgnore]
-        public override int PageSize {get;} = int.MaxValue;
+        
 
     }
 }

@@ -36,6 +36,19 @@ class _ImageDisplayState extends State<ImageDisplay> {
     _decode();
   }
 
+  @override
+  void didUpdateWidget(covariant ImageDisplay oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (oldWidget.dataSource?.hash != widget.dataSource?.hash) {
+      dataSrc = widget.dataSource;
+      _decoded = null;
+      _loading = true;
+      _error = false;
+      _decode();
+    }
+  }
+
   Future<void> _decode() async {
     if (dataSrc?.token != null) {
       final cached = ImageCacheService.instance.get(dataSrc!.hash);

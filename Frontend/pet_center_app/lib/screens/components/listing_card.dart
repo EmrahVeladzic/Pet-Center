@@ -30,13 +30,19 @@ class ListingCard extends StatelessWidget {
           children: [
             Expanded(
               flex: 1,
-
               child: Align(
                 alignment: Alignment.center,
-                child: ImageDisplay(
-                  dataSource: listing.media[0],
-                  creationToken: null,
-                  locked: true,
+                child: SizedBox(
+                  width: design.boundedImageSize,
+                  height: design.boundedImageSize,
+                  child: FittedBox(
+                    fit: BoxFit.contain,
+                    child: ImageDisplay(
+                      dataSource: listing.media[0],
+                      creationToken: null,
+                      locked: true,
+                    ),
+                  ),
                 ),
               ),
             ),
@@ -44,21 +50,19 @@ class ListingCard extends StatelessWidget {
             Expanded(flex: 3, child: design.fittedText(listing.name)),
             Expanded(
               flex: 1,
-              child: LayoutBuilder(
-                builder: (context, constraints) => Align(
-                  alignment: Alignment.center,
-                  child: SizedBox(
-                    width: constraints.maxHeight,
-                    height: constraints.maxHeight,
-                    child: FittedBox(
-                      fit: BoxFit.scaleDown,
-                      child: IconButton(
-                        onPressed: onTap,
-                        icon: const Icon(Icons.arrow_forward),
-                        padding: EdgeInsets.zero,
-                        visualDensity: VisualDensity.compact,
-                        constraints: const BoxConstraints(),
-                      ),
+              child: Align(
+                alignment: Alignment.center,
+                child: SizedBox(
+                  width: design.boundedIconSize,
+                  height: design.boundedIconSize,
+                  child: FittedBox(
+                    fit: BoxFit.contain,
+                    child: IconButton(
+                      onPressed: onTap,
+                      icon: const Icon(Icons.arrow_forward),
+                      padding: EdgeInsets.zero,
+                      visualDensity: VisualDensity.compact,
+                      constraints: const BoxConstraints(),
                     ),
                   ),
                 ),

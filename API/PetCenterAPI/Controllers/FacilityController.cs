@@ -19,12 +19,7 @@ namespace PetCenterAPI.Controllers
         public FacilityController(IFacilityService s):base(s) { }
 
 
-        [HttpGet("Count")]
-        [NonAction]
-        public override Task<IActionResult> Count([FromQuery] FacilitySearchObject search)
-        {
-            throw new NotImplementedException();
-        }
+        
 
         [HttpPost]
         [Authorize(Roles = "Employee")]

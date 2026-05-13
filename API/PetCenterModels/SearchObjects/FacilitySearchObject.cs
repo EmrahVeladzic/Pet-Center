@@ -14,7 +14,5 @@ namespace PetCenterModels.SearchObjects
 
         public Guid? ServesListing {get; set;} = null;
 
-        [JsonIgnore]
-        public override int PageSize => int.MaxValue;
     }
 }

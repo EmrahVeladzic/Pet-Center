@@ -12,8 +12,7 @@ namespace PetCenterModels.SearchObjects
     {
         public bool? Consumable { get; set; } = null;
 
-        [JsonIgnore]
-        public override int PageSize {get;} = int.MaxValue;
+
 
     }
 }

@@ -44,12 +44,7 @@ namespace PetCenterAPI.Controllers
             return true;
         }
 
-        [HttpGet("Count")]
-        [NonAction]
-        public override Task<IActionResult> Count([FromQuery] AccountSearchObject search)
-        {
-            throw new NotImplementedException();
-        }
+        
 
         [HttpGet("Transfer/{old_code}/{new_code}")]
         public async Task<IActionResult> Transfer([FromRoute] int old_code, [FromRoute] int new_code)

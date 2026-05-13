@@ -62,7 +62,10 @@ class _CommentViewScreenState extends State<CommentViewScreen> {
         title: SizedBox(
           width: design.screenWidth * marqueeTitleWMult,
           height: design.marqueeSize,
-          child: design.textMarquee(comment.posterName),
+          child: design.textMarquee(
+            comment.posterName,
+            design.screenWidth * marqueeTitleWMult,
+          ),
         ),
       ),
       body: Center(

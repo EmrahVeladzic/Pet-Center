@@ -47,6 +47,8 @@ void showError(Object ex) {
 
 class ReactiveDesignSystem extends ThemeExtension<ReactiveDesignSystem> {
   final double spacing;
+  final double boundedIconSize;
+  final double boundedImageSize;
   final double fontSize;
   final double marqueeSize;
   final Axis layoutDirection;
@@ -57,6 +59,8 @@ class ReactiveDesignSystem extends ThemeExtension<ReactiveDesignSystem> {
 
   ReactiveDesignSystem({
     required this.spacing,
+    required this.boundedIconSize,
+    required this.boundedImageSize,
     required this.fontSize,
     required this.layoutDirection,
     required this.bodyWMult,
@@ -76,6 +80,10 @@ class ReactiveDesignSystem extends ThemeExtension<ReactiveDesignSystem> {
     return ReactiveDesignSystem(
       spacing: isLandscape ? width * 0.015 : width * 0.04,
 
+      boundedIconSize: isLandscape ? width * 0.02 : width * 0.05,
+
+      boundedImageSize: isLandscape ? width * 0.075 : width * 0.2,
+
       fontSize: isLandscape ? shortSide * 0.02 : shortSide * 0.04,
 
       dialogWidth: isLandscape ? shortSide * 0.5 : shortSide,
@@ -92,8 +100,15 @@ class ReactiveDesignSystem extends ThemeExtension<ReactiveDesignSystem> {
     );
   }
 
-  Widget fittedText(String text, [BoxFit fit = BoxFit.scaleDown]) {
-    return FittedBox(fit: fit, child: Text(text));
+  Widget fittedText(
+    String text, [
+    double mult = 1.0,
+    BoxFit fit = BoxFit.scaleDown,
+  ]) {
+    return FittedBox(
+      fit: fit,
+      child: Text(text, textScaler: TextScaler.linear(mult)),
+    );
   }
 
   Widget textMarquee(
@@ -152,6 +167,8 @@ class ReactiveDesignSystem extends ThemeExtension<ReactiveDesignSystem> {
   @override
   ReactiveDesignSystem copyWith({
     double? spacing,
+    double? boundedIconSize,
+    double? boundedImageSize,
     double? fontSize,
     double? marqueeSize,
     Axis? layoutDirection,
@@ -163,6 +180,8 @@ class ReactiveDesignSystem extends ThemeExtension<ReactiveDesignSystem> {
   }) {
     return ReactiveDesignSystem(
       spacing: spacing ?? this.spacing,
+      boundedIconSize: boundedIconSize ?? this.spacing,
+      boundedImageSize: boundedImageSize ?? this.spacing,
       fontSize: fontSize ?? this.fontSize,
       layoutDirection: layoutDirection ?? this.layoutDirection,
       marqueeSize: marqueeSize ?? this.marqueeSize,
@@ -181,6 +200,12 @@ class ReactiveDesignSystem extends ThemeExtension<ReactiveDesignSystem> {
     if (other is! ReactiveDesignSystem) return this;
     return ReactiveDesignSystem(
       spacing: lerpDouble(spacing, other.spacing, t) ?? spacing,
+      boundedIconSize:
+          lerpDouble(boundedIconSize, other.boundedIconSize, t) ??
+          boundedIconSize,
+      boundedImageSize:
+          lerpDouble(boundedImageSize, other.boundedImageSize, t) ??
+          boundedImageSize,
       fontSize: lerpDouble(fontSize, other.fontSize, t) ?? fontSize,
       marqueeSize: lerpDouble(marqueeSize, other.marqueeSize, t) ?? marqueeSize,
       screenWidth: lerpDouble(screenWidth, other.screenWidth, t) ?? screenWidth,

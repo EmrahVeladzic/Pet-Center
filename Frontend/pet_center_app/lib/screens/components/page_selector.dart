@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:pet_center_app/utils/app_style.dart';
+import 'package:pet_center_app/utils/globals.dart';
 
 class PageSelector extends StatefulWidget {
   final int maxPage;
@@ -12,12 +14,13 @@ class PageSelector extends StatefulWidget {
   });
 
   @override
-  State<PageSelector> createState() => _PageSelectorState();
+  State<PageSelector> createState() => PageSelectorState();
 }
 
-class _PageSelectorState extends State<PageSelector> {
+class PageSelectorState extends State<PageSelector> {
   late TextEditingController controller;
   int currentPage = 1;
+  int _lastConfirmedPage = 1;
 
   @override
   void initState() {
@@ -31,9 +34,24 @@ class _PageSelectorState extends State<PageSelector> {
     super.dispose();
   }
 
-  void changePage(int page) {
-    if (page < 1 || page > widget.maxPage) return;
+  void revertPage() {
+    setState(() {
+      currentPage = _lastConfirmedPage;
+      controller.text = currentPage.toString();
+    });
+  }
 
+  void changePage(int page) {
+    if (apiServiceBusy) {
+      controller.text = currentPage.toString();
+      return;
+    }
+    if (page < 1 || page > widget.maxPage) {
+      controller.text = currentPage.toString();
+      return;
+    }
+
+    _lastConfirmedPage = currentPage;
     setState(() {
       currentPage = page;
       controller.text = currentPage.toString();
@@ -44,40 +62,45 @@ class _PageSelectorState extends State<PageSelector> {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        IconButton(
-          onPressed: currentPage > 1 ? () => changePage(currentPage - 1) : null,
-          icon: const Icon(Icons.chevron_left),
-        ),
-
-        SizedBox(
-          width: 60,
-          child: TextField(
-            controller: controller,
-            textAlign: TextAlign.center,
-            keyboardType: TextInputType.number,
-            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-            onSubmitted: (value) {
-              final page = int.tryParse(value);
-
-              if (page != null) {
-                changePage(page);
-              } else {
-                controller.text = currentPage.toString();
-              }
-            },
+    return ColoredBox(
+      color: panelTone,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          IconButton(
+            onPressed: currentPage > 1
+                ? () => changePage(currentPage - 1)
+                : null,
+            icon: const Icon(Icons.chevron_left),
           ),
-        ),
 
-        IconButton(
-          onPressed: currentPage < widget.maxPage
-              ? () => changePage(currentPage + 1)
-              : null,
-          icon: const Icon(Icons.chevron_right),
-        ),
-      ],
+          SizedBox(
+            width: 60,
+            child: TextField(
+              controller: controller,
+              textAlign: TextAlign.center,
+              keyboardType: TextInputType.number,
+              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+              onSubmitted: (value) {
+                final page = int.tryParse(value);
+
+                if (page != null) {
+                  changePage(page);
+                } else {
+                  controller.text = currentPage.toString();
+                }
+              },
+            ),
+          ),
+
+          IconButton(
+            onPressed: currentPage < widget.maxPage
+                ? () => changePage(currentPage + 1)
+                : null,
+            icon: const Icon(Icons.chevron_right),
+          ),
+        ],
+      ),
     );
   }
 }

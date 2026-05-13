@@ -67,7 +67,10 @@ class _NotificationViewScreenState extends State<NotificationViewScreen> {
         title: SizedBox(
           width: design.screenWidth * marqueeTitleWMult,
           height: design.marqueeSize,
-          child: design.textMarquee(notif.title),
+          child: design.textMarquee(
+            notif.title,
+            design.screenWidth * marqueeTitleWMult,
+          ),
         ),
       ),
       body: Center(
