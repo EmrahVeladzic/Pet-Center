@@ -1,5 +1,4 @@
 import 'package:json_annotation/json_annotation.dart';
-
 part 'account_request_dto.g.dart';
 
 @JsonSerializable(explicitToJson: true)
@@ -20,5 +19,14 @@ class AccountRequestDTO {
 
   factory AccountRequestDTO.fromJson(Map<String, dynamic> json) =>
       _$AccountRequestDTOFromJson(json);
+
   Map<String, dynamic> toJson() => _$AccountRequestDTOToJson(this);
+
+  AccountRequestDTO copy() => AccountRequestDTO(
+    id: id,
+    currentVersion: currentVersion,
+    contact: contact,
+    password: password,
+    business: business,
+  );
 }

@@ -1,6 +1,5 @@
 import 'package:json_annotation/json_annotation.dart';
 import 'package:pet_center_app/models/data_transfer/note_sub_dto.dart';
-
 part 'image_dto.g.dart';
 
 @JsonSerializable(explicitToJson: true)
@@ -14,6 +13,7 @@ class ImageDTO {
   String hash;
   bool canWrite;
   List<NoteSubDTO>? notes;
+
   ImageDTO({
     this.id,
     this.currentVersion = '',
@@ -30,4 +30,16 @@ class ImageDTO {
       _$ImageDTOFromJson(json);
 
   Map<String, dynamic> toJson() => _$ImageDTOToJson(this);
+
+  ImageDTO copy() => ImageDTO(
+    id: id,
+    currentVersion: currentVersion,
+    albumInsertId: albumInsertId,
+    width: width,
+    height: height,
+    token: token,
+    hash: hash,
+    notes: notes?.map((n) => n.copy()).toList(),
+    canWrite: canWrite,
+  );
 }

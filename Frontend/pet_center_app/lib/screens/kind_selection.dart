@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:pet_center_app/models/data_transfer/kind_dto.dart';
 import 'package:pet_center_app/screens/breed_selection.dart';
+import 'package:pet_center_app/screens/living_condition.dart';
 import 'package:pet_center_app/services/breed_service.dart';
 
 import 'package:pet_center_app/services/static_user_data_service.dart';
@@ -100,7 +101,25 @@ class _KindSelectionScreenState extends State<KindSelectionScreen> {
           ),
         ),
       ),
-      bottomNavigationBar: BottomAppBar(),
+      bottomNavigationBar: BottomAppBar(
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => LivingConditionScreen()),
+                  );
+                },
+                child: design.fittedText('Specify living conditions'),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

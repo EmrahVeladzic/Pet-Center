@@ -27,6 +27,7 @@ class BreedSelectionScreen extends StatefulWidget {
 
 class _BreedSelectionScreenState extends State<BreedSelectionScreen> {
   List<BreedDTO> dataSource = [];
+  bool _initLoading = true;
   final _pageSelectorKey = GlobalKey<PageSelectorState>();
 
   @override
@@ -44,6 +45,7 @@ class _BreedSelectionScreenState extends State<BreedSelectionScreen> {
     );
     if (newDataSrc != null) {
       setState(() {
+        _initLoading = false;
         dataSource = newDataSrc;
       });
     } else {
@@ -70,7 +72,7 @@ class _BreedSelectionScreenState extends State<BreedSelectionScreen> {
           width: design.screenWidth * marqueeTitleWMult,
           height: design.marqueeSize,
           child: design.textMarquee(
-            'Choose which breed you are interested in:',
+            'Best matches based on living condition:',
             design.screenWidth * marqueeTitleWMult,
           ),
         ),
@@ -88,27 +90,34 @@ class _BreedSelectionScreenState extends State<BreedSelectionScreen> {
                     constraints: BoxConstraints(
                       minHeight: boxConstraints.maxHeight,
                     ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        ...dataSource.expand(
-                          (e) => [
-                            BreedCard(
-                              breed: e,
-                              onTap: () {
-                                final id = e.id;
-                                if (id == null) {
-                                  return;
-                                }
-                                switchToSelection(e.id!);
-                              },
+                    child: _initLoading
+                        ? Center(
+                            child: Transform.scale(
+                              scale: 3,
+                              child: CircularProgressIndicator(),
                             ),
-                            design.verticalGap(1),
-                          ],
-                        ),
-                      ],
-                    ),
+                          )
+                        : Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              ...dataSource.expand(
+                                (e) => [
+                                  BreedCard(
+                                    breed: e,
+                                    onTap: () {
+                                      final id = e.id;
+                                      if (id == null) {
+                                        return;
+                                      }
+                                      switchToSelection(e.id!);
+                                    },
+                                  ),
+                                  design.verticalGap(1),
+                                ],
+                              ),
+                            ],
+                          ),
                   ),
                 );
               },
@@ -117,15 +126,19 @@ class _BreedSelectionScreenState extends State<BreedSelectionScreen> {
         ),
       ),
       bottomNavigationBar: BottomAppBar(
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            PageSelector(
-              key: _pageSelectorKey,
-              maxPage: widget.maxPage,
-              onChanged: switchPage,
-            ),
-          ],
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              PageSelector(
+                key: _pageSelectorKey,
+                maxPage: widget.maxPage,
+                onChanged: switchPage,
+              ),
+            ],
+          ),
         ),
       ),
     );

@@ -42,6 +42,25 @@ class BreedDTO {
     List<ImageDTO>? media,
   }) : media = media ?? [];
 
+  BreedDTO copy() => BreedDTO(
+    id: id,
+    currentVersion: currentVersion,
+    kindId: kindId,
+    scale: scale,
+    investment: investment,
+    territory: territory,
+    pricing: pricing,
+    longevity: longevity,
+    cohabitation: cohabitation,
+    notes: notes?.map((n) => n.copy()).toList(),
+    title: title,
+    albumId: albumId,
+    locked: locked,
+    full: full,
+    mediaCreationToken: mediaCreationToken,
+    media: media.map((m) => m.copy()).toList(),
+  );
+
   factory BreedDTO.fromJson(Map<String, dynamic> json) =>
       _$BreedDTOFromJson(json);
   Map<String, dynamic> toJson() => _$BreedDTOToJson(this);

@@ -82,43 +82,47 @@ class _CommentViewScreenState extends State<CommentViewScreen> {
         ),
       ),
       bottomNavigationBar: BottomAppBar(
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            if (role == Access.owner ||
-                role == Access.admin ||
-                comment.posterId == self?.id) ...[
-              ElevatedButton(
-                onPressed: () {
-                  showDialog(
-                    context: context,
-                    builder: (_) => DeletionDialog(
-                      deletionAction: (ban) {
-                        deleteComment(ban);
-                      },
-                      bannable: true,
-                      itemName: 'comment',
-                    ),
-                  );
-                },
-                child: design.fittedText('Delete'),
-              ),
-            ] else ...[
-              ElevatedButton(
-                onPressed: () {
-                  showDialog(
-                    context: context,
-                    builder: (_) => ReportDialog(
-                      reportAction: reportComment,
-                      listingId: widget.comment.listingId,
-                      commentId: widget.comment.id,
-                    ),
-                  );
-                },
-                child: design.fittedText('Report'),
-              ),
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              if (role == Access.owner ||
+                  role == Access.admin ||
+                  comment.posterId == self?.id) ...[
+                ElevatedButton(
+                  onPressed: () {
+                    showDialog(
+                      context: context,
+                      builder: (_) => DeletionDialog(
+                        deletionAction: (ban) {
+                          deleteComment(ban);
+                        },
+                        bannable: true,
+                        itemName: 'comment',
+                      ),
+                    );
+                  },
+                  child: design.fittedText('Delete'),
+                ),
+              ] else ...[
+                ElevatedButton(
+                  onPressed: () {
+                    showDialog(
+                      context: context,
+                      builder: (_) => ReportDialog(
+                        reportAction: reportComment,
+                        listingId: widget.comment.listingId,
+                        commentId: widget.comment.id,
+                      ),
+                    );
+                  },
+                  child: design.fittedText('Report'),
+                ),
+              ],
             ],
-          ],
+          ),
         ),
       ),
     );

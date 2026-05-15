@@ -19,5 +19,14 @@ class FranchiseRequestDTO {
 
   factory FranchiseRequestDTO.fromJson(Map<String, dynamic> json) =>
       _$FranchiseRequestDTOFromJson(json);
+
   Map<String, dynamic> toJson() => _$FranchiseRequestDTOToJson(this);
+
+  FranchiseRequestDTO copy() => FranchiseRequestDTO(
+    creationFormId: creationFormId,
+    id: id,
+    currentVersion: currentVersion,
+    franchiseName: franchiseName,
+    contact: contact,
+  );
 }

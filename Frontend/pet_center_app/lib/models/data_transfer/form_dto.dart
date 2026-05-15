@@ -21,6 +21,15 @@ class FormEntrySubDTO {
     this.notes,
   });
 
+  FormEntrySubDTO copy() => FormEntrySubDTO(
+    id: id,
+    currentVersion: currentVersion,
+    formId: formId,
+    formTemplateFieldId: formTemplateFieldId,
+    serialized: serialized,
+    notes: notes?.map((n) => n.copy()).toList(),
+  );
+
   factory FormEntrySubDTO.fromJson(Map<String, dynamic> json) =>
       _$FormEntrySubDTOFromJson(json);
   Map<String, dynamic> toJson() => _$FormEntrySubDTOToJson(this);
@@ -58,6 +67,22 @@ class FormDTO {
     List<ImageDTO>? media,
   }) : entries = entries ?? [],
        media = media ?? [];
+
+  FormDTO copy() => FormDTO(
+    id: id,
+    currentVersion: currentVersion,
+    notes: notes?.map((n) => n.copy()).toList(),
+    franchiseName: franchiseName,
+    defaultContact: defaultContact,
+    entries: entries.map((e) => e.copy()).toList(),
+    userId: userId,
+    formTemplateId: formTemplateId,
+    albumId: albumId,
+    mediaCreationToken: mediaCreationToken,
+    locked: locked,
+    full: full,
+    media: media.map((m) => m.copy()).toList(),
+  );
 
   factory FormDTO.fromJson(Map<String, dynamic> json) =>
       _$FormDTOFromJson(json);

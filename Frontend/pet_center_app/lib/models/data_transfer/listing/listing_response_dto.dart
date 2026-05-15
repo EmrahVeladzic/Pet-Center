@@ -57,5 +57,30 @@ class ListingResponseDTO {
 
   factory ListingResponseDTO.fromJson(Map<String, dynamic> json) =>
       _$ListingResponseDTOFromJson(json);
+
   Map<String, dynamic> toJson() => _$ListingResponseDTOToJson(this);
+
+  ListingResponseDTO copy() => ListingResponseDTO(
+    id: id,
+    currentVersion: currentVersion,
+    notes: notes?.map((n) => n.copy()).toList(),
+    albumId: albumId,
+    media: media.map((m) => m.copy()).toList(),
+    name: name,
+    description: description,
+    franchiseId: franchiseId,
+    contact: contact,
+    franchiseName: franchiseName,
+    locked: locked,
+    full: full,
+    priceMinor: priceMinor,
+    type: type,
+    productListingExtension: productListingExtension?.copy(),
+    medicalListingExtension: medicalListingExtension?.copy(),
+    animalListingExtension: animalListingExtension?.copy(),
+    listingDiscount: listingDiscount?.copy(),
+    mediaCreationToken: mediaCreationToken,
+    availability: availability.map((a) => a.copy()).toList(),
+    comments: comments.map((c) => c.copy()).toList(),
+  );
 }

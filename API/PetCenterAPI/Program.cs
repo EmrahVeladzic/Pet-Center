@@ -171,7 +171,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         {
             OnTokenValidated = async context =>
             {
-                var jti = context.Principal?
+                string? jti = context.Principal?
                     .FindFirst(JwtRegisteredClaimNames.Jti)?.Value;
 
               
@@ -181,10 +181,10 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                     return;
                 }
 
-                var db = context.HttpContext.RequestServices
+                PetCenterDBContext db = context.HttpContext.RequestServices
                     .GetRequiredService<PetCenterDBContext>();
 
-                var isInvalidated = await db.InvalidatedTokens
+                bool isInvalidated = await db.InvalidatedTokens
                     .AnyAsync(t => t.Id == parsedJti
                                 && t.Expiry > DateTime.UtcNow);
 

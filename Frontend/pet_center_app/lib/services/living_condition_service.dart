@@ -8,11 +8,36 @@ import 'package:pet_center_app/utils/jwt_parser.dart';
 import 'package:pet_center_app/utils/service_output.dart';
 
 class LivingConditionService {
-  static Future<List<LivingConditionEntrySubDTO>?> get() async {
+  static Future<int?> count() async {
+    apiServiceBusy = true;
+    try {
+      final response = await http.get(
+        Uri.parse("${AppConfig.apiBaseUrl}/api/LivingConditionField/Count"),
+        headers: {
+          'Authorization': 'Bearer $rawToken',
+          'Accept': 'application/json',
+        },
+      );
+
+      final result = await ServiceOutput.fromResponse<int>(
+        response,
+        (json) => (json as int),
+      );
+
+      apiServiceBusy = false;
+      return result;
+    } catch (ex) {
+      showError(ex);
+      apiServiceBusy = false;
+      return null;
+    }
+  }
+
+  static Future<List<LivingConditionFieldDTO>?> get(int page) async {
     apiServiceBusy = true;
     try {
       final query = <String, String>{};
-      query['page'] = 0.toString();
+      query['page'] = page.toString();
 
       final response = await http.get(
         Uri.parse(
@@ -25,11 +50,11 @@ class LivingConditionService {
       );
 
       final result =
-          await ServiceOutput.fromResponse<List<LivingConditionEntrySubDTO>>(
+          await ServiceOutput.fromResponse<List<LivingConditionFieldDTO>>(
             response,
             (json) => (json as List)
                 .map(
-                  (e) => LivingConditionEntrySubDTO.fromJson(
+                  (e) => LivingConditionFieldDTO.fromJson(
                     e as Map<String, dynamic>,
                   ),
                 )
@@ -43,5 +68,32 @@ class LivingConditionService {
       apiServiceBusy = false;
       return null;
     }
+  }
+
+  static Future<List<LivingConditionFieldDTO>?> getAll() async {
+    final pageCount = await count();
+
+    if (pageCount == null) {
+      return null;
+    }
+
+    List<LivingConditionFieldDTO> output = [];
+    final seen = <String?>{};
+
+    for (int i = 0; i < pageCount; i++) {
+      final newEntries = await get(i);
+
+      if (newEntries == null) {
+        return null;
+      }
+
+      for (final ent in newEntries) {
+        if (seen.add(ent.id)) {
+          output.add(ent);
+        }
+      }
+    }
+
+    return output;
   }
 }

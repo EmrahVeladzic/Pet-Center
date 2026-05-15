@@ -1,5 +1,4 @@
 import 'package:json_annotation/json_annotation.dart';
-
 part 'note_sub_dto.g.dart';
 
 @JsonSerializable(explicitToJson: true)
@@ -13,4 +12,6 @@ class NoteSubDTO {
       _$NoteSubDTOFromJson(json);
 
   Map<String, dynamic> toJson() => _$NoteSubDTOToJson(this);
+
+  NoteSubDTO copy() => NoteSubDTO(title: title, body: body);
 }

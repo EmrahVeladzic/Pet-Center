@@ -25,5 +25,16 @@ class FranchiseResponseDTO {
 
   factory FranchiseResponseDTO.fromJson(Map<String, dynamic> json) =>
       _$FranchiseResponseDTOFromJson(json);
+
   Map<String, dynamic> toJson() => _$FranchiseResponseDTOToJson(this);
+
+  FranchiseResponseDTO copy() => FranchiseResponseDTO(
+    id: id,
+    currentVersion: currentVersion,
+    franchiseName: franchiseName,
+    contact: contact,
+    notes: notes?.map((n) => n.copy()).toList(),
+    owned: owned,
+    facilities: facilities.map((f) => f.copy()).toList(),
+  );
 }

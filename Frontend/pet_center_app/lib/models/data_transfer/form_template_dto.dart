@@ -20,6 +20,15 @@ class FormTemplateFieldDTO {
     this.notes,
   });
 
+  FormTemplateFieldDTO copy() => FormTemplateFieldDTO(
+    id: id,
+    currentVersion: currentVersion,
+    formTemplateId: formTemplateId,
+    description: description,
+    optional: optional,
+    notes: notes?.map((n) => n.copy()).toList(),
+  );
+
   factory FormTemplateFieldDTO.fromJson(Map<String, dynamic> json) =>
       _$FormTemplateFieldDTOFromJson(json);
   Map<String, dynamic> toJson() => _$FormTemplateFieldDTOToJson(this);
@@ -40,6 +49,14 @@ class FormTemplateDTO {
     this.description = '',
     List<FormTemplateFieldDTO>? fields,
   }) : fields = fields ?? [];
+
+  FormTemplateDTO copy() => FormTemplateDTO(
+    id: id,
+    currentVersion: currentVersion,
+    notes: notes?.map((n) => n.copy()).toList(),
+    description: description,
+    fields: fields.map((f) => f.copy()).toList(),
+  );
 
   factory FormTemplateDTO.fromJson(Map<String, dynamic> json) =>
       _$FormTemplateDTOFromJson(json);

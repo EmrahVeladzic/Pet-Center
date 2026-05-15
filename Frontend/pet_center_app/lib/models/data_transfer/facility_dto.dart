@@ -22,6 +22,16 @@ class FacilityDTO {
     this.contact,
   });
 
+  FacilityDTO copy() => FacilityDTO(
+    id: id,
+    currentVersion: currentVersion,
+    notes: notes?.map((n) => n.copy()).toList(),
+    owningFranchise: owningFranchise,
+    street: street,
+    city: city,
+    contact: contact,
+  );
+
   factory FacilityDTO.fromJson(Map<String, dynamic> json) =>
       _$FacilityDTOFromJson(json);
   Map<String, dynamic> toJson() => _$FacilityDTOToJson(this);

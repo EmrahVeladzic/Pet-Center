@@ -21,5 +21,14 @@ class KindDTO {
 
   factory KindDTO.fromJson(Map<String, dynamic> json) =>
       _$KindDTOFromJson(json);
+
   Map<String, dynamic> toJson() => _$KindDTOToJson(this);
+
+  KindDTO copy() => KindDTO(
+    id: id,
+    currentVersion: currentVersion,
+    notes: notes?.map((n) => n.copy()).toList(),
+    title: title,
+    breeds: breeds.map((b) => b.copy()).toList(),
+  );
 }
