@@ -1,5 +1,4 @@
 import 'package:json_annotation/json_annotation.dart';
-
 part 'individual_request_dto.g.dart';
 
 @JsonSerializable(explicitToJson: true)
@@ -24,5 +23,16 @@ class IndividualRequestDTO {
 
   factory IndividualRequestDTO.fromJson(Map<String, dynamic> json) =>
       _$IndividualRequestDTOFromJson(json);
+
   Map<String, dynamic> toJson() => _$IndividualRequestDTOToJson(this);
+
+  IndividualRequestDTO copy() => IndividualRequestDTO(
+    id: id,
+    currentVersion: currentVersion,
+    name: name,
+    breedId: breedId,
+    sex: sex,
+    birthDate: birthDate,
+    shelterId: shelterId,
+  );
 }

@@ -22,7 +22,17 @@ class LivingConditionEntrySubDTO {
 
   factory LivingConditionEntrySubDTO.fromJson(Map<String, dynamic> json) =>
       _$LivingConditionEntrySubDTOFromJson(json);
+
   Map<String, dynamic> toJson() => _$LivingConditionEntrySubDTOToJson(this);
+
+  LivingConditionEntrySubDTO copy() => LivingConditionEntrySubDTO(
+    id: id,
+    currentVersion: currentVersion,
+    notes: notes?.map((n) => n.copy()).toList(),
+    userId: userId,
+    fieldId: fieldId,
+    answer: answer,
+  );
 }
 
 @JsonSerializable(explicitToJson: true)
@@ -53,5 +63,19 @@ class LivingConditionFieldDTO {
 
   factory LivingConditionFieldDTO.fromJson(Map<String, dynamic> json) =>
       _$LivingConditionFieldDTOFromJson(json);
+
   Map<String, dynamic> toJson() => _$LivingConditionFieldDTOToJson(this);
+
+  LivingConditionFieldDTO copy() => LivingConditionFieldDTO(
+    id: id,
+    currentVersion: currentVersion,
+    notes: notes?.map((n) => n.copy()).toList(),
+    title: title,
+    investmentEffect: investmentEffect,
+    territoryEffect: territoryEffect,
+    pricingEffect: pricingEffect,
+    longevityEffect: longevityEffect,
+    cohabitationEffect: cohabitationEffect,
+    entry: entry?.copy(),
+  );
 }

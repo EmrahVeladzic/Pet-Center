@@ -32,7 +32,7 @@ List<CategoryDTO> categories = [];
 List<ItemDTO> items = [];
 UserResponseDTO? self;
 List<FormTemplateDTO> templates = [];
-List<LivingConditionEntrySubDTO> condition = [];
+List<LivingConditionFieldDTO> condition = [];
 List<ProcedureDTO> procedures = [];
 List<AnnouncementSubDTO> announcements = [];
 List<ReportResponseSubDTO> reports = [];
@@ -66,14 +66,19 @@ class StaticAndUserDataService {
     visitedListingIndices = {};
   }
 
-  static Future<void> updateData() async {
+  static Future<bool> updateData() async {
     _timer?.cancel();
     _timer = null;
+
+    bool output = true;
 
     apiServiceBusy = true;
     Access role = userToken?.role ?? Access.user;
     try {
       final userResponse = await UserService.getUserStatus();
+      if (userResponse == null) {
+        output = false;
+      }
       if (userResponse != userStatus) {
         final newSelf = await UserService.getSelf();
         if (newSelf != null) {
@@ -81,6 +86,8 @@ class StaticAndUserDataService {
           if (userResponse != null) {
             userStatus = userResponse;
           }
+        } else {
+          output = false;
         }
       }
 
@@ -100,28 +107,34 @@ class StaticAndUserDataService {
       if (result != null) {
         if (currentStaticDataVersion.kindVersion != result.kindVersion ||
             currentStaticDataVersion.breedVersion != result.breedVersion) {
-          final newKinds = await KindService.get();
+          final newKinds = await KindService.getAll();
           if (newKinds != null) {
             kinds = newKinds;
             currentStaticDataVersion.kindVersion = result.kindVersion;
             currentStaticDataVersion.breedVersion = result.breedVersion;
+          } else {
+            output = false;
           }
         }
         if (currentStaticDataVersion.categoryVersion !=
                 result.categoryVersion ||
             currentStaticDataVersion.usageVersion != result.usageVersion) {
-          final newCategories = await CategoryService.get(null);
+          final newCategories = await CategoryService.getAll(null);
           if (newCategories != null) {
             categories = newCategories;
             currentStaticDataVersion.categoryVersion = result.categoryVersion;
             currentStaticDataVersion.usageVersion = result.usageVersion;
+          } else {
+            output = false;
           }
         }
         if (currentStaticDataVersion.productVersion != result.productVersion) {
-          final newItems = await ItemService.get();
+          final newItems = await ItemService.getAll();
           if (newItems != null) {
             items = newItems;
             currentStaticDataVersion.productVersion = result.productVersion;
+          } else {
+            output = false;
           }
         }
         if (currentStaticDataVersion.announcementVersion !=
@@ -131,6 +144,8 @@ class StaticAndUserDataService {
             announcements = newAnnouncements;
             currentStaticDataVersion.announcementVersion =
                 result.announcementVersion;
+          } else {
+            output = false;
           }
         }
 
@@ -140,50 +155,62 @@ class StaticAndUserDataService {
           if (newReports != null) {
             reports = newReports;
             currentStaticDataVersion.reportVersion = result.reportVersion;
+          } else {
+            output = false;
           }
         }
         if (currentStaticDataVersion.formTemplateVersion !=
             result.formTemplateVersion) {
-          final newTemplates = await FormTemplateService.get();
+          final newTemplates = await FormTemplateService.getAll();
           if (newTemplates != null) {
             templates = newTemplates;
             currentStaticDataVersion.formTemplateVersion =
                 result.formTemplateVersion;
+          } else {
+            output = false;
           }
         }
         if (currentStaticDataVersion.livingConditionVersion !=
             result.livingConditionVersion) {
-          final newCondition = await LivingConditionService.get();
+          final newCondition = await LivingConditionService.getAll();
           if (newCondition != null) {
             condition = newCondition;
             currentStaticDataVersion.livingConditionVersion =
                 result.livingConditionVersion;
+          } else {
+            output = false;
           }
         }
         if (currentStaticDataVersion.procedureVersion !=
                 result.procedureVersion ||
             currentStaticDataVersion.specificationVersion !=
                 result.specificationVersion) {
-          final newProcedures = await ProcedureService.get();
+          final newProcedures = await ProcedureService.getAll();
           if (newProcedures != null) {
             procedures = newProcedures;
             currentStaticDataVersion.procedureVersion = result.procedureVersion;
             currentStaticDataVersion.specificationVersion =
                 result.specificationVersion;
+          } else {
+            output = false;
           }
         }
+      } else {
+        output = false;
       }
 
       if (rawToken != null) {
         _timer = Timer(const Duration(seconds: periodSeconds), updateData);
       }
       apiServiceBusy = false;
+      return output;
     } catch (ex) {
       if (rawToken != null) {
         _timer = Timer(const Duration(seconds: periodSeconds), updateData);
       }
       apiServiceBusy = false;
       showError(ex);
+      return false;
     }
   }
 }

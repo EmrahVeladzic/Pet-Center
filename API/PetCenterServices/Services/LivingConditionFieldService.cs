@@ -114,18 +114,15 @@ namespace PetCenterServices.Services
 
         }
 
-        public async Task<ServiceOutput<object>> RemoveEntry(Guid user_id, Guid entry_id)
+        public async Task<ServiceOutput<object>> RemoveEntry(Guid user_id, Guid field_id)
         {
-            LivingConditionEntry? entry = await dbContext.LivingConditionEntries.FindAsync(entry_id);
+            LivingConditionEntry? entry = await dbContext.LivingConditionEntries.FirstOrDefaultAsync(e=>e.UserId==user_id&&e.LivingConditionFieldID==field_id);
 
             if (entry != null)
             {
-                if (entry.UserId != user_id)
-                {
-                    return ServiceOutput<object>.Error(HttpCode.Forbidden,"You do not own this entry.");
-                }
+                
 
-            await using(IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync())
+                await using(IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync())
                 {
 
                     try

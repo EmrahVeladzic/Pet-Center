@@ -14,7 +14,7 @@ namespace PetCenterModels.SearchObjects
         public int Page { get; set; }
 
         [JsonIgnore]
-        public virtual int PageSize {get;} = 1000000;
+        public virtual int PageSize {get;} = 10000;
 
         [JsonIgnore]
         public virtual FileScope FileRW {get; set;} = FileScope.Invalid;

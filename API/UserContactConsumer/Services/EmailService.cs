@@ -10,6 +10,13 @@ using Microsoft.Extensions.Logging;
 
 namespace UserContactConsumer.Services
 {
+
+    public sealed class PermanentDeliveryException : Exception
+    {
+    public PermanentDeliveryException(string message, Exception inner) 
+        : base(message, inner) { }
+    }
+
     public class SmtpCfg
     {
         public string? email {  get; set; }
@@ -127,13 +134,25 @@ namespace UserContactConsumer.Services
                    
 
                 }
+                catch (SmtpCommandException ex) when (
+                    ex.StatusCode == SmtpStatusCode.MailboxUnavailable ||        
+                    ex.StatusCode == SmtpStatusCode.MailboxNameNotAllowed) 
+                {
+                    throw new PermanentDeliveryException($"Invalid recipient: {email}.", ex);
+                }
                 catch (Exception ex)
                 {
                     logger.LogError(ex,"E-mail serivce exception.");
+                    throw;
                 }
                 finally
                 {
-                    client.Disconnect(true);                   
+                    if (client.IsConnected)
+                    {
+                        client.Disconnect(true);
+                    }
+
+                    client.Dispose();                 
                 }
             }
 

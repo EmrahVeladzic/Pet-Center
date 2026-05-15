@@ -23,6 +23,16 @@ class UsageSubDTO {
     this.averageDailyAmountGrams = 0,
   });
 
+  UsageSubDTO copy() => UsageSubDTO(
+    id: id,
+    currentVersion: currentVersion,
+    notes: notes?.map((n) => n.copy()).toList(),
+    categoryId: categoryId,
+    kindId: kindId,
+    scaleSpecific: scaleSpecific,
+    averageDailyAmountGrams: averageDailyAmountGrams,
+  );
+
   factory UsageSubDTO.fromJson(Map<String, dynamic> json) =>
       _$UsageSubDTOFromJson(json);
   Map<String, dynamic> toJson() => _$UsageSubDTOToJson(this);
@@ -45,6 +55,15 @@ class CategoryDTO {
     this.consumable = false,
     this.usageSpecifics,
   });
+
+  CategoryDTO copy() => CategoryDTO(
+    id: id,
+    currentVersion: currentVersion,
+    notes: notes?.map((n) => n.copy()).toList(),
+    title: title,
+    consumable: consumable,
+    usageSpecifics: usageSpecifics?.map((u) => u?.copy()).toList(),
+  );
 
   factory CategoryDTO.fromJson(Map<String, dynamic> json) =>
       _$CategoryDTOFromJson(json);

@@ -27,5 +27,17 @@ class ItemDTO {
 
   factory ItemDTO.fromJson(Map<String, dynamic> json) =>
       _$ItemDTOFromJson(json);
+
   Map<String, dynamic> toJson() => _$ItemDTOToJson(this);
+
+  ItemDTO copy() => ItemDTO(
+    id: id,
+    currentVersion: currentVersion,
+    notes: notes?.map((n) => n.copy()).toList(),
+    title: title,
+    categoryId: categoryId,
+    kindId: kindId,
+    scale: scale,
+    mass: mass,
+  );
 }

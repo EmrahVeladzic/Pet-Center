@@ -8,11 +8,36 @@ import 'package:pet_center_app/utils/jwt_parser.dart';
 import 'package:pet_center_app/utils/service_output.dart';
 
 class KindService {
-  static Future<List<KindDTO>?> get() async {
+  static Future<int?> count() async {
+    apiServiceBusy = true;
+    try {
+      final response = await http.get(
+        Uri.parse("${AppConfig.apiBaseUrl}/api/Kind/Count"),
+        headers: {
+          'Authorization': 'Bearer $rawToken',
+          'Accept': 'application/json',
+        },
+      );
+
+      final result = await ServiceOutput.fromResponse<int>(
+        response,
+        (json) => (json as int),
+      );
+
+      apiServiceBusy = false;
+      return result;
+    } catch (ex) {
+      showError(ex);
+      apiServiceBusy = false;
+      return null;
+    }
+  }
+
+  static Future<List<KindDTO>?> get(int page) async {
     apiServiceBusy = true;
     try {
       final query = <String, String>{};
-      query['page'] = 0.toString();
+      query['page'] = page.toString();
 
       final response = await http.get(
         Uri.parse(
@@ -38,5 +63,32 @@ class KindService {
       apiServiceBusy = false;
       return null;
     }
+  }
+
+  static Future<List<KindDTO>?> getAll() async {
+    final pageCount = await count();
+
+    if (pageCount == null) {
+      return null;
+    }
+
+    List<KindDTO> output = [];
+    final seen = <String?>{};
+
+    for (int i = 0; i < pageCount; i++) {
+      final newEntries = await get(i);
+
+      if (newEntries == null) {
+        return null;
+      }
+
+      for (final ent in newEntries) {
+        if (seen.add(ent.id)) {
+          output.add(ent);
+        }
+      }
+    }
+
+    return output;
   }
 }

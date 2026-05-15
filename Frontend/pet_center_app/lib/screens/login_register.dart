@@ -69,9 +69,9 @@ class _CredentialsScreenState extends State<CredentialsScreen> {
   }
 
   void onLogin() async {
-    await StaticAndUserDataService.updateData();
+    bool valid = await StaticAndUserDataService.updateData();
 
-    if (self == null) {
+    if (!valid) {
       return;
     }
 
