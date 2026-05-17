@@ -12,7 +12,7 @@ namespace PetCenterModels.SearchObjects
         
         public Guid FranchiseId {get; set;} = Guid.Empty;
 
-        public Guid? ServesListing {get; set;} = null;
+        
 
     }
 }

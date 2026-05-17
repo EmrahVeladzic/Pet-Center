@@ -95,6 +95,7 @@ class CommentResponseSubDTO {
   String posterName;
   String contents;
   List<NoteSubDTO>? notes;
+  DateTime lastEditDate;
 
   CommentResponseSubDTO({
     this.id,
@@ -104,7 +105,8 @@ class CommentResponseSubDTO {
     this.posterName = '',
     this.contents = '',
     this.notes,
-  });
+    DateTime? lastEditDate,
+  }) : lastEditDate = lastEditDate ?? DateTime.now().toUtc();
 
   factory CommentResponseSubDTO.fromJson(Map<String, dynamic> json) =>
       _$CommentResponseSubDTOFromJson(json);
@@ -198,6 +200,7 @@ class ReportResponseSubDTO {
   String? commentId;
   DateTime expiry;
   List<NoteSubDTO>? notes;
+  DateTime datePosted;
 
   ReportResponseSubDTO({
     this.id,
@@ -208,7 +211,9 @@ class ReportResponseSubDTO {
     this.commentId,
     DateTime? expiry,
     this.notes,
-  }) : expiry = expiry ?? DateTime.now().toUtc();
+    DateTime? datePosted,
+  }) : expiry = expiry ?? DateTime.now().toUtc(),
+       datePosted = datePosted ?? DateTime.now().toUtc();
 
   factory ReportResponseSubDTO.fromJson(Map<String, dynamic> json) =>
       _$ReportResponseSubDTOFromJson(json);

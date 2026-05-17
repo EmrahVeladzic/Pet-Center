@@ -444,6 +444,7 @@ CREATE TABLE [Communication].[Notification](
     Title NVARCHAR(75) NOT NULL,
     Body NVARCHAR(255) NOT NULL,
     ListingID UNIQUEIDENTIFIER FOREIGN KEY REFERENCES [Offer].[Listing](ID),
+    DatePosted DATETIME2 NOT NULL,
     Expiry DATETIME2 NOT NULL,
 
     CONSTRAINT FK_Notification_User FOREIGN KEY (UserID) REFERENCES [Person].[User](ID) ON DELETE CASCADE
@@ -456,6 +457,7 @@ CREATE TABLE [Communication].[Announcement](
     UserVisible BIT NOT NULL,
     BusinessVisible BIT NOT NULL,
     AnnouncementBody NVARCHAR(255) NOT NULL,
+    DatePosted DATETIME2 NOT NULL,
     Expiry DATETIME2 NOT NULL,
 
     CONSTRAINT UQ_Announcement_User_Business UNIQUE (AnnouncementBody, UserVisible, BusinessVisible)
@@ -469,6 +471,7 @@ CREATE TABLE [Communication].[Report](
     ListingID UNIQUEIDENTIFIER NOT NULL FOREIGN KEY REFERENCES [Offer].[Listing](ID),
     Reason NVARCHAR(255) NOT NULL,
     Expiry DATETIME2 NOT NULL,
+    DatePosted DATETIME2 NOT NULL,
     ReporterID UNIQUEIDENTIFIER NOT NULL FOREIGN KEY REFERENCES [Person].[User](ID),
 
     CONSTRAINT UQ_Report_Reporter_Listing UNIQUE (ReporterID, ListingID),

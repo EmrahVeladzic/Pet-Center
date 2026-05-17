@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:pet_center_app/models/data_transfer/listing/listing_response_dto.dart';
 import 'package:pet_center_app/models/data_transfer/user/user_response_dto.dart';
 import 'package:pet_center_app/models/enums.dart';
-import 'package:pet_center_app/screens/components/listing_card.dart';
+import 'package:pet_center_app/screens/components/listing/listing_card.dart';
 import 'package:pet_center_app/screens/listing_view.dart';
 import 'package:pet_center_app/services/listing_service.dart';
 import 'package:pet_center_app/services/static_user_data_service.dart';
@@ -68,7 +68,7 @@ class _NotificationViewScreenState extends State<NotificationViewScreen> {
           width: design.screenWidth * marqueeTitleWMult,
           height: design.marqueeSize,
           child: design.textMarquee(
-            notif.title,
+            "${widget.notification.title} - ${formatDate(widget.notification.datePosted)}",
             design.screenWidth * marqueeTitleWMult,
           ),
         ),

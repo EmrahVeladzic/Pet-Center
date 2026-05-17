@@ -166,13 +166,20 @@ namespace PetCenterServices.Seeder
                     await ctx.SaveChangesAsync();  
 
                     FormTemplate? template = new FormTemplate{Description="Generic business form"};
+                    FormTemplate? template_two = new FormTemplate{Description="Independent seller form"};
+                   
                     await ctx.FormTemplates.AddAsync(template);
+                    await ctx.FormTemplates.AddAsync(template_two);
                     await ctx.SaveChangesAsync();
 
                     await ctx.FormTemplateFields.AddAsync(new FormTemplateField{FormTemplateId=template.Id,Description = "Business licence ID:",Optional=false});
                     await ctx.FormTemplateFields.AddAsync(new FormTemplateField{FormTemplateId=template.Id,Description = "How long has this business operated for?",Optional=false});
                     await ctx.FormTemplateFields.AddAsync(new FormTemplateField{FormTemplateId=template.Id,Description = "Employee count:",Optional=true});
                     await ctx.FormTemplateFields.AddAsync(new FormTemplateField{FormTemplateId=template.Id,Description = "Are you a non-profit?",Optional=false});
+
+
+                    await ctx.FormTemplateFields.AddAsync(new FormTemplateField{FormTemplateId=template_two.Id,Description = "Business licence ID:",Optional=false});
+                    await ctx.FormTemplateFields.AddAsync(new FormTemplateField{FormTemplateId=template_two.Id,Description = "Personal ID:",Optional=false});
 
                     await ctx.SaveChangesAsync();
                     template=await ctx.FormTemplates.Include(ft=>ft.Entries).FirstOrDefaultAsync(ft=>ft.Id==template.Id);
@@ -253,7 +260,9 @@ namespace PetCenterServices.Seeder
                     await ctx.SaveChangesAsync();
                     
                     Procedure proc = new Procedure{Description="X-Virus vaccination"};
+                    Procedure proc_two = new Procedure{Description="Fur trimming"};
                     await ctx.MedicalProcedures.AddAsync(proc);
+                    await ctx.MedicalProcedures.AddAsync(proc_two);
                     await ctx.SaveChangesAsync();
 
                     Guid afflicted_kind_id = kinds[rng.Next(kinds.Count)].Id;
@@ -266,6 +275,10 @@ namespace PetCenterServices.Seeder
                     foreach(Breed afflicted_breed in afflicted_breeds)
                     {
                         await ctx.MedicalProcedureSpecifications.AddAsync(new MedicalProcedureSpecification{ProcedureId=proc.Id,KindId=afflicted_breed.KindId,BreedId=afflicted_breed.Id,SexSpecific=null,Optional=false,IntervalDays=null,ApproximateAge=rng.Next(100,400)});
+                        if ((rng.Next() & 0x1) == 1)
+                        {
+                            await ctx.MedicalProcedureSpecifications.AddAsync(new MedicalProcedureSpecification{ProcedureId=proc_two.Id,KindId=afflicted_breed.KindId,BreedId=afflicted_breed.Id,SexSpecific=null,Optional=true,IntervalDays=null,ApproximateAge=rng.Next(100,400)});
+                        }
                     }                   
 
                     await ctx.Announcements.AddAsync(new Announcement{Body="Users and employees can see this.",UserVisible=true,BusinessVisible=true});
@@ -351,6 +364,9 @@ namespace PetCenterServices.Seeder
                         Franchise franch = new Franchise{OwnerId=Employees[0].Id,Contact="mega@example.com",FranchiseName="MegaCorp"};
                         await ctx.Franchises.AddAsync(franch);
 
+                        Franchise franch_two = new Franchise{OwnerId=Employees[0].Id,Contact="micro@example.com",FranchiseName="MicroCorp"};
+                        await ctx.Franchises.AddAsync(franch_two);
+
                         await ctx.SaveChangesAsync();
                        
 
@@ -362,9 +378,13 @@ namespace PetCenterServices.Seeder
                         Facility facility = new Facility{Contact="mega.uk@example.com",City="London",Street="MainSt no.1",FranchiseId=franch.Id};
                         await ctx.Facilities.AddAsync(facility);
 
+                        Facility facility_two = new Facility{Contact="mega.ie@example.com",City="Derry",Street="AdamsSt no.4",FranchiseId=franch.Id};
+                        await ctx.Facilities.AddAsync(facility_two);
+
                         for(int i = 1; i<4; i++)
                         {
                             await ctx.EmployeeRecords.AddAsync(new EmployeeRecord{FranchiseId=franch.Id,UserId=Employees[i].Id});
+                            await ctx.EmployeeRecords.AddAsync(new EmployeeRecord{FranchiseId=franch_two.Id,UserId=Employees[i].Id});
                         }
 
                         await ctx.SaveChangesAsync();

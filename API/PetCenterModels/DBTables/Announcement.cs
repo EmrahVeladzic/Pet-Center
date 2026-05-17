@@ -22,6 +22,9 @@ namespace PetCenterModels.DBTables
 
         [Column("BusinessVisible")]
         public bool BusinessVisible { get; set; } = false;
+
+        [Column("DatePosted")]
+        public DateTime DatePosted {get; set;} = DateTime.UtcNow;
      
     }
 }

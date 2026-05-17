@@ -49,8 +49,8 @@ class _LivingConditionScreenState extends State<LivingConditionScreen> {
                       minHeight: boxConstraints.maxHeight,
                     ),
                     child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         ...condition.expand(
                           (e) => [

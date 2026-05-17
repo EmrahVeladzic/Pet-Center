@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:pet_center_app/models/data_transfer/listing/sub_dtos.dart';
 import 'package:pet_center_app/utils/app_style.dart';
+import 'package:pet_center_app/utils/helpers.dart';
 
 class CommentCard extends StatelessWidget {
   final CommentResponseSubDTO comment;
@@ -23,7 +24,9 @@ class CommentCard extends StatelessWidget {
           children: [
             Expanded(
               flex: 4,
-              child: Text('"${comment.contents}" - ${comment.posterName}'),
+              child: Text(
+                "\"${comment.contents}\" - ${comment.posterName}, ${formatDate(comment.lastEditDate)}",
+              ),
             ),
             Expanded(
               flex: 1,

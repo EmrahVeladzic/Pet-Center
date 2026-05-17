@@ -20,10 +20,7 @@ class FranchiseService {
         Uri.parse(
           "${AppConfig.apiBaseUrl}/api/Franchise/Count",
         ).replace(queryParameters: query),
-        headers: {
-          'Authorization': 'Bearer $rawToken',
-          'Accept': 'application/json',
-        },
+        headers: {'Authorization': 'Bearer $rawToken', 'Accept': 'text/plain'},
       );
 
       final result = await ServiceOutput.fromResponse<int>(

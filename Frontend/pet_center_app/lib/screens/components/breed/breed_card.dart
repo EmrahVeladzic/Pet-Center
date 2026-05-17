@@ -35,6 +35,7 @@ class BreedCard extends StatelessWidget {
                       dataSource: breed.media[0],
                       creationToken: null,
                       locked: true,
+                      creating: false,
                     ),
                   ),
                 ),

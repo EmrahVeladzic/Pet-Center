@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:pet_center_app/models/enums.dart';
-import 'package:pet_center_app/screens/components/announcement_page.dart';
-import 'package:pet_center_app/screens/components/notification_page.dart';
-import 'package:pet_center_app/screens/components/report_page.dart';
+import 'package:pet_center_app/screens/components/feed/announcement_page.dart';
+import 'package:pet_center_app/screens/components/feed/notification_page.dart';
+import 'package:pet_center_app/screens/components/feed/report_page.dart';
 import 'package:pet_center_app/utils/app_style.dart';
 import 'package:pet_center_app/utils/jwt_parser.dart';
 

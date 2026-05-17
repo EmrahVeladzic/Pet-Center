@@ -28,6 +28,7 @@ class ListingResponseDTO {
   List<AvailabilityResponseSubDTO> availability;
   List<CommentResponseSubDTO> comments;
   String? mediaCreationToken;
+  DateTime posted;
 
   ListingResponseDTO({
     this.id,
@@ -43,6 +44,7 @@ class ListingResponseDTO {
     this.locked = true,
     this.full = true,
     this.priceMinor = 0,
+    DateTime? posted,
     this.type = ListingType.generic,
     this.productListingExtension,
     this.medicalListingExtension,
@@ -53,7 +55,8 @@ class ListingResponseDTO {
     List<CommentResponseSubDTO>? comments,
   }) : media = media ?? [],
        availability = availability ?? [],
-       comments = comments ?? [];
+       comments = comments ?? [],
+       posted = posted ?? DateTime.now().toUtc();
 
   factory ListingResponseDTO.fromJson(Map<String, dynamic> json) =>
       _$ListingResponseDTOFromJson(json);

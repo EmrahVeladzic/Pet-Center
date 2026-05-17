@@ -14,6 +14,9 @@ AnnouncementSubDTO _$AnnouncementSubDTOFromJson(Map<String, dynamic> json) =>
           ?.map((e) => NoteSubDTO.fromJson(e as Map<String, dynamic>))
           .toList(),
       body: json['body'] as String? ?? '',
+      datePosted: json['datePosted'] == null
+          ? null
+          : DateTime.parse(json['datePosted'] as String),
     );
 
 Map<String, dynamic> _$AnnouncementSubDTOToJson(AnnouncementSubDTO instance) =>
@@ -22,6 +25,7 @@ Map<String, dynamic> _$AnnouncementSubDTOToJson(AnnouncementSubDTO instance) =>
       'currentVersion': instance.currentVersion,
       'notes': instance.notes?.map((e) => e.toJson()).toList(),
       'body': instance.body,
+      'datePosted': instance.datePosted.toIso8601String(),
     };
 
 NotificationSubDTO _$NotificationSubDTOFromJson(Map<String, dynamic> json) =>
@@ -34,6 +38,9 @@ NotificationSubDTO _$NotificationSubDTOFromJson(Map<String, dynamic> json) =>
       listingId: json['listingId'] as String?,
       title: json['title'] as String? ?? '',
       body: json['body'] as String? ?? '',
+      datePosted: json['datePosted'] == null
+          ? null
+          : DateTime.parse(json['datePosted'] as String),
     );
 
 Map<String, dynamic> _$NotificationSubDTOToJson(NotificationSubDTO instance) =>
@@ -44,6 +51,7 @@ Map<String, dynamic> _$NotificationSubDTOToJson(NotificationSubDTO instance) =>
       'listingId': instance.listingId,
       'title': instance.title,
       'body': instance.body,
+      'datePosted': instance.datePosted.toIso8601String(),
     };
 
 SuppliesSubDTO _$SuppliesSubDTOFromJson(Map<String, dynamic> json) =>
@@ -89,6 +97,9 @@ UserResponseDTO _$UserResponseDTOFromJson(Map<String, dynamic> json) =>
       workplaces: (json['workplaces'] as List<dynamic>?)
           ?.map((e) => FranchiseResponseDTO.fromJson(e as Map<String, dynamic>))
           .toList(),
+      userWishlist: (json['userWishlist'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList(),
     );
 
 Map<String, dynamic> _$UserResponseDTOToJson(UserResponseDTO instance) =>
@@ -102,4 +113,5 @@ Map<String, dynamic> _$UserResponseDTOToJson(UserResponseDTO instance) =>
       'userSupplies': instance.userSupplies?.map((e) => e.toJson()).toList(),
       'workplaces': instance.workplaces?.map((e) => e.toJson()).toList(),
       'ownedAnimals': instance.ownedAnimals?.map((e) => e.toJson()).toList(),
+      'userWishlist': instance.userWishlist,
     };

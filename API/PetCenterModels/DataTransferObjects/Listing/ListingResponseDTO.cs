@@ -53,6 +53,8 @@ namespace PetCenterModels.DataTransferObjects
 
         public List<CommentResponseSubDTO> Comments {get; set;} = new();
 
+        public DateTime Posted {get; set;} = DateTime.UtcNow;
+
         public string? MediaCreationToken {get; set;} = string.Empty;
 
         public static ListingResponseDTO? FromEntity(Listing? entity)
@@ -75,7 +77,8 @@ namespace PetCenterModels.DataTransferObjects
                 AnimalListingExtension=AnimalListingSubDTO.FromEntity(entity.AnimalExtension),
                 ListingDiscount=DiscountResponseSubDTO.FromEntity(entity.ListingDiscount),
                 Availability=entity.AvailabilityRecords.Select(a=>AvailabilityResponseSubDTO.FromEntity(a)!).ToList(),
-                Comments=entity.Comments.Select(c=>CommentResponseSubDTO.FromEntity(c)!).ToList()
+                Comments=entity.Comments.Select(c=>CommentResponseSubDTO.FromEntity(c)!).ToList(),
+                Posted=entity.Posted
             };
 
             if (entity.Business != null)

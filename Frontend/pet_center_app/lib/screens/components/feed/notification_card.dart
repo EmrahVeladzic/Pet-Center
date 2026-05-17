@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:pet_center_app/models/data_transfer/user/user_response_dto.dart';
 import 'package:pet_center_app/utils/app_style.dart';
+import 'package:pet_center_app/utils/helpers.dart';
 
 class NotificationCard extends StatelessWidget {
   final NotificationSubDTO notification;
@@ -27,7 +28,12 @@ class NotificationCard extends StatelessWidget {
         decoration: design.panelDecoration(visited),
         child: Row(
           children: [
-            Expanded(flex: 4, child: Text(notification.title)),
+            Expanded(
+              flex: 4,
+              child: Text(
+                "${notification.title} - ${formatDate(notification.datePosted)}",
+              ),
+            ),
             Expanded(
               flex: 1,
 

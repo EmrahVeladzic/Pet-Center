@@ -27,11 +27,7 @@ namespace PetCenterServices.Services
         protected override Task<IQueryable<Facility>> Filter(Guid token_holder, FacilitySearchObject search)
         {
             IQueryable<Facility> output = dbSet.Where(f=>f.FranchiseId==search.FranchiseId);
-            if (search.ServesListing != null)
-            {
-                output = output.Where(f=>dbContext.ListingAvailable.Any(a=>a.ListingId == search.ServesListing && a.FacilityId == f.Id));
-            }
-            
+          
             return Task.FromResult<IQueryable<Facility>>(output);
         }
 
