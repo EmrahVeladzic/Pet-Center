@@ -8,17 +8,17 @@ part of 'account_response_dto.dart';
 
 AccountResponseDTO _$AccountResponseDTOFromJson(Map<String, dynamic> json) =>
     AccountResponseDTO(
-        id: json['id'] as String?,
-        currentVersion: json['currentVersion'] as String? ?? '',
-        accessLevel:
-            $enumDecodeNullable(_$AccessEnumMap, json['accessLevel']) ??
-            Access.user,
-        contact: json['contact'] as String? ?? '',
-        verified: json['verified'] as bool? ?? false,
-      )
-      ..notes = (json['notes'] as List<dynamic>?)
+      id: json['id'] as String?,
+      currentVersion: json['currentVersion'] as String? ?? '',
+      accessLevel:
+          $enumDecodeNullable(_$AccessEnumMap, json['accessLevel']) ??
+          Access.user,
+      contact: json['contact'] as String? ?? '',
+      verified: json['verified'] as bool? ?? false,
+      notes: (json['notes'] as List<dynamic>?)
           ?.map((e) => NoteSubDTO.fromJson(e as Map<String, dynamic>))
-          .toList();
+          .toList(),
+    );
 
 Map<String, dynamic> _$AccountResponseDTOToJson(AccountResponseDTO instance) =>
     <String, dynamic>{

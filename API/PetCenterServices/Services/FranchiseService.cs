@@ -77,7 +77,8 @@ namespace PetCenterServices.Services
             };
 
 
-        await using(IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync())
+            await using(IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync())
+            
             {
                 try
                 {                 
@@ -102,12 +103,12 @@ namespace PetCenterServices.Services
 
         public override async Task<ServiceOutput<FranchiseResponseDTO>> Put(Guid token_holder, FranchiseRequestDTO req)
         {
-            Franchise? franch = await dbSet.FindAsync(req.Id);
+            Franchise? franch = await dbSet.Include(f=>f.Facilities).FirstOrDefaultAsync(f=>f.Id==req.Id);
             if(franch==null){return ServiceOutput<FranchiseResponseDTO>.Error(HttpCode.NotFound,"Franchise does not exist.");}
             franch.Contact = req.Contact;
             franch.FranchiseName = req.FranchiseName;
 
-        await using(IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync())
+            await using(IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync())
             {
                 try
                 {

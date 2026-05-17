@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:pet_center_app/models/data_transfer/listing/listing_response_dto.dart';
-import 'package:pet_center_app/screens/components/image_display.dart';
+import 'package:pet_center_app/models/data_transfer/listing/sub_dtos.dart';
 import 'package:pet_center_app/utils/app_style.dart';
+import 'package:pet_center_app/utils/helpers.dart';
 
-class ListingCard extends StatelessWidget {
-  final ListingResponseDTO listing;
+class ReportCard extends StatelessWidget {
+  final ReportResponseSubDTO report;
   final bool visited;
   final VoidCallback onTap;
 
-  const ListingCard({
+  const ReportCard({
     super.key,
-    required this.listing,
+    required this.report,
     required this.visited,
     required this.onTap,
   });
@@ -29,25 +29,11 @@ class ListingCard extends StatelessWidget {
         child: Row(
           children: [
             Expanded(
-              flex: 1,
-              child: Align(
-                alignment: Alignment.center,
-                child: SizedBox(
-                  width: design.boundedImageSize,
-                  height: design.boundedImageSize,
-                  child: FittedBox(
-                    fit: BoxFit.contain,
-                    child: ImageDisplay(
-                      dataSource: listing.media[0],
-                      creationToken: null,
-                      locked: true,
-                    ),
-                  ),
-                ),
+              flex: 4,
+              child: Text(
+                "${report.reason} - ${formatDate(report.datePosted)}",
               ),
             ),
-
-            Expanded(flex: 3, child: design.fittedText(listing.name)),
             Expanded(
               flex: 1,
               child: Align(

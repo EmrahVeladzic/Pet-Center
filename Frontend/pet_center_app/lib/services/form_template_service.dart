@@ -13,10 +13,7 @@ class FormTemplateService {
     try {
       final response = await http.get(
         Uri.parse("${AppConfig.apiBaseUrl}/api/FormTemplate/Count"),
-        headers: {
-          'Authorization': 'Bearer $rawToken',
-          'Accept': 'application/json',
-        },
+        headers: {'Authorization': 'Bearer $rawToken', 'Accept': 'text/plain'},
       );
 
       final result = await ServiceOutput.fromResponse<int>(

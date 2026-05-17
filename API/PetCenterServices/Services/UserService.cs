@@ -76,7 +76,7 @@ namespace PetCenterServices.Services
                 output.Notes=new();
                 output.Notes?.Add(await recommender.ShoppingList(dbContext,token_holder));
                 output.Notifications = await dbContext.Notifications.Include(n=>n.RelevantListing).Where(n=>n.UserId==token_holder && (n.ListingId==null||(n.RelevantListing.Approved && n.RelevantListing.Visible))).Select(n=>NotificationSubDTO.FromEntity(n)!).ToListAsync();
-                
+                output.UserWishlist = await dbContext.Wishlists.Where(w=>w.UserId==output.Id).Select(w=>w.Term).ToListAsync();
                 output.UserSupplies= await dbContext.SupplyRecords.Where(s=>s.UserId==token_holder).Select(s=>SuppliesSubDTO.FromEntity(s)!).ToListAsync();
                 output.OwnedAnimals= await dbContext.IndividualAnimals.Include(i=>i.MedicalRecord).Where(i=>i.Owned && i.OwnerId==token_holder).Select(i=>IndividualResponseDTO.FromEntity(i)!).ToListAsync();
             }           

@@ -27,10 +27,7 @@ class BreedService {
         Uri.parse(
           "${AppConfig.apiBaseUrl}/api/Breed/Count",
         ).replace(queryParameters: query),
-        headers: {
-          'Authorization': 'Bearer $rawToken',
-          'Accept': 'application/json',
-        },
+        headers: {'Authorization': 'Bearer $rawToken', 'Accept': 'text/plain'},
       );
 
       final result = await ServiceOutput.fromResponse<int>(

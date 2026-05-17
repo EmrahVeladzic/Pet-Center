@@ -22,6 +22,9 @@ namespace PetCenterModels.DataTransferObjects
 
         public string Body {get; set;} = string.Empty;
 
+           
+        public DateTime DatePosted {get; set;} = DateTime.UtcNow;
+
         public static AnnouncementSubDTO? FromEntity(Announcement? announcement)
         {
             if(announcement==null){return null;}
@@ -29,7 +32,8 @@ namespace PetCenterModels.DataTransferObjects
             {
                 Id=announcement.Id,
                 CurrentVersion=announcement.CurrentVersion,
-                Body=announcement.Body
+                Body=announcement.Body,
+                DatePosted=announcement.DatePosted
             };
         }
     }
@@ -43,6 +47,8 @@ namespace PetCenterModels.DataTransferObjects
         public Guid? ListingId {get; set;} = null;
         public string Title {get; set;} = string.Empty;
 
+        public DateTime DatePosted {get; set;} = DateTime.UtcNow;
+
         public string Body {get; set;} = string.Empty;
 
         public static NotificationSubDTO? FromEntity(Notification? notification)
@@ -54,7 +60,8 @@ namespace PetCenterModels.DataTransferObjects
                 CurrentVersion=notification.CurrentVersion,
                 Title = notification.Title,
                 Body=notification.Body,
-                ListingId=notification.ListingId
+                ListingId=notification.ListingId,
+                DatePosted=notification.DatePosted
             };
         }
     }
@@ -110,6 +117,8 @@ namespace PetCenterModels.DataTransferObjects
 
         public bool MatureAccount {get; set;} = false;
 
+        public List<string>? UserWishlist {get; set;} = null;
+
         public static UserResponseDTO? FromEntity(User? usr)
         {
             if (usr==null){return null;}
@@ -119,8 +128,8 @@ namespace PetCenterModels.DataTransferObjects
                 Id=usr.Id,
                 CurrentVersion=usr.CurrentVersion,
                 UserName=usr.UserName,
-                MatureAccount=ModelValidationUtils.IsMature(usr.UserAccount)
-               
+                MatureAccount=ModelValidationUtils.IsMature(usr.UserAccount),
+                UserWishlist = usr.UserWishlist.Select(w=>w.Term).ToList()
             };
         }
     }

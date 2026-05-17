@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:pet_center_app/models/data_transfer/listing/sub_dtos.dart';
-import 'package:pet_center_app/utils/app_style.dart';
 
-class ReportCard extends StatelessWidget {
-  final ReportResponseSubDTO report;
+import 'package:pet_center_app/models/data_transfer/user/user_response_dto.dart';
+import 'package:pet_center_app/utils/app_style.dart';
+import 'package:pet_center_app/utils/helpers.dart';
+
+class AnnouncementCard extends StatelessWidget {
+  final AnnouncementSubDTO announcement;
   final bool visited;
   final VoidCallback onTap;
 
-  const ReportCard({
+  const AnnouncementCard({
     super.key,
-    required this.report,
+    required this.announcement,
     required this.visited,
     required this.onTap,
   });
@@ -27,9 +29,15 @@ class ReportCard extends StatelessWidget {
         decoration: design.panelDecoration(visited),
         child: Row(
           children: [
-            Expanded(flex: 4, child: Text(report.reason)),
+            Expanded(
+              flex: 4,
+              child: Text(
+                "${announcement.body} - ${formatDate(announcement.datePosted)}",
+              ),
+            ),
             Expanded(
               flex: 1,
+
               child: Align(
                 alignment: Alignment.center,
                 child: SizedBox(

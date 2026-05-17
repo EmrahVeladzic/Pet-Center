@@ -180,8 +180,8 @@ class ReactiveDesignSystem extends ThemeExtension<ReactiveDesignSystem> {
   }) {
     return ReactiveDesignSystem(
       spacing: spacing ?? this.spacing,
-      boundedIconSize: boundedIconSize ?? this.spacing,
-      boundedImageSize: boundedImageSize ?? this.spacing,
+      boundedIconSize: boundedIconSize ?? this.boundedIconSize,
+      boundedImageSize: boundedImageSize ?? this.boundedImageSize,
       fontSize: fontSize ?? this.fontSize,
       layoutDirection: layoutDirection ?? this.layoutDirection,
       marqueeSize: marqueeSize ?? this.marqueeSize,

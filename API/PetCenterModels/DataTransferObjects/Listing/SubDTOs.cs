@@ -147,6 +147,8 @@ namespace PetCenterModels.DataTransferObjects
         [MaxLength(150)]
         public string Contents {get; set;} = string.Empty;
 
+        public DateTime LastEditDate {get; set;} = DateTime.UtcNow;
+
         public List<NoteSubDTO>? Notes {get; set;} = null;
 
         public static CommentResponseSubDTO? FromEntity(Comment? entity)
@@ -159,7 +161,8 @@ namespace PetCenterModels.DataTransferObjects
                 ListingId=entity.ListingId,
                 PosterId=entity.PosterId,
                 PosterName="Anonymous",
-                Contents=entity.Message
+                Contents=entity.Message,
+                LastEditDate=entity.LastEditDate,
             };
 
             if (entity.Poster != null)
@@ -263,6 +266,8 @@ namespace PetCenterModels.DataTransferObjects
 
         public Guid ListingId {get; set;} = Guid.Empty;
 
+        public DateTime DatePosted {get; set;} = DateTime.UtcNow;
+
         public Guid? CommentId {get; set;} = null;
 
         public DateTime Expiry {get; set;} = DateTime.UtcNow;
@@ -280,7 +285,8 @@ namespace PetCenterModels.DataTransferObjects
                 ReporterId=entity.ReporterId,
                 ListingId=entity.ListingId,
                 CommentId=entity.CommentId,
-                Expiry=entity.Expiry
+                Expiry=entity.Expiry,
+                DatePosted=entity.DatePosted
 
             };
 

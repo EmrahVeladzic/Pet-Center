@@ -11,12 +11,14 @@ class ImageDisplay extends StatefulWidget {
   final ImageDTO? dataSource;
   final String? creationToken;
   final bool locked;
+  final bool creating;
 
   const ImageDisplay({
     super.key,
     required this.dataSource,
     required this.creationToken,
     required this.locked,
+    required this.creating,
   });
 
   @override
@@ -163,7 +165,8 @@ class _ImageDisplayState extends State<ImageDisplay> {
                 ),
               ),
             ),
-            if (widget.creationToken != null && !widget.locked)
+            if ((widget.creationToken != null || widget.creating) &&
+                !widget.locked)
               Positioned(
                 top: 0,
                 right: 0,
@@ -215,11 +218,37 @@ class _ImageDisplayState extends State<ImageDisplay> {
       return;
     }
 
+    if (widget.creating && (widget.creationToken == null)) {
+      setState(() {
+        _decoded = bytes;
+        dataSrc = null;
+        showSnackbar("Image queued for insert.");
+      });
+      return;
+    }
+
     final dto = await ImageService.post(widget.creationToken, bytes);
     if (dto != null) {
       setState(() {
         dataSrc = dto;
         _decoded = bytes;
+      });
+    }
+  }
+
+  Future<void> createExternally(String creationToken) async {
+    if (dataSrc != null) {
+      return;
+    }
+    if (_decoded == null) {
+      showSnackbar("No image to send.", false);
+      return;
+    }
+
+    final dto = await ImageService.post(creationToken, _decoded);
+    if (dto != null) {
+      setState(() {
+        dataSrc = dto;
       });
     }
   }

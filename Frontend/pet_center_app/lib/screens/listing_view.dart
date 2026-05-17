@@ -3,14 +3,15 @@ import 'package:pet_center_app/models/data_transfer/listing/listing_response_dto
 import 'package:pet_center_app/models/data_transfer/listing/sub_dtos.dart';
 import 'package:pet_center_app/models/enums.dart';
 import 'package:pet_center_app/screens/comment_view.dart';
-import 'package:pet_center_app/screens/components/availability_card.dart';
-import 'package:pet_center_app/screens/components/comment_card.dart';
-import 'package:pet_center_app/screens/components/comment_creator.dart';
+import 'package:pet_center_app/screens/components/listing/availability_card.dart';
+import 'package:pet_center_app/screens/components/listing/comment_card.dart';
+import 'package:pet_center_app/screens/components/listing/comment_creator.dart';
 import 'package:pet_center_app/screens/components/image_display.dart';
-import 'package:pet_center_app/screens/components/listing_extension_card.dart';
+import 'package:pet_center_app/screens/components/listing/listing_extension_card.dart';
 import 'package:pet_center_app/screens/components/note_card.dart';
 import 'package:pet_center_app/services/static_user_data_service.dart';
 import 'package:pet_center_app/utils/app_style.dart';
+import 'package:pet_center_app/utils/helpers.dart';
 import 'package:pet_center_app/utils/jwt_parser.dart';
 import 'package:pet_center_app/utils/pricing.dart';
 
@@ -81,7 +82,8 @@ class _ListingViewScreenState extends State<ListingViewScreen> {
                   (img) => ImageDisplay(
                     dataSource: img,
                     creationToken: widget.listing.mediaCreationToken,
-                    locked: widget.listing.locked,
+                    locked: true,
+                    creating: false,
                   ),
                 ),
                 design.verticalGap(),
@@ -89,7 +91,9 @@ class _ListingViewScreenState extends State<ListingViewScreen> {
                   padding: EdgeInsetsGeometry.symmetric(
                     horizontal: design.spacing,
                   ),
-                  child: Text(widget.listing.description),
+                  child: Text(
+                    "\"${widget.listing.description}\" - Posted on ${formatDate(widget.listing.posted)}.",
+                  ),
                 ),
                 if (widget.listing.priceMinor > 0) ...[
                   design.verticalGap(),

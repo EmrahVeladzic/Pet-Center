@@ -251,6 +251,12 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 
+string? contact = Environment.GetEnvironmentVariable("INSTANCE_OWNER_CONTACT");
+string? password = Environment.GetEnvironmentVariable("INSTANCE_OWNER_PASSWORD");
+bool seeder_static =bool.TryParse(Environment.GetEnvironmentVariable("SEEDER_STATIC"), out bool result)&& result;
+bool hasSeed = int.TryParse(Environment.GetEnvironmentVariable("SEEDER_SEED"),out int seed);
+
+
 bool retry = true;
 while (retry)
 {
@@ -274,9 +280,7 @@ while (retry)
                         Password = instance_owner["Password"]??"Null",
                     };
 
-                    string? contact = Environment.GetEnvironmentVariable("INSTANCE_OWNER_CONTACT");
-                    string? password = Environment.GetEnvironmentVariable("INSTANCE_OWNER_PASSWORD");
-
+                  
                     if (!string.IsNullOrWhiteSpace(contact) && !string.IsNullOrWhiteSpace(password)){
 
                         owner_req.Contact = contact;
@@ -287,9 +291,9 @@ while (retry)
 
                     await svc.Post(Guid.Empty,owner_req);
 
-                    bool seeder_static =bool.TryParse(Environment.GetEnvironmentVariable("SEEDER_STATIC"), out var result)&& result;
+                   
 
-                    if(int.TryParse(Environment.GetEnvironmentVariable("SEEDER_SEED"),out int seed))
+                    if(hasSeed)
                     {
                         await seeder.SeedDatabase(ctx,!seeder_static,seed);
                     

@@ -1,21 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:pet_center_app/models/data_transfer/user/user_response_dto.dart';
 import 'package:pet_center_app/models/enums.dart';
-import 'package:pet_center_app/screens/components/notification_card.dart';
-import 'package:pet_center_app/screens/notification_view.dart';
+import 'package:pet_center_app/screens/components/feed/announcement_card.dart';
 import 'package:pet_center_app/services/static_user_data_service.dart';
 import 'package:pet_center_app/utils/hive_cache.dart';
 
-class NotificationPage extends StatefulWidget {
-  const NotificationPage({super.key});
+class AnnouncementPage extends StatefulWidget {
+  const AnnouncementPage({super.key});
 
   @override
-  State<NotificationPage> createState() => _NotificationPageState();
+  State<AnnouncementPage> createState() => _AnnouncementPageState();
 }
 
-class _NotificationPageState extends State<NotificationPage>
+class _AnnouncementPageState extends State<AnnouncementPage>
     with AutomaticKeepAliveClientMixin {
-  List<NotificationSubDTO> _items = [];
+  List<AnnouncementSubDTO> _items = [];
   bool _loading = true;
 
   @override
@@ -28,8 +27,7 @@ class _NotificationPageState extends State<NotificationPage>
   }
 
   void load() async {
-    final data = self?.notifications ?? [];
-
+    final data = announcements;
     if (mounted) {
       setState(() {
         _items = data;
@@ -40,10 +38,10 @@ class _NotificationPageState extends State<NotificationPage>
   }
 
   void addIndex(String i) async {
-    await CacheManager.write(i, CacheEntityType.notification);
+    await CacheManager.write(i, CacheEntityType.announcement);
     setState(() {
-      if (!visitedNotifIndices.contains(i)) {
-        visitedNotifIndices.add(i);
+      if (!visitedAnnouncementIndices.contains(i)) {
+        visitedAnnouncementIndices.add(i);
       }
     });
   }
@@ -55,20 +53,13 @@ class _NotificationPageState extends State<NotificationPage>
 
     return ListView.builder(
       itemCount: _items.length,
-      itemBuilder: (context, i) => NotificationCard(
-        notification: _items[i],
-        visited: visitedNotifIndices.contains(_items[i].id),
+      itemBuilder: (context, i) => AnnouncementCard(
+        announcement: _items[i],
+        visited: visitedAnnouncementIndices.contains(_items[i].id),
         onTap: () {
           final id = _items[i].id;
           if (id == null) return;
           addIndex(id);
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) =>
-                  NotificationViewScreen(notification: _items[i]),
-            ),
-          );
         },
       ),
     );

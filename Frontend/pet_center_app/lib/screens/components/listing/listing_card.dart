@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:pet_center_app/models/data_transfer/user/user_response_dto.dart';
+import 'package:pet_center_app/models/data_transfer/listing/listing_response_dto.dart';
+import 'package:pet_center_app/screens/components/image_display.dart';
 import 'package:pet_center_app/utils/app_style.dart';
 
-class AnnouncementCard extends StatelessWidget {
-  final AnnouncementSubDTO announcement;
+class ListingCard extends StatelessWidget {
+  final ListingResponseDTO listing;
   final bool visited;
   final VoidCallback onTap;
 
-  const AnnouncementCard({
+  const ListingCard({
     super.key,
-    required this.announcement,
+    required this.listing,
     required this.visited,
     required this.onTap,
   });
@@ -27,10 +28,29 @@ class AnnouncementCard extends StatelessWidget {
         decoration: design.panelDecoration(visited),
         child: Row(
           children: [
-            Expanded(flex: 4, child: Text(announcement.body)),
             Expanded(
               flex: 1,
+              child: Align(
+                alignment: Alignment.center,
+                child: SizedBox(
+                  width: design.boundedImageSize,
+                  height: design.boundedImageSize,
+                  child: FittedBox(
+                    fit: BoxFit.contain,
+                    child: ImageDisplay(
+                      dataSource: listing.media[0],
+                      creationToken: null,
+                      locked: true,
+                      creating: false,
+                    ),
+                  ),
+                ),
+              ),
+            ),
 
+            Expanded(flex: 3, child: design.fittedText(listing.name)),
+            Expanded(
+              flex: 1,
               child: Align(
                 alignment: Alignment.center,
                 child: SizedBox(

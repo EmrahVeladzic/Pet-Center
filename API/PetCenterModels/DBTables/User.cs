@@ -31,6 +31,9 @@ namespace PetCenterModels.DBTables
         [InverseProperty(nameof(Notification.RelevantUser))]
         public List<Notification> Notifications {get; set;} = new();
 
+        [InverseProperty(nameof(Wishlist.RelevantUser))]
+        public List<Wishlist> UserWishlist {get; set;} = new();
+
         public override async Task StageDeletion<T>(PetCenterDBContext ctx, DbSet<T> set,CancellationToken cancel = default)
         {
             DBUtils.EnsureInTransaction(ctx);

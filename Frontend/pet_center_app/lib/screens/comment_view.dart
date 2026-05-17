@@ -2,12 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:pet_center_app/models/data_transfer/listing/sub_dtos.dart';
 import 'package:pet_center_app/models/enums.dart';
 import 'package:pet_center_app/screens/components/deletion_dialog.dart';
-import 'package:pet_center_app/screens/components/report_dialog.dart';
+import 'package:pet_center_app/screens/components/listing/report_dialog.dart';
 import 'package:pet_center_app/services/account_service.dart';
 import 'package:pet_center_app/services/listing_service.dart';
 import 'package:pet_center_app/services/static_user_data_service.dart';
 
 import 'package:pet_center_app/utils/app_style.dart';
+import 'package:pet_center_app/utils/helpers.dart';
 import 'package:pet_center_app/utils/jwt_parser.dart';
 
 class CommentViewScreen extends StatefulWidget {
@@ -63,7 +64,7 @@ class _CommentViewScreenState extends State<CommentViewScreen> {
           width: design.screenWidth * marqueeTitleWMult,
           height: design.marqueeSize,
           child: design.textMarquee(
-            comment.posterName,
+            "${comment.posterName} - ${formatDate(comment.lastEditDate)}",
             design.screenWidth * marqueeTitleWMult,
           ),
         ),

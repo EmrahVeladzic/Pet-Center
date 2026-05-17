@@ -25,6 +25,9 @@ ListingResponseDTO _$ListingResponseDTOFromJson(Map<String, dynamic> json) =>
       locked: json['locked'] as bool? ?? true,
       full: json['full'] as bool? ?? true,
       priceMinor: (json['priceMinor'] as num?)?.toInt() ?? 0,
+      posted: json['posted'] == null
+          ? null
+          : DateTime.parse(json['posted'] as String),
       type:
           $enumDecodeNullable(_$ListingTypeEnumMap, json['type']) ??
           ListingType.generic,
@@ -85,6 +88,7 @@ Map<String, dynamic> _$ListingResponseDTOToJson(ListingResponseDTO instance) =>
       'availability': instance.availability.map((e) => e.toJson()).toList(),
       'comments': instance.comments.map((e) => e.toJson()).toList(),
       'mediaCreationToken': instance.mediaCreationToken,
+      'posted': instance.posted.toIso8601String(),
     };
 
 const _$ListingTypeEnumMap = {

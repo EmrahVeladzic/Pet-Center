@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:pet_center_app/models/data_transfer/listing/sub_dtos.dart';
 import 'package:pet_center_app/models/enums.dart';
-import 'package:pet_center_app/screens/components/report_card.dart';
+import 'package:pet_center_app/screens/components/feed/report_card.dart';
 import 'package:pet_center_app/screens/listing_view.dart';
 import 'package:pet_center_app/services/listing_service.dart';
 import 'package:pet_center_app/services/static_user_data_service.dart';

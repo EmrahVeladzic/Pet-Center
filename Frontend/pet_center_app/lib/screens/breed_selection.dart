@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:pet_center_app/models/data_transfer/breed_dto.dart';
-import 'package:pet_center_app/screens/components/breed_card.dart';
+import 'package:pet_center_app/screens/components/breed/breed_card.dart';
 import 'package:pet_center_app/screens/components/page_selector.dart';
 import 'package:pet_center_app/services/breed_service.dart';
 
@@ -98,8 +98,8 @@ class _BreedSelectionScreenState extends State<BreedSelectionScreen> {
                             ),
                           )
                         : Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               ...dataSource.expand(
                                 (e) => [

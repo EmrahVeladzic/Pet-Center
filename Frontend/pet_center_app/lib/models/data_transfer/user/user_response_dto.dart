@@ -10,13 +10,15 @@ class AnnouncementSubDTO {
   String currentVersion;
   List<NoteSubDTO>? notes;
   String body;
+  DateTime datePosted;
 
   AnnouncementSubDTO({
     this.id,
     this.currentVersion = '',
     this.notes,
     this.body = '',
-  });
+    DateTime? datePosted,
+  }) : datePosted = datePosted ?? DateTime.now().toUtc();
 
   factory AnnouncementSubDTO.fromJson(Map<String, dynamic> json) =>
       _$AnnouncementSubDTOFromJson(json);
@@ -39,6 +41,7 @@ class NotificationSubDTO {
   String? listingId;
   String title;
   String body;
+  DateTime datePosted;
 
   NotificationSubDTO({
     this.id,
@@ -47,7 +50,8 @@ class NotificationSubDTO {
     this.listingId,
     this.title = '',
     this.body = '',
-  });
+    DateTime? datePosted,
+  }) : datePosted = datePosted ?? DateTime.now().toUtc();
 
   factory NotificationSubDTO.fromJson(Map<String, dynamic> json) =>
       _$NotificationSubDTOFromJson(json);
@@ -105,6 +109,7 @@ class UserResponseDTO {
   List<SuppliesSubDTO>? userSupplies;
   List<FranchiseResponseDTO>? workplaces;
   List<IndividualResponseDTO>? ownedAnimals;
+  List<String>? userWishlist;
 
   UserResponseDTO({
     this.id,
@@ -116,6 +121,7 @@ class UserResponseDTO {
     this.matureAccount = false,
     this.ownedAnimals,
     this.workplaces,
+    this.userWishlist,
   });
 
   factory UserResponseDTO.fromJson(Map<String, dynamic> json) =>
@@ -133,5 +139,6 @@ class UserResponseDTO {
     userSupplies: userSupplies?.map((s) => s.copy()).toList(),
     workplaces: workplaces?.map((w) => w.copy()).toList(),
     ownedAnimals: ownedAnimals?.map((a) => a.copy()).toList(),
+    userWishlist: userWishlist,
   );
 }
