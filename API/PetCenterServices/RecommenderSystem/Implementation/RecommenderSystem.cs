@@ -17,6 +17,12 @@ using System.Threading.Tasks;
 namespace PetCenterServices.Recommender
 {
 
+    public class EvaluatedSupply
+    {
+        public Guid KindId {get;set;}
+        public Guid CategoryId {get;set;}
+    }
+
     public class PetCenterVector5
     {
 
@@ -130,28 +136,24 @@ namespace PetCenterServices.Recommender
             
         }
 
-        public async Task<List<NoteSubDTO>> AddNotesToPet(PetCenterDBContext ctx, Individual pet){
+        public Task<List<NoteSubDTO>> AddNotesToPet(PetCenterDBContext ctx, Individual pet, List<MedicalProcedureSpecification> specifications){
             
             List<NoteSubDTO> output = new();
+            
 
-            Breed? breed = await ctx.AnimalBreeds.FindAsync(pet.BreedId);
-            if(breed==null){return output;}
-
-            List<MedicalProcedureSpecification> specs = await ctx.MedicalProcedureSpecifications.Include(m=>m.MedicalProcedure)
-            .Where(m => m.BreedId == pet.BreedId &&
+            List<MedicalProcedureSpecification> specs = specifications.Where(m => m.BreedId == pet.BreedId &&
             (m.SexSpecific == null || m.SexSpecific == pet.Sex))
-            .ToListAsync(); 
+            .ToList(); 
 
             specs = specs
             .Where(m => m.ApproximateAge == null || 
             m.ApproximateAge <= (DateTime.UtcNow - pet.BirthDate).Days)
             .ToList();
 
-            List<MedicalProcedureSpecification> candidates = await ctx.MedicalProcedureSpecifications
-            .Include(m => m.MedicalProcedure)
-            .Where(m => m.KindId == breed.KindId &&
+            List<MedicalProcedureSpecification> candidates = specifications
+            .Where(m => m.KindId == pet.AnimalBreed.KindId &&
             (m.SexSpecific == null || m.SexSpecific == pet.Sex))
-            .ToListAsync();
+            .ToList();
 
             List<MedicalProcedureSpecification> filtered = candidates
             .Where(m => m.ApproximateAge == null || 
@@ -162,7 +164,7 @@ namespace PetCenterServices.Recommender
 
             specs = specs.Where(s=>s.MedicalProcedure!=null && s.ApproximateAge!=null).ToList();
 
-            List<MedicalRecordEntry> entries = await ctx.MedicalRecordEntries.Where(e=>e.AnimalId==pet.Id).ToListAsync();
+            List<MedicalRecordEntry> entries = pet.MedicalRecord;
 
             specs = specs.Where(s=>!((s.IntervalDays==null&&entries.Any(e=>e.ProcedureId==s.ProcedureId))||(s.IntervalDays!=null && entries.Any(e=>e.ProcedureId==s.ProcedureId&&(DateTime.UtcNow-e.DatePerformed).Days<s.IntervalDays)))).OrderBy(s=>s.Optional).ThenBy(s=>s.ApproximateAge).ToList();
 
@@ -170,8 +172,8 @@ namespace PetCenterServices.Recommender
             {
                 NoteSubDTO note = new();
 
-                string previous = (specification.IntervalDays==null)? "a":"another";
-                note.Title = (specification.Optional)? $"Medical - optional - {specification.MedicalProcedure.Description}" : $"Medical - IMPORTANT - {specification.MedicalProcedure.Description}";
+                string previous = (specification.IntervalDays==null)? $"{((pet.Sex)?"his":"her")}":"another";
+                note.Title = (specification.Optional)? $"Medical - optional ({pet.Name}) - {specification.MedicalProcedure.Description}" : $"Medical - IMPORTANT ({pet.Name}) - {specification.MedicalProcedure.Description}";
                 note.Body = $"{pet.Name} is due to have {previous} {specification.MedicalProcedure.Description} performed.";
 
                 output.Add(note);
@@ -179,7 +181,7 @@ namespace PetCenterServices.Recommender
             }
 
 
-            return output;
+            return Task.FromResult<List<NoteSubDTO>>(output);
 
         }
 
@@ -210,24 +212,20 @@ namespace PetCenterServices.Recommender
             
         }
 
-        public async Task<List<NoteSubDTO>> AddInfoToMedicalListing(PetCenterDBContext ctx, MedicalListing listing, List<Individual> animals)
+        public Task<List<NoteSubDTO>> AddInfoToMedicalListing(PetCenterDBContext ctx, MedicalListing listing, List<Individual> animals, List<Procedure> procedures)
         {
             List<NoteSubDTO> output = new();
            
 
-            Procedure? proc = await ctx.MedicalProcedures.Include(p=>p.Specifications).FirstOrDefaultAsync(p=>p.Id==listing.ProcedureId);
+            Procedure? proc = procedures.FirstOrDefault(p=>p.Id==listing.ProcedureId && p.Specifications.Count>0);
 
             if (proc != null && animals.Count>0)
             {       
-
-                HashSet<Guid> ids = animals.Select(a=>a.Id).ToHashSet();                        
-
-                List<Individual> potential = await ctx.IndividualAnimals
-                .Include(i => i.MedicalRecord).Include(i=>i.AnimalBreed).Where(a=>ids.Contains(a.Id))              
-                .Where(a => ctx.MedicalProcedureSpecifications
-                    .Any(s => s.ProcedureId == listing.ProcedureId
-                        && (s.BreedId == a.BreedId || s.KindId==a.AnimalBreed.KindId) && s.ApproximateAge!=null))
-                .ToListAsync();
+                            
+                List<Individual> potential = animals         
+                .Where(a => proc.Specifications
+                    .Any(s=>(s.BreedId == a.BreedId || s.KindId==a.AnimalBreed.KindId) && s.ApproximateAge!=null))
+                .ToList();
 
                 foreach(Individual animal in potential)
                 {
@@ -260,7 +258,7 @@ namespace PetCenterServices.Recommender
                 }
             }
         
-            return output;
+            return Task.FromResult<List<NoteSubDTO>>(output);
         }
         
         public async Task<NoteSubDTO> ShoppingList(PetCenterDBContext ctx, Guid UserId){
@@ -279,6 +277,14 @@ namespace PetCenterServices.Recommender
             supplies = supplies.Where(s=>s.ConsumableCategory!=null && s.KindDetails!=null).ToList();
 
             List<string> items = new();
+            List<EvaluatedSupply> eval = new();
+
+            HashSet<Guid> categoryIds = supplies.Select(s => s.CategoryId).ToHashSet();
+            HashSet<Guid> kindIds = kinds.Select(k => k.Id).ToHashSet();
+
+            List<Usage> allEstimates = await ctx.UsageEstimates
+            .Where(u => categoryIds.Contains(u.CategoryId) && kindIds.Contains(u.KindId))
+            .ToListAsync();
 
             for(int k = 0; k<kinds.Count; k++)
             {
@@ -286,11 +292,13 @@ namespace PetCenterServices.Recommender
                                  
                 for(int s = 0; s<supplies.Count; s++)
                 {
-                    int daily_usage = await Utils.UserUtils.GetTotalDailyUsageForCategory(ctx,supplies[s].CategoryId,kinds[k].Id,Animals.Where(a=>a.AnimalBreed.KindId==kinds[k].Id).ToList());
-                    if(daily_usage>0 && supplies[s].MassGrams / daily_usage < 7)
+                    int daily_usage = Utils.UserUtils.GetTotalDailyUsageForCategory(
+                    allEstimates, supplies[s].CategoryId, kinds[k].Id,
+                    Animals.Where(a => a.AnimalBreed.KindId == kinds[k].Id).ToList());
+                    if (daily_usage > 0 && supplies[s].MassGrams / daily_usage < 7 && !eval.Any(ev => ev.CategoryId == supplies[s].CategoryId && ev.KindId == kinds[k].Id))
                     {
-                        items.Add($"{supplies[s].ConsumableCategory.Title} for {kind_title}");
-                                
+                        eval.Add(new EvaluatedSupply { KindId = kinds[k].Id, CategoryId = supplies[s].CategoryId });
+                        items.Add($"-{supplies[s].ConsumableCategory.Title} for {kind_title}");
                     }
 
                 }
@@ -299,7 +307,7 @@ namespace PetCenterServices.Recommender
 
             if (items.Any())
             {
-                output.Body = string.Join("; ",items)+".";
+                output.Body =string.Join(";\n",items)+".";
             }
             else{
                 output.Body = "You are stocked on everything you may need for the next week.";

@@ -17,6 +17,15 @@ class FranchiseViewScreen extends StatefulWidget {
 class _FranchiseViewScreenState extends State<FranchiseViewScreen> {
   List<FranchiseResponseDTO> dataSource = self?.workplaces ?? [];
 
+  void rebuild() {
+    if (!mounted) {
+      return;
+    }
+    setState(() {
+      dataSource = self?.workplaces ?? [];
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final ReactiveDesignSystem design = Theme.of(
@@ -30,7 +39,7 @@ class _FranchiseViewScreenState extends State<FranchiseViewScreen> {
           width: design.screenWidth * marqueeTitleWMult,
           height: design.marqueeSize,
           child: design.textMarquee(
-            'Best matches based on living condition:',
+            'Workplaces:',
             design.screenWidth * marqueeTitleWMult,
           ),
         ),
@@ -58,6 +67,8 @@ class _FranchiseViewScreenState extends State<FranchiseViewScreen> {
                               franchise: e,
                               editAction: () {},
                               deleteAction: () {},
+                              employeeViewAction: () {},
+                              rebuildCallback: rebuild,
                             ),
                             design.verticalGap(1),
                           ],

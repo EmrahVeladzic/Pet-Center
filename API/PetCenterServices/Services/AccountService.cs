@@ -136,12 +136,7 @@ namespace PetCenterServices.Services
                     if(old_hash!=ct.OldCodeHash || new_hash!= ct.NewCodeHash)
                     {
                         return ServiceOutput<string>.Error(HttpCode.BadRequest,"One or both of the sent codes are not correct.");
-                    }
-
-                    if (!ModelValidationUtils.ValidateContact(ct.NewContact))
-                    {
-                        return ServiceOutput<string>.Error(HttpCode.InternalError,"Internal server error.");
-                    }
+                    }                 
 
                     Account? acc = await dbSet.FirstOrDefaultAsync(a=>a.Contact==ct.NewContact);
                     if (acc != null)
@@ -180,11 +175,7 @@ namespace PetCenterServices.Services
             if (acc == null)
             {
                 return ServiceOutput<string>.Error(HttpCode.NotFound,"No account with this ID exists.");
-            }
-            if (acc.AccountUser == null)
-            {
-                return ServiceOutput<string>.Error(HttpCode.InternalError,"Internal server error.");
-            }
+            }           
             if (acc.Contact == contact_overwrite)
             {
                 return ServiceOutput<string>.Error(HttpCode.Conflict,"You already use this contact.");
@@ -346,9 +337,7 @@ namespace PetCenterServices.Services
                         return ServiceOutput<string>.Success(Utils.Crypto.GenerateJWT(usr));
 
                     }
-
-                    return ServiceOutput<string>.Error(HttpCode.InternalError,"Internal server error.");
-
+                   
                 }
             }
 
@@ -361,11 +350,7 @@ namespace PetCenterServices.Services
             Registration? reg = await dbContext.Registrations.Include(r=>r.RelevantAccount).ThenInclude(a=>a.AccountUser).FirstOrDefaultAsync(r=>r.Id==id);
 
             if (reg != null)
-            {
-                if (reg.RelevantAccount == null||reg.RelevantAccount.AccountUser==null)
-                {
-                    return ServiceOutput<string>.Error(HttpCode.InternalError,"Internal server error.");
-                }
+            {                
 
                 int code = Utils.Crypto.GenerateCode();
                 reg.CodeSalt=Crypto.GenerateSalt();
@@ -393,11 +378,7 @@ namespace PetCenterServices.Services
             if (acc == null)
             {
                 return ServiceOutput<string>.Error(HttpCode.NotFound,"The account with the provided contact does not exist.");
-            }
-            if (acc.AccountUser == null)
-            {                
-                return ServiceOutput<string>.Error(HttpCode.InternalError,"Internal server error.");
-            }
+            }            
 
             SingleTimeEntry? temp = await dbContext.SingleTimeEntries.FindAsync(acc.Id);
 
@@ -529,7 +510,7 @@ namespace PetCenterServices.Services
                 try
                 {
 
-                    Account? acc = await dbContext.Accounts.FindAsync(id);
+                    Account? acc = await dbContext.Accounts.Include(a=>a.AccountUser).FirstOrDefaultAsync(a=>a.Id==id);
                     if (acc != null)
                     {
                     
@@ -539,11 +520,7 @@ namespace PetCenterServices.Services
                             return ServiceOutput<string>.Error(HttpCode.Forbidden,"This action is not allowed.");
                         }
 
-                        User? usr = await dbContext.Users.FindAsync(id);
-                        if (usr == null)
-                        {
-                            return ServiceOutput<string>.Error(HttpCode.InternalError,"Internal server error.");
-                        }
+                        User usr = acc.AccountUser;
 
                         await usr.StageDeletion<User>(dbContext,dbContext.Users);
 

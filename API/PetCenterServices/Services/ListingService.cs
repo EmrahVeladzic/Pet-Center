@@ -94,8 +94,17 @@ namespace PetCenterServices.Services
 
                     int supplies = sup?.MassGrams ?? 0;
 
-                    int usage = await Utils.UserUtils.GetTotalDailyUsageForCategory(dbContext,search.RelevantId,search.KindSpecific,await dbContext.IndividualAnimals.Where(i=>i.OwnerId==token_holder).ToListAsync());
-                
+                    List<Individual> individuals = await dbContext.IndividualAnimals
+                    .Include(i => i.AnimalBreed)
+                    .Where(i => i.OwnerId == token_holder)
+                    .ToListAsync();
+
+                    List<Usage> allEstimates = await dbContext.UsageEstimates
+                    .Where(u => u.CategoryId == search.RelevantId && u.KindId == search.KindSpecific)
+                    .ToListAsync();
+
+                    int usage = Utils.UserUtils.GetTotalDailyUsageForCategory(allEstimates, search.RelevantId, search.KindSpecific, individuals);
+                                
                     for(int i = 0; (i< output.Count && i<entities.Count); i++)
                     {
                         if (entities[i]!=null && output[i]!=null && entities[i].ProductExtension != null)
@@ -112,11 +121,13 @@ namespace PetCenterServices.Services
                 {
                     List<Individual> individuals = await dbContext.IndividualAnimals.Where(i=>i.Owned==true&&i.OwnerId==token_holder).ToListAsync();
 
+                    List<Procedure> procedures = await dbContext.MedicalProcedures.Include(p=>p.Specifications).ToListAsync();
+                   
                     for(int i = 0; (i< output.Count && i<entities.Count); i++)
                     {
                         if (entities[i]!=null && output[i]!=null && entities[i].MedicalExtension != null)
                         {                                                    
-                            output[i].Notes = await recommender.AddInfoToMedicalListing(dbContext,entities[i].MedicalExtension!,individuals);
+                            output[i].Notes = await recommender.AddInfoToMedicalListing(dbContext,entities[i].MedicalExtension!,individuals,procedures);
                         }
                     }
                 }
@@ -177,8 +188,17 @@ namespace PetCenterServices.Services
 
                     int supplies = sup?.MassGrams ?? 0;
 
-                    int usage = await Utils.UserUtils.GetTotalDailyUsageForCategory(dbContext,output.ProductExtension.Product.CategoryId,output.ProductExtension.Product.KindId,await dbContext.IndividualAnimals.Where(i=>i.OwnerId==token_holder).ToListAsync());
+                    List<Individual> individuals = await dbContext.IndividualAnimals
+                    .Include(i => i.AnimalBreed)
+                    .Where(i => i.OwnerId == token_holder)
+                    .ToListAsync();
 
+                    List<Usage> allEstimates = await dbContext.UsageEstimates
+                    .Where(u => u.CategoryId == output.ProductExtension.Product.CategoryId && u.KindId == output.ProductExtension.Product.KindId)
+                    .ToListAsync();
+
+                    int usage = Utils.UserUtils.GetTotalDailyUsageForCategory(allEstimates, output.ProductExtension.Product.CategoryId, output.ProductExtension.Product.KindId, individuals);
+                    
                     dto.Notes= new List<NoteSubDTO>{await recommender.AddUsageInfoToProductListing(dbContext,output.ProductExtension,usage,supplies)};
                 }
                 else if(output.Type ==ListingType.Medical && output.MedicalExtension != null)
@@ -186,8 +206,10 @@ namespace PetCenterServices.Services
                 
                     List<Individual> individuals = await dbContext.IndividualAnimals.Where(i=>i.Owned==true&&i.OwnerId==token_holder).ToListAsync();
 
-                    
-                    dto.Notes = await recommender.AddInfoToMedicalListing(dbContext,output.MedicalExtension!,individuals);
+                    List<Procedure> procedures = await dbContext.MedicalProcedures.Include(p=>p.Specifications).ToListAsync();
+                   
+
+                    dto.Notes = await recommender.AddInfoToMedicalListing(dbContext,output.MedicalExtension!,individuals,procedures);
                         
                 }
                 
@@ -589,7 +611,7 @@ namespace PetCenterServices.Services
 
             }
 
-            return ServiceOutput<ListingResponseDTO>.Error(HttpCode.InternalError,"Internal server error.");
+            return ServiceOutput<ListingResponseDTO>.Error(HttpCode.BadRequest,"DTO corruption.");
 
         }
 
@@ -638,7 +660,7 @@ namespace PetCenterServices.Services
                 
             }
 
-            return ServiceOutput<ListingResponseDTO>.Error(HttpCode.InternalError,"Internal server error.");
+            return ServiceOutput<ListingResponseDTO>.Error(HttpCode.NotFound,"The selected listing could not be found.");
             
         }
 

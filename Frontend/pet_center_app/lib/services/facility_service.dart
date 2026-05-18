@@ -10,12 +10,12 @@ import 'package:pet_center_app/utils/jwt_parser.dart';
 import 'package:pet_center_app/utils/service_output.dart';
 
 class FacilityService {
-  static Future<int?> count(String franchiseId) async {
+  static Future<int?> count(String facilityId) async {
     apiServiceBusy = true;
     try {
       final query = <String, String>{};
 
-      query['franchiseId'] = franchiseId;
+      query['franchiseId'] = facilityId;
 
       final response = await http.get(
         Uri.parse(
@@ -90,13 +90,36 @@ class FacilityService {
     }
   }
 
-  static Future<List<FacilityDTO>?> get(String franchiseId, int page) async {
+  static Future<bool> delete(String franchiseId) async {
+    apiServiceBusy = true;
+    try {
+      final query = <String, String>{};
+
+      query['franchiseId'] = franchiseId;
+
+      final response = await http.delete(
+        Uri.parse(
+          "${AppConfig.apiBaseUrl}/api/Facility/Count/$franchiseId",
+        ).replace(queryParameters: query),
+        headers: {'Authorization': 'Bearer $rawToken', 'Accept': 'text/plain'},
+      );
+
+      apiServiceBusy = false;
+      return ServiceOutput.isSuccess(response);
+    } catch (ex) {
+      showError(ex);
+      apiServiceBusy = false;
+      return false;
+    }
+  }
+
+  static Future<List<FacilityDTO>?> get(String facilityId, int page) async {
     apiServiceBusy = true;
     try {
       final query = <String, String>{};
       query['page'] = page.toString();
 
-      query['franchiseId'] = franchiseId;
+      query['franchiseId'] = facilityId;
 
       final response = await http.get(
         Uri.parse(
@@ -124,8 +147,8 @@ class FacilityService {
     }
   }
 
-  static Future<List<FacilityDTO>?> getAll(String franchiseId) async {
-    final pageCount = await count(franchiseId);
+  static Future<List<FacilityDTO>?> getAll(String facilityId) async {
+    final pageCount = await count(facilityId);
 
     if (pageCount == null) {
       return null;
@@ -135,7 +158,7 @@ class FacilityService {
     final seen = <String?>{};
 
     for (int i = 0; i < pageCount; i++) {
-      final newEntries = await get(franchiseId, i);
+      final newEntries = await get(facilityId, i);
 
       if (newEntries == null) {
         return null;

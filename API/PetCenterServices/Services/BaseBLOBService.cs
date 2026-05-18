@@ -118,10 +118,7 @@ namespace PetCenterServices.Services
 
             if (entity != null)
             {
-                if (entity.OwningAlbum == null)
-                {
-                    return ServiceOutput<object>.Error(HttpCode.InternalError,"Internal server error.");
-                }
+                
                 if (entity.OwningAlbum.Locked)
                 {                    
                     return ServiceOutput<object>.Error(HttpCode.Forbidden,"The selected album is locked and its contents cannot be modified.");

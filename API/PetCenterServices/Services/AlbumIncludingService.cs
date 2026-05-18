@@ -140,8 +140,10 @@ namespace PetCenterServices.Services
                 }     
 
             }
+
+            
            
-            return ServiceOutput<TResponse>.Error(HttpCode.InternalError, "Internal server error.");
+            return ServiceOutput<TResponse>.Error(HttpCode.BadRequest, "DTO format not valid.");
 
         }
 

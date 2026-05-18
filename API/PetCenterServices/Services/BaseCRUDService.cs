@@ -109,8 +109,7 @@ namespace PetCenterServices.Services
 
             }
            
-            return ServiceOutput<TResponse>.Error(HttpCode.InternalError, "Internal server error.");
-
+            return ServiceOutput<TResponse>.Error(HttpCode.BadRequest, "DTO format not valid.");
         }
 
         public virtual async Task<ServiceOutput<TResponse>> Put(Guid token_holder,TRequest req)
@@ -130,33 +129,33 @@ namespace PetCenterServices.Services
                         
 
                     await using(IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync())
+                       
+                       
+                        try
                         {
-                            try
-                            {
+                            
+                            overwrite.Id = ent.Id;
 
-                                
-                                overwrite.Id = ent.Id;
+                            
+                            dbSet.Entry(ent).Property(e => e.CurrentVersion).OriginalValue = overwrite.CurrentVersion;
 
-                                
-                                dbSet.Entry(ent).Property(e => e.CurrentVersion).OriginalValue = overwrite.CurrentVersion;
+                            
+                            var originalVersion = overwrite.CurrentVersion;
+                            overwrite.CurrentVersion = ent.CurrentVersion; 
+                            dbSet.Entry(ent).CurrentValues.SetValues(overwrite);
 
-                                
-                                var originalVersion = overwrite.CurrentVersion;
-                                overwrite.CurrentVersion = ent.CurrentVersion; 
-                                dbSet.Entry(ent).CurrentValues.SetValues(overwrite);
-
-                                await dbContext.SaveChangesAsync();
-                                await tx.CommitAsync();
-                                Touch();
-                                return ServiceOutput<TResponse>.Success(TResponse.FromEntity(ent));
+                            await dbContext.SaveChangesAsync();
+                            await tx.CommitAsync();
+                            Touch();
+                            return ServiceOutput<TResponse>.Success(TResponse.FromEntity(ent));
                                
-                            }
-                            catch(Exception ex)
-                            {
-                                await tx.RollbackAsync();
-                                return ServiceOutput<TResponse>.FromException(ex,logger);
-                            }
                         }
+                        catch(Exception ex)
+                        {
+                            await tx.RollbackAsync();
+                            return ServiceOutput<TResponse>.FromException(ex,logger);
+                        }
+                        
 
 
 
@@ -165,7 +164,7 @@ namespace PetCenterServices.Services
 
                 }
                
-                return ServiceOutput<TResponse>.Error(HttpCode.InternalError, "Internal server error.");
+               
 
             }
 

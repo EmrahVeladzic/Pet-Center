@@ -82,7 +82,7 @@ namespace PetCenterServices.Services
                    
             }   
 
-            return ServiceOutput<FormDTO>.Error(HttpCode.NotFound,"Internal server error."); 
+            return ServiceOutput<FormDTO>.Error(HttpCode.BadRequest,"DTO corruption."); 
         }
 
         public override async Task<ServiceOutput<FormDTO>> Put(Guid token_holder, FormDTO resource)
