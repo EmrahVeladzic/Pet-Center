@@ -65,7 +65,7 @@ namespace PetCenterServices.Services
             {
                 IQueryable<Guid> records = dbContext.EmployeeRecords.Where(e=>e.UserId==token_holder).Select(e=>e.FranchiseId);
                 List<Franchise> workplaces =  await dbContext.Franchises.Include(f=>f.Facilities).Where(f=>records.Contains(f.Id)||f.OwnerId==token_holder).OrderBy(w=>w.Id).ToListAsync();
-                output.Workplaces=workplaces.Select(w=>FranchiseResponseDTO.FromEntity(w)!).ToList();
+                output.Workplaces=workplaces.Select(w=>FranchiseResponseDTO.FromEntity(w,w.OwnerId==token_holder)!).ToList();
               
                 List<Guid> workplace_ids = workplaces.Select(w=>w.Id).ToList();
                 output.Notifications = await dbContext.Notifications.Where(n=>n.UserId==token_holder || (n.FranchiseId!=null && workplace_ids.Contains(n.FranchiseId.Value!))).Select(n=>NotificationSubDTO.FromEntity(n)!).ToListAsync();
@@ -73,12 +73,20 @@ namespace PetCenterServices.Services
             }
             else if(authorization_level==Access.User)
             {
+                List<Individual>individuals = await dbContext.IndividualAnimals.Include(i=>i.AnimalBreed).ThenInclude(b=>b.AnimalKind).Include(i=>i.MedicalRecord).Where(i=>i.Owned && i.OwnerId==token_holder).ToListAsync();
+                List<MedicalProcedureSpecification> specifications = await dbContext.MedicalProcedureSpecifications.Include(m=>m.MedicalProcedure).ToListAsync();
+
+
                 output.Notes=new();
-                output.Notes?.Add(await recommender.ShoppingList(dbContext,token_holder));
+                output.Notes.Add(await recommender.ShoppingList(dbContext,token_holder));
+                foreach(Individual ind in individuals)
+                {
+                    output.Notes.AddRange(await recommender.AddNotesToPet(dbContext,ind,specifications));
+                }
                 output.Notifications = await dbContext.Notifications.Include(n=>n.RelevantListing).Where(n=>n.UserId==token_holder && (n.ListingId==null||(n.RelevantListing.Approved && n.RelevantListing.Visible))).Select(n=>NotificationSubDTO.FromEntity(n)!).ToListAsync();
                 output.UserWishlist = await dbContext.Wishlists.Where(w=>w.UserId==output.Id).Select(w=>w.Term).ToListAsync();
                 output.UserSupplies= await dbContext.SupplyRecords.Where(s=>s.UserId==token_holder).Select(s=>SuppliesSubDTO.FromEntity(s)!).ToListAsync();
-                output.OwnedAnimals= await dbContext.IndividualAnimals.Include(i=>i.MedicalRecord).Where(i=>i.Owned && i.OwnerId==token_holder).Select(i=>IndividualResponseDTO.FromEntity(i)!).ToListAsync();
+                output.OwnedAnimals= individuals.Select(i=>IndividualResponseDTO.FromEntity(i)!).ToList();
             }           
             
             return ServiceOutput<UserResponseDTO>.Success(output);

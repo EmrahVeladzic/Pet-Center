@@ -43,27 +43,40 @@ namespace PetCenterServices.Workers
 
         }
 
-        private async Task RunRecalculation(PetCenterDBContext dBContext,ILogger logger, CancellationToken stoppingToken)
+        private async Task RunRecalculation(PetCenterDBContext dBContext, ILogger logger, CancellationToken stoppingToken)
         {
-            
             try
-            {              
+            {
                 bool proceed = true;
-                while(proceed && !stoppingToken.IsCancellationRequested)
+                while (proceed && !stoppingToken.IsCancellationRequested)
                 {
                     await using (IDbContextTransaction tx = await dBContext.Database.BeginTransactionAsync(stoppingToken))
                     {
                         try
                         {
-                            List<Supplies> supplies = await dBContext.SupplyRecords.Include(s=>s.RelevantUser).ThenInclude(u=>u.OwnedAnimals).Where(s=>s.Evaluated<DateTime.UtcNow.AddDays(-1)).OrderBy(s=>s.Id).Take(50).ToListAsync(stoppingToken);
-                            proceed = supplies.Count>0;
+                            List<Supplies> supplies = await dBContext.SupplyRecords
+                                .Include(s => s.RelevantUser)
+                                    .ThenInclude(u => u.OwnedAnimals)
+                                        .ThenInclude(a => a.AnimalBreed)
+                                .Where(s => s.Evaluated < DateTime.UtcNow.AddDays(-1))
+                                .OrderBy(s => s.Id)
+                                .Take(50)
+                                .ToListAsync(stoppingToken);
 
-                            foreach(Supplies sup in supplies)
+                            proceed = supplies.Count > 0;
+
+                            HashSet<Guid> categoryIds = supplies.Select(s => s.CategoryId).ToHashSet();
+                            HashSet<Guid> kindIds = supplies.Select(s => s.KindId).ToHashSet();
+
+                            List<Usage> allEstimates = await dBContext.UsageEstimates
+                                .Where(u => categoryIds.Contains(u.CategoryId) && kindIds.Contains(u.KindId))
+                                .ToListAsync(stoppingToken);
+
+                            foreach (Supplies sup in supplies)
                             {
-                                
-                                sup.MassGrams-= await Utils.UserUtils.GetTotalDailyUsageForCategory(dBContext,sup.CategoryId,sup.KindId,sup.RelevantUser.OwnedAnimals,stoppingToken);
-                                sup.MassGrams=Math.Max(sup.MassGrams,0);
-                                sup.Evaluated=DateTime.UtcNow;
+                                sup.MassGrams -= Utils.UserUtils.GetTotalDailyUsageForCategory(allEstimates, sup.CategoryId, sup.KindId, sup.RelevantUser.OwnedAnimals.ToList());
+                                sup.MassGrams = Math.Max(sup.MassGrams, 0);
+                                sup.Evaluated = DateTime.UtcNow;
                             }
 
                             await dBContext.SaveChangesAsync(stoppingToken);
@@ -74,23 +87,19 @@ namespace PetCenterServices.Workers
                             await tx.RollbackAsync(stoppingToken);
                             throw;
                         }
-                    }                    
+                    }
                 }
-                
             }
             catch (OperationCanceledException)
             {
                 logger.LogInformation("Supply update aborted due to host shutdown.");
-                
             }
             catch (Exception ex)
             {
-               
-                logger.LogError(ex,"Supply worker exception.");
-                
+                logger.LogError(ex, "Supply worker exception.");
             }
-
         }
+
     }
 
 

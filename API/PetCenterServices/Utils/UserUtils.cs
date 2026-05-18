@@ -40,21 +40,33 @@ namespace PetCenterServices.Utils
 
      
 
-        public static async Task<int> GetTotalDailyUsageForCategory(PetCenterDBContext ctx, Guid CategoryId, Guid KindId , List<Individual> animals, CancellationToken cancel = default)
+        public static int GetTotalDailyUsageForCategory(
+            List<Usage> estimates,
+            Guid categoryId,
+            Guid kindId,
+            List<Individual> animals)
         {
+            List<Individual> relevantAnimals = animals
+                .Where(a => a.AnimalBreed != null && a.AnimalBreed.KindId == kindId)
+                .ToList();
+
+            List<Usage> relevant = estimates
+                .Where(u => u.CategoryId == categoryId && u.KindId == kindId)
+                .ToList();
+
             int output = 0;
-            animals = animals.Where(a=>a.AnimalBreed!=null && a.AnimalBreed.KindId==KindId).ToList();
-
-            foreach(Individual animal in animals)
-            {             
-                output +=  await ctx.UsageEstimates
-                .Where(u => u.CategoryId == CategoryId && u.KindId == animal.AnimalBreed.KindId &&(u.ScaleSpecific == animal.AnimalBreed.Scale || u.ScaleSpecific == null))
-                .OrderByDescending(u => u.ScaleSpecific != null).Select(u => u.AverageDailyAmountGrams).FirstOrDefaultAsync(cancel);
+            foreach (Individual animal in relevantAnimals)
+            {
+                AnimalScale scale = animal.AnimalBreed.Scale;
+                int value = relevant
+                    .Where(e => e.ScaleSpecific == scale || e.ScaleSpecific == null)
+                    .OrderByDescending(e => e.ScaleSpecific != null)
+                    .Select(e => e.AverageDailyAmountGrams)
+                    .FirstOrDefault();
+                output += value;
             }
-
             return output;
         }
-
        
     }
 }

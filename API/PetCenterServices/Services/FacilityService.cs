@@ -94,10 +94,7 @@ namespace PetCenterServices.Services
             Facility? fac = await dbSet.Include(f=>f.OwningFranchise).FirstOrDefaultAsync(f=>f.Id==resourceId);
             if (fac != null)
             {
-                if (fac.OwningFranchise == null)
-                {
-                    return ServiceOutput<object>.Error(HttpCode.InternalError,"Internal server error.");
-                }
+               
                 if(fac.OwningFranchise.OwnerId != token_holder)
                 {
                     return ServiceOutput<object>.Error(HttpCode.Forbidden,"You lack the permission to delete this facility.");

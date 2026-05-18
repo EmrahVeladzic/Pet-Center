@@ -31,7 +31,7 @@ namespace PetCenterServices.Services
         protected override async Task<IQueryable<Individual>> Filter(Guid token_holder, IndividualSearchObject search)
         {
             
-            IQueryable<Individual> query = dbSet.Include(i=>i.MedicalRecord).OrderBy(f=>f.Id);
+            IQueryable<Individual> query = dbSet.Include(i=>i.AnimalBreed).ThenInclude(b=>b.AnimalKind).Include(i=>i.MedicalRecord).OrderBy(f=>f.Id);
 
             if (search.AuthoritySpecifier == Access.BusinessAccount && search.from_franchise!=null && await FranchiseService.IsEmployeeOfFranchise(dbContext,token_holder,search.from_franchise.Value))
             {
@@ -54,11 +54,12 @@ namespace PetCenterServices.Services
             IQueryable<Individual> query = await Filter(token_holder,search);
             List<Individual> entities = await query.Skip(search.Page*search.PageSize).Take(search.PageSize).ToListAsync();
             List<IndividualResponseDTO> output = entities.Select(e=>IndividualResponseDTO.FromEntity(e)!).ToList();
+            List<MedicalProcedureSpecification> specifications = await dbContext.MedicalProcedureSpecifications.Include(m=>m.MedicalProcedure).ToListAsync();
             if (search.AuthoritySpecifier == Access.User && entities.Count==output.Count)
             {
                 for(int i= 0; i<entities.Count; i++)
                 {
-                    output[i].Notes=await recommender.AddNotesToPet(dbContext,entities[i]);
+                    output[i].Notes=await recommender.AddNotesToPet(dbContext,entities[i],specifications);
                 }
             }
             return ServiceOutput<List<IndividualResponseDTO>>.Success(output);
@@ -182,14 +183,9 @@ namespace PetCenterServices.Services
                     }
                 }
                 else
-                {
-                    if (ind.ShelterId == null)
-                    {
-                        return ServiceOutput<object>.Error(HttpCode.InternalError,"Internal server error.");
-                    }
+                {                   
 
-
-                    if (!await FranchiseService.IsEmployeeOfFranchise(dbContext,token_holder,ind.ShelterId.Value))
+                    if (!await FranchiseService.IsEmployeeOfFranchise(dbContext,token_holder,ind.ShelterId!.Value))
                     {
                         return ServiceOutput<object>.Error(HttpCode.Forbidden,"You are not authorized to perform this action.");
                     } 
@@ -222,10 +218,7 @@ namespace PetCenterServices.Services
             }
             if (individual.Owned)
             {
-                if (individual.OwnerId == null)
-                {
-                    return ServiceOutput<MedicalEntrySubDTO>.Error(HttpCode.InternalError,"Internal server error.");
-                }
+               
                 if (individual.OwnerId != token_holder)
                 {
                     return ServiceOutput<MedicalEntrySubDTO>.Error(HttpCode.Forbidden,"You lack the permission to perform this action.");
@@ -233,11 +226,8 @@ namespace PetCenterServices.Services
             }
             else
             {
-                if (individual.ShelterId == null)
-                {
-                    return ServiceOutput<MedicalEntrySubDTO>.Error(HttpCode.InternalError,"Internal server error.");
-                }
-                if(!await FranchiseService.IsEmployeeOfFranchise(dbContext, token_holder, individual.ShelterId.Value))
+               
+                if(!await FranchiseService.IsEmployeeOfFranchise(dbContext, token_holder, individual.ShelterId!.Value))
                 {
                     return ServiceOutput<MedicalEntrySubDTO>.Error(HttpCode.Forbidden,"You lack the permission to perform this action.");
                 }

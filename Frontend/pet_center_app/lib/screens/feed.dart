@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:pet_center_app/models/enums.dart';
 import 'package:pet_center_app/screens/components/feed/announcement_page.dart';
+import 'package:pet_center_app/screens/components/feed/note_page.dart';
 import 'package:pet_center_app/screens/components/feed/notification_page.dart';
 import 'package:pet_center_app/screens/components/feed/report_page.dart';
 import 'package:pet_center_app/utils/app_style.dart';
@@ -29,6 +30,7 @@ class _FeedScreenState extends State<FeedScreen> {
       if (role == Access.admin || role == Access.owner) ...{
         const Tab(text: 'Reports'),
       },
+      const Tab(text: 'Automated'),
     ];
 
     List<Widget> pages = [
@@ -37,6 +39,7 @@ class _FeedScreenState extends State<FeedScreen> {
         const NotificationPage(),
       },
       if (role == Access.admin || role == Access.owner) ...{const ReportPage()},
+      const NotePage(),
     ];
 
     return DefaultTabController(

@@ -103,16 +103,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               child: design.fittedText('My workplaces'),
                             ),
                           ),
-
-                          SizedBox(height: design.spacing),
-                          FractionallySizedBox(
-                            widthFactor: 0.5,
-                            alignment: Alignment.center,
-                            child: ElevatedButton(
-                              onPressed: () {},
-                              child: design.fittedText('My pets'),
-                            ),
-                          ),
                         ],
                         SizedBox(height: design.spacing),
                         FractionallySizedBox(

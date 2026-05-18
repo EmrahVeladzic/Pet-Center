@@ -66,8 +66,9 @@ class PetCenterApp extends StatelessWidget {
             collapsedIconColor: panelTone,
             textColor: panelTone,
             collapsedTextColor: mainTone,
-
             childrenPadding: EdgeInsets.zero,
+            shape: const Border(),
+            collapsedShape: const Border(),
           ),
           extensions: [ReactiveDesignSystem.fromMediaQuery(media)],
         );

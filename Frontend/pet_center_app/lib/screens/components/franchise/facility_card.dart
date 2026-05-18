@@ -25,11 +25,11 @@ class FacilityCard extends StatelessWidget {
     return Padding(
       padding: EdgeInsetsGeometry.symmetric(horizontal: 0, vertical: 1),
       child: Container(
-        decoration: design.panelDecoration(true),
+        color: listTone,
         child: Row(
           children: [
             Expanded(
-              flex: 3,
+              flex: 4,
               child: Padding(
                 padding: EdgeInsets.all(design.spacing),
                 child: Column(
