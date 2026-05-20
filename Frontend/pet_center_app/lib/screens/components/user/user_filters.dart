@@ -29,7 +29,7 @@ class _UserFiltersState extends State<UserFilters> {
   late String usrName;
 
   void change(bool inc, String name) {
-    if (apiServiceBusy || !mounted) {
+    if (!mounted) {
       return;
     }
     setState(() {
@@ -70,7 +70,7 @@ class _UserFiltersState extends State<UserFilters> {
               child: ColoredBox(
                 color: listTone,
                 child: TextField(
-                  enabled: !apiServiceBusy,
+                  enabled: !apiServiceBusy.value,
                   maxLength: 75,
                   maxLines: 1,
                   minLines: 1,
@@ -93,11 +93,9 @@ class _UserFiltersState extends State<UserFilters> {
                   design.fittedText("Employed"),
                   Checkbox(
                     value: include,
-                    onChanged: apiServiceBusy
-                        ? null
-                        : (value) {
-                            change(value!, usrName);
-                          },
+                    onChanged: (value) {
+                      change(value!, usrName);
+                    },
                   ),
                 ],
               ),

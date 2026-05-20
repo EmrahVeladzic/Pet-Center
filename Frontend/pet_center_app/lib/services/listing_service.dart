@@ -10,7 +10,7 @@ import 'package:pet_center_app/utils/service_output.dart';
 
 class ListingService {
   static Future<ListingResponseDTO?> getById(String id) async {
-    apiServiceBusy = true;
+    apiServiceBusy.value = true;
     try {
       final response = await http.get(
         Uri.parse("${AppConfig.apiBaseUrl}/api/Listing/$id"),
@@ -25,11 +25,11 @@ class ListingService {
         (json) => ListingResponseDTO.fromJson(json as Map<String, dynamic>),
       );
 
-      apiServiceBusy = false;
+      apiServiceBusy.value = false;
       return result;
     } catch (ex) {
       showError(ex);
-      apiServiceBusy = false;
+      apiServiceBusy.value = false;
       return null;
     }
   }
@@ -39,7 +39,7 @@ class ListingService {
     String reason, [
     String? commentId,
   ]) async {
-    apiServiceBusy = true;
+    apiServiceBusy.value = true;
     try {
       final query = <String, String>{};
       query['reason'] = reason;
@@ -62,11 +62,11 @@ class ListingService {
         (json) => ReportResponseSubDTO.fromJson(json as Map<String, dynamic>),
       );
 
-      apiServiceBusy = false;
+      apiServiceBusy.value = false;
       return result;
     } catch (ex) {
       showError(ex);
-      apiServiceBusy = false;
+      apiServiceBusy.value = false;
       return null;
     }
   }
@@ -75,7 +75,7 @@ class ListingService {
     String listingId,
     String text,
   ) async {
-    apiServiceBusy = true;
+    apiServiceBusy.value = true;
     try {
       final query = <String, String>{};
       query['comment'] = text;
@@ -95,28 +95,28 @@ class ListingService {
         (json) => CommentResponseSubDTO.fromJson(json as Map<String, dynamic>),
       );
 
-      apiServiceBusy = false;
+      apiServiceBusy.value = false;
       return result;
     } catch (ex) {
       showError(ex);
-      apiServiceBusy = false;
+      apiServiceBusy.value = false;
       return null;
     }
   }
 
   static Future<bool> deleteReview(String id) async {
-    apiServiceBusy = true;
+    apiServiceBusy.value = true;
     try {
       final response = await http.delete(
         Uri.parse("${AppConfig.apiBaseUrl}/api/Listing/Review/$id"),
         headers: {'Authorization': 'Bearer $rawToken'},
       );
 
-      apiServiceBusy = false;
+      apiServiceBusy.value = false;
       return ServiceOutput.isSuccess(response);
     } catch (ex) {
       showError(ex);
-      apiServiceBusy = false;
+      apiServiceBusy.value = false;
       return false;
     }
   }

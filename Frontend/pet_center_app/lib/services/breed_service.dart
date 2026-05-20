@@ -13,7 +13,7 @@ class BreedService {
     bool incomplete,
     String? kindId,
   ) async {
-    apiServiceBusy = true;
+    apiServiceBusy.value = true;
     try {
       final query = <String, String>{};
       query['page'] = 0.toString();
@@ -35,11 +35,11 @@ class BreedService {
         (json) => json as int,
       );
 
-      apiServiceBusy = false;
+      apiServiceBusy.value = false;
       return result;
     } catch (ex) {
       showError(ex);
-      apiServiceBusy = false;
+      apiServiceBusy.value = false;
       return null;
     }
   }
@@ -50,7 +50,7 @@ class BreedService {
     bool incomplete,
     String? kindId,
   ) async {
-    apiServiceBusy = true;
+    apiServiceBusy.value = true;
     try {
       final query = <String, String>{};
       query['page'] = page.toString();
@@ -77,11 +77,11 @@ class BreedService {
             .toList(),
       );
 
-      apiServiceBusy = false;
+      apiServiceBusy.value = false;
       return result;
     } catch (ex) {
       showError(ex);
-      apiServiceBusy = false;
+      apiServiceBusy.value = false;
       return null;
     }
   }

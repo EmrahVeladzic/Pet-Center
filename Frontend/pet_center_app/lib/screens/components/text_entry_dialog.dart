@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import 'package:pet_center_app/utils/app_style.dart';
-import 'package:pet_center_app/utils/globals.dart';
 
 class TextEntryDialog extends StatefulWidget {
   final int limit;
@@ -102,9 +101,6 @@ class _TextEntryDialogState extends State<TextEntryDialog> {
               onPressed: () {
                 if (_formKey.currentState != null &&
                     _formKey.currentState!.validate()) {
-                  if (apiServiceBusy) {
-                    return;
-                  }
                   Navigator.of(context).pop();
                   invokeCallback();
                 }

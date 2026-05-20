@@ -7,7 +7,7 @@ import 'package:pet_center_app/screens/components/page_selector.dart';
 import 'package:pet_center_app/services/breed_service.dart';
 
 import 'package:pet_center_app/utils/app_style.dart';
-import 'package:pet_center_app/utils/globals.dart';
+
 import 'package:pet_center_app/utils/jwt_parser.dart';
 
 class BreedSelectionScreen extends StatefulWidget {
@@ -58,11 +58,7 @@ class _BreedSelectionScreenState extends State<BreedSelectionScreen> {
     }
   }
 
-  void switchToSelection(String id) async {
-    if (apiServiceBusy) {
-      return;
-    }
-  }
+  void switchToSelection(String id) async {}
 
   void resetPages(bool inc) async {
     final output = await BreedService.count(

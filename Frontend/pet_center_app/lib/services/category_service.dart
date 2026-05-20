@@ -9,7 +9,7 @@ import 'package:pet_center_app/utils/service_output.dart';
 
 class CategoryService {
   static Future<int?> count(bool? consumable) async {
-    apiServiceBusy = true;
+    apiServiceBusy.value = true;
     try {
       final query = <String, String>{};
       if (consumable != null) {
@@ -28,17 +28,17 @@ class CategoryService {
         (json) => json as int,
       );
 
-      apiServiceBusy = false;
+      apiServiceBusy.value = false;
       return result;
     } catch (ex) {
       showError(ex);
-      apiServiceBusy = false;
+      apiServiceBusy.value = false;
       return null;
     }
   }
 
   static Future<List<CategoryDTO>?> get(bool? consumable, int page) async {
-    apiServiceBusy = true;
+    apiServiceBusy.value = true;
     try {
       final query = <String, String>{};
       query['page'] = page.toString();
@@ -63,11 +63,11 @@ class CategoryService {
             .toList(),
       );
 
-      apiServiceBusy = false;
+      apiServiceBusy.value = false;
       return result;
     } catch (ex) {
       showError(ex);
-      apiServiceBusy = false;
+      apiServiceBusy.value = false;
       return null;
     }
   }

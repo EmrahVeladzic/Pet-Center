@@ -3,7 +3,6 @@ import 'package:pet_center_app/models/data_transfer/living_condition_dto.dart';
 import 'package:pet_center_app/screens/components/normalized_input.dart';
 
 import 'package:pet_center_app/utils/app_style.dart';
-import 'package:pet_center_app/utils/globals.dart';
 import 'package:pet_center_app/utils/validators.dart';
 
 class LivingConditionDialog extends StatefulWidget {
@@ -134,9 +133,6 @@ class _LivingConditionDialogState extends State<LivingConditionDialog> {
           actions: [
             ElevatedButton(
               onPressed: () {
-                if (apiServiceBusy) {
-                  return;
-                }
                 if (_formKey.currentState != null &&
                     _formKey.currentState!.validate()) {
                   Navigator.of(context).pop();

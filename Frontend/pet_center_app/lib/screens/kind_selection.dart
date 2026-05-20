@@ -7,7 +7,7 @@ import 'package:pet_center_app/services/breed_service.dart';
 
 import 'package:pet_center_app/services/static_user_data_service.dart';
 import 'package:pet_center_app/utils/app_style.dart';
-import 'package:pet_center_app/utils/globals.dart';
+
 import 'package:pet_center_app/utils/jwt_parser.dart';
 
 class KindSelectionScreen extends StatefulWidget {
@@ -20,9 +20,6 @@ class _KindSelectionScreenState extends State<KindSelectionScreen> {
   List<KindDTO> dataSource = kinds;
 
   void switchToSelection(String id, bool userMode) async {
-    if (apiServiceBusy) {
-      return;
-    }
     final count = await BreedService.count(userMode, false, id);
     if (count != null && mounted) {
       Navigator.push(

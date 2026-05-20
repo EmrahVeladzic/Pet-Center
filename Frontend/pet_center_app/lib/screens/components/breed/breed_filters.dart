@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:pet_center_app/utils/app_style.dart';
-import 'package:pet_center_app/utils/globals.dart';
 
 class BreedFilters extends StatefulWidget implements PreferredSizeWidget {
   static const textRows = 1;
@@ -25,7 +24,7 @@ class _BreedFiltersState extends State<BreedFilters> {
   late bool incomplete;
 
   void change(bool inc) {
-    if (apiServiceBusy || !mounted) {
+    if (!mounted) {
       return;
     }
     setState(() {
@@ -62,11 +61,9 @@ class _BreedFiltersState extends State<BreedFilters> {
                   design.fittedText("Incomplete"),
                   Checkbox(
                     value: incomplete,
-                    onChanged: apiServiceBusy
-                        ? null
-                        : (value) {
-                            change(value!);
-                          },
+                    onChanged: (value) {
+                      change(value!);
+                    },
                   ),
                 ],
               ),

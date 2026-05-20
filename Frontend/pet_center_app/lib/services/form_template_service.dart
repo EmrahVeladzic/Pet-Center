@@ -9,7 +9,7 @@ import 'package:pet_center_app/utils/service_output.dart';
 
 class FormTemplateService {
   static Future<int?> count() async {
-    apiServiceBusy = true;
+    apiServiceBusy.value = true;
     try {
       final response = await http.get(
         Uri.parse("${AppConfig.apiBaseUrl}/api/FormTemplate/Count"),
@@ -21,17 +21,17 @@ class FormTemplateService {
         (json) => (json as int),
       );
 
-      apiServiceBusy = false;
+      apiServiceBusy.value = false;
       return result;
     } catch (ex) {
       showError(ex);
-      apiServiceBusy = false;
+      apiServiceBusy.value = false;
       return null;
     }
   }
 
   static Future<List<FormTemplateDTO>?> get(int page) async {
-    apiServiceBusy = true;
+    apiServiceBusy.value = true;
     try {
       final query = <String, String>{};
       query['page'] = page.toString();
@@ -53,11 +53,11 @@ class FormTemplateService {
             .toList(),
       );
 
-      apiServiceBusy = false;
+      apiServiceBusy.value = false;
       return result;
     } catch (ex) {
       showError(ex);
-      apiServiceBusy = false;
+      apiServiceBusy.value = false;
       return null;
     }
   }

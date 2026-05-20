@@ -9,7 +9,7 @@ import 'package:pet_center_app/utils/service_output.dart';
 
 class ItemService {
   static Future<int?> count() async {
-    apiServiceBusy = true;
+    apiServiceBusy.value = true;
     try {
       final response = await http.get(
         Uri.parse("${AppConfig.apiBaseUrl}/api/Item/Count"),
@@ -21,17 +21,17 @@ class ItemService {
         (json) => (json as int),
       );
 
-      apiServiceBusy = false;
+      apiServiceBusy.value = false;
       return result;
     } catch (ex) {
       showError(ex);
-      apiServiceBusy = false;
+      apiServiceBusy.value = false;
       return null;
     }
   }
 
   static Future<List<ItemDTO>?> get(int page) async {
-    apiServiceBusy = true;
+    apiServiceBusy.value = true;
     try {
       final query = <String, String>{};
       query['page'] = page.toString();
@@ -53,11 +53,11 @@ class ItemService {
             .toList(),
       );
 
-      apiServiceBusy = false;
+      apiServiceBusy.value = false;
       return result;
     } catch (ex) {
       showError(ex);
-      apiServiceBusy = false;
+      apiServiceBusy.value = false;
       return null;
     }
   }

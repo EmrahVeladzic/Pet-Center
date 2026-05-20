@@ -6,7 +6,7 @@ import 'package:pet_center_app/services/account_service.dart';
 import 'package:pet_center_app/services/static_user_data_service.dart';
 
 import 'package:pet_center_app/utils/app_style.dart';
-import 'package:pet_center_app/utils/globals.dart';
+
 import 'package:pet_center_app/utils/hive_cache.dart';
 import 'package:pet_center_app/utils/jwt_parser.dart';
 import 'package:pet_center_app/utils/validators.dart';
@@ -34,9 +34,6 @@ class _CredentialsScreenState extends State<CredentialsScreen> {
 
   void _linkAction() async {
     if (unverified) {
-      if (apiServiceBusy) {
-        return;
-      }
       final output = await AccountService.requestVerification();
       if (!mounted) {
         return;
@@ -52,13 +49,7 @@ class _CredentialsScreenState extends State<CredentialsScreen> {
   }
 
   void _linkForgotPassword() async {
-    if (apiServiceBusy) {
-      return;
-    }
     if (contact.isNotEmpty) {
-      if (apiServiceBusy) {
-        return;
-      }
       final output = await AccountService.forgotPassword(contact);
       if (output != null && output.isNotEmpty) {
         showSnackbar(output);
@@ -95,14 +86,8 @@ class _CredentialsScreenState extends State<CredentialsScreen> {
   }
 
   void _sendRequest() async {
-    if (apiServiceBusy) {
-      return;
-    }
     if (!unverified) {
       if (registerMode) {
-        if (apiServiceBusy) {
-          return;
-        }
         final output = await AccountService.register(
           AccountRequestDTO(
             contact: contact,
@@ -120,9 +105,6 @@ class _CredentialsScreenState extends State<CredentialsScreen> {
           });
         }
       } else {
-        if (apiServiceBusy) {
-          return;
-        }
         final output = await AccountService.logIn(
           AccountRequestDTO(contact: contact.trim(), password: password.trim()),
         );
@@ -142,9 +124,6 @@ class _CredentialsScreenState extends State<CredentialsScreen> {
         }
       }
     } else {
-      if (apiServiceBusy) {
-        return;
-      }
       final output = await AccountService.verify(verificationCode);
       if (!mounted) {
         return;

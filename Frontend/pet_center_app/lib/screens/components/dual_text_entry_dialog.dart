@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import 'package:pet_center_app/utils/app_style.dart';
-import 'package:pet_center_app/utils/globals.dart';
 
 class DualTextEntryDialog extends StatefulWidget {
   final int limit;
@@ -131,7 +130,7 @@ class _DualTextEntryDialogState extends State<DualTextEntryDialog> {
                     design.verticalGap(design.spacing / 2),
                     TextButton(
                       onPressed: () {
-                        if (widget.linkCallback != null && !apiServiceBusy) {
+                        if (widget.linkCallback != null) {
                           widget.linkCallback!();
                         }
                       },
@@ -147,9 +146,6 @@ class _DualTextEntryDialogState extends State<DualTextEntryDialog> {
               onPressed: () {
                 if (_formKey.currentState != null &&
                     _formKey.currentState!.validate()) {
-                  if (apiServiceBusy) {
-                    return;
-                  }
                   Navigator.of(context).pop();
                   invokeCallback();
                 }

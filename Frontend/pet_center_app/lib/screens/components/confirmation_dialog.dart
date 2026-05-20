@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:pet_center_app/utils/app_style.dart';
-import 'package:pet_center_app/utils/globals.dart';
 
 class ConfirmationDialog extends StatefulWidget {
   final String title;
@@ -46,9 +45,6 @@ class _ConfirmationDialogState extends State<ConfirmationDialog> {
         actions: [
           ElevatedButton(
             onPressed: () {
-              if (apiServiceBusy) {
-                return;
-              }
               Navigator.of(context).pop();
               widget.confirmAction();
             },

@@ -11,7 +11,7 @@ import 'package:pet_center_app/utils/service_output.dart';
 
 class ImageService {
   static Future<Uint8List?> get(String? token) async {
-    apiServiceBusy = true;
+    apiServiceBusy.value = true;
     try {
       final response = await http.get(
         Uri.parse("${AppConfig.apiBaseUrl}/api/Image"),
@@ -24,17 +24,17 @@ class ImageService {
 
       final result = await ServiceOutput.fromBytes(response);
 
-      apiServiceBusy = false;
+      apiServiceBusy.value = false;
       return result;
     } catch (ex) {
       showError(ex);
-      apiServiceBusy = false;
+      apiServiceBusy.value = false;
       return null;
     }
   }
 
   static Future<ImageDTO?> post(String? token, Uint8List? data) async {
-    apiServiceBusy = true;
+    apiServiceBusy.value = true;
     try {
       final response = await http.post(
         Uri.parse("${AppConfig.apiBaseUrl}/api/Image"),
@@ -51,18 +51,18 @@ class ImageService {
         response,
         (json) => ImageDTO.fromJson(json as Map<String, dynamic>),
       );
-      apiServiceBusy = false;
+      apiServiceBusy.value = false;
 
       return result;
     } catch (ex) {
       showError(ex);
-      apiServiceBusy = false;
+      apiServiceBusy.value = false;
       return null;
     }
   }
 
   static Future<bool> delete(String? token) async {
-    apiServiceBusy = true;
+    apiServiceBusy.value = true;
     try {
       final response = await http.delete(
         Uri.parse("${AppConfig.apiBaseUrl}/api/Image"),
@@ -72,11 +72,11 @@ class ImageService {
         },
       );
 
-      apiServiceBusy = false;
+      apiServiceBusy.value = false;
       return ServiceOutput.isSuccess(response);
     } catch (ex) {
       showError(ex);
-      apiServiceBusy = false;
+      apiServiceBusy.value = false;
       return false;
     }
   }
