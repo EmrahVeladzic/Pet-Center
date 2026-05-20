@@ -1,52 +1,62 @@
 import 'package:flutter/material.dart';
-import 'package:pet_center_app/models/data_transfer/breed_dto.dart';
+
+import 'package:pet_center_app/models/data_transfer/user/user_response_dto.dart';
 import 'package:pet_center_app/models/enums.dart';
-import 'package:pet_center_app/screens/components/breed/breed_card.dart';
-import 'package:pet_center_app/screens/components/breed/breed_filters.dart';
+
 import 'package:pet_center_app/screens/components/page_selector.dart';
-import 'package:pet_center_app/services/breed_service.dart';
+import 'package:pet_center_app/screens/components/user/user_card.dart';
+import 'package:pet_center_app/screens/components/user/user_filters.dart';
+
+import 'package:pet_center_app/services/user_service.dart';
 
 import 'package:pet_center_app/utils/app_style.dart';
-import 'package:pet_center_app/utils/globals.dart';
 import 'package:pet_center_app/utils/jwt_parser.dart';
 
-class BreedSelectionScreen extends StatefulWidget {
+class UserPageScreen extends StatefulWidget {
+  final String? franchiseId;
   final int maxPage;
-  final String? kindId;
-  final bool adoptionPurposes;
-  final bool incomplete;
-
-  const BreedSelectionScreen({
-    super.key,
-    required this.maxPage,
-    required this.adoptionPurposes,
-    required this.incomplete,
-    this.kindId,
-  });
+  const UserPageScreen({super.key, required this.maxPage, this.franchiseId});
 
   @override
-  State<StatefulWidget> createState() => _BreedSelectionScreenState();
+  State<StatefulWidget> createState() => _UserPageScreenState();
 }
 
-class _BreedSelectionScreenState extends State<BreedSelectionScreen> {
-  List<BreedDTO> dataSource = [];
+class _UserPageScreenState extends State<UserPageScreen> {
+  late int pageCount;
+  List<UserResponseDTO> dataSource = [];
   bool _initLoading = true;
   final _pageSelectorKey = GlobalKey<PageSelectorState>();
-  late bool incomplete;
-
+  bool include = true;
+  String userName = "";
   @override
   void initState() {
     super.initState();
-    incomplete = widget.incomplete;
+    pageCount = widget.maxPage;
+
     switchPage(0);
   }
 
+  void hireFire(String id) async {
+    final output = await UserService.setEmployee(
+      id,
+      widget.franchiseId ?? "",
+      !include,
+    );
+
+    if (output != null && mounted) {
+      setState(() {
+        dataSource.removeWhere((e) => e.id == id);
+      });
+      showSnackbar(output);
+    }
+  }
+
   void switchPage(int page) async {
-    final newDataSrc = await BreedService.get(
+    final newDataSrc = await UserService.get(
+      include,
+      userName,
+      widget.franchiseId,
       page,
-      widget.adoptionPurposes,
-      incomplete,
-      widget.kindId,
     );
     if (newDataSrc != null) {
       setState(() {
@@ -58,22 +68,15 @@ class _BreedSelectionScreenState extends State<BreedSelectionScreen> {
     }
   }
 
-  void switchToSelection(String id) async {
-    if (apiServiceBusy) {
-      return;
-    }
-  }
-
-  void resetPages(bool inc) async {
-    final output = await BreedService.count(
-      widget.adoptionPurposes,
-      inc,
-      widget.kindId,
-    );
+  void resetPages(bool inc, String name) async {
+    final output = await UserService.count(inc, name, widget.franchiseId);
     if (!mounted) {
       return;
     }
-    setState(() {});
+    setState(() {
+      include = inc;
+      userName = name;
+    });
     if (output != null) {
       _pageSelectorKey.currentState?.resetMax(output);
     }
@@ -84,7 +87,6 @@ class _BreedSelectionScreenState extends State<BreedSelectionScreen> {
     final ReactiveDesignSystem design = Theme.of(
       context,
     ).extension<ReactiveDesignSystem>()!;
-
     final role = userToken?.role ?? Access.user;
 
     return Scaffold(
@@ -94,13 +96,10 @@ class _BreedSelectionScreenState extends State<BreedSelectionScreen> {
           width: design.screenWidth * marqueeTitleWMult,
           height: design.marqueeSize,
           child: design.textMarquee(
-            (role == Access.user)
-                ? 'Best matches based on living condition:'
-                : "Breeds:",
+            'People:',
             design.screenWidth * marqueeTitleWMult,
           ),
         ),
-        actions: [IconButton(icon: const Icon(Icons.add), onPressed: () {})],
       ),
       body: Center(
         child: FractionallySizedBox(
@@ -120,16 +119,11 @@ class _BreedSelectionScreenState extends State<BreedSelectionScreen> {
                       SliverAppBar(
                         pinned: true,
                         automaticallyImplyLeading: false,
-                        toolbarHeight:
-                            role == Access.admin || role == Access.owner
-                            ? design.getToolbarHeight()
-                            : 0,
+                        toolbarHeight: design.getToolbarHeight(),
+
                         flexibleSpace: FlexibleSpaceBar(
                           collapseMode: CollapseMode.none,
-                          background: BreedFilters(
-                            callback: resetPages,
-                            initIncomplete: incomplete,
-                          ),
+                          background: UserFilters(callback: resetPages),
                         ),
                       ),
                     ],
@@ -137,16 +131,18 @@ class _BreedSelectionScreenState extends State<BreedSelectionScreen> {
                       itemCount: dataSource.length,
                       itemBuilder: (context, index) => Column(
                         children: [
-                          BreedCard(
-                            adminMode:
-                                (role == Access.admin || role == Access.owner),
-                            breed: dataSource[index],
-                            onTap: () {
+                          UserCard(
+                            user: dataSource[index],
+                            asEmployer:
+                                (widget.franchiseId != null &&
+                                role == Access.business),
+                            employed: include,
+                            callback: () {
                               final id = dataSource[index].id;
                               if (id == null) {
                                 return;
                               }
-                              switchToSelection(dataSource[index].id!);
+                              hireFire(id);
                             },
                           ),
                           design.verticalGap(1),
@@ -160,6 +156,7 @@ class _BreedSelectionScreenState extends State<BreedSelectionScreen> {
       bottomNavigationBar: BottomAppBar(
         child: FittedBox(
           fit: BoxFit.scaleDown,
+
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [

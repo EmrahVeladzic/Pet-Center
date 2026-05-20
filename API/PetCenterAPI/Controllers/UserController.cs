@@ -43,7 +43,7 @@ namespace PetCenterAPI.Controllers
        
 
         [HttpPut("SetEmployee/{usr_id}/{franchise_id}")]
-        [Authorize(Roles = "BusinessAccount")]
+        [Authorize(Roles = "Employee")]
         public async Task<IActionResult> SetEmployee([FromRoute] Guid usr_id, [FromRoute] Guid franchise_id, [FromQuery] bool add_remove)
         {
             if(TryGetUserId(out Guid caller_id))

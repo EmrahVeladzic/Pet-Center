@@ -47,7 +47,7 @@ class ListingService {
         query['comment_id'] = commentId;
       }
 
-      final response = await http.put(
+      final response = await http.post(
         Uri.parse(
           "${AppConfig.apiBaseUrl}/api/Listing/Report/$listingId",
         ).replace(queryParameters: query),

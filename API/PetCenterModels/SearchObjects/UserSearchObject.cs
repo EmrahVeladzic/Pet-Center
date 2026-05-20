@@ -11,11 +11,11 @@ namespace PetCenterModels.SearchObjects
 {
     public class UserSearchObject :BaseSearchObject
     {
-        public string UserName { get; set; } = String.Empty;
+        public string? UserName { get; set; } = null;
 
         public Guid? EmployedBy {get; set;} = null;
 
-
+        public bool IncludeExclude {get; set;}= true;
 
     }
 }

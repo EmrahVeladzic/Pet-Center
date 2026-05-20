@@ -36,7 +36,7 @@ namespace PetCenterAPI.Controllers
             return await base.Put(id, ent);
         }
 
-        [HttpDelete]
+        [HttpDelete("{id}")]
         [Authorize(Roles ="Employee")]
         public override Task<IActionResult> Delete([FromRoute] Guid id)
         {

@@ -1,4 +1,7 @@
+import 'dart:convert';
+
 import 'package:http/http.dart' as http;
+import 'package:pet_center_app/models/data_transfer/franchise/franchise_request_dto.dart';
 import 'package:pet_center_app/models/data_transfer/franchise/franchise_response_dto.dart';
 
 import 'package:pet_center_app/utils/app_config.dart';
@@ -104,5 +107,78 @@ class FranchiseService {
     }
 
     return output;
+  }
+
+  static Future<FranchiseResponseDTO?> put(
+    FranchiseRequestDTO req,
+    String id,
+  ) async {
+    apiServiceBusy = true;
+    try {
+      final response = await http.put(
+        Uri.parse("${AppConfig.apiBaseUrl}/api/Franchise/$id"),
+        headers: {
+          'Authorization': 'Bearer $rawToken',
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: jsonEncode(req.toJson()),
+      );
+
+      final result = await ServiceOutput.fromResponse<FranchiseResponseDTO>(
+        response,
+        (json) => FranchiseResponseDTO.fromJson(json as Map<String, dynamic>),
+      );
+
+      apiServiceBusy = false;
+      return result;
+    } catch (ex) {
+      showError(ex);
+      apiServiceBusy = false;
+      return null;
+    }
+  }
+
+  static Future<bool> delete(String franchiseId) async {
+    apiServiceBusy = true;
+    try {
+      final response = await http.delete(
+        Uri.parse("${AppConfig.apiBaseUrl}/api/Franchise/$franchiseId"),
+        headers: {'Authorization': 'Bearer $rawToken'},
+      );
+
+      apiServiceBusy = false;
+      return ServiceOutput.isSuccess(response);
+    } catch (ex) {
+      showError(ex);
+      apiServiceBusy = false;
+      return false;
+    }
+  }
+
+  static Future<FranchiseResponseDTO?> post(FranchiseRequestDTO req) async {
+    apiServiceBusy = true;
+    try {
+      final response = await http.post(
+        Uri.parse("${AppConfig.apiBaseUrl}/api/Franchise"),
+        headers: {
+          'Authorization': 'Bearer $rawToken',
+          'Accept': 'application/json',
+        },
+        body: jsonEncode(req.toJson()),
+      );
+
+      final result = await ServiceOutput.fromResponse<FranchiseResponseDTO>(
+        response,
+        (json) => FranchiseResponseDTO.fromJson(json as Map<String, dynamic>),
+      );
+
+      apiServiceBusy = false;
+      return result;
+    } catch (ex) {
+      showError(ex);
+      apiServiceBusy = false;
+      return null;
+    }
   }
 }

@@ -9,11 +9,13 @@ import 'package:pet_center_app/utils/globals.dart';
 Color mainTone = Color.fromARGB(255, 60, 50, 75);
 Color secondaryTone = Color.fromARGB(255, 50, 40, 55);
 Color panelTone = Color.fromARGB(255, 225, 225, 225);
+Color filterTone = Color.fromARGB(255, 205, 195, 205);
 Color visitedPanelTone = Color.fromARGB(255, 185, 185, 185);
 Color listTone = Color.fromARGB(255, 200, 200, 200);
 Color shadowTone = Color.fromARGB(100, 10, 10, 10);
 Color tabTone = Color.fromARGB(255, 90, 80, 105);
 double marqueeTitleWMult = 0.75;
+double textRowMult = 1.5;
 double marqueeNoteWMult = 0.95;
 double marqueeSpeed = 15.0;
 double marqueeBlank = 125.0;
@@ -162,6 +164,10 @@ class ReactiveDesignSystem extends ThemeExtension<ReactiveDesignSystem> {
           ? []
           : [BoxShadow(blurRadius: spacing / 2, color: shadowTone)],
     );
+  }
+
+  double getToolbarHeight([int textRows = 1, double fontSize = 1.0]) {
+    return textRows * fontSize * textRowMult * kToolbarHeight;
   }
 
   @override

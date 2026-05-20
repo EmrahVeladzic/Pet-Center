@@ -204,7 +204,7 @@ namespace PetCenterServices.Services
                 else if(output.Type ==ListingType.Medical && output.MedicalExtension != null)
                 {
                 
-                    List<Individual> individuals = await dbContext.IndividualAnimals.Where(i=>i.Owned==true&&i.OwnerId==token_holder).ToListAsync();
+                    List<Individual> individuals = await dbContext.IndividualAnimals.Include(a=>a.AnimalBreed).Where(i=>i.Owned==true&&i.OwnerId==token_holder).ToListAsync();
 
                     List<Procedure> procedures = await dbContext.MedicalProcedures.Include(p=>p.Specifications).ToListAsync();
                    

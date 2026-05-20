@@ -38,6 +38,37 @@ class UserService {
     }
   }
 
+  static Future<String?> setEmployee(
+    String userId,
+    String franchiseId,
+    bool hire,
+  ) async {
+    apiServiceBusy = true;
+    try {
+      final query = <String, String>{};
+      query['add_remove'] = hire.toString();
+
+      final response = await http.put(
+        Uri.parse(
+          "${AppConfig.apiBaseUrl}/api/User/SetEmployee/$userId/$franchiseId",
+        ).replace(queryParameters: query),
+        headers: {'Authorization': 'Bearer $rawToken', 'Accept': 'text/plain'},
+      );
+
+      final result = await ServiceOutput.fromResponse<String>(
+        response,
+        (json) => json as String,
+      );
+
+      apiServiceBusy = false;
+      return result;
+    } catch (ex) {
+      showError(ex);
+      apiServiceBusy = false;
+      return null;
+    }
+  }
+
   static Future<String?> getUserStatus() async {
     apiServiceBusy = true;
     try {
@@ -135,6 +166,89 @@ class UserService {
                 )
                 .toList(),
           );
+
+      apiServiceBusy = false;
+      return result;
+    } catch (ex) {
+      showError(ex);
+      apiServiceBusy = false;
+      return null;
+    }
+  }
+
+  static Future<int?> count(
+    bool includeExclude,
+    String? userName,
+    String? employedBy,
+  ) async {
+    apiServiceBusy = true;
+    try {
+      final query = <String, String>{};
+      query['page'] = 0.toString();
+
+      query['includeExclude'] = includeExclude.toString();
+      if (employedBy != null) {
+        query['employedBy'] = employedBy;
+      }
+      if (userName != null && userName.trim() != "") {
+        query['userName'] = userName;
+      }
+
+      final response = await http.get(
+        Uri.parse(
+          "${AppConfig.apiBaseUrl}/api/User/Count",
+        ).replace(queryParameters: query),
+        headers: {'Authorization': 'Bearer $rawToken', 'Accept': 'text/plain'},
+      );
+
+      final result = await ServiceOutput.fromResponse<int>(
+        response,
+        (json) => json as int,
+      );
+
+      apiServiceBusy = false;
+      return result;
+    } catch (ex) {
+      showError(ex);
+      apiServiceBusy = false;
+      return null;
+    }
+  }
+
+  static Future<List<UserResponseDTO>?> get(
+    bool includeExclude,
+    String? userName,
+    String? employedBy,
+    int page,
+  ) async {
+    apiServiceBusy = true;
+    try {
+      final query = <String, String>{};
+      query['page'] = page.toString();
+      if (userName != null && userName.trim() != "") {
+        query['userName'] = userName;
+      }
+      query['includeExclude'] = includeExclude.toString();
+      if (employedBy != null) {
+        query['employedBy'] = employedBy;
+      }
+
+      final response = await http.get(
+        Uri.parse(
+          "${AppConfig.apiBaseUrl}/api/User",
+        ).replace(queryParameters: query),
+        headers: {
+          'Authorization': 'Bearer $rawToken',
+          'Accept': 'application/json',
+        },
+      );
+
+      final result = await ServiceOutput.fromResponse<List<UserResponseDTO>>(
+        response,
+        (json) => (json as List)
+            .map((e) => UserResponseDTO.fromJson(e as Map<String, dynamic>))
+            .toList(),
+      );
 
       apiServiceBusy = false;
       return result;

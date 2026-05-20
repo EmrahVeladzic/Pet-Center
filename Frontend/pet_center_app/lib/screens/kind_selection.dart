@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:pet_center_app/models/data_transfer/kind_dto.dart';
+import 'package:pet_center_app/models/enums.dart';
 import 'package:pet_center_app/screens/breed_selection.dart';
 import 'package:pet_center_app/screens/living_condition.dart';
 import 'package:pet_center_app/services/breed_service.dart';
@@ -7,6 +8,7 @@ import 'package:pet_center_app/services/breed_service.dart';
 import 'package:pet_center_app/services/static_user_data_service.dart';
 import 'package:pet_center_app/utils/app_style.dart';
 import 'package:pet_center_app/utils/globals.dart';
+import 'package:pet_center_app/utils/jwt_parser.dart';
 
 class KindSelectionScreen extends StatefulWidget {
   const KindSelectionScreen({super.key});
@@ -17,18 +19,18 @@ class KindSelectionScreen extends StatefulWidget {
 class _KindSelectionScreenState extends State<KindSelectionScreen> {
   List<KindDTO> dataSource = kinds;
 
-  void switchToSelection(String id) async {
+  void switchToSelection(String id, bool userMode) async {
     if (apiServiceBusy) {
       return;
     }
-    final count = await BreedService.count(true, false, id);
+    final count = await BreedService.count(userMode, false, id);
     if (count != null && mounted) {
       Navigator.push(
         context,
         MaterialPageRoute(
           builder: (_) => BreedSelectionScreen(
             maxPage: count,
-            adoptionPurposes: true,
+            adoptionPurposes: userMode,
             incomplete: false,
             kindId: id,
           ),
@@ -43,6 +45,8 @@ class _KindSelectionScreenState extends State<KindSelectionScreen> {
       context,
     ).extension<ReactiveDesignSystem>()!;
 
+    final role = userToken?.role ?? Access.user;
+
     return Scaffold(
       backgroundColor: mainTone,
       appBar: AppBar(
@@ -50,7 +54,9 @@ class _KindSelectionScreenState extends State<KindSelectionScreen> {
           width: design.screenWidth * marqueeTitleWMult,
           height: design.marqueeSize,
           child: design.textMarquee(
-            'Choose which kind of animal you are interested in:',
+            role == Access.user
+                ? 'Choose which kind of animal you are interested in:'
+                : "Choose kind:",
             design.screenWidth * marqueeTitleWMult,
           ),
         ),
@@ -84,7 +90,7 @@ class _KindSelectionScreenState extends State<KindSelectionScreen> {
                                   if (id == null) {
                                     return;
                                   }
-                                  switchToSelection(id);
+                                  switchToSelection(id, role == Access.user);
                                 },
                                 child: design.fittedText(e.title),
                               ),
@@ -102,23 +108,27 @@ class _KindSelectionScreenState extends State<KindSelectionScreen> {
         ),
       ),
       bottomNavigationBar: BottomAppBar(
-        child: FittedBox(
-          fit: BoxFit.scaleDown,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => LivingConditionScreen()),
-                  );
-                },
-                child: design.fittedText('Specify living conditions'),
-              ),
-            ],
-          ),
-        ),
+        child: role == Access.user
+            ? FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    ElevatedButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => LivingConditionScreen(),
+                          ),
+                        );
+                      },
+                      child: design.fittedText('Specify living conditions'),
+                    ),
+                  ],
+                ),
+              )
+            : const SizedBox.shrink(),
       ),
     );
   }

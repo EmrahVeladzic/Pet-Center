@@ -36,7 +36,7 @@ namespace PetCenterServices.Services
 
             if (search.AuthoritySpecifier == Access.BusinessAccount)
             {
-                output = output.Where(u=>u.UserAccount.AccessLevel==Access.BusinessAccount);
+                output = output.Where(u=>u.UserAccount.AccessLevel==Access.BusinessAccount && u.Id!=token_holder);
             }
 
             if (!string.IsNullOrWhiteSpace(search.UserName))
@@ -46,7 +46,14 @@ namespace PetCenterServices.Services
 
             if (search.EmployedBy != null)
             {
-                output = output.Where(u=> dbContext.EmployeeRecords.Any(e=>e.UserId==u.Id && e.FranchiseId==search.EmployedBy));
+                if (search.IncludeExclude)
+                {
+                    output = output.Where(u=> dbContext.EmployeeRecords.Any(e=>e.UserId==u.Id && e.FranchiseId==search.EmployedBy));
+                }            
+                else
+                {
+                    output = output.Where(u=> !dbContext.EmployeeRecords.Any(e=>e.UserId==u.Id && e.FranchiseId==search.EmployedBy));
+                }
             }
             return Task.FromResult(output);
         }
@@ -170,7 +177,7 @@ namespace PetCenterServices.Services
         public async Task<ServiceOutput<string>> SetEmployee(Guid caller_id, Guid usr_id, Guid franchise_id, bool add_remove)
         {
 
-        await using(IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync(IsolationLevel.Serializable))
+            await using(IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync(IsolationLevel.Serializable))
             {
 
                 try
@@ -182,7 +189,7 @@ namespace PetCenterServices.Services
 
                     if(usr==null || owner==null || franchise==null || usr.UserAccount==null)
                     {
-                        await tx.RollbackAsync();
+                        
                         return ServiceOutput<string>.Error(HttpCode.NotFound,"One or more resources needed for this operation are missing.");
                     }
 
@@ -190,19 +197,19 @@ namespace PetCenterServices.Services
                     {
                         if (franchise.OwnerId != owner.Id)
                         {
-                            await tx.RollbackAsync();
+                            
                             return ServiceOutput<string>.Error(HttpCode.Forbidden,"The token holder does not own the specified franchise.");
                         }
 
                         if (usr.UserAccount.AccessLevel != Access.BusinessAccount)
                         {
-                            await tx.RollbackAsync();
+                            
                             return ServiceOutput<string>.Error(HttpCode.BadRequest,"The specified user is not eligible to be an employee.");
                         }
 
                         if(caller_id == usr_id)
                         {
-                            await tx.RollbackAsync();
+                         
                             return ServiceOutput<string>.Error(HttpCode.BadRequest,"The owner of a franchise is already considered an employee.");
                         }
 
@@ -228,13 +235,13 @@ namespace PetCenterServices.Services
 
                         if (franchise.OwnerId == usr_id)
                         {
-                            await tx.RollbackAsync();
+                           
                             return ServiceOutput<string>.Error(HttpCode.BadRequest,"The owner of a franchise cannot remove themselves from the employee list.");
                         }
 
                         if (franchise.OwnerId != owner.Id && owner.Id!=usr_id)
                         {
-                            await tx.RollbackAsync();
+                           
                             return ServiceOutput<string>.Error(HttpCode.Forbidden,"You are not allowed to perform this operation.");
                         }
 

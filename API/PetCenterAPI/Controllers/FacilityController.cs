@@ -26,7 +26,7 @@ namespace PetCenterAPI.Controllers
         public override async Task<IActionResult> Post([FromBody] FacilityDTO ent)
         {
             ent.Contact = ent.Contact?.ToLowerInvariant();
-            return ResultConverter.Convert<FacilityDTO>(await service.Post(Guid.Empty,ent));
+            return await base.Post(ent);
         }
 
         [HttpPut("{id}")]

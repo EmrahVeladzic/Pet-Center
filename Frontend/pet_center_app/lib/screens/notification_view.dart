@@ -63,7 +63,6 @@ class _NotificationViewScreenState extends State<NotificationViewScreen> {
     return Scaffold(
       backgroundColor: mainTone,
       appBar: AppBar(
-        leading: BackButton(),
         title: SizedBox(
           width: design.screenWidth * marqueeTitleWMult,
           height: design.marqueeSize,

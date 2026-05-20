@@ -46,7 +46,6 @@ class _FeedScreenState extends State<FeedScreen> {
       length: tabs.length,
       child: Scaffold(
         appBar: AppBar(
-          leading: BackButton(),
           title: SizedBox(
             width: design.screenWidth * marqueeTitleWMult,
             height: design.marqueeSize,

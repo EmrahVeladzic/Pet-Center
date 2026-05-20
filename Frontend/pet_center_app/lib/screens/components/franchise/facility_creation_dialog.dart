@@ -22,10 +22,9 @@ class FacilityCreationDialog extends StatefulWidget {
 
 class _FacilityCreationDialogState extends State<FacilityCreationDialog> {
   final _formKey = GlobalKey<FormState>();
-  final TextEditingController _streetController = TextEditingController();
-  final TextEditingController _cityController = TextEditingController();
-  final TextEditingController _contactOverrideController =
-      TextEditingController();
+  late final TextEditingController _streetController;
+  late final TextEditingController _cityController;
+  late final TextEditingController _contactOverrideController;
   bool hasContact = false;
   late FacilityDTO output;
 
@@ -35,6 +34,10 @@ class _FacilityCreationDialogState extends State<FacilityCreationDialog> {
     output =
         widget.editedObject?.copy() ??
         FacilityDTO(owningFranchise: widget.owningFranchiseId);
+
+    _cityController = TextEditingController(text: output.city);
+    _streetController = TextEditingController(text: output.street);
+    _contactOverrideController = TextEditingController(text: output.contact);
   }
 
   void setOutput() {
@@ -87,7 +90,6 @@ class _FacilityCreationDialogState extends State<FacilityCreationDialog> {
                   ColoredBox(
                     color: listTone,
                     child: TextFormField(
-                      initialValue: output.city,
                       controller: _cityController,
                       maxLines: null,
                       maxLength: 100,
@@ -103,7 +105,6 @@ class _FacilityCreationDialogState extends State<FacilityCreationDialog> {
                   ColoredBox(
                     color: listTone,
                     child: TextFormField(
-                      initialValue: output.street,
                       controller: _streetController,
                       maxLines: null,
                       maxLength: 150,
@@ -131,7 +132,6 @@ class _FacilityCreationDialogState extends State<FacilityCreationDialog> {
                     ColoredBox(
                       color: listTone,
                       child: TextFormField(
-                        initialValue: output.contact ?? "",
                         controller: _contactOverrideController,
                         maxLines: null,
                         maxLength: 255,

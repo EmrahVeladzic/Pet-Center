@@ -21,31 +21,6 @@ namespace PetCenterAPI.Controllers
         public AccountController(IAccountService s):base(s) { }
 
 
-        protected bool TryGetJTI(out Guid token_id){
-
-            token_id = default;
-
-            return Guid.TryParse(User.FindFirst(JwtRegisteredClaimNames.Jti)?.Value,out token_id);
-
-        }
-
-        protected bool TryGetJWTExpiry(out DateTime exp){
-
-            exp = default;
-
-            string? value = User.FindFirst(JwtRegisteredClaimNames.Exp)?.Value;
-
-            if (value == null || !long.TryParse(value, out long seconds)){
-                return false;
-            }
-
-            exp = DateTimeOffset.FromUnixTimeSeconds(seconds).UtcDateTime;
-
-            return true;
-        }
-
-        
-
         [HttpGet("Transfer/{old_code}/{new_code}")]
         public async Task<IActionResult> Transfer([FromRoute] int old_code, [FromRoute] int new_code)
         {

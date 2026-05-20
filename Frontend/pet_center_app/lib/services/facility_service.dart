@@ -10,12 +10,12 @@ import 'package:pet_center_app/utils/jwt_parser.dart';
 import 'package:pet_center_app/utils/service_output.dart';
 
 class FacilityService {
-  static Future<int?> count(String facilityId) async {
+  static Future<int?> count(String franchiseId) async {
     apiServiceBusy = true;
     try {
       final query = <String, String>{};
 
-      query['franchiseId'] = facilityId;
+      query['franchiseId'] = franchiseId;
 
       final response = await http.get(
         Uri.parse(
@@ -45,6 +45,7 @@ class FacilityService {
         Uri.parse("${AppConfig.apiBaseUrl}/api/Facility/$id"),
         headers: {
           'Authorization': 'Bearer $rawToken',
+          'Content-Type': 'application/json',
           'Accept': 'application/json',
         },
         body: jsonEncode(input.toJson()),
@@ -52,7 +53,7 @@ class FacilityService {
 
       final result = await ServiceOutput.fromResponse<FacilityDTO>(
         response,
-        (json) => (json as FacilityDTO),
+        (json) => FacilityDTO.fromJson(json as Map<String, dynamic>),
       );
 
       apiServiceBusy = false;
@@ -71,6 +72,7 @@ class FacilityService {
         Uri.parse("${AppConfig.apiBaseUrl}/api/Facility"),
         headers: {
           'Authorization': 'Bearer $rawToken',
+          'Content-Type': 'application/json',
           'Accept': 'application/json',
         },
         body: jsonEncode(input.toJson()),
@@ -78,7 +80,7 @@ class FacilityService {
 
       final result = await ServiceOutput.fromResponse<FacilityDTO>(
         response,
-        (json) => (json as FacilityDTO),
+        (json) => FacilityDTO.fromJson(json as Map<String, dynamic>),
       );
 
       apiServiceBusy = false;
@@ -90,17 +92,11 @@ class FacilityService {
     }
   }
 
-  static Future<bool> delete(String franchiseId) async {
+  static Future<bool> delete(String facilityId) async {
     apiServiceBusy = true;
     try {
-      final query = <String, String>{};
-
-      query['franchiseId'] = franchiseId;
-
       final response = await http.delete(
-        Uri.parse(
-          "${AppConfig.apiBaseUrl}/api/Facility/Count/$franchiseId",
-        ).replace(queryParameters: query),
+        Uri.parse("${AppConfig.apiBaseUrl}/api/Facility/$facilityId"),
         headers: {'Authorization': 'Bearer $rawToken', 'Accept': 'text/plain'},
       );
 
@@ -113,13 +109,13 @@ class FacilityService {
     }
   }
 
-  static Future<List<FacilityDTO>?> get(String facilityId, int page) async {
+  static Future<List<FacilityDTO>?> get(String franchiseId, int page) async {
     apiServiceBusy = true;
     try {
       final query = <String, String>{};
       query['page'] = page.toString();
 
-      query['franchiseId'] = facilityId;
+      query['franchiseId'] = franchiseId;
 
       final response = await http.get(
         Uri.parse(
@@ -147,8 +143,8 @@ class FacilityService {
     }
   }
 
-  static Future<List<FacilityDTO>?> getAll(String facilityId) async {
-    final pageCount = await count(facilityId);
+  static Future<List<FacilityDTO>?> getAll(String franchiseId) async {
+    final pageCount = await count(franchiseId);
 
     if (pageCount == null) {
       return null;
@@ -158,7 +154,7 @@ class FacilityService {
     final seen = <String?>{};
 
     for (int i = 0; i < pageCount; i++) {
-      final newEntries = await get(facilityId, i);
+      final newEntries = await get(franchiseId, i);
 
       if (newEntries == null) {
         return null;

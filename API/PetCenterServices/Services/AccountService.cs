@@ -31,14 +31,14 @@ namespace PetCenterServices.Services
             message_bus_client=client;
         }
 
-        protected override async Task<IQueryable<Account>> Filter(Guid token_holder, AccountSearchObject search)
+        protected override Task<IQueryable<Account>> Filter(Guid token_holder, AccountSearchObject search)
         {
-            IQueryable<Account> output = await base.Filter(token_holder,search);
+            IQueryable<Account> output = dbSet.Include(a=>a.AccountUser).OrderBy(a=>a.Id);
             if (search.Role != null)
             {
                 output = output.Where(a=>a.AccessLevel==search.Role);
             }
-            return output;
+            return Task<IQueryable<Account>>.FromResult(output);
         }
 
         public override async Task<ServiceOutput<AccountResponseDTO>> Post(Guid token_holder,AccountRequestDTO req)
@@ -103,6 +103,9 @@ namespace PetCenterServices.Services
                         await message_bus_client.SendEmailMessage(new ConsumerMessage(){Contact=acc.Contact,Message=$"Your verification code is {code}.",Subject="Welcome!",Name=usr.UserName});
 
                     }
+
+                    acc.AccountUser=usr;
+
                     return ServiceOutput<AccountResponseDTO>.Success(AccountResponseDTO.FromEntity(acc),HttpCode.Created);
                 }
                 catch(Exception ex)
@@ -234,7 +237,7 @@ namespace PetCenterServices.Services
         public override async Task<ServiceOutput<AccountResponseDTO>> Put(Guid token_holder,AccountRequestDTO req)
         {      
 
-            Account? acc = await dbContext.Accounts.FindAsync(req.Id);
+            Account? acc = await dbContext.Accounts.Include(a=>a.AccountUser).FirstOrDefaultAsync(a=>a.Id==req.Id);
 
             if (acc != null)
             {                

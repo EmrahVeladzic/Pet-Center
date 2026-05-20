@@ -33,6 +33,9 @@ class _ReportDialogState extends State<ReportDialog> {
     if (output != null) {
       showSnackbar("Report submitted.");
     }
+    if (mounted) {
+      Navigator.of(context).pop();
+    }
   }
 
   @override
@@ -98,7 +101,7 @@ class _ReportDialogState extends State<ReportDialog> {
                   if (apiServiceBusy) {
                     return;
                   }
-                  Navigator.of(context).pop();
+
                   sendReport();
                   widget.reportAction();
                 }

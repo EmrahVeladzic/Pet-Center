@@ -97,7 +97,7 @@ namespace PetCenterServices.Services
 
             
 
-            return ServiceOutput<FranchiseResponseDTO>.Success(FranchiseResponseDTO.FromEntity(franch),HttpCode.Created);
+            return ServiceOutput<FranchiseResponseDTO>.Success(FranchiseResponseDTO.FromEntity(franch,token_holder==franch.OwnerId),HttpCode.Created);
 
         }
 
@@ -123,7 +123,7 @@ namespace PetCenterServices.Services
                 }
             }
 
-            return ServiceOutput<FranchiseResponseDTO>.Success(FranchiseResponseDTO.FromEntity(franch),HttpCode.OK);
+            return ServiceOutput<FranchiseResponseDTO>.Success(FranchiseResponseDTO.FromEntity(franch,token_holder==franch.OwnerId),HttpCode.OK);
 
         }
 

@@ -59,7 +59,6 @@ class _ListingViewScreenState extends State<ListingViewScreen> {
     return Scaffold(
       backgroundColor: mainTone,
       appBar: AppBar(
-        leading: BackButton(),
         title: SizedBox(
           width: design.screenWidth * marqueeTitleWMult,
           height: design.marqueeSize,

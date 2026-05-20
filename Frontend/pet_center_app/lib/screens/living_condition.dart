@@ -16,6 +16,8 @@ class LivingConditionScreen extends StatefulWidget {
 }
 
 class _LivingConditionScreenState extends State<LivingConditionScreen> {
+  void deleteField(String id) async {}
+
   @override
   Widget build(BuildContext context) {
     final ReactiveDesignSystem design = Theme.of(

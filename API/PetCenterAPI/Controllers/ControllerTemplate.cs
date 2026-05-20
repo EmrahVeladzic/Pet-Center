@@ -8,6 +8,7 @@ using PetCenterModels.DataTransferObjects;
 using PetCenterServices.Utils;
 using System.Security.Claims;
 using PetCenterModels.ModelUtils;
+using Microsoft.IdentityModel.JsonWebTokens;
 
 namespace PetCenterAPI.Controllers
 {
@@ -17,6 +18,30 @@ namespace PetCenterAPI.Controllers
     public class ControllerTemplate<TEntity, TSearch,TRequest,TResponse, TService> : ControllerBase where TEntity : BaseTableEntity where TSearch : BaseSearchObject where TRequest : IBaseRequestDTO where TResponse : IBaseResponseDTO<TEntity,TResponse> where TService : IBaseCRUDService<TEntity,TSearch,TRequest,TResponse>
     {
         protected readonly TService service;
+
+        
+        protected bool TryGetJTI(out Guid token_id){
+
+            token_id = default;
+
+            return Guid.TryParse(User.FindFirst(JwtRegisteredClaimNames.Jti)?.Value,out token_id);
+
+        }
+
+        protected bool TryGetJWTExpiry(out DateTime exp){
+
+            exp = default;
+
+            string? value = User.FindFirst(JwtRegisteredClaimNames.Exp)?.Value;
+
+            if (value == null || !long.TryParse(value, out long seconds)){
+                return false;
+            }
+
+            exp = DateTimeOffset.FromUnixTimeSeconds(seconds).UtcDateTime;
+
+            return true;
+        }
 
         protected bool TryGetUserId(out Guid user_id){
 

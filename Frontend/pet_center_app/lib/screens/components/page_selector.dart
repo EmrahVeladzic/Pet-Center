@@ -19,6 +19,7 @@ class PageSelector extends StatefulWidget {
 
 class PageSelectorState extends State<PageSelector> {
   late TextEditingController controller;
+  late int maxPage;
   int currentPage = 1;
   int _lastConfirmedPage = 1;
 
@@ -26,12 +27,25 @@ class PageSelectorState extends State<PageSelector> {
   void initState() {
     super.initState();
     controller = TextEditingController(text: currentPage.toString());
+    maxPage = widget.maxPage;
   }
 
   @override
   void dispose() {
     controller.dispose();
     super.dispose();
+  }
+
+  void resetMax(int newMax) {
+    if (!mounted) {
+      return;
+    }
+    setState(() {
+      maxPage = newMax;
+      currentPage = 1;
+      _lastConfirmedPage = 1;
+    });
+    changePage(1);
   }
 
   void revertPage() {
@@ -46,7 +60,7 @@ class PageSelectorState extends State<PageSelector> {
       controller.text = currentPage.toString();
       return;
     }
-    if (page < 1 || page > widget.maxPage) {
+    if (page < 1 || page > maxPage) {
       controller.text = currentPage.toString();
       return;
     }
@@ -94,7 +108,7 @@ class PageSelectorState extends State<PageSelector> {
           ),
 
           IconButton(
-            onPressed: currentPage < widget.maxPage
+            onPressed: currentPage < maxPage
                 ? () => changePage(currentPage + 1)
                 : null,
             icon: const Icon(Icons.chevron_right),
