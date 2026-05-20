@@ -14,7 +14,7 @@ import 'package:pet_center_app/utils/service_output.dart';
 
 class UserService {
   static Future<UserResponseDTO?> getSelf() async {
-    apiServiceBusy = true;
+    apiServiceBusy.value = true;
     try {
       final response = await http.get(
         Uri.parse("${AppConfig.apiBaseUrl}/api/User/Me"),
@@ -29,11 +29,11 @@ class UserService {
         (json) => UserResponseDTO.fromJson(json as Map<String, dynamic>),
       );
 
-      apiServiceBusy = false;
+      apiServiceBusy.value = false;
       return result;
     } catch (ex) {
       showError(ex);
-      apiServiceBusy = false;
+      apiServiceBusy.value = false;
       return null;
     }
   }
@@ -43,7 +43,7 @@ class UserService {
     String franchiseId,
     bool hire,
   ) async {
-    apiServiceBusy = true;
+    apiServiceBusy.value = true;
     try {
       final query = <String, String>{};
       query['add_remove'] = hire.toString();
@@ -60,17 +60,17 @@ class UserService {
         (json) => json as String,
       );
 
-      apiServiceBusy = false;
+      apiServiceBusy.value = false;
       return result;
     } catch (ex) {
       showError(ex);
-      apiServiceBusy = false;
+      apiServiceBusy.value = false;
       return null;
     }
   }
 
   static Future<String?> getUserStatus() async {
-    apiServiceBusy = true;
+    apiServiceBusy.value = true;
     try {
       final response = await http.get(
         Uri.parse("${AppConfig.apiBaseUrl}/api/User/Status"),
@@ -82,17 +82,17 @@ class UserService {
         (json) => json as String,
       );
 
-      apiServiceBusy = false;
+      apiServiceBusy.value = false;
       return result;
     } catch (ex) {
       showError(ex);
-      apiServiceBusy = false;
+      apiServiceBusy.value = false;
       return null;
     }
   }
 
   static Future<UserResponseDTO?> update(UserRequestDTO input) async {
-    apiServiceBusy = true;
+    apiServiceBusy.value = true;
     try {
       final response = await http.put(
         Uri.parse("${AppConfig.apiBaseUrl}/api/User/${self?.id}"),
@@ -109,17 +109,17 @@ class UserService {
         (json) => UserResponseDTO.fromJson(json as Map<String, dynamic>),
       );
 
-      apiServiceBusy = false;
+      apiServiceBusy.value = false;
       return result;
     } catch (ex) {
       showError(ex);
-      apiServiceBusy = false;
+      apiServiceBusy.value = false;
       return null;
     }
   }
 
   static Future<List<AnnouncementSubDTO>?> getAnnouncements() async {
-    apiServiceBusy = true;
+    apiServiceBusy.value = true;
     try {
       final response = await http.get(
         Uri.parse("${AppConfig.apiBaseUrl}/api/User/Announcement"),
@@ -136,17 +136,17 @@ class UserService {
             .toList(),
       );
 
-      apiServiceBusy = false;
+      apiServiceBusy.value = false;
       return result;
     } catch (ex) {
       showError(ex);
-      apiServiceBusy = false;
+      apiServiceBusy.value = false;
       return null;
     }
   }
 
   static Future<List<ReportResponseSubDTO>?> getReports() async {
-    apiServiceBusy = true;
+    apiServiceBusy.value = true;
     try {
       final response = await http.get(
         Uri.parse("${AppConfig.apiBaseUrl}/api/User/Report"),
@@ -167,11 +167,11 @@ class UserService {
                 .toList(),
           );
 
-      apiServiceBusy = false;
+      apiServiceBusy.value = false;
       return result;
     } catch (ex) {
       showError(ex);
-      apiServiceBusy = false;
+      apiServiceBusy.value = false;
       return null;
     }
   }
@@ -181,7 +181,7 @@ class UserService {
     String? userName,
     String? employedBy,
   ) async {
-    apiServiceBusy = true;
+    apiServiceBusy.value = true;
     try {
       final query = <String, String>{};
       query['page'] = 0.toString();
@@ -206,11 +206,11 @@ class UserService {
         (json) => json as int,
       );
 
-      apiServiceBusy = false;
+      apiServiceBusy.value = false;
       return result;
     } catch (ex) {
       showError(ex);
-      apiServiceBusy = false;
+      apiServiceBusy.value = false;
       return null;
     }
   }
@@ -221,7 +221,7 @@ class UserService {
     String? employedBy,
     int page,
   ) async {
-    apiServiceBusy = true;
+    apiServiceBusy.value = true;
     try {
       final query = <String, String>{};
       query['page'] = page.toString();
@@ -250,28 +250,28 @@ class UserService {
             .toList(),
       );
 
-      apiServiceBusy = false;
+      apiServiceBusy.value = false;
       return result;
     } catch (ex) {
       showError(ex);
-      apiServiceBusy = false;
+      apiServiceBusy.value = false;
       return null;
     }
   }
 
   static Future<bool> reset() async {
-    apiServiceBusy = true;
+    apiServiceBusy.value = true;
     try {
       final response = await http.delete(
         Uri.parse("${AppConfig.apiBaseUrl}/api/User/${self?.id}"),
         headers: {'Authorization': 'Bearer $rawToken'},
       );
 
-      apiServiceBusy = false;
+      apiServiceBusy.value = false;
       return ServiceOutput.isSuccess(response);
     } catch (ex) {
       showError(ex);
-      apiServiceBusy = false;
+      apiServiceBusy.value = false;
       return false;
     }
   }

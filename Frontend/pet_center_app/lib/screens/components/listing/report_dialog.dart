@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import 'package:pet_center_app/services/listing_service.dart';
 import 'package:pet_center_app/utils/app_style.dart';
-import 'package:pet_center_app/utils/globals.dart';
 import 'package:pet_center_app/utils/validators.dart';
 
 class ReportDialog extends StatefulWidget {
@@ -98,10 +97,6 @@ class _ReportDialogState extends State<ReportDialog> {
               onPressed: () {
                 if (_formKey.currentState != null &&
                     _formKey.currentState!.validate()) {
-                  if (apiServiceBusy) {
-                    return;
-                  }
-
                   sendReport();
                   widget.reportAction();
                 }

@@ -56,7 +56,7 @@ class PageSelectorState extends State<PageSelector> {
   }
 
   void changePage(int page) {
-    if (apiServiceBusy) {
+    if (apiServiceBusy.value) {
       controller.text = currentPage.toString();
       return;
     }

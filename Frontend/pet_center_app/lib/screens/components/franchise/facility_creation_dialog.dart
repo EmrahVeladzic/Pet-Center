@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:pet_center_app/models/data_transfer/facility_dto.dart';
 
 import 'package:pet_center_app/utils/app_style.dart';
-import 'package:pet_center_app/utils/globals.dart';
 import 'package:pet_center_app/utils/validators.dart';
 
 class FacilityCreationDialog extends StatefulWidget {
@@ -156,9 +155,6 @@ class _FacilityCreationDialogState extends State<FacilityCreationDialog> {
               onPressed: () {
                 if (_formKey.currentState != null &&
                     _formKey.currentState!.validate()) {
-                  if (apiServiceBusy) {
-                    return;
-                  }
                   Navigator.of(context).pop();
                   setOutput();
                   widget.creationCallback(output);

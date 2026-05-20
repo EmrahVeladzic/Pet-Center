@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:pet_center_app/models/data_transfer/image_dto.dart';
 import 'package:pet_center_app/services/image_service.dart';
 import 'package:pet_center_app/utils/app_style.dart';
-import 'package:pet_center_app/utils/globals.dart';
 import 'package:pet_center_app/utils/image_cache_service.dart';
 
 class ImageDisplay extends StatefulWidget {
@@ -185,9 +184,6 @@ class _ImageDisplayState extends State<ImageDisplay> {
   }
 
   Future<void> _onDelete() async {
-    if (apiServiceBusy) {
-      return;
-    }
     final success = await ImageService.delete(dataSrc?.token);
     if (success) {
       ImageCacheService.instance.invalidate(dataSrc!.hash);
@@ -199,9 +195,6 @@ class _ImageDisplayState extends State<ImageDisplay> {
   }
 
   Future<void> _onCreate() async {
-    if (apiServiceBusy) {
-      return;
-    }
     final result = await FilePicker.pickFiles(
       type: FileType.custom,
       allowedExtensions: ['webp', 'png', 'jpg', 'jpeg', 'bmp', 'gif'],

@@ -3,7 +3,6 @@ import 'package:pet_center_app/models/data_transfer/living_condition_dto.dart';
 import 'package:pet_center_app/models/enums.dart';
 import 'package:pet_center_app/screens/components/radio_button_component.dart';
 import 'package:pet_center_app/utils/app_style.dart';
-import 'package:pet_center_app/utils/globals.dart';
 import 'package:pet_center_app/utils/jwt_parser.dart';
 
 class LivingConditionCard extends StatefulWidget {
@@ -91,25 +90,20 @@ class _LivingConditionCardState extends State<LivingConditionCard> {
               ],
             ),
 
-            if (role == Access.user && !apiServiceBusy) ...[
+            if (role == Access.user) ...[
               design.verticalGap(design.spacing / 2),
-              AbsorbPointer(
-                absorbing: apiServiceBusy,
-                child: RadioButtonComponent<bool?>(
-                  options: const [
-                    RadioOption<bool?>(value: true, label: "Yes"),
-                    RadioOption<bool?>(value: null, label: "Unsure"),
-                    RadioOption<bool?>(value: false, label: "No"),
-                  ],
-                  groupValue: _answer,
-                  onChanged: (value) {
-                    if (apiServiceBusy) {
-                      return;
-                    }
-                    setState(() => _answer = value);
-                    onAnswer(value);
-                  },
-                ),
+
+              RadioButtonComponent<bool?>(
+                options: const [
+                  RadioOption<bool?>(value: true, label: "Yes"),
+                  RadioOption<bool?>(value: null, label: "Unsure"),
+                  RadioOption<bool?>(value: false, label: "No"),
+                ],
+                groupValue: _answer,
+                onChanged: (value) {
+                  setState(() => _answer = value);
+                  onAnswer(value);
+                },
               ),
             ],
           ],

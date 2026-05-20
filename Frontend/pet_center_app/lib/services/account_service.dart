@@ -13,7 +13,7 @@ import 'package:pet_center_app/utils/service_output.dart';
 
 class AccountService {
   static Future<String?> logIn(AccountRequestDTO input) async {
-    apiServiceBusy = true;
+    apiServiceBusy.value = true;
     try {
       final response = await http.post(
         Uri.parse("${AppConfig.apiBaseUrl}/api/Account/LogIn"),
@@ -26,17 +26,17 @@ class AccountService {
         (json) => json as String,
       );
 
-      apiServiceBusy = false;
+      apiServiceBusy.value = false;
       return result;
     } catch (ex) {
       showError(ex);
-      apiServiceBusy = false;
+      apiServiceBusy.value = false;
       return null;
     }
   }
 
   static Future<AccountResponseDTO?> register(AccountRequestDTO input) async {
-    apiServiceBusy = true;
+    apiServiceBusy.value = true;
     try {
       final response = await http.post(
         Uri.parse("${AppConfig.apiBaseUrl}/api/Account"),
@@ -52,17 +52,17 @@ class AccountService {
         (json) => AccountResponseDTO.fromJson(json as Map<String, dynamic>),
       );
 
-      apiServiceBusy = false;
+      apiServiceBusy.value = false;
       return result;
     } catch (ex) {
       showError(ex);
-      apiServiceBusy = false;
+      apiServiceBusy.value = false;
       return null;
     }
   }
 
   static Future<AccountResponseDTO?> update(AccountRequestDTO input) async {
-    apiServiceBusy = true;
+    apiServiceBusy.value = true;
     try {
       final response = await http.put(
         Uri.parse("${AppConfig.apiBaseUrl}/api/Account/${self?.id}"),
@@ -79,17 +79,17 @@ class AccountService {
         (json) => AccountResponseDTO.fromJson(json as Map<String, dynamic>),
       );
 
-      apiServiceBusy = false;
+      apiServiceBusy.value = false;
       return result;
     } catch (ex) {
       showError(ex);
-      apiServiceBusy = false;
+      apiServiceBusy.value = false;
       return null;
     }
   }
 
   static Future<String?> forgotPassword(String contact) async {
-    apiServiceBusy = true;
+    apiServiceBusy.value = true;
     try {
       final response = await http.get(
         Uri.parse(
@@ -103,17 +103,17 @@ class AccountService {
         (json) => json as String,
       );
 
-      apiServiceBusy = false;
+      apiServiceBusy.value = false;
       return result;
     } catch (ex) {
       showError(ex);
-      apiServiceBusy = false;
+      apiServiceBusy.value = false;
       return null;
     }
   }
 
   static Future<String?> requestTransfer() async {
-    apiServiceBusy = true;
+    apiServiceBusy.value = true;
     try {
       final response = await http.get(
         Uri.parse("${AppConfig.apiBaseUrl}/api/Account/RequestTransfer"),
@@ -125,17 +125,17 @@ class AccountService {
         (json) => json as String,
       );
 
-      apiServiceBusy = false;
+      apiServiceBusy.value = false;
       return result;
     } catch (ex) {
       showError(ex);
-      apiServiceBusy = false;
+      apiServiceBusy.value = false;
       return null;
     }
   }
 
   static Future<String?> transferAccount(int oldCode, int newCode) async {
-    apiServiceBusy = true;
+    apiServiceBusy.value = true;
     try {
       final response = await http.get(
         Uri.parse(
@@ -149,17 +149,17 @@ class AccountService {
         (json) => json as String,
       );
 
-      apiServiceBusy = false;
+      apiServiceBusy.value = false;
       return result;
     } catch (ex) {
       showError(ex);
-      apiServiceBusy = false;
+      apiServiceBusy.value = false;
       return null;
     }
   }
 
   static Future<String?> requestVerification() async {
-    apiServiceBusy = true;
+    apiServiceBusy.value = true;
     try {
       final response = await http.get(
         Uri.parse("${AppConfig.apiBaseUrl}/api/Account/RequestVerification"),
@@ -171,17 +171,17 @@ class AccountService {
         (json) => json as String,
       );
 
-      apiServiceBusy = false;
+      apiServiceBusy.value = false;
       return result;
     } catch (ex) {
       showError(ex);
-      apiServiceBusy = false;
+      apiServiceBusy.value = false;
       return null;
     }
   }
 
   static Future<String?> verify(int code) async {
-    apiServiceBusy = true;
+    apiServiceBusy.value = true;
     try {
       final response = await http.post(
         Uri.parse("${AppConfig.apiBaseUrl}/api/Account/Verify/$code"),
@@ -193,17 +193,17 @@ class AccountService {
         (json) => json as String,
       );
 
-      apiServiceBusy = false;
+      apiServiceBusy.value = false;
       return result;
     } catch (ex) {
       showError(ex);
-      apiServiceBusy = false;
+      apiServiceBusy.value = false;
       return null;
     }
   }
 
   static Future<String?> setRole(String id, Access role) async {
-    apiServiceBusy = true;
+    apiServiceBusy.value = true;
     try {
       final response = await http.put(
         Uri.parse("${AppConfig.apiBaseUrl}/api/Account/SetRole/$id/$role"),
@@ -215,45 +215,45 @@ class AccountService {
         (json) => json as String,
       );
 
-      apiServiceBusy = false;
+      apiServiceBusy.value = false;
       return result;
     } catch (ex) {
       showError(ex);
-      apiServiceBusy = false;
+      apiServiceBusy.value = false;
       return null;
     }
   }
 
   static Future<bool> logOut() async {
-    apiServiceBusy = true;
+    apiServiceBusy.value = true;
     try {
       final response = await http.get(
         Uri.parse("${AppConfig.apiBaseUrl}/api/Account/LogOut"),
         headers: {'Authorization': 'Bearer $rawToken'},
       );
 
-      apiServiceBusy = false;
+      apiServiceBusy.value = false;
       return ServiceOutput.isSuccess(response);
     } catch (ex) {
       showError(ex);
-      apiServiceBusy = false;
+      apiServiceBusy.value = false;
       return false;
     }
   }
 
   static Future<bool> delete(String id) async {
-    apiServiceBusy = true;
+    apiServiceBusy.value = true;
     try {
       final response = await http.delete(
         Uri.parse("${AppConfig.apiBaseUrl}/api/Account/$id"),
         headers: {'Authorization': 'Bearer $rawToken'},
       );
 
-      apiServiceBusy = false;
+      apiServiceBusy.value = false;
       return ServiceOutput.isSuccess(response);
     } catch (ex) {
       showError(ex);
-      apiServiceBusy = false;
+      apiServiceBusy.value = false;
       return false;
     }
   }

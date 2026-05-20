@@ -12,7 +12,7 @@ import 'package:pet_center_app/utils/service_output.dart';
 
 class FranchiseService {
   static Future<int?> count(String? relatedUser) async {
-    apiServiceBusy = true;
+    apiServiceBusy.value = true;
     try {
       final query = <String, String>{};
       if (relatedUser != null) {
@@ -31,11 +31,11 @@ class FranchiseService {
         (json) => (json as int),
       );
 
-      apiServiceBusy = false;
+      apiServiceBusy.value = false;
       return result;
     } catch (ex) {
       showError(ex);
-      apiServiceBusy = false;
+      apiServiceBusy.value = false;
       return null;
     }
   }
@@ -44,7 +44,7 @@ class FranchiseService {
     String? relatedUser,
     int page,
   ) async {
-    apiServiceBusy = true;
+    apiServiceBusy.value = true;
     try {
       final query = <String, String>{};
       query['page'] = page.toString();
@@ -73,11 +73,11 @@ class FranchiseService {
                 .toList(),
           );
 
-      apiServiceBusy = false;
+      apiServiceBusy.value = false;
       return result;
     } catch (ex) {
       showError(ex);
-      apiServiceBusy = false;
+      apiServiceBusy.value = false;
       return null;
     }
   }
@@ -113,7 +113,7 @@ class FranchiseService {
     FranchiseRequestDTO req,
     String id,
   ) async {
-    apiServiceBusy = true;
+    apiServiceBusy.value = true;
     try {
       final response = await http.put(
         Uri.parse("${AppConfig.apiBaseUrl}/api/Franchise/$id"),
@@ -130,34 +130,34 @@ class FranchiseService {
         (json) => FranchiseResponseDTO.fromJson(json as Map<String, dynamic>),
       );
 
-      apiServiceBusy = false;
+      apiServiceBusy.value = false;
       return result;
     } catch (ex) {
       showError(ex);
-      apiServiceBusy = false;
+      apiServiceBusy.value = false;
       return null;
     }
   }
 
   static Future<bool> delete(String franchiseId) async {
-    apiServiceBusy = true;
+    apiServiceBusy.value = true;
     try {
       final response = await http.delete(
         Uri.parse("${AppConfig.apiBaseUrl}/api/Franchise/$franchiseId"),
         headers: {'Authorization': 'Bearer $rawToken'},
       );
 
-      apiServiceBusy = false;
+      apiServiceBusy.value = false;
       return ServiceOutput.isSuccess(response);
     } catch (ex) {
       showError(ex);
-      apiServiceBusy = false;
+      apiServiceBusy.value = false;
       return false;
     }
   }
 
   static Future<FranchiseResponseDTO?> post(FranchiseRequestDTO req) async {
-    apiServiceBusy = true;
+    apiServiceBusy.value = true;
     try {
       final response = await http.post(
         Uri.parse("${AppConfig.apiBaseUrl}/api/Franchise"),
@@ -173,11 +173,11 @@ class FranchiseService {
         (json) => FranchiseResponseDTO.fromJson(json as Map<String, dynamic>),
       );
 
-      apiServiceBusy = false;
+      apiServiceBusy.value = false;
       return result;
     } catch (ex) {
       showError(ex);
-      apiServiceBusy = false;
+      apiServiceBusy.value = false;
       return null;
     }
   }

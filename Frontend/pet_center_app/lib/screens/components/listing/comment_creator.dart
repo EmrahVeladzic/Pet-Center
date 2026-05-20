@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:pet_center_app/models/data_transfer/listing/sub_dtos.dart';
 import 'package:pet_center_app/services/listing_service.dart';
 import 'package:pet_center_app/utils/app_style.dart';
-import 'package:pet_center_app/utils/globals.dart';
 import 'package:pet_center_app/utils/validators.dart';
 
 class CommentCreator extends StatefulWidget {
@@ -30,9 +29,6 @@ class _CommentCreatorState extends State<CommentCreator> {
   }
 
   void sendReview() async {
-    if (apiServiceBusy) {
-      return;
-    }
     final String text = _controller.text.trim();
     if (text.isEmpty) return;
 

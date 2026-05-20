@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:signals/signals_core.dart';
 
 final GlobalKey<ScaffoldMessengerState> rootScaffoldKey =
     GlobalKey<ScaffoldMessengerState>();
 
-bool apiServiceBusy = false;
+final apiServiceBusy = signal<bool>(false);

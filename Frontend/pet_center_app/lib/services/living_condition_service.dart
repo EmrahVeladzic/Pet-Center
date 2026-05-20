@@ -11,7 +11,7 @@ import 'package:pet_center_app/utils/service_output.dart';
 
 class LivingConditionService {
   static Future<int?> count() async {
-    apiServiceBusy = true;
+    apiServiceBusy.value = true;
     try {
       final response = await http.get(
         Uri.parse("${AppConfig.apiBaseUrl}/api/LivingConditionField/Count"),
@@ -23,17 +23,17 @@ class LivingConditionService {
         (json) => (json as int),
       );
 
-      apiServiceBusy = false;
+      apiServiceBusy.value = false;
       return result;
     } catch (ex) {
       showError(ex);
-      apiServiceBusy = false;
+      apiServiceBusy.value = false;
       return null;
     }
   }
 
   static Future<List<LivingConditionFieldDTO>?> get(int page) async {
-    apiServiceBusy = true;
+    apiServiceBusy.value = true;
     try {
       final query = <String, String>{};
       query['page'] = page.toString();
@@ -60,11 +60,11 @@ class LivingConditionService {
                 .toList(),
           );
 
-      apiServiceBusy = false;
+      apiServiceBusy.value = false;
       return result;
     } catch (ex) {
       showError(ex);
-      apiServiceBusy = false;
+      apiServiceBusy.value = false;
       return null;
     }
   }
@@ -100,7 +100,7 @@ class LivingConditionService {
     LivingConditionFieldDTO input,
     String id,
   ) async {
-    apiServiceBusy = true;
+    apiServiceBusy.value = true;
     try {
       final response = await http.put(
         Uri.parse("${AppConfig.apiBaseUrl}/api/LivingConditionField/$id"),
@@ -118,11 +118,11 @@ class LivingConditionService {
             LivingConditionFieldDTO.fromJson(json as Map<String, dynamic>),
       );
 
-      apiServiceBusy = false;
+      apiServiceBusy.value = false;
       return result;
     } catch (ex) {
       showError(ex);
-      apiServiceBusy = false;
+      apiServiceBusy.value = false;
       return null;
     }
   }
@@ -130,7 +130,7 @@ class LivingConditionService {
   static Future<LivingConditionFieldDTO?> post(
     LivingConditionFieldDTO input,
   ) async {
-    apiServiceBusy = true;
+    apiServiceBusy.value = true;
     try {
       final response = await http.post(
         Uri.parse("${AppConfig.apiBaseUrl}/api/LivingConditionField"),
@@ -148,28 +148,28 @@ class LivingConditionService {
             LivingConditionFieldDTO.fromJson(json as Map<String, dynamic>),
       );
 
-      apiServiceBusy = false;
+      apiServiceBusy.value = false;
       return result;
     } catch (ex) {
       showError(ex);
-      apiServiceBusy = false;
+      apiServiceBusy.value = false;
       return null;
     }
   }
 
   static Future<bool> delete(String id) async {
-    apiServiceBusy = true;
+    apiServiceBusy.value = true;
     try {
       final response = await http.delete(
         Uri.parse("${AppConfig.apiBaseUrl}/api/LivingConditionField/$id"),
         headers: {'Authorization': 'Bearer $rawToken'},
       );
 
-      apiServiceBusy = false;
+      apiServiceBusy.value = false;
       return ServiceOutput.isSuccess(response);
     } catch (ex) {
       showError(ex);
-      apiServiceBusy = false;
+      apiServiceBusy.value = false;
       return false;
     }
   }
@@ -178,7 +178,7 @@ class LivingConditionService {
     String id,
     bool input,
   ) async {
-    apiServiceBusy = true;
+    apiServiceBusy.value = true;
     try {
       final query = <String, String>{};
       query['answer'] = input.toString();
@@ -201,28 +201,28 @@ class LivingConditionService {
             ),
           );
 
-      apiServiceBusy = false;
+      apiServiceBusy.value = false;
       return result;
     } catch (ex) {
       showError(ex);
-      apiServiceBusy = false;
+      apiServiceBusy.value = false;
       return null;
     }
   }
 
   static Future<bool> removeEntry(String id) async {
-    apiServiceBusy = true;
+    apiServiceBusy.value = true;
     try {
       final response = await http.delete(
         Uri.parse("${AppConfig.apiBaseUrl}/api/LivingConditionField/Entry/$id"),
         headers: {'Authorization': 'Bearer $rawToken'},
       );
 
-      apiServiceBusy = false;
+      apiServiceBusy.value = false;
       return ServiceOutput.isSuccess(response);
     } catch (ex) {
       showError(ex);
-      apiServiceBusy = false;
+      apiServiceBusy.value = false;
       return false;
     }
   }

@@ -3,7 +3,6 @@ import 'package:pet_center_app/models/data_transfer/franchise/franchise_request_
 import 'package:pet_center_app/models/data_transfer/franchise/franchise_response_dto.dart';
 
 import 'package:pet_center_app/utils/app_style.dart';
-import 'package:pet_center_app/utils/globals.dart';
 import 'package:pet_center_app/utils/validators.dart';
 
 class FranchiseEditDialog extends StatefulWidget {
@@ -117,9 +116,6 @@ class _FranchiseEditDialogState extends State<FranchiseEditDialog> {
               onPressed: () {
                 if (_formKey.currentState != null &&
                     _formKey.currentState!.validate()) {
-                  if (apiServiceBusy) {
-                    return;
-                  }
                   Navigator.of(context).pop();
                   setOutput();
                   widget.editCallback(output);

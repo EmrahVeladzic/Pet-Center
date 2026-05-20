@@ -72,7 +72,7 @@ class StaticAndUserDataService {
 
     bool output = true;
 
-    apiServiceBusy = true;
+    apiServiceBusy.value = true;
     Access role = userToken?.role ?? Access.user;
     try {
       final userResponse = await UserService.getUserStatus();
@@ -202,13 +202,13 @@ class StaticAndUserDataService {
       if (rawToken != null) {
         _timer = Timer(const Duration(seconds: periodSeconds), updateData);
       }
-      apiServiceBusy = false;
+      apiServiceBusy.value = false;
       return output;
     } catch (ex) {
       if (rawToken != null) {
         _timer = Timer(const Duration(seconds: periodSeconds), updateData);
       }
-      apiServiceBusy = false;
+      apiServiceBusy.value = false;
       showError(ex);
       return false;
     }
