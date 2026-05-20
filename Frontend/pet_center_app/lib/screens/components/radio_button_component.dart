@@ -27,7 +27,7 @@ class _RadioItem<T> extends StatelessWidget {
         children: [
           Column(
             children: [
-              design.fittedText(option.label),
+              design.fittedText(" ${option.label} "),
               Radio<T>(
                 value: option.value,
                 materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,

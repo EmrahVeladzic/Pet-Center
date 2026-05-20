@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:pet_center_app/models/data_transfer/account/account_request_dto.dart';
 import 'package:pet_center_app/models/data_transfer/account/account_response_dto.dart';
+import 'package:pet_center_app/models/enums.dart';
 import 'package:pet_center_app/services/static_user_data_service.dart';
 
 import 'package:pet_center_app/utils/app_config.dart';
@@ -184,6 +185,28 @@ class AccountService {
     try {
       final response = await http.post(
         Uri.parse("${AppConfig.apiBaseUrl}/api/Account/Verify/$code"),
+        headers: {'Authorization': 'Bearer $rawToken', 'Accept': 'text/plain'},
+      );
+
+      final result = await ServiceOutput.fromResponse<String>(
+        response,
+        (json) => json as String,
+      );
+
+      apiServiceBusy = false;
+      return result;
+    } catch (ex) {
+      showError(ex);
+      apiServiceBusy = false;
+      return null;
+    }
+  }
+
+  static Future<String?> setRole(String id, Access role) async {
+    apiServiceBusy = true;
+    try {
+      final response = await http.put(
+        Uri.parse("${AppConfig.apiBaseUrl}/api/Account/SetRole/$id/$role"),
         headers: {'Authorization': 'Bearer $rawToken', 'Accept': 'text/plain'},
       );
 

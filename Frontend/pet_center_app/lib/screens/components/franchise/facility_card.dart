@@ -39,7 +39,7 @@ class FacilityCard extends StatelessWidget {
                     Flexible(
                       fit: FlexFit.loose,
                       child: design.fittedText(
-                        "${facility.street}-${facility.city}",
+                        "${facility.street}- ${facility.city}",
                       ),
                     ),
                     if (facility.contact != null) ...[

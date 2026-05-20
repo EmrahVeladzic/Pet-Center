@@ -79,10 +79,10 @@ namespace PetCenterModels.DBTables
             if(await ctx.AnimalListings.FirstOrDefaultAsync(a=>a.Id == Id,cancel) is AnimalListing al){ctx.AnimalListings.Remove(al);}
             if(await ctx.ProductListings.FirstOrDefaultAsync(p=>p.Id == Id,cancel) is ProductListing pl){ctx.ProductListings.Remove(pl);}
             if(await ctx.MedicalListings.FirstOrDefaultAsync(m=>m.Id == Id,cancel) is MedicalListing ml){ctx.MedicalListings.Remove(ml);}
+            if(await ctx.Reports.Where(r=>r.ListingId==Id && r.CommentId==null).ToArrayAsync(cancel) is Report[] r){ctx.Reports.RemoveRange(r);}
             if(await ctx.ListingAvailable.Where(a=>a.ListingId == Id).ToArrayAsync(cancel) is Available[] a){ctx.ListingAvailable.RemoveRange(a);}
             if(await ctx.Comments.Where(c=>c.ListingId==Id).ToListAsync(cancel) is List<Comment> c){foreach(Comment comm in c){await comm.StageDeletion(ctx, ctx.Comments,cancel);}}
             if(await ctx.Notifications.Where(n=>n.ListingId==Id).ToArrayAsync(cancel) is Notification[] n){ctx.Notifications.RemoveRange(n);}
-            if(await ctx.Reports.Where(r=>r.ListingId==Id).ToArrayAsync(cancel) is Report[] r){ctx.Reports.RemoveRange(r);}
             await base.StageDeletion(ctx, set,cancel);
         }
 

@@ -6,8 +6,14 @@ import 'package:pet_center_app/utils/app_style.dart';
 class BreedCard extends StatelessWidget {
   final BreedDTO breed;
   final VoidCallback onTap;
+  final bool adminMode;
 
-  const BreedCard({super.key, required this.breed, required this.onTap});
+  const BreedCard({
+    super.key,
+    required this.breed,
+    required this.onTap,
+    required this.adminMode,
+  });
 
   @override
   Widget build(BuildContext context) {

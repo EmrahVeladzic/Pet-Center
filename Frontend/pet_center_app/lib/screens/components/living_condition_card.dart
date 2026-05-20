@@ -91,22 +91,25 @@ class _LivingConditionCardState extends State<LivingConditionCard> {
               ],
             ),
 
-            if (role == Access.user) ...[
+            if (role == Access.user && !apiServiceBusy) ...[
               design.verticalGap(design.spacing / 2),
-              RadioButtonComponent<bool?>(
-                options: const [
-                  RadioOption<bool?>(value: true, label: " Yes "),
-                  RadioOption<bool?>(value: null, label: " Unsure "),
-                  RadioOption<bool?>(value: false, label: " No "),
-                ],
-                groupValue: _answer,
-                onChanged: (value) {
-                  if (apiServiceBusy) {
-                    return;
-                  }
-                  setState(() => _answer = value);
-                  onAnswer(value);
-                },
+              AbsorbPointer(
+                absorbing: apiServiceBusy,
+                child: RadioButtonComponent<bool?>(
+                  options: const [
+                    RadioOption<bool?>(value: true, label: "Yes"),
+                    RadioOption<bool?>(value: null, label: "Unsure"),
+                    RadioOption<bool?>(value: false, label: "No"),
+                  ],
+                  groupValue: _answer,
+                  onChanged: (value) {
+                    if (apiServiceBusy) {
+                      return;
+                    }
+                    setState(() => _answer = value);
+                    onAnswer(value);
+                  },
+                ),
               ),
             ],
           ],

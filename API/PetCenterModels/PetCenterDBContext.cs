@@ -20,15 +20,13 @@ namespace PetCenterServices
         }
 
         public PetCenterDBContext(DbContextOptions<PetCenterDBContext>options):base(options)
-        {
+        {          
+
             
+
         }
 
-        protected override void OnModelCreating(ModelBuilder modelBuilder)
-        {
-            base.OnModelCreating(modelBuilder);
-        }
-
+          
     
         public DbSet<Account> Accounts { get; set; }
         public DbSet<User> Users { get; set; }

@@ -44,7 +44,7 @@ namespace PetCenterAPI.Controllers
 
         [Authorize(Roles ="User")]
         [HttpPut("Entry/{field_id}")]
-        public async Task<IActionResult> TrackSupplies([FromRoute]Guid field_id, [FromQuery] bool answer)
+        public async Task<IActionResult> AddEntry([FromRoute]Guid field_id, [FromQuery] bool answer)
         {
             if(TryGetUserId(out Guid user_id))
             {
@@ -55,7 +55,7 @@ namespace PetCenterAPI.Controllers
 
         [Authorize(Roles ="User")]
         [HttpDelete("Entry/{entry_id}")]
-        public async Task<IActionResult> TrackSupplies([FromRoute]Guid field_id)
+        public async Task<IActionResult> RemoveEntry([FromRoute]Guid field_id)
         {
             if(TryGetUserId(out Guid user_id))
             {

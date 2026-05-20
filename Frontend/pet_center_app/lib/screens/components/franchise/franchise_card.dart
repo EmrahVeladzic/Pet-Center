@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:pet_center_app/models/data_transfer/facility_dto.dart';
 import 'package:pet_center_app/models/data_transfer/franchise/franchise_response_dto.dart';
 import 'package:pet_center_app/models/enums.dart';
+import 'package:pet_center_app/screens/components/confirmation_dialog.dart';
 import 'package:pet_center_app/screens/components/franchise/facility_card.dart';
+import 'package:pet_center_app/screens/components/franchise/facility_creation_dialog.dart';
 import 'package:pet_center_app/services/facility_service.dart';
 import 'package:pet_center_app/utils/app_style.dart';
 
@@ -25,7 +27,11 @@ class FranchiseCard extends StatelessWidget {
   });
 
   void removeFacility(String input) async {
-    await FacilityService.delete(input);
+    final out = await FacilityService.delete(input);
+    if (out) {
+      franchise.facilities.removeWhere((f) => f.id == input);
+      rebuildCallback();
+    }
   }
 
   void setFacility(FacilityDTO input) async {
@@ -40,6 +46,7 @@ class FranchiseCard extends StatelessWidget {
     if (output != null) {
       franchise.facilities.removeWhere((f) => f.id == output!.id);
       franchise.facilities.add(output);
+      rebuildCallback();
     }
   }
 
@@ -112,7 +119,16 @@ class FranchiseCard extends StatelessWidget {
                           child: FittedBox(
                             fit: BoxFit.contain,
                             child: IconButton(
-                              onPressed: () {},
+                              onPressed: () {
+                                showDialog(
+                                  context: context,
+                                  builder: (_) => FacilityCreationDialog(
+                                    creationCallback: (input) =>
+                                        setFacility(input),
+                                    owningFranchiseId: franchise.id ?? "",
+                                  ),
+                                );
+                              },
                               icon: const Icon(Icons.add),
                               padding: EdgeInsets.zero,
                               visualDensity: VisualDensity.compact,
@@ -162,6 +178,28 @@ class FranchiseCard extends StatelessWidget {
                         ),
                       ),
                     ),
+                  ] else if (role == Access.business &&
+                      franchise.owned == false) ...[
+                    Expanded(
+                      flex: 1,
+                      child: Align(
+                        alignment: Alignment.center,
+                        child: SizedBox(
+                          width: design.boundedIconSize,
+                          height: design.boundedIconSize,
+                          child: FittedBox(
+                            fit: BoxFit.contain,
+                            child: IconButton(
+                              onPressed: () {},
+                              icon: const Icon(Icons.person_remove),
+                              padding: EdgeInsets.zero,
+                              visualDensity: VisualDensity.compact,
+                              constraints: const BoxConstraints(),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
                   ],
                 ],
               ),
@@ -176,13 +214,30 @@ class FranchiseCard extends StatelessWidget {
                           facility: e,
                           owner: franchise.owned ?? false,
                           editAction: () {
-                            setFacility(e);
+                            showDialog(
+                              context: context,
+                              builder: (_) => FacilityCreationDialog(
+                                creationCallback: (input) => setFacility(input),
+                                owningFranchiseId: franchise.id ?? "",
+                                editedObject: e,
+                              ),
+                            );
                           },
                           deleteAction: () {
-                            final id = e.id;
-                            if (id != null) {
-                              removeFacility(id);
-                            }
+                            showDialog(
+                              context: context,
+                              builder: (_) => ConfirmationDialog(
+                                title: "Remove facility",
+                                body:
+                                    "Are you sure you wish to remove this facility?",
+                                confirmAction: () {
+                                  final id = e.id;
+                                  if (id != null) {
+                                    removeFacility(id);
+                                  }
+                                },
+                              ),
+                            );
                           },
                         ),
                         design.verticalGap(1),

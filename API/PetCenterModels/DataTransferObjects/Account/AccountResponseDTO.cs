@@ -19,6 +19,8 @@ namespace PetCenterModels.DataTransferObjects
 
         public string Contact {get; set;} = string.Empty;
 
+        public string UserName {get; set;} = string.Empty;
+
         public Access AccessLevel {get; set;}
 
         public bool Verified {get; set;}
@@ -29,7 +31,7 @@ namespace PetCenterModels.DataTransferObjects
         {
             if(acc==null){return null;}
 
-            return new AccountResponseDTO
+            AccountResponseDTO output = new AccountResponseDTO
             {
                 CurrentVersion=acc.CurrentVersion,
                 Id=acc.Id,
@@ -37,6 +39,12 @@ namespace PetCenterModels.DataTransferObjects
                 AccessLevel = acc.AccessLevel,
                 Verified = acc.Verified
             };
+
+            if (acc.AccountUser != null)
+            {
+                output.UserName=acc.AccountUser.UserName;
+            }
+            return output;
         }
     }
 }

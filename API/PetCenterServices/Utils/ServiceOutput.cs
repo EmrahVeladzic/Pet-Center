@@ -41,7 +41,33 @@ namespace PetCenterServices.Utils
         {
             if (logger != null)
             {
-                logger.LogError(ex, "Service exception.");
+                logger.LogError(ex, "Service exception.");                        
+
+                switch (ex)
+                {
+                    case DbUpdateConcurrencyException concurrencyEx:
+                        foreach (Microsoft.EntityFrameworkCore.ChangeTracking.EntityEntry entry in concurrencyEx.Entries)
+                        {
+                            logger.LogError("Concurrency conflict: {Entity} {Id}",
+                                entry.Entity.GetType().Name,
+                                entry.Property("Id").CurrentValue);
+                        }
+                        break;
+                    case DbUpdateException dbEx:
+                        logger.LogError(dbEx, "Database update failed. Inner: {Inner}", dbEx.InnerException?.Message);
+                        break;
+                    case ValidationException validationEx:
+                        logger.LogWarning("Validation failed: {Message}", validationEx.Message);
+                        break;
+                    case KeyNotFoundException keyEx:
+                        logger.LogWarning("Resource not found: {Message}", keyEx.Message);
+                        break;
+                    case UnauthorizedAccessException authEx:
+                        logger.LogWarning("Unauthorized access attempt: {Message}", authEx.Message);
+                        break;
+                    default:
+                        break;
+                }
             }
 
             return (ex) switch    
