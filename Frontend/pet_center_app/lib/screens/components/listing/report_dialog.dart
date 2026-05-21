@@ -6,14 +6,8 @@ import 'package:pet_center_app/utils/validators.dart';
 
 class ReportDialog extends StatefulWidget {
   final String listingId;
-  final VoidCallback reportAction;
   final String? commentId;
-  const ReportDialog({
-    super.key,
-    required this.reportAction,
-    required this.listingId,
-    this.commentId,
-  });
+  const ReportDialog({super.key, required this.listingId, this.commentId});
 
   @override
   State<StatefulWidget> createState() => _ReportDialogState();
@@ -98,7 +92,6 @@ class _ReportDialogState extends State<ReportDialog> {
                 if (_formKey.currentState != null &&
                     _formKey.currentState!.validate()) {
                   sendReport();
-                  widget.reportAction();
                 }
               },
               child: design.textMarquee('Send report'),

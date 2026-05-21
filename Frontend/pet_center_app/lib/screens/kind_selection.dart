@@ -3,6 +3,7 @@ import 'package:pet_center_app/models/data_transfer/kind_dto.dart';
 import 'package:pet_center_app/models/enums.dart';
 import 'package:pet_center_app/screens/breed_selection.dart';
 import 'package:pet_center_app/screens/living_condition.dart';
+import 'package:pet_center_app/screens/templates/screen_scaffold.dart';
 import 'package:pet_center_app/services/breed_service.dart';
 
 import 'package:pet_center_app/services/static_user_data_service.dart';
@@ -44,8 +45,8 @@ class _KindSelectionScreenState extends State<KindSelectionScreen> {
 
     final role = userToken?.role ?? Access.user;
 
-    return Scaffold(
-      backgroundColor: mainTone,
+    return BasicScreenScaffold(
+      center: true,
       appBar: AppBar(
         title: SizedBox(
           width: design.screenWidth * marqueeTitleWMult,
@@ -58,52 +59,28 @@ class _KindSelectionScreenState extends State<KindSelectionScreen> {
           ),
         ),
       ),
-      body: Center(
-        child: FractionallySizedBox(
-          widthFactor: design.bodyWMult,
-          heightFactor: 1.0,
-          child: Container(
-            padding: EdgeInsets.all(design.spacing),
-            decoration: design.panelDecoration(),
-            child: LayoutBuilder(
-              builder: (context, boxConstraints) {
-                return SingleChildScrollView(
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(
-                      minHeight: boxConstraints.maxHeight,
-                    ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        ...dataSource.expand(
-                          (e) => [
-                            FractionallySizedBox(
-                              widthFactor: 0.5,
-                              alignment: Alignment.center,
-                              child: ElevatedButton(
-                                onPressed: () {
-                                  final id = e.id;
-                                  if (id == null) {
-                                    return;
-                                  }
-                                  switchToSelection(id, role == Access.user);
-                                },
-                                child: design.fittedText(e.title),
-                              ),
-                            ),
-                            design.verticalGap(),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              },
+      body: [
+        ...dataSource.expand(
+          (e) => [
+            FractionallySizedBox(
+              widthFactor: 0.5,
+              alignment: Alignment.center,
+              child: ElevatedButton(
+                onPressed: () {
+                  final id = e.id;
+                  if (id == null) {
+                    return;
+                  }
+                  switchToSelection(id, role == Access.user);
+                },
+                child: design.fittedText(e.title),
+              ),
             ),
-          ),
+            design.verticalGap(),
+          ],
         ),
-      ),
+      ],
+
       bottomNavigationBar: BottomAppBar(
         child: role == Access.user
             ? FittedBox(

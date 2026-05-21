@@ -33,9 +33,9 @@ namespace PetCenterServices.Services
             
             IQueryable<Individual> query = dbSet.Include(i=>i.AnimalBreed).ThenInclude(b=>b.AnimalKind).Include(i=>i.MedicalRecord).OrderBy(f=>f.Id);
 
-            if (search.AuthoritySpecifier == Access.BusinessAccount && search.from_franchise!=null && await FranchiseService.IsEmployeeOfFranchise(dbContext,token_holder,search.from_franchise.Value))
+            if (search.AuthoritySpecifier == Access.BusinessAccount && search.FromFranchise!=null && await FranchiseService.IsEmployeeOfFranchise(dbContext,token_holder,search.FromFranchise.Value))
             {
-                query = query.Where(i=>i.ShelterId!=search.from_franchise);
+                query = query.Where(i=>i.ShelterId!=search.FromFranchise);
                 
             }
 

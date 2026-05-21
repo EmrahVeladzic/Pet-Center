@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:http/http.dart' as http;
 import 'package:pet_center_app/models/data_transfer/breed_dto.dart';
 
@@ -16,7 +18,6 @@ class BreedService {
     apiServiceBusy.value = true;
     try {
       final query = <String, String>{};
-      query['page'] = 0.toString();
       query['adoptionPurposes'] = adoptionPurposes.toString();
       query['incomplete'] = incomplete.toString();
       if (kindId != null) {
@@ -75,6 +76,76 @@ class BreedService {
         (json) => (json as List)
             .map((e) => BreedDTO.fromJson(e as Map<String, dynamic>))
             .toList(),
+      );
+
+      apiServiceBusy.value = false;
+      return result;
+    } catch (ex) {
+      showError(ex);
+      apiServiceBusy.value = false;
+      return null;
+    }
+  }
+
+  static Future<bool> delete(String id) async {
+    apiServiceBusy.value = true;
+    try {
+      final response = await http.delete(
+        Uri.parse("${AppConfig.apiBaseUrl}/api/Breed/$id"),
+        headers: {'Authorization': 'Bearer $rawToken'},
+      );
+
+      apiServiceBusy.value = false;
+      return ServiceOutput.isSuccess(response);
+    } catch (ex) {
+      showError(ex);
+      apiServiceBusy.value = false;
+      return false;
+    }
+  }
+
+  static Future<BreedDTO?> post(BreedDTO input) async {
+    apiServiceBusy.value = true;
+    try {
+      final response = await http.post(
+        Uri.parse("${AppConfig.apiBaseUrl}/api/Breed"),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: jsonEncode(input.toJson()),
+      );
+
+      final result = await ServiceOutput.fromResponse<BreedDTO>(
+        response,
+        (json) => BreedDTO.fromJson(json as Map<String, dynamic>),
+      );
+
+      apiServiceBusy.value = false;
+      return result;
+    } catch (ex) {
+      showError(ex);
+      apiServiceBusy.value = false;
+      return null;
+    }
+  }
+
+  static Future<BreedDTO?> put(String id, BreedDTO input) async {
+    apiServiceBusy.value = true;
+    try {
+      final response = await http.put(
+        Uri.parse("${AppConfig.apiBaseUrl}/api/Breed/$id"),
+        headers: {
+          'Authorization': 'Bearer $rawToken',
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: jsonEncode(input.toJson()),
+      );
+
+      final result = await ServiceOutput.fromResponse<BreedDTO>(
+        response,
+        (json) => BreedDTO.fromJson(json as Map<String, dynamic>),
       );
 
       apiServiceBusy.value = false;

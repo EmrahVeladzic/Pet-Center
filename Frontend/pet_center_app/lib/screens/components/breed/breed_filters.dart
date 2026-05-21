@@ -1,15 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:pet_center_app/models/enums.dart';
+
+import 'package:pet_center_app/screens/templates/filter_template.dart';
+
 import 'package:pet_center_app/utils/app_style.dart';
+import 'package:pet_center_app/utils/jwt_parser.dart';
 
-class BreedFilters extends StatefulWidget implements PreferredSizeWidget {
-  static const textRows = 1;
-
+class BreedFilters extends StatefulWidget
+    with FilterTemplate
+    implements PreferredSizeWidget {
   final bool initIncomplete;
-  final void Function(bool inc) callback;
+  final bool initAdoption;
+
+  final void Function(bool inc, bool adp) callback;
 
   const BreedFilters({
     super.key,
     this.initIncomplete = false,
+    this.initAdoption = false,
     required this.callback,
   });
 
@@ -22,15 +30,17 @@ class BreedFilters extends StatefulWidget implements PreferredSizeWidget {
 
 class _BreedFiltersState extends State<BreedFilters> {
   late bool incomplete;
+  late bool adoption;
 
-  void change(bool inc) {
+  void change(bool inc, bool adp) {
     if (!mounted) {
       return;
     }
     setState(() {
       incomplete = inc;
+      adoption = adp;
     });
-    widget.callback(inc);
+    widget.callback(inc, adp);
   }
 
   @override
@@ -38,6 +48,7 @@ class _BreedFiltersState extends State<BreedFilters> {
     super.initState();
 
     incomplete = widget.initIncomplete;
+    adoption = widget.initAdoption;
   }
 
   @override
@@ -45,6 +56,8 @@ class _BreedFiltersState extends State<BreedFilters> {
     final ReactiveDesignSystem design = Theme.of(
       context,
     ).extension<ReactiveDesignSystem>()!;
+
+    final role = userToken?.role ?? Access.user;
 
     return SizedBox.expand(
       child: Container(
@@ -58,13 +71,24 @@ class _BreedFiltersState extends State<BreedFilters> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  design.fittedText("Incomplete"),
-                  Checkbox(
-                    value: incomplete,
-                    onChanged: (value) {
-                      change(value!);
-                    },
+                  design.fittedText(
+                    role == Access.user ? "Up for adoption" : "Incomplete",
                   ),
+                  if (role == Access.user) ...[
+                    Checkbox(
+                      value: adoption,
+                      onChanged: (value) {
+                        change(incomplete, value!);
+                      },
+                    ),
+                  ] else ...[
+                    Checkbox(
+                      value: incomplete,
+                      onChanged: (value) {
+                        change(value!, adoption);
+                      },
+                    ),
+                  ],
                 ],
               ),
             ),

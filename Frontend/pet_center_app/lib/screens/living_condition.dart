@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:pet_center_app/models/data_transfer/living_condition_dto.dart';
 
 import 'package:pet_center_app/models/enums.dart';
 import 'package:pet_center_app/screens/components/confirmation_dialog.dart';
 import 'package:pet_center_app/screens/components/living_condition_card.dart';
 import 'package:pet_center_app/screens/components/living_condition_dialog.dart';
+import 'package:pet_center_app/screens/templates/screen_scaffold.dart';
+import 'package:pet_center_app/services/living_condition_service.dart';
 
 import 'package:pet_center_app/services/static_user_data_service.dart';
 import 'package:pet_center_app/utils/app_style.dart';
@@ -16,7 +19,33 @@ class LivingConditionScreen extends StatefulWidget {
 }
 
 class _LivingConditionScreenState extends State<LivingConditionScreen> {
-  void deleteField(String id) async {}
+  void deleteField(String id) async {
+    final output = await LivingConditionService.delete(id);
+    if (output && mounted) {
+      setState(() {
+        condition.removeWhere((c) => c.id == id);
+      });
+    }
+  }
+
+  void editField(String id, LivingConditionFieldDTO ent) async {
+    final output = await LivingConditionService.put(ent, id);
+    if (output != null && mounted) {
+      setState(() {
+        condition.removeWhere((c) => c.id == id);
+        condition.add(output);
+      });
+    }
+  }
+
+  void createField(LivingConditionFieldDTO ent) async {
+    final output = await LivingConditionService.post(ent);
+    if (output != null && mounted) {
+      setState(() {
+        condition.add(output);
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -25,8 +54,7 @@ class _LivingConditionScreenState extends State<LivingConditionScreen> {
     ).extension<ReactiveDesignSystem>()!;
     final role = userToken?.role ?? Access.user;
 
-    return Scaffold(
-      backgroundColor: mainTone,
+    return BasicScreenScaffold(
       appBar: AppBar(
         title: SizedBox(
           width: design.screenWidth * marqueeTitleWMult,
@@ -37,67 +65,42 @@ class _LivingConditionScreenState extends State<LivingConditionScreen> {
           ),
         ),
       ),
-      body: Center(
-        child: FractionallySizedBox(
-          widthFactor: design.bodyWMult,
-          heightFactor: 1.0,
-          child: Container(
-            decoration: design.panelDecoration(),
-            child: LayoutBuilder(
-              builder: (context, boxConstraints) {
-                return SingleChildScrollView(
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(
-                      minHeight: boxConstraints.maxHeight,
-                    ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        ...condition.expand(
-                          (e) => [
-                            LivingConditionCard(
-                              livingCondition: e,
-                              deleteAction: () {
-                                showDialog(
-                                  context: context,
-                                  builder: (_) => ConfirmationDialog(
-                                    confirmAction: () {
-                                      showDialog(
-                                        context: context,
-                                        builder: (_) => LivingConditionDialog(
-                                          existing: null,
-                                          callback: (input, exists) {},
-                                        ),
-                                      );
-                                    },
-                                    title: "Delete question?",
-                                    body:
-                                        "Are you sure you wish to delete this question.",
-                                  ),
-                                );
-                              },
-                              editAction: () {
-                                showDialog(
-                                  context: context,
-                                  builder: (_) => LivingConditionDialog(
-                                    existing: e,
-                                    callback: (input, exists) {},
-                                  ),
-                                );
-                              },
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
+      body: [
+        ...condition.expand(
+          (e) => [
+            LivingConditionCard(
+              livingCondition: e,
+              deleteAction: () {
+                showDialog(
+                  context: context,
+                  builder: (_) => ConfirmationDialog(
+                    confirmAction: () {
+                      final id = e.id;
+                      if (id != null) {
+                        deleteField(id);
+                      }
+                    },
+                    title: "Delete question?",
+                    body: "Are you sure you wish to delete this question.",
+                  ),
+                );
+              },
+              editAction: () {
+                showDialog(
+                  context: context,
+                  builder: (_) => LivingConditionDialog(
+                    existing: e.copy(),
+                    callback: (output, exists) {
+                      editField(output.id!, output);
+                    },
                   ),
                 );
               },
             ),
-          ),
+          ],
         ),
-      ),
+      ],
+
       bottomNavigationBar: BottomAppBar(
         child: (role == Access.owner || role == Access.admin)
             ? FittedBox(
@@ -111,7 +114,9 @@ class _LivingConditionScreenState extends State<LivingConditionScreen> {
                           context: context,
                           builder: (_) => LivingConditionDialog(
                             existing: null,
-                            callback: (input, exists) {},
+                            callback: (output, exists) {
+                              createField(output);
+                            },
                           ),
                         );
                       },

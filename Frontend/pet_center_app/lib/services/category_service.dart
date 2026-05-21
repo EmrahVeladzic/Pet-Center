@@ -1,5 +1,9 @@
+import 'dart:convert';
+
 import 'package:http/http.dart' as http;
 import 'package:pet_center_app/models/data_transfer/category_dto.dart';
+import 'package:pet_center_app/models/data_transfer/user/user_response_dto.dart';
+import 'package:pet_center_app/models/enums.dart';
 
 import 'package:pet_center_app/utils/app_config.dart';
 import 'package:pet_center_app/utils/app_style.dart';
@@ -97,5 +101,181 @@ class CategoryService {
     }
 
     return output;
+  }
+
+  static Future<bool> delete(String id) async {
+    apiServiceBusy.value = true;
+    try {
+      final response = await http.delete(
+        Uri.parse("${AppConfig.apiBaseUrl}/api/Category/$id"),
+        headers: {'Authorization': 'Bearer $rawToken'},
+      );
+
+      apiServiceBusy.value = false;
+      return ServiceOutput.isSuccess(response);
+    } catch (ex) {
+      showError(ex);
+      apiServiceBusy.value = false;
+      return false;
+    }
+  }
+
+  static Future<CategoryDTO?> post(CategoryDTO input) async {
+    apiServiceBusy.value = true;
+    try {
+      final response = await http.post(
+        Uri.parse("${AppConfig.apiBaseUrl}/api/Category"),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: jsonEncode(input.toJson()),
+      );
+
+      final result = await ServiceOutput.fromResponse<CategoryDTO>(
+        response,
+        (json) => CategoryDTO.fromJson(json as Map<String, dynamic>),
+      );
+
+      apiServiceBusy.value = false;
+      return result;
+    } catch (ex) {
+      showError(ex);
+      apiServiceBusy.value = false;
+      return null;
+    }
+  }
+
+  static Future<CategoryDTO?> put(String id, CategoryDTO input) async {
+    apiServiceBusy.value = true;
+    try {
+      final response = await http.put(
+        Uri.parse("${AppConfig.apiBaseUrl}/api/Category/$id"),
+        headers: {
+          'Authorization': 'Bearer $rawToken',
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: jsonEncode(input.toJson()),
+      );
+
+      final result = await ServiceOutput.fromResponse<CategoryDTO>(
+        response,
+        (json) => CategoryDTO.fromJson(json as Map<String, dynamic>),
+      );
+
+      apiServiceBusy.value = false;
+      return result;
+    } catch (ex) {
+      showError(ex);
+      apiServiceBusy.value = false;
+      return null;
+    }
+  }
+
+  static Future<UsageSubDTO?> setUsageEstimate(
+    String categoryId,
+    String kindId,
+    AnimalScale? scale,
+    int mass,
+  ) async {
+    apiServiceBusy.value = true;
+    try {
+      final query = <String, String>{};
+      query['mass_grams'] = mass.toString();
+      if (scale != null) {
+        query['scale'] = scale.value.toString();
+      }
+
+      final response = await http.put(
+        Uri.parse(
+          "${AppConfig.apiBaseUrl}/api/Category/Usage/$categoryId/$kindId",
+        ).replace(queryParameters: query),
+        headers: {
+          'Authorization': 'Bearer $rawToken',
+          'Accept': 'application/json',
+        },
+      );
+
+      final result = await ServiceOutput.fromResponse<UsageSubDTO>(
+        response,
+        (json) => UsageSubDTO.fromJson(json as Map<String, dynamic>),
+      );
+
+      apiServiceBusy.value = false;
+      return result;
+    } catch (ex) {
+      showError(ex);
+      apiServiceBusy.value = false;
+      return null;
+    }
+  }
+
+  static Future<bool> removeUsageEstimate(String id) async {
+    apiServiceBusy.value = true;
+    try {
+      final response = await http.delete(
+        Uri.parse("${AppConfig.apiBaseUrl}/api/Category/Usage/$id"),
+        headers: {'Authorization': 'Bearer $rawToken'},
+      );
+
+      apiServiceBusy.value = false;
+      return ServiceOutput.isSuccess(response);
+    } catch (ex) {
+      showError(ex);
+      apiServiceBusy.value = false;
+      return false;
+    }
+  }
+
+  static Future<SuppliesSubDTO?> trackSupplies(
+    String categoryId,
+    String kindId,
+    int mass,
+  ) async {
+    apiServiceBusy.value = true;
+    try {
+      final query = <String, String>{};
+      query['mass_grams'] = mass.toString();
+
+      final response = await http.put(
+        Uri.parse(
+          "${AppConfig.apiBaseUrl}/api/Category/Supplies/$categoryId/$kindId",
+        ).replace(queryParameters: query),
+        headers: {
+          'Authorization': 'Bearer $rawToken',
+          'Accept': 'application/json',
+        },
+      );
+
+      final result = await ServiceOutput.fromResponse<SuppliesSubDTO>(
+        response,
+        (json) => SuppliesSubDTO.fromJson(json as Map<String, dynamic>),
+      );
+
+      apiServiceBusy.value = false;
+      return result;
+    } catch (ex) {
+      showError(ex);
+      apiServiceBusy.value = false;
+      return null;
+    }
+  }
+
+  static Future<bool> stopTracking(String id) async {
+    apiServiceBusy.value = true;
+    try {
+      final response = await http.delete(
+        Uri.parse("${AppConfig.apiBaseUrl}/api/Category/Supplies/$id"),
+        headers: {'Authorization': 'Bearer $rawToken'},
+      );
+
+      apiServiceBusy.value = false;
+      return ServiceOutput.isSuccess(response);
+    } catch (ex) {
+      showError(ex);
+      apiServiceBusy.value = false;
+      return false;
+    }
   }
 }

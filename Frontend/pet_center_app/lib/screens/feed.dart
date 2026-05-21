@@ -30,7 +30,7 @@ class _FeedScreenState extends State<FeedScreen> {
       if (role == Access.admin || role == Access.owner) ...{
         const Tab(text: 'Reports'),
       },
-      const Tab(text: 'Automated'),
+      if (role == Access.user) ...{const Tab(text: 'Automated')},
     ];
 
     List<Widget> pages = [
@@ -39,7 +39,7 @@ class _FeedScreenState extends State<FeedScreen> {
         const NotificationPage(),
       },
       if (role == Access.admin || role == Access.owner) ...{const ReportPage()},
-      const NotePage(),
+      if (role == Access.user) ...{const NotePage()},
     ];
 
     return DefaultTabController(

@@ -55,11 +55,11 @@ namespace PetCenterAPI.Controllers
 
         [Authorize(Roles ="User")]
         [HttpDelete("Entry/{entry_id}")]
-        public async Task<IActionResult> RemoveEntry([FromRoute]Guid field_id)
+        public async Task<IActionResult> RemoveEntry([FromRoute]Guid entry_id)
         {
             if(TryGetUserId(out Guid user_id))
             {
-                return ResultConverter.Convert<object>(await service.RemoveEntry(user_id,field_id));
+                return ResultConverter.Convert<object>(await service.RemoveEntry(user_id,entry_id));
             }
             return StatusCode(401,"Invalid token.");
         }
