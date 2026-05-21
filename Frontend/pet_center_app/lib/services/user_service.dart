@@ -275,4 +275,159 @@ class UserService {
       return false;
     }
   }
+
+  static Future<String?> setWishlistTerm(String term, bool addOrRemove) async {
+    apiServiceBusy.value = true;
+    try {
+      final query = <String, String>{'add_remove': addOrRemove.toString()};
+
+      final response = await http.put(
+        Uri.parse(
+          "${AppConfig.apiBaseUrl}/api/User/SetTerm/$term",
+        ).replace(queryParameters: query),
+        headers: {'Authorization': 'Bearer $rawToken', 'Accept': 'text/plain'},
+      );
+
+      final result = await ServiceOutput.fromResponse<String>(
+        response,
+        (json) => json as String,
+      );
+
+      apiServiceBusy.value = false;
+      return result;
+    } catch (ex) {
+      showError(ex);
+      apiServiceBusy.value = false;
+      return null;
+    }
+  }
+
+  static Future<AnnouncementSubDTO?> addAnnouncement(
+    String announcement,
+    bool userVisible,
+    bool businessVisible,
+    int daysValid,
+  ) async {
+    apiServiceBusy.value = true;
+    try {
+      final query = <String, String>{
+        'announcement': announcement,
+        'user_visible': userVisible.toString(),
+        'business_visible': businessVisible.toString(),
+        'days_valid': daysValid.toString(),
+      };
+
+      final response = await http.put(
+        Uri.parse(
+          "${AppConfig.apiBaseUrl}/api/User/Announcement",
+        ).replace(queryParameters: query),
+        headers: {
+          'Authorization': 'Bearer $rawToken',
+          'Accept': 'application/json',
+        },
+      );
+
+      final result = await ServiceOutput.fromResponse<AnnouncementSubDTO>(
+        response,
+        (json) => AnnouncementSubDTO.fromJson(json as Map<String, dynamic>),
+      );
+
+      apiServiceBusy.value = false;
+      return result;
+    } catch (ex) {
+      showError(ex);
+      apiServiceBusy.value = false;
+      return null;
+    }
+  }
+
+  static Future<String?> removeAnnouncement(String announcementId) async {
+    apiServiceBusy.value = true;
+    try {
+      final response = await http.delete(
+        Uri.parse(
+          "${AppConfig.apiBaseUrl}/api/User/Announcement/$announcementId",
+        ),
+        headers: {'Authorization': 'Bearer $rawToken', 'Accept': 'text/plain'},
+      );
+
+      final result = await ServiceOutput.fromResponse<String>(
+        response,
+        (json) => json as String,
+      );
+
+      apiServiceBusy.value = false;
+      return result;
+    } catch (ex) {
+      showError(ex);
+      apiServiceBusy.value = false;
+      return null;
+    }
+  }
+
+  static Future<NotificationSubDTO?> addNotification(
+    String userId,
+    String title,
+    String body,
+    String? franchiseId,
+    String? listingId,
+    int daysValid,
+  ) async {
+    apiServiceBusy.value = true;
+    try {
+      final query = <String, String>{
+        'title': title,
+        'body': body,
+        'days_valid': daysValid.toString(),
+      };
+      if (franchiseId != null) query['franchise_id'] = franchiseId;
+      if (listingId != null) query['listing_id'] = listingId;
+
+      final response = await http.put(
+        Uri.parse(
+          "${AppConfig.apiBaseUrl}/api/User/Notification/$userId",
+        ).replace(queryParameters: query),
+        headers: {
+          'Authorization': 'Bearer $rawToken',
+          'Accept': 'application/json',
+        },
+      );
+
+      final result = await ServiceOutput.fromResponse<NotificationSubDTO>(
+        response,
+        (json) => NotificationSubDTO.fromJson(json as Map<String, dynamic>),
+      );
+
+      apiServiceBusy.value = false;
+      return result;
+    } catch (ex) {
+      showError(ex);
+      apiServiceBusy.value = false;
+      return null;
+    }
+  }
+
+  static Future<String?> removeNotification(String notificationId) async {
+    apiServiceBusy.value = true;
+    try {
+      final response = await http.delete(
+        Uri.parse(
+          "${AppConfig.apiBaseUrl}/api/User/Notification/$notificationId",
+        ),
+        headers: {'Authorization': 'Bearer $rawToken', 'Accept': 'text/plain'},
+      );
+
+      final result = await ServiceOutput.fromResponse<String>(
+        response,
+        (json) => json as String,
+      );
+
+      apiServiceBusy.value = false;
+      return result;
+    } catch (ex) {
+      showError(ex);
+      apiServiceBusy.value = false;
+      return null;
+    }
+  }
 }

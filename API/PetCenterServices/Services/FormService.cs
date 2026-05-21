@@ -33,6 +33,11 @@ namespace PetCenterServices.Services
             
             IQueryable<Form> query = WithAlbum().Include(f=>f.Entries).OrderBy(f=>f.Id);
 
+            if (search.TemplateId != null)
+            {
+                query=query.Where(f=>f.FormTemplateId==search.TemplateId);
+            }
+
             if (search.AuthoritySpecifier == Access.Admin)
             {
                 query=query.Where(f=>f.Album.Reserved>0);

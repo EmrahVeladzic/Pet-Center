@@ -2,13 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:pet_center_app/models/data_transfer/listing/listing_response_dto.dart';
 import 'package:pet_center_app/models/data_transfer/listing/sub_dtos.dart';
 import 'package:pet_center_app/models/enums.dart';
-import 'package:pet_center_app/screens/comment_view.dart';
+
 import 'package:pet_center_app/screens/components/listing/availability_card.dart';
 import 'package:pet_center_app/screens/components/listing/comment_card.dart';
 import 'package:pet_center_app/screens/components/listing/comment_creator.dart';
 import 'package:pet_center_app/screens/components/image_display.dart';
+import 'package:pet_center_app/screens/components/listing/deletion_dialog.dart';
 import 'package:pet_center_app/screens/components/listing/listing_extension_card.dart';
+import 'package:pet_center_app/screens/components/listing/report_dialog.dart';
 import 'package:pet_center_app/screens/components/note_card.dart';
+import 'package:pet_center_app/screens/templates/screen_scaffold.dart';
+import 'package:pet_center_app/services/listing_service.dart';
 import 'package:pet_center_app/services/static_user_data_service.dart';
 import 'package:pet_center_app/utils/app_style.dart';
 import 'package:pet_center_app/utils/helpers.dart';
@@ -50,14 +54,23 @@ class _ListingViewScreenState extends State<ListingViewScreen> {
     });
   }
 
+  void deleteListing(bool ban) async {
+    if (widget.listing.id != null) {
+      final bool deleted = await ListingService.delete(widget.listing.id!);
+
+      if (deleted && mounted) {
+        Navigator.pop(context);
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final ReactiveDesignSystem design = Theme.of(
       context,
     ).extension<ReactiveDesignSystem>()!;
 
-    return Scaffold(
-      backgroundColor: mainTone,
+    return BasicScreenScaffold(
       appBar: AppBar(
         title: SizedBox(
           width: design.screenWidth * marqueeTitleWMult,
@@ -67,127 +80,141 @@ class _ListingViewScreenState extends State<ListingViewScreen> {
             design.screenWidth * marqueeTitleWMult,
           ),
         ),
-      ),
-      body: Center(
-        child: FractionallySizedBox(
-          widthFactor: design.bodyWMult,
-          heightFactor: 1.0,
-          child: Container(
-            decoration: design.panelDecoration(),
-            child: ListView(
-              children: [
-                design.verticalGap(),
-                ...widget.listing.media.map(
-                  (img) => ImageDisplay(
-                    dataSource: img,
-                    creationToken: widget.listing.mediaCreationToken,
-                    locked: true,
-                    creating: false,
-                  ),
-                ),
-                design.verticalGap(),
-                Padding(
-                  padding: EdgeInsetsGeometry.symmetric(
-                    horizontal: design.spacing,
-                  ),
-                  child: Text(
-                    "\"${widget.listing.description}\" - Posted on ${formatDate(widget.listing.posted)}.",
-                  ),
-                ),
-                if (widget.listing.priceMinor > 0) ...[
-                  design.verticalGap(),
-                  Padding(
-                    padding: EdgeInsetsGeometry.symmetric(
-                      horizontal: design.spacing,
-                    ),
-                    child: design.textMarquee(
-                      'Price: ${fromMinor(widget.listing.priceMinor)}',
-                    ),
-                  ),
-                ] else ...[
-                  design.verticalGap(),
-                  Padding(
-                    padding: EdgeInsetsGeometry.symmetric(
-                      horizontal: design.spacing,
-                    ),
-                    child: design.textMarquee('Price: FREE'),
-                  ),
-                ],
-                if (widget.listing.type != ListingType.generic) ...[
-                  design.verticalGap(),
-                  ListingExtensionCard(listing: widget.listing),
-                ],
-                if (widget.listing.notes != null) ...[
-                  design.verticalGap(),
-                  ...widget.listing.notes!.map((note) => NoteCard(note: note)),
-                ],
-                if (widget.listing.availability.isNotEmpty) ...[
-                  Padding(
-                    padding: EdgeInsetsGeometry.symmetric(
-                      horizontal: design.spacing,
-                    ),
-                    child: design.textMarquee('This listing is available at:'),
-                  ),
-                  ...widget.listing.availability.map(
-                    (available) => AvailabilityCard(available: available),
-                  ),
-                ],
-                Padding(
-                  padding: EdgeInsetsGeometry.symmetric(
-                    horizontal: design.spacing,
-                  ),
-                  child: design.textMarquee(
-                    'For more information, you may${widget.listing.availability.isEmpty ? " " : " also "}contact ${widget.listing.franchiseName} at ${widget.listing.contact}.',
-                  ),
-                ),
+        actions: [
+          if (role == Access.admin ||
+              role == Access.owner ||
+              (role == Access.business &&
+                  self?.workplaces?.any((w) => w.id == widget.listing.id) ==
+                      true)) ...[
+            IconButton(
+              icon: const Icon(Icons.delete),
 
-                if (widget.listing.comments.isNotEmpty ||
-                    (role == Access.user &&
-                        widget.listing.id != null &&
-                        mature)) ...[
-                  design.verticalGap(),
-                  Padding(
-                    padding: EdgeInsetsGeometry.symmetric(
-                      horizontal: design.spacing,
-                    ),
-                    child: design.textMarquee('User reviews:'),
-                  ),
+              onPressed: () {
+                if (!mounted) {
+                  return;
+                }
 
-                  if (role == Access.user &&
-                      widget.listing.id != null &&
-                      mature) ...[
-                    CommentCreator(
-                      listingId: widget.listing.id!,
-                      onPost: (comment) {
-                        showComment(comment);
-                      },
-                    ),
-                  ],
-
-                  ...widget.listing.comments.map(
-                    (comment) => CommentCard(
-                      comment: comment,
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => CommentViewScreen(
-                              comment: comment,
-                              onDelete: () {
-                                removeComment(comment);
-                              },
-                            ),
-                          ),
-                        );
-                      },
-                    ),
+                showDialog(
+                  context: context,
+                  builder: (_) => DeletionDialog(
+                    bannable: false,
+                    itemName: "listing",
+                    deletionAction: deleteListing,
                   ),
-                ],
-              ],
+                );
+              },
             ),
+          ] else ...[
+            IconButton(
+              icon: const Icon(Icons.report),
+
+              onPressed: () {
+                if (!mounted) {
+                  return;
+                }
+
+                showDialog(
+                  context: context,
+                  builder: (_) => ReportDialog(
+                    listingId: widget.listing.id!,
+                    commentId: null,
+                  ),
+                );
+              },
+            ),
+          ],
+        ],
+      ),
+      body: [
+        design.verticalGap(),
+        ...widget.listing.media.map(
+          (img) => ImageDisplay(
+            dataSource: img,
+            creationToken: widget.listing.mediaCreationToken,
+            locked: true,
+            creating: false,
           ),
         ),
-      ),
+        design.verticalGap(),
+        Padding(
+          padding: EdgeInsetsGeometry.symmetric(horizontal: design.spacing),
+          child: Text(
+            "\"${widget.listing.description}\" - Posted on ${formatDate(widget.listing.posted)}.",
+          ),
+        ),
+        if (widget.listing.priceMinor > 0) ...[
+          design.verticalGap(),
+          Padding(
+            padding: EdgeInsetsGeometry.symmetric(horizontal: design.spacing),
+            child: design.textMarquee(
+              'Price: ${fromMinor(widget.listing.priceMinor)}',
+            ),
+          ),
+        ] else ...[
+          design.verticalGap(),
+          Padding(
+            padding: EdgeInsetsGeometry.symmetric(horizontal: design.spacing),
+            child: design.textMarquee('Price: FREE'),
+          ),
+        ],
+        if (widget.listing.type != ListingType.generic) ...[
+          design.verticalGap(),
+          ListingExtensionCard(listing: widget.listing),
+        ],
+        if (widget.listing.notes != null) ...[
+          design.verticalGap(),
+          Padding(
+            padding: EdgeInsetsGeometry.symmetric(horizontal: design.spacing),
+            child: design.textMarquee('Notes:'),
+          ),
+          ...widget.listing.notes!.map((note) => NoteCard(note: note)),
+        ],
+        if (widget.listing.availability.isNotEmpty) ...[
+          design.verticalGap(),
+          Padding(
+            padding: EdgeInsetsGeometry.symmetric(horizontal: design.spacing),
+            child: design.textMarquee('This listing is available at:'),
+          ),
+          ...widget.listing.availability.map(
+            (available) => AvailabilityCard(available: available),
+          ),
+        ],
+        design.verticalGap(),
+        Padding(
+          padding: EdgeInsetsGeometry.symmetric(horizontal: design.spacing),
+          child: design.textMarquee(
+            'For more information, you may${widget.listing.availability.isEmpty ? " " : " also "}contact ${widget.listing.franchiseName} at ${widget.listing.contact}.',
+          ),
+        ),
+
+        if (widget.listing.comments.isNotEmpty ||
+            (role == Access.user && widget.listing.id != null && mature)) ...[
+          design.verticalGap(),
+          Padding(
+            padding: EdgeInsetsGeometry.symmetric(horizontal: design.spacing),
+            child: design.textMarquee('User reviews:'),
+          ),
+
+          if (role == Access.user && widget.listing.id != null && mature) ...[
+            CommentCreator(
+              listingId: widget.listing.id!,
+              onPost: (comment) {
+                showComment(comment);
+              },
+            ),
+          ],
+
+          ...widget.listing.comments.map(
+            (comment) => CommentCard(
+              comment: comment,
+              onDelete: () {
+                removeComment(comment);
+              },
+            ),
+          ),
+        ],
+      ],
+
       bottomNavigationBar: BottomAppBar(),
     );
   }

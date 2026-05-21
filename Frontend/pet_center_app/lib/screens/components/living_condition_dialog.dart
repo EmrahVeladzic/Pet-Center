@@ -8,7 +8,7 @@ import 'package:pet_center_app/utils/validators.dart';
 class LivingConditionDialog extends StatefulWidget {
   final LivingConditionFieldDTO? existing;
 
-  final void Function(LivingConditionDialog input, bool exists) callback;
+  final void Function(LivingConditionFieldDTO output, bool exists) callback;
 
   const LivingConditionDialog({
     super.key,

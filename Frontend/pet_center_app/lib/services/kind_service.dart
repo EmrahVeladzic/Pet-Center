@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:http/http.dart' as http;
 import 'package:pet_center_app/models/data_transfer/kind_dto.dart';
 
@@ -87,5 +89,76 @@ class KindService {
     }
 
     return output;
+  }
+
+  static Future<KindDTO?> post(KindDTO input) async {
+    apiServiceBusy.value = true;
+    try {
+      final response = await http.post(
+        Uri.parse("${AppConfig.apiBaseUrl}/api/Kind"),
+        headers: {
+          'Authorization': 'Bearer $rawToken',
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: jsonEncode(input.toJson()),
+      );
+
+      final result = await ServiceOutput.fromResponse<KindDTO>(
+        response,
+        (json) => KindDTO.fromJson(json as Map<String, dynamic>),
+      );
+
+      apiServiceBusy.value = false;
+      return result;
+    } catch (ex) {
+      showError(ex);
+      apiServiceBusy.value = false;
+      return null;
+    }
+  }
+
+  static Future<KindDTO?> put(KindDTO input, String id) async {
+    apiServiceBusy.value = true;
+    try {
+      final response = await http.put(
+        Uri.parse("${AppConfig.apiBaseUrl}/api/Kind/$id"),
+        headers: {
+          'Authorization': 'Bearer $rawToken',
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: jsonEncode(input.toJson()),
+      );
+
+      final result = await ServiceOutput.fromResponse<KindDTO>(
+        response,
+        (json) => KindDTO.fromJson(json as Map<String, dynamic>),
+      );
+
+      apiServiceBusy.value = false;
+      return result;
+    } catch (ex) {
+      showError(ex);
+      apiServiceBusy.value = false;
+      return null;
+    }
+  }
+
+  static Future<bool> delete(String id) async {
+    apiServiceBusy.value = true;
+    try {
+      final response = await http.delete(
+        Uri.parse("${AppConfig.apiBaseUrl}/api/Kind/$id"),
+        headers: {'Authorization': 'Bearer $rawToken'},
+      );
+
+      apiServiceBusy.value = false;
+      return ServiceOutput.isSuccess(response);
+    } catch (ex) {
+      showError(ex);
+      apiServiceBusy.value = false;
+      return false;
+    }
   }
 }

@@ -6,6 +6,7 @@ import 'package:pet_center_app/screens/components/confirmation_dialog.dart';
 
 import 'package:pet_center_app/screens/components/franchise/franchise_card.dart';
 import 'package:pet_center_app/screens/components/franchise/franchise_edit_dialog.dart';
+import 'package:pet_center_app/screens/templates/screen_scaffold.dart';
 import 'package:pet_center_app/screens/user_page.dart';
 
 import 'package:pet_center_app/services/franchise_service.dart';
@@ -74,8 +75,7 @@ class _FranchiseViewScreenState extends State<FranchiseViewScreen> {
       context,
     ).extension<ReactiveDesignSystem>()!;
 
-    return Scaffold(
-      backgroundColor: mainTone,
+    return BasicScreenScaffold(
       appBar: AppBar(
         title: SizedBox(
           width: design.screenWidth * marqueeTitleWMult,
@@ -86,80 +86,55 @@ class _FranchiseViewScreenState extends State<FranchiseViewScreen> {
           ),
         ),
       ),
-      body: Center(
-        child: FractionallySizedBox(
-          widthFactor: design.bodyWMult,
-          heightFactor: 1.0,
-          child: Container(
-            color: listTone,
-            child: LayoutBuilder(
-              builder: (context, boxConstraints) {
-                return SingleChildScrollView(
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(
-                      minHeight: boxConstraints.maxHeight,
-                    ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        ...dataSource.expand(
-                          (e) => [
-                            FranchiseCard(
-                              franchise: e,
-                              editAction: () {
-                                showDialog(
-                                  context: context,
-                                  builder: (_) => FranchiseEditDialog(
-                                    editedObject: e,
-                                    editCallback: (input) {
-                                      final id = e.id;
-                                      if (id == null) {
-                                        return;
-                                      }
-                                      updateFranchise(id, input);
-                                    },
-                                  ),
-                                );
-                              },
-                              deleteAction: () {
-                                showDialog(
-                                  context: context,
-                                  builder: (_) => ConfirmationDialog(
-                                    title: "Remove franchise",
-                                    body:
-                                        "Are you sure you wish to remove this franchise? Doing so will require a new form application if you change your mind.",
-                                    confirmAction: () {
-                                      final id = e.id;
-                                      if (id != null) {
-                                        removeFranchise(id);
-                                      }
-                                    },
-                                  ),
-                                );
-                              },
-                              employeeViewAction: () {
-                                final id = e.id;
-                                if (e.id == null) {
-                                  return;
-                                }
-                                switchToUserView(id!);
-                              },
-                              rebuildCallback: rebuild,
-                            ),
-                            design.verticalGap(1),
-                          ],
-                        ),
-                      ],
-                    ),
+      body: [
+        ...dataSource.expand(
+          (e) => [
+            FranchiseCard(
+              franchise: e,
+              editAction: () {
+                showDialog(
+                  context: context,
+                  builder: (_) => FranchiseEditDialog(
+                    editedObject: e,
+                    editCallback: (input) {
+                      final id = e.id;
+                      if (id == null) {
+                        return;
+                      }
+                      updateFranchise(id, input);
+                    },
                   ),
                 );
               },
+              deleteAction: () {
+                showDialog(
+                  context: context,
+                  builder: (_) => ConfirmationDialog(
+                    title: "Remove franchise",
+                    body:
+                        "Are you sure you wish to remove this franchise? Doing so will require a new form application if you change your mind.",
+                    confirmAction: () {
+                      final id = e.id;
+                      if (id != null) {
+                        removeFranchise(id);
+                      }
+                    },
+                  ),
+                );
+              },
+              employeeViewAction: () {
+                final id = e.id;
+                if (e.id == null) {
+                  return;
+                }
+                switchToUserView(id!);
+              },
+              rebuildCallback: rebuild,
             ),
-          ),
+            design.verticalGap(1),
+          ],
         ),
-      ),
-      bottomNavigationBar: BottomAppBar(),
+      ],
     );
   }
 }

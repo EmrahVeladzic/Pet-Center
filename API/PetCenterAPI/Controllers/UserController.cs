@@ -77,7 +77,7 @@ namespace PetCenterAPI.Controllers
         }      
 
         [HttpGet("Announcement")]       
-        public async Task<IActionResult> GetAnnouncements([FromRoute] Guid announcement_id)
+        public async Task<IActionResult> GetAnnouncements()
         {
             
             return ResultConverter.Convert<List<AnnouncementSubDTO>>(await service.GetAnnouncements(SpecifySearchAuthority()));

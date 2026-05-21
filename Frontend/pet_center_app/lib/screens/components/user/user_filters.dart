@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:pet_center_app/screens/templates/filter_template.dart';
 import 'package:pet_center_app/utils/app_style.dart';
 import 'package:pet_center_app/utils/globals.dart';
 
-class UserFilters extends StatefulWidget implements PreferredSizeWidget {
+class UserFilters extends StatefulWidget
+    with FilterTemplate
+    implements PreferredSizeWidget {
   static const textRows = 1;
   final String initName;
   final bool initInclude;
@@ -67,20 +70,18 @@ class _UserFiltersState extends State<UserFilters> {
           children: [
             Expanded(
               flex: 4,
-              child: ColoredBox(
-                color: listTone,
-                child: TextField(
-                  enabled: !apiServiceBusy.value,
-                  maxLength: 75,
-                  maxLines: 1,
-                  minLines: 1,
-                  keyboardType: TextInputType.text,
-                  decoration: InputDecoration(hintText: "Username"),
-                  controller: _controller,
-                  onSubmitted: (value) {
-                    change(include, value);
-                  },
-                ),
+
+              child: TextField(
+                enabled: !apiServiceBusy.value,
+                maxLength: 75,
+                maxLines: 1,
+                minLines: 1,
+                keyboardType: TextInputType.text,
+                decoration: InputDecoration(hintText: "Username"),
+                controller: _controller,
+                onSubmitted: (value) {
+                  change(include, value);
+                },
               ),
             ),
 

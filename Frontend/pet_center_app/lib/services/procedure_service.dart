@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:http/http.dart' as http;
 import 'package:pet_center_app/models/data_transfer/procedure_dto.dart';
 
@@ -87,5 +89,146 @@ class ProcedureService {
     }
 
     return output;
+  }
+
+  static Future<ProcedureSpecificationSubDTO?> setSpecification({
+    required String procedureId,
+    required String kindId,
+    String? breedId,
+    required bool optional,
+    bool? sex,
+    int? age,
+    int? interval,
+  }) async {
+    apiServiceBusy.value = true;
+    try {
+      final query = <String, String>{};
+      query['optional'] = optional.toString();
+      if (breedId != null) {
+        query['breed_id'] = breedId;
+      }
+      if (sex != null) {
+        query['sex'] = sex.toString();
+      }
+      if (age != null) {
+        query['age'] = age.toString();
+      }
+      if (interval != null) {
+        query['interval'] = interval.toString();
+      }
+
+      final response = await http.put(
+        Uri.parse(
+          "${AppConfig.apiBaseUrl}/api/Procedure/Specification/$procedureId/$kindId",
+        ).replace(queryParameters: query),
+        headers: {
+          'Authorization': 'Bearer $rawToken',
+          'Accept': 'application/json',
+        },
+      );
+
+      final result =
+          await ServiceOutput.fromResponse<ProcedureSpecificationSubDTO>(
+            response,
+            (json) => ProcedureSpecificationSubDTO.fromJson(
+              json as Map<String, dynamic>,
+            ),
+          );
+
+      apiServiceBusy.value = false;
+      return result;
+    } catch (ex) {
+      showError(ex);
+      apiServiceBusy.value = false;
+      return null;
+    }
+  }
+
+  static Future<bool> removeSpecification(String id) async {
+    apiServiceBusy.value = true;
+    try {
+      final response = await http.delete(
+        Uri.parse("${AppConfig.apiBaseUrl}/api/Procedure/Procedure/$id"),
+        headers: {'Authorization': 'Bearer $rawToken'},
+      );
+
+      apiServiceBusy.value = false;
+      return ServiceOutput.isSuccess(response);
+    } catch (ex) {
+      showError(ex);
+      apiServiceBusy.value = false;
+      return false;
+    }
+  }
+
+  static Future<ProcedureDTO?> put(ProcedureDTO input, String id) async {
+    apiServiceBusy.value = true;
+    try {
+      final response = await http.put(
+        Uri.parse("${AppConfig.apiBaseUrl}/api/Procedure/$id"),
+        headers: {
+          'Authorization': 'Bearer $rawToken',
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: jsonEncode(input.toJson()),
+      );
+
+      final result = await ServiceOutput.fromResponse<ProcedureDTO>(
+        response,
+        (json) => ProcedureDTO.fromJson(json as Map<String, dynamic>),
+      );
+
+      apiServiceBusy.value = false;
+      return result;
+    } catch (ex) {
+      showError(ex);
+      apiServiceBusy.value = false;
+      return null;
+    }
+  }
+
+  static Future<ProcedureDTO?> post(ProcedureDTO input) async {
+    apiServiceBusy.value = true;
+    try {
+      final response = await http.post(
+        Uri.parse("${AppConfig.apiBaseUrl}/api/Procedure"),
+        headers: {
+          'Authorization': 'Bearer $rawToken',
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: jsonEncode(input.toJson()),
+      );
+
+      final result = await ServiceOutput.fromResponse<ProcedureDTO>(
+        response,
+        (json) => ProcedureDTO.fromJson(json as Map<String, dynamic>),
+      );
+
+      apiServiceBusy.value = false;
+      return result;
+    } catch (ex) {
+      showError(ex);
+      apiServiceBusy.value = false;
+      return null;
+    }
+  }
+
+  static Future<bool> delete(String id) async {
+    apiServiceBusy.value = true;
+    try {
+      final response = await http.delete(
+        Uri.parse("${AppConfig.apiBaseUrl}/api/Procedure/$id"),
+        headers: {'Authorization': 'Bearer $rawToken'},
+      );
+
+      apiServiceBusy.value = false;
+      return ServiceOutput.isSuccess(response);
+    } catch (ex) {
+      showError(ex);
+      apiServiceBusy.value = false;
+      return false;
+    }
   }
 }

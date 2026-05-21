@@ -206,7 +206,9 @@ class AccountService {
     apiServiceBusy.value = true;
     try {
       final response = await http.put(
-        Uri.parse("${AppConfig.apiBaseUrl}/api/Account/SetRole/$id/$role"),
+        Uri.parse(
+          "${AppConfig.apiBaseUrl}/api/Account/SetRole/$id/${role.value}",
+        ),
         headers: {'Authorization': 'Bearer $rawToken', 'Accept': 'text/plain'},
       );
 
@@ -255,6 +257,60 @@ class AccountService {
       showError(ex);
       apiServiceBusy.value = false;
       return false;
+    }
+  }
+
+  static Future<int?> count() async {
+    apiServiceBusy.value = true;
+    try {
+      final response = await http.get(
+        Uri.parse("${AppConfig.apiBaseUrl}/api/Account/Count"),
+        headers: {'Authorization': 'Bearer $rawToken', 'Accept': 'text/plain'},
+      );
+
+      final result = await ServiceOutput.fromResponse<int>(
+        response,
+        (json) => (json as int),
+      );
+
+      apiServiceBusy.value = false;
+      return result;
+    } catch (ex) {
+      showError(ex);
+      apiServiceBusy.value = false;
+      return null;
+    }
+  }
+
+  static Future<List<AccountResponseDTO>?> get(int page) async {
+    apiServiceBusy.value = true;
+    try {
+      final query = <String, String>{};
+      query['page'] = page.toString();
+
+      final response = await http.get(
+        Uri.parse(
+          "${AppConfig.apiBaseUrl}/api/Account",
+        ).replace(queryParameters: query),
+        headers: {
+          'Authorization': 'Bearer $rawToken',
+          'Accept': 'application/json',
+        },
+      );
+
+      final result = await ServiceOutput.fromResponse<List<AccountResponseDTO>>(
+        response,
+        (json) => (json as List)
+            .map((e) => AccountResponseDTO.fromJson(e as Map<String, dynamic>))
+            .toList(),
+      );
+
+      apiServiceBusy.value = false;
+      return result;
+    } catch (ex) {
+      showError(ex);
+      apiServiceBusy.value = false;
+      return null;
     }
   }
 }

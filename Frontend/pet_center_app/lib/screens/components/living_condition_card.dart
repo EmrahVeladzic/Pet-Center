@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:pet_center_app/models/data_transfer/living_condition_dto.dart';
 import 'package:pet_center_app/models/enums.dart';
 import 'package:pet_center_app/screens/components/radio_button_component.dart';
+import 'package:pet_center_app/services/living_condition_service.dart';
 import 'package:pet_center_app/utils/app_style.dart';
 import 'package:pet_center_app/utils/jwt_parser.dart';
 
@@ -24,9 +25,27 @@ class LivingConditionCard extends StatefulWidget {
 class _LivingConditionCardState extends State<LivingConditionCard> {
   late bool? _answer = widget.livingCondition.entry?.answer;
 
-  void onAnswer(bool? newAnswer) {
+  void onAnswer(bool? newAnswer) async {
     if (newAnswer == null) {
-    } else {}
+      final output = await LivingConditionService.removeEntry(
+        widget.livingCondition.id!,
+      );
+      if (output && mounted) {
+        setState(() {
+          widget.livingCondition.entry = null;
+        });
+      }
+    } else {
+      final output = await LivingConditionService.addEntry(
+        widget.livingCondition.id!,
+        newAnswer,
+      );
+      if (output != null && mounted) {
+        setState(() {
+          widget.livingCondition.entry = output;
+        });
+      }
+    }
   }
 
   @override

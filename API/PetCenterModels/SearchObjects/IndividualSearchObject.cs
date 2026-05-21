@@ -10,7 +10,7 @@ namespace PetCenterModels.SearchObjects
 {
     public class IndividualSearchObject : BaseSearchObject
     {
-        public Guid? from_franchise {get; set;} = null;
+        public Guid? FromFranchise {get; set;} = null;
 
         
     }

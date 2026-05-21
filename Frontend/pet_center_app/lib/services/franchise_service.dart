@@ -163,6 +163,7 @@ class FranchiseService {
         Uri.parse("${AppConfig.apiBaseUrl}/api/Franchise"),
         headers: {
           'Authorization': 'Bearer $rawToken',
+          'Content-Type': 'application/json',
           'Accept': 'application/json',
         },
         body: jsonEncode(req.toJson()),
