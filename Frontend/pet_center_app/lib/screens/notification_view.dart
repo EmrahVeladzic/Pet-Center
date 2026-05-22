@@ -37,6 +37,26 @@ class _NotificationViewScreenState extends State<NotificationViewScreen> {
     }
   }
 
+  void switchTo() async {
+    final shouldRefresh = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ListingViewScreen(
+          listing: relevant!,
+          onModify: () {
+            if (mounted) {
+              setState(() {});
+            }
+          },
+        ),
+      ),
+    );
+
+    if (shouldRefresh == true && mounted) {
+      Navigator.pop(context, true);
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -97,13 +117,7 @@ class _NotificationViewScreenState extends State<NotificationViewScreen> {
                           final listingId = relevant?.id;
                           if (listingId == null) return;
                           addIndex(listingId);
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  ListingViewScreen(listing: relevant!),
-                            ),
-                          );
+                          switchTo();
                         },
                       ),
                     ),

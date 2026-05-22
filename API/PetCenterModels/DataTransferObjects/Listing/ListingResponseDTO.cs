@@ -23,6 +23,10 @@ namespace PetCenterModels.DataTransferObjects
 
         public Guid AlbumId {get; set;} = Guid.Empty;
 
+        public bool Approved {get; set;} = false;
+
+        public bool Visible {get; set;} = false;
+
         public List<ImageDTO> Media {get; set;} = new();
 
         public bool Locked {get; set;} = true;
@@ -71,6 +75,8 @@ namespace PetCenterModels.DataTransferObjects
                 FranchiseName="No provided name.",
                 PriceMinor=entity.PriceMinor,
                 Type=entity.Type,
+                Approved=entity.Approved,
+                Visible=entity.Visible,
                 AlbumId=entity.AlbumId,
                 ProductListingExtension=ProductListingSubDTO.FromEntity(entity.ProductExtension),
                 MedicalListingExtension=MedicalListingSubDTO.FromEntity(entity.MedicalExtension),

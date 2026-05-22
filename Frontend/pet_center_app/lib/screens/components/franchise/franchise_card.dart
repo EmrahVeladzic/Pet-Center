@@ -6,6 +6,9 @@ import 'package:pet_center_app/screens/components/confirmation_dialog.dart';
 import 'package:pet_center_app/screens/components/franchise/facility_card.dart';
 import 'package:pet_center_app/screens/components/franchise/facility_creation_dialog.dart';
 import 'package:pet_center_app/services/facility_service.dart';
+
+import 'package:pet_center_app/services/static_user_data_service.dart';
+import 'package:pet_center_app/services/user_service.dart';
 import 'package:pet_center_app/utils/app_style.dart';
 
 import 'package:pet_center_app/utils/jwt_parser.dart';
@@ -15,6 +18,7 @@ class FranchiseCard extends StatelessWidget {
   final VoidCallback editAction;
   final VoidCallback deleteAction;
   final VoidCallback employeeViewAction;
+  final VoidCallback listingAction;
   final VoidCallback rebuildCallback;
 
   const FranchiseCard({
@@ -24,6 +28,7 @@ class FranchiseCard extends StatelessWidget {
     required this.deleteAction,
     required this.employeeViewAction,
     required this.rebuildCallback,
+    required this.listingAction,
   });
 
   void removeFacility(String input) async {
@@ -46,6 +51,22 @@ class FranchiseCard extends StatelessWidget {
     if (output != null) {
       franchise.facilities.removeWhere((f) => f.id == output!.id);
       franchise.facilities.add(output);
+      rebuildCallback();
+    }
+  }
+
+  void quit() async {
+    String? output;
+
+    if (franchise.id != null) {
+      output = await UserService.setEmployee(self!.id!, franchise.id!, false);
+    }
+
+    if (output != null) {
+      showSnackbar(output);
+
+      self?.workplaces?.removeWhere((f) => f.id == franchise.id);
+
       rebuildCallback();
     }
   }
@@ -89,6 +110,26 @@ class FranchiseCard extends StatelessWidget {
                     ),
                   ),
                   if (role == Access.business && franchise.owned == true) ...[
+                    Expanded(
+                      flex: 1,
+                      child: Align(
+                        alignment: Alignment.center,
+                        child: SizedBox(
+                          width: design.boundedIconSize,
+                          height: design.boundedIconSize,
+                          child: FittedBox(
+                            fit: BoxFit.contain,
+                            child: IconButton(
+                              onPressed: listingAction,
+                              icon: const Icon(Icons.local_offer),
+                              padding: EdgeInsets.zero,
+                              visualDensity: VisualDensity.compact,
+                              constraints: const BoxConstraints(),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
                     Expanded(
                       flex: 1,
                       child: Align(
@@ -190,7 +231,37 @@ class FranchiseCard extends StatelessWidget {
                           child: FittedBox(
                             fit: BoxFit.contain,
                             child: IconButton(
-                              onPressed: () {},
+                              onPressed: listingAction,
+                              icon: const Icon(Icons.local_offer),
+                              padding: EdgeInsets.zero,
+                              visualDensity: VisualDensity.compact,
+                              constraints: const BoxConstraints(),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      flex: 1,
+                      child: Align(
+                        alignment: Alignment.center,
+                        child: SizedBox(
+                          width: design.boundedIconSize,
+                          height: design.boundedIconSize,
+                          child: FittedBox(
+                            fit: BoxFit.contain,
+                            child: IconButton(
+                              onPressed: () {
+                                showDialog(
+                                  context: context,
+                                  builder: (_) => ConfirmationDialog(
+                                    confirmAction: quit,
+                                    title: "Quit",
+                                    body:
+                                        "Are you sure you wish to quit working for ${franchise.franchiseName}?",
+                                  ),
+                                );
+                              },
                               icon: const Icon(Icons.person_remove),
                               padding: EdgeInsets.zero,
                               visualDensity: VisualDensity.compact,

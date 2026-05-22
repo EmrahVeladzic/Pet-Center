@@ -42,6 +42,11 @@ namespace PetCenterModels.DBTables
                 metadata.Width=(short)image.Width;
                 metadata.Height=(short)image.Height;
 
+                if (metadata.Width * 2 < metadata.Height || metadata.Height * 2 < metadata.Width)
+                {
+                    return null;
+                }
+
             }
             catch
             {

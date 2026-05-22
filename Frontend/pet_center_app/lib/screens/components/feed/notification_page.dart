@@ -48,6 +48,19 @@ class _NotificationPageState extends State<NotificationPage>
     });
   }
 
+  void switchTo(NotificationSubDTO notif) async {
+    final shouldRefresh = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => NotificationViewScreen(notification: notif),
+      ),
+    );
+
+    if (shouldRefresh) {
+      load();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     super.build(context);
@@ -62,13 +75,7 @@ class _NotificationPageState extends State<NotificationPage>
           final id = _items[i].id;
           if (id == null) return;
           addIndex(id);
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) =>
-                  NotificationViewScreen(notification: _items[i]),
-            ),
-          );
+          switchTo(_items[i]);
         },
       ),
     );

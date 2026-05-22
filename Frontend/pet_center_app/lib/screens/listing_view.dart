@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:pet_center_app/models/data_transfer/listing/listing_response_dto.dart';
 import 'package:pet_center_app/models/data_transfer/listing/sub_dtos.dart';
+import 'package:pet_center_app/models/data_transfer/user/user_response_dto.dart';
 import 'package:pet_center_app/models/enums.dart';
 
 import 'package:pet_center_app/screens/components/listing/availability_card.dart';
@@ -16,12 +17,22 @@ import 'package:pet_center_app/services/listing_service.dart';
 import 'package:pet_center_app/services/static_user_data_service.dart';
 import 'package:pet_center_app/utils/app_style.dart';
 import 'package:pet_center_app/utils/helpers.dart';
+import 'package:pet_center_app/utils/hive_cache.dart';
 import 'package:pet_center_app/utils/jwt_parser.dart';
 import 'package:pet_center_app/utils/pricing.dart';
 
 class ListingViewScreen extends StatefulWidget {
   final ListingResponseDTO listing;
-  const ListingViewScreen({super.key, required this.listing});
+
+  final VoidCallback? onModify;
+  final VoidCallback? commentDeletionHook;
+  const ListingViewScreen({
+    super.key,
+    required this.listing,
+    this.onModify,
+
+    this.commentDeletionHook,
+  });
   @override
   State<StatefulWidget> createState() => _ListingViewScreenState();
 }
@@ -29,6 +40,23 @@ class ListingViewScreen extends StatefulWidget {
 class _ListingViewScreenState extends State<ListingViewScreen> {
   Access role = userToken?.role ?? Access.user;
   bool mature = self?.matureAccount ?? false;
+
+  void toggleVisibility() async {
+    final output = await ListingService.setVisibility(
+      widget.listing.id!,
+      !widget.listing.visible,
+    );
+
+    if (output && mounted) {
+      setState(() {
+        widget.listing.visible = !widget.listing.visible;
+      });
+
+      if (widget.onModify != null) {
+        widget.onModify!();
+      }
+    }
+  }
 
   void showComment(CommentResponseSubDTO input) {
     setState(() {
@@ -49,8 +77,23 @@ class _ListingViewScreenState extends State<ListingViewScreen> {
   }
 
   void removeComment(CommentResponseSubDTO input) {
+    if (!mounted) {
+      return;
+    }
+
+    final removed = reports.where((r) => r.commentId == input.id).toList();
+
+    for (ReportResponseSubDTO rem in removed) {
+      CacheManager.delete(rem.id!, CacheEntityType.report);
+    }
+
     setState(() {
       widget.listing.comments.remove(input);
+      reports.removeWhere((r) => r.commentId == input.id);
+
+      if (widget.commentDeletionHook != null) {
+        widget.commentDeletionHook!();
+      }
     });
   }
 
@@ -58,8 +101,35 @@ class _ListingViewScreenState extends State<ListingViewScreen> {
     if (widget.listing.id != null) {
       final bool deleted = await ListingService.delete(widget.listing.id!);
 
+      final removedR = reports
+          .where((r) => r.listingId == widget.listing.id)
+          .toList();
+
+      for (ReportResponseSubDTO remR in removedR) {
+        CacheManager.delete(remR.id!, CacheEntityType.report);
+      }
+
+      List<NotificationSubDTO> removedN =
+          self?.notifications
+              ?.where((n) => n.listingId == widget.listing.id)
+              .toList() ??
+          <NotificationSubDTO>[];
+
+      for (NotificationSubDTO remN in removedN) {
+        CacheManager.delete(remN.id!, CacheEntityType.notification);
+      }
+
+      CacheManager.delete(widget.listing.id!, CacheEntityType.listing);
+
+      setState(() {
+        reports.removeWhere((r) => r.listingId == widget.listing.id);
+        self?.notifications?.removeWhere(
+          (n) => n.listingId == widget.listing.id,
+        );
+      });
+
       if (deleted && mounted) {
-        Navigator.pop(context);
+        Navigator.pop(context, true);
       }
     }
   }
@@ -81,10 +151,43 @@ class _ListingViewScreenState extends State<ListingViewScreen> {
           ),
         ),
         actions: [
+          if (role == Access.business &&
+              (self?.workplaces?.any(
+                    (w) => w.id == widget.listing.franchiseId,
+                  ) ==
+                  true)) ...[
+            if (!widget.listing.approved) ...[
+              IconButton(
+                icon: const Icon(Icons.edit),
+
+                onPressed: () {
+                  if (!mounted) {
+                    return;
+                  }
+                },
+              ),
+            ],
+            if (!widget.listing.visible) ...[
+              IconButton(
+                icon: const Icon(Icons.visibility_off),
+
+                onPressed: toggleVisibility,
+              ),
+            ] else ...[
+              IconButton(
+                icon: const Icon(Icons.visibility),
+
+                onPressed: toggleVisibility,
+              ),
+            ],
+          ],
+
           if (role == Access.admin ||
               role == Access.owner ||
               (role == Access.business &&
-                  self?.workplaces?.any((w) => w.id == widget.listing.id) ==
+                  self?.workplaces?.any(
+                        (w) => w.id == widget.listing.franchiseId,
+                      ) ==
                       true)) ...[
             IconButton(
               icon: const Icon(Icons.delete),
@@ -127,14 +230,23 @@ class _ListingViewScreenState extends State<ListingViewScreen> {
       ),
       body: [
         design.verticalGap(),
-        ...widget.listing.media.map(
-          (img) => ImageDisplay(
-            dataSource: img,
+        if (widget.listing.media.isNotEmpty) ...[
+          ...widget.listing.media.map(
+            (img) => ImageDisplay(
+              dataSource: img,
+              creationToken: widget.listing.mediaCreationToken,
+              locked: true,
+              creating: false,
+            ),
+          ),
+        ] else ...[
+          ImageDisplay(
+            dataSource: null,
             creationToken: widget.listing.mediaCreationToken,
             locked: true,
             creating: false,
           ),
-        ),
+        ],
         design.verticalGap(),
         Padding(
           padding: EdgeInsetsGeometry.symmetric(horizontal: design.spacing),
@@ -142,21 +254,15 @@ class _ListingViewScreenState extends State<ListingViewScreen> {
             "\"${widget.listing.description}\" - Posted on ${formatDate(widget.listing.posted)}.",
           ),
         ),
-        if (widget.listing.priceMinor > 0) ...[
-          design.verticalGap(),
-          Padding(
-            padding: EdgeInsetsGeometry.symmetric(horizontal: design.spacing),
-            child: design.textMarquee(
-              'Price: ${fromMinor(widget.listing.priceMinor)}',
-            ),
+
+        design.verticalGap(),
+        Padding(
+          padding: EdgeInsetsGeometry.symmetric(horizontal: design.spacing),
+          child: design.textMarquee(
+            'Price: ${fromMinor(widget.listing.priceMinor, widget.listing.listingDiscount?.percentage)}',
           ),
-        ] else ...[
-          design.verticalGap(),
-          Padding(
-            padding: EdgeInsetsGeometry.symmetric(horizontal: design.spacing),
-            child: design.textMarquee('Price: FREE'),
-          ),
-        ],
+        ),
+
         if (widget.listing.type != ListingType.generic) ...[
           design.verticalGap(),
           ListingExtensionCard(listing: widget.listing),

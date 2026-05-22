@@ -20,21 +20,21 @@ namespace PetCenterModels.SearchObjects
     public class ListingSearchObject:BaseSearchObject
     {
     
-        public ListingType Type {get; set;} = ListingType.Generic;
-
-        public Guid RelevantId {get; set;} = Guid.Empty;
+        public ListingType Type {get; set;} = ListingType.Generic;      
 
         public OrderingMethod OrderBy {get; set;} = OrderingMethod.ID;
 
         public bool ShowApprovedAndPending {get; set;} = false;
 
+        public Guid RelevantId {get; set;} = Guid.Empty;
+
         public Guid KindSpecific {get; set;} = Guid.Empty;
 
         public Guid BreedSpecific {get; set;} = Guid.Empty;
 
-        public bool SexSpecific {get; set;}
+        public bool SexSpecific {get; set;} = true;
 
-        public AnimalScale ScaleSpecific {get; set;} 
+        public AnimalScale ScaleSpecific {get; set;} = AnimalScale.Small;
 
 
         [JsonIgnore]

@@ -40,11 +40,15 @@ namespace PetCenterServices.Services
             {
                 case Access.User: {query=query.Where(q=>q.Visible&&q.Approved&&q.Album!=null&&q.Album.Reserved>0);break;}
                 case Access.Admin: {query=query.Where(q=>q.Album!=null&&q.Album.Reserved>0&&((!q.Approved&&q.Updated)||search.ShowApprovedAndPending));break;}
-                case Access.BusinessAccount : {search.FileRW=FileScope.Write; query = query.Where(q =>
+                case Access.BusinessAccount : {search.FileRW=FileScope.Write; query = query.Where(q => q.FranchiseId==search.RelevantId &&(
                 q.Business.OwnerId == token_holder ||
-                q.Business.EmployeeRecords.Any(e => e.UserId == token_holder));
+                q.Business.EmployeeRecords.Any(e => e.UserId == token_holder)));
                 break; }
-                default : {break;}
+                default:
+                {
+                    query = query.Where(q=>false);
+                    break;
+                }
             }
 
             if (search.AuthoritySpecifier == Access.User)
@@ -55,10 +59,25 @@ namespace PetCenterServices.Services
                     case ListingType.Product: {query = query.Where(q=>q.ProductExtension!=null&&q.ProductExtension.Product!=null&&q.ProductExtension.Product.CategoryId==search.RelevantId&&q.ProductExtension.Product.KindId==search.KindSpecific && (q.ProductExtension.Product.TargetScale==null||q.ProductExtension.Product.TargetScale==search.ScaleSpecific));break;}
                     case ListingType.Medical: {query = query.Where(q=>q.MedicalExtension!=null&&q.MedicalExtension.Procedure!=null&&q.MedicalExtension.ProcedureId==search.RelevantId&&q.MedicalExtension.Procedure.Specifications.Any(s=>(s.BreedId==search.BreedSpecific&&s.ApproximateAge!=null&&(s.SexSpecific==null||s.SexSpecific==search.SexSpecific))||(s.BreedId==null&&s.KindId==search.KindSpecific && s.ApproximateAge!=null&&(s.SexSpecific==null||s.SexSpecific==search.SexSpecific)))&&!q.MedicalExtension.Procedure.Specifications.Any(s=>s.BreedId==search.BreedSpecific&&s.ApproximateAge==null&&(s.SexSpecific==null||s.SexSpecific==search.SexSpecific)));break;}
                     case ListingType.Pet: {query = query.Where(q=>q.AnimalExtension!=null&&q.AnimalExtension.Animal!=null&&q.AnimalExtension.Animal.BreedId==search.RelevantId);break;}            
+                    default:
+                    {
+                        query = query.Where(q=>q.Type==ListingType.Generic);
+                        break;
+                    }
                 }
 
                 
 
+            }
+
+            else if (search.AuthoritySpecifier == Access.BusinessAccount)
+            {
+                
+                if (!search.ShowApprovedAndPending)
+                {
+                    query = query.Where(q=>!q.Approved||!q.Visible);
+                }
+                
             }
 
 
@@ -96,7 +115,7 @@ namespace PetCenterServices.Services
 
                     List<Individual> individuals = await dbContext.IndividualAnimals
                     .Include(i => i.AnimalBreed)
-                    .Where(i => i.OwnerId == token_holder)
+                    .Where(i => i.Owned && i.OwnerId == token_holder)
                     .ToListAsync();
 
                     List<Usage> allEstimates = await dbContext.UsageEstimates
@@ -190,7 +209,7 @@ namespace PetCenterServices.Services
 
                     List<Individual> individuals = await dbContext.IndividualAnimals
                     .Include(i => i.AnimalBreed)
-                    .Where(i => i.OwnerId == token_holder)
+                    .Where(i => i.Owned && i.OwnerId == token_holder)
                     .ToListAsync();
 
                     List<Usage> allEstimates = await dbContext.UsageEstimates

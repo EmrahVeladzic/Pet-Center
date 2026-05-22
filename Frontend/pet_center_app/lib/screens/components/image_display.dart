@@ -97,7 +97,7 @@ class _ImageDisplayState extends State<ImageDisplay> {
             width: nw,
             height: nh,
             child: ColoredBox(
-              color: visitedPanelTone,
+              color: listTone,
               child: Center(
                 child: SizedBox(
                   width: nw * 0.5,
@@ -157,7 +157,7 @@ class _ImageDisplayState extends State<ImageDisplay> {
               width: nw,
               height: nh,
               child: ColoredBox(
-                color: visitedPanelTone,
+                color: listTone,
                 child: Icon(
                   (_error) ? Icons.error_outline : Icons.image,
                   size: nw * 0.5,
