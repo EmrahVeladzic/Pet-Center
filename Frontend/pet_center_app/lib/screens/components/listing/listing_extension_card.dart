@@ -47,7 +47,7 @@ class ListingExtensionCard extends StatelessWidget {
             Container(
               color: visitedPanelTone,
               child: design.textMarquee(
-                '${listing.productListingExtension?.perListing}x - ${item.title}',
+                '${listing.productListingExtension?.perListing}x - ${item.title}${(item.mass != null) ? " - ${item.mass}g" : ""}',
                 design.screenWidth * design.bodyWMult,
                 marqueeNoteWMult,
               ),

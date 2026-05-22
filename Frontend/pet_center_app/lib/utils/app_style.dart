@@ -157,6 +157,10 @@ class ReactiveDesignSystem extends ThemeExtension<ReactiveDesignSystem> {
     return SizedBox(height: height ?? spacing);
   }
 
+  SizedBox horizontalGap([double? width]) {
+    return SizedBox(height: width ?? spacing);
+  }
+
   BoxDecoration panelDecoration([bool visited = false]) {
     return BoxDecoration(
       color: visited ? visitedPanelTone : panelTone,

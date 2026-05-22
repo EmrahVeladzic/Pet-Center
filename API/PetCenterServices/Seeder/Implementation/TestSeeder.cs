@@ -23,53 +23,150 @@ using PetCenterModels.ModelUtils;
 
 namespace PetCenterServices.Seeder
 {
-    
+    public class BLOBRef
+    {
+        public string Hash {get; set;} = string.Empty;
+
+        public short W {get; set; } = 0;
+
+        public short H {get; set;} = 0;
+
+    }
 
     public class TestSeeder : ISeeder
     {      
+        public List<string> WordList { get; set; } = new List<string>
+        {
+            " Lorem", " ipsum", " dolor", " \n", " sit", " amet,", " consectetur", " adipiscing", " elit.", 
+            " \n\n", " Sed", " do", " eiusmod", " tempor", " incididunt", " ut", " labore", " \n\n\n", 
+            " et", " dolore", " magna", " aliqua.", " Ut", " enim", " ad", " minim", " \n", " veniam,", 
+            " quis", " nostrud", " exercitation", " ullamco", " laboris", " nisi", " ut", " \n\n", " aliquip", 
+            " ex", " ea", " commodo", " consequat.", " Duis", " aute", " irure", " dolor", " \n", " in",                
+            " \n\n", " laudantium.", " Totam", " rem", " aperiam,", " eaque", " ipsa", " quae", " ab", 
+            " \n", " illo", " inventore", " veritatis", " et", " quasi", " architecto", " beatae", " vitae", 
+            " \n\n", " dicta", " sunt", " explicabo.", " Nemo", " enim", " ipsam", " voluptatem", " quia", 
+            " \n", " voluptas", " sit", " aspernatur", " aut", " odit", " aut", " fugit,", " sed", 
+            " \n", " quia", " consequuntur", " magni", " dolores.", " Neque", " porro", " quisquam", " est,", 
+            " \n", " qui", " dolorem", " ipsum", " quia", " dolor", " sit", " amet,", " consectetur,", 
+            " \n\n", " adipisci", " velit,", " sed", " quia", " non", " numquam.", " Eius", " modi", 
+            " \n", " tempora", " incididunt", " ut", " labore", " et", " dolore", " magnam", " aliquam", 
+            " \n\n", " quaerat", " voluptatem.", " Ut", " enim", " ad", " minima", " veniam.", " Quis", 
+            " \n", " autem", " vel", " eum", " iure", " reprehenderit", " qui", " in", " ea", 
+            " \n\n", " voluptate", " velit", " esse", " quam", " nihil", " molestiae", " consequatur.", " Vel", 
+            " \n", " illum", " qui", " dolorem", " eum", " fugiat", " quo", " voluptas", " nulla", 
+            " \n\n", " pariatur?", " At", " vero", " eos", " et", " accusamus", " et", " iusto", 
+            " \n", " odio", " dignissimos.", " Ducimus", " qui", " blanditium", " praesentium", " voluptatum", " deleniti", 
+            " \n\n", " atque", " corrupti", " quos", " dolores", " et", " quas", " molestias", " excepturi.", 
+            " \n", " Sint", " occaecati", " cupiditate", " non", " provident,", " similique", " sunt", " in", 
+            " \n", " culpa", " qui", " officia", " deserunt", " mollitia", " animi,", " id", " est", 
+            " \n", " laborum.", " Et", " harum", " quidem", " rerum", " facilis", " est", " et", 
+            " \n\n", " expedita", " distinctio.", " Nam", " libero", " tempore,", " cum", " soluta", " nobis", 
+            " \n", " est", " eligendi", " optio.", " Cumque", " nihil", " impedit", " quo", " minus", 
+            " \n\n", " id", " quod", " maxime", " placeat", " facere", " possimus,", " omnis", " voluptas", 
+            " \n", " assumenda", " est.", " Omnis", " dolor", " repellendus.", " Temporibus", " autem", " quibusdam", 
+            " \n\n", " et", " aut", " officiis", " debitis", " aut", " rerum", " necessitatibus", " saepe", 
+            " \n", " mollitia", " animi,", " id", " est", " laborum", " et", " dolorum", " fuga.", 
+            " \n", " Et", " harum", " quidem", " rerum", " facilis", " est", " et", " expedita", 
+            " \n", " distinctio.", " Nam", " libero", " tempore,", " cum", " soluta", " nobis", " est", 
+            " \n\n", " eligendi", " optio", " cumque", " nihil", " impedit", " quo", " minus", " id", 
+            " \n", " quod", " maxime", " placeat.", " Facere", " possimus,", " omnis", " voluptas", " assumenda", 
+            " \n\n", " est,", " omnis", " dolor", " repellendus.", " Temporibus", " autem", " quibusdam", " et", 
+            " \n", " aut", " officiis.", " Debitis", " aut", " rerum", " necessitatibus", " saepe", " eveniet", 
+            " \n\n", " ut", " et", " voluptates", " repudiandae", " sint", " et", " molestiae", " non", 
+            " \n", " recusandae."
+        };
+
+        public List<BLOBRef> BLOBs {get; set;} = new();
+
+        public string GenerateLoremIpsum(int len, Random rng)
+        {
+            string output = "Lorem";
+
+            while (output.Length < len)
+            {
+                int r = rng.Next(len/10);
+
+                if(r==0){break;}
+
+                r= rng.Next(WordList.Count);
+
+                if(output.Length+WordList[r].Length<len){output+=WordList[r];}else{break;}
+
+
+            }
+
+            return output;
+        }
 
         public async Task<PetCenterModels.DBTables.Image> CreateRandomImage(PetCenterDBContext ctx,  Guid album_id,Random rng, short w = 32, short h=32)
         {
             PetCenterModels.DBTables.Image output = new();
             output.AlbumId=album_id;
-            output.Width=w;
-            output.Height=h;            
 
-            using Image<Rgb24> img = new(w,h);
-            img.ProcessPixelRows(accessor =>
-            {
-                for(int y= 0; y<accessor.Height; y++)
+            short Width =(short) rng.Next(w/2,w);
+            short Height = (short) rng.Next(h/2,h);
+
+            string hash = "";
+
+            if(BLOBs.Count==0 || rng.Next(3)==0){
+
+
+                int MinR = rng.Next(200);
+                int MinG = rng.Next(200);
+                int MinB = rng.Next(200);       
+
+                using Image<Rgb24> img = new(Width,Height);
+                img.ProcessPixelRows(accessor =>
                 {
-                    Span<Rgb24> row = accessor.GetRowSpan(y);
-
-                    for(int x = 0; x < row.Length; x++)
+                    for(int y= 0; y<accessor.Height; y++)
                     {
-                        row[x]=new Rgb24
+                        Span<Rgb24> row = accessor.GetRowSpan(y);
+
+                        for(int x = 0; x < row.Length; x++)
                         {
-                            R=(byte)rng.Next(256),
-                            G=(byte)rng.Next(256),
-                            B=(byte)rng.Next(256)
-                        };
+                            row[x]=new Rgb24
+                            {
+                                R=(byte)rng.Next(MinR,256),
+                                G=(byte)rng.Next(MinG,256),
+                                B=(byte)rng.Next(MinB,256)
+                            };
+                        }
+
                     }
+                });
 
-                }
-            });
+                using MemoryStream ms = new();
 
-            using MemoryStream ms = new();
+                img.Save(ms, new WebpEncoder()
+                {
+                    Quality = 50
+                });
 
-            img.Save(ms, new WebpEncoder()
+                ImageBLOB blob = new();
+                blob.Data=ms.ToArray();
+                blob.Id=BLOBHandler.CreateHash(blob.Data);
+
+                await ctx.ImageBLOBs.AddAsync(blob);
+                await ctx.SaveChangesAsync();
+
+                hash = blob.Id;
+
+                BLOBs.Add(new BLOBRef{W=Width,H=Height,Hash=hash});
+            }
+            else
             {
-                Quality = 50
-            });
+                BLOBRef reference = BLOBs[rng.Next(BLOBs.Count)];
 
-            ImageBLOB blob = new();
-            blob.Data=ms.ToArray();
-            blob.Id=BLOBHandler.CreateHash(blob.Data);
+                Width = reference.W;
+                Height= reference.H;
+                hash=reference.Hash;
+            }
+        
 
-            await ctx.ImageBLOBs.AddAsync(blob);
-            await ctx.SaveChangesAsync();
+            output.Width=Width;
+            output.Height=Height;     
 
-            output.BLOBId=blob.Id;
+            output.BLOBId=hash;
 
             return output;
         }
@@ -93,6 +190,9 @@ namespace PetCenterServices.Seeder
             "Fresh","Compact","Light","Cozy","Fun","Playful","Safe","Sturdy","Portable",
             "Colorful","Deluxe","Scented","Fresh" };
 
+           
+            
+            
             await using(IDbContextTransaction tx = await ctx.Database.BeginTransactionAsync())
             {
                 try
@@ -574,7 +674,7 @@ namespace PetCenterServices.Seeder
 
                         await ctx.SaveChangesAsync();
 
-                        
+                        await ctx.Discounts.AddAsync(new Discount{ListingId=visible_medical.Id,PercentDiscount=(byte)rng.Next(100)});
 
                         await ctx.MedicalListings.AddAsync(new MedicalListing{Id=visible_medical.Id,ProcedureId=proc.Id});
 
@@ -631,7 +731,7 @@ namespace PetCenterServices.Seeder
 
 
 
-                                Listing new_listing = new Listing{Type=ListingType.Pet,FranchiseId=franch.Id,PriceMinor=rng.Next(10000),AlbumId=album_id,Approved=true,Updated=false,Visible=true,ListingName=$"{ind.Name}-{adoptables}",ListingDescription=$"{Individual_desc[rng.Next(Individual_desc.Count)]} {ind.AnimalBreed.Title} for adoption.",Posted=creation};
+                                Listing new_listing = new Listing{Type=ListingType.Pet,FranchiseId=franch.Id,PriceMinor=rng.Next(10000),AlbumId=album_id,Approved=true,Updated=false,Visible=true,ListingName=$"{ind.Name}-{adoptables}",ListingDescription=GenerateLoremIpsum(450,rng),Posted=creation};
                                 await ctx.Listings.AddAsync(new_listing);
 
                                 listings.Add(new_listing);
@@ -652,30 +752,28 @@ namespace PetCenterServices.Seeder
                         {
                             marketables ++;
                             
-                            bool for_sale = rng.Next(3)==2;
+                           
 
                             byte amount = (byte)rng.Next(2,15);
 
                             DateTime creation = DateTime.UtcNow.AddDays(-rng.Next(100));   
                             
 
-                            if (for_sale)
-                            {
-                                
-                                Guid album_id = await ListingService.CreateAlbum(franch.OwnerId,ctx,1);
-                                await ctx.Images.AddAsync(await CreateRandomImage(ctx,album_id,rng));
+                             
+                            Guid album_id = await ListingService.CreateAlbum(franch.OwnerId,ctx,1);
+                            await ctx.Images.AddAsync(await CreateRandomImage(ctx,album_id,rng));
 
-                                Listing new_listing = new Listing{Type=ListingType.Product,FranchiseId=franch.Id,PriceMinor=rng.Next(10000),AlbumId=album_id,Approved=true,Updated=false,Visible=true,ListingName=$"{itm.Title}-{marketables}",ListingDescription=$"A great choice of {itm.ItemCategory.Title} for yout pet.",Posted=creation};
-                                await ctx.Listings.AddAsync(new_listing);
+                            Listing new_listing = new Listing{Type=ListingType.Product,FranchiseId=franch.Id,PriceMinor=rng.Next(10000),AlbumId=album_id,Approved=true,Updated=false,Visible=true,ListingName=$"{itm.Title}-{marketables}",ListingDescription=$"A great choice of {itm.ItemCategory.Title} for yout pet.",Posted=creation};
+                            await ctx.Listings.AddAsync(new_listing);
 
-                                listings.Add(new_listing);
-                                
-                                await ctx.SaveChangesAsync();
+                            listings.Add(new_listing);
+                            
+                            await ctx.SaveChangesAsync();
 
-                                await ctx.ProductListings.AddAsync(new ProductListing{Id=new_listing.Id,ProductId=itm.Id,PerListing=amount});
+                            await ctx.ProductListings.AddAsync(new ProductListing{Id=new_listing.Id,ProductId=itm.Id,PerListing=amount});
                                                               
 
-                            }
+                            
 
                         }
 

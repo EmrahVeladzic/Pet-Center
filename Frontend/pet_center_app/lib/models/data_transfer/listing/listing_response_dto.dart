@@ -19,6 +19,8 @@ class ListingResponseDTO {
   String franchiseId;
   String contact;
   String franchiseName;
+  bool approved;
+  bool visible;
   int priceMinor;
   ListingType type;
   ProductListingSubDTO? productListingExtension;
@@ -43,6 +45,8 @@ class ListingResponseDTO {
     this.franchiseName = '',
     this.locked = true,
     this.full = true,
+    this.approved = false,
+    this.visible = false,
     this.priceMinor = 0,
     DateTime? posted,
     this.type = ListingType.generic,
@@ -73,6 +77,8 @@ class ListingResponseDTO {
     description: description,
     franchiseId: franchiseId,
     contact: contact,
+    visible: visible,
+    approved: approved,
     franchiseName: franchiseName,
     locked: locked,
     full: full,

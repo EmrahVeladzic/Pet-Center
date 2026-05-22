@@ -59,7 +59,7 @@ class _UserPageScreenState extends State<UserPageScreen> {
       widget.franchiseId,
       page,
     );
-    if (newDataSrc != null) {
+    if (newDataSrc != null && mounted) {
       setState(() {
         _initLoading = false;
         dataSource = newDataSrc;
@@ -71,15 +71,16 @@ class _UserPageScreenState extends State<UserPageScreen> {
 
   void resetPages(bool inc, String name) async {
     final output = await UserService.count(inc, name, widget.franchiseId);
-    if (!mounted) {
-      return;
-    }
-    setState(() {
-      include = inc;
-      userName = name;
-    });
+
     if (output != null) {
-      _pageSelectorKey.currentState?.resetMax(output);
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _pageSelectorKey.currentState?.resetMax(output);
+        include = inc;
+        userName = name;
+      });
     }
   }
 

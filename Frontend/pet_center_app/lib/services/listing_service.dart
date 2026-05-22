@@ -15,26 +15,38 @@ import 'package:pet_center_app/utils/service_output.dart';
 class ListingService {
   static Future<int?> count(
     ListingType type,
-    String relevantId,
-    OrderingMethod orderBy,
-    bool showApprovedAndPending,
-    String kindSpecific,
-    String breedSpecific,
-    bool sexSpecific,
-    AnimalScale scaleSpecific,
-  ) async {
+    OrderingMethod orderBy, {
+    String? relevantId,
+    bool? showApprovedAndPending,
+    String? kindSpecific,
+    String? breedSpecific,
+    bool? sexSpecific,
+    AnimalScale? scaleSpecific,
+  }) async {
     apiServiceBusy.value = true;
     try {
       final query = <String, String>{
         'type': type.value.toString(),
-        'relevantId': relevantId,
         'orderBy': orderBy.value.toString(),
-        'showApprovedAndPending': showApprovedAndPending.toString(),
-        'kindSpecific': kindSpecific,
-        'breedSpecific': breedSpecific,
-        'sexSpecific': sexSpecific.toString(),
-        'scaleSpecific': scaleSpecific.value.toString(),
       };
+      if (relevantId != null) {
+        query['relevantId'] = relevantId;
+      }
+      if (kindSpecific != null) {
+        query['kindSpecific'] = kindSpecific;
+      }
+      if (breedSpecific != null) {
+        query['breedSpecific'] = breedSpecific;
+      }
+      if (scaleSpecific != null) {
+        query['scaleSpecific'] = scaleSpecific.value.toString();
+      }
+      if (sexSpecific != null) {
+        query['sexSpecific'] = sexSpecific.toString();
+      }
+      if (showApprovedAndPending != null) {
+        query['showApprovedAndPending'] = showApprovedAndPending.toString();
+      }
 
       final response = await http.get(
         Uri.parse(
@@ -60,27 +72,39 @@ class ListingService {
   static Future<List<ListingResponseDTO>?> get(
     int page,
     ListingType type,
-    String relevantId,
-    OrderingMethod orderBy,
-    bool showApprovedAndPending,
-    String kindSpecific,
-    String breedSpecific,
-    bool sexSpecific,
-    AnimalScale scaleSpecific,
-  ) async {
+    OrderingMethod orderBy, {
+    String? relevantId,
+    bool? showApprovedAndPending,
+    String? kindSpecific,
+    String? breedSpecific,
+    bool? sexSpecific,
+    AnimalScale? scaleSpecific,
+  }) async {
     apiServiceBusy.value = true;
     try {
       final query = <String, String>{
         'page': page.toString(),
         'type': type.value.toString(),
-        'relevantId': relevantId,
         'orderBy': orderBy.value.toString(),
-        'showApprovedAndPending': showApprovedAndPending.toString(),
-        'kindSpecific': kindSpecific,
-        'breedSpecific': breedSpecific,
-        'sexSpecific': sexSpecific.toString(),
-        'scaleSpecific': scaleSpecific.value.toString(),
       };
+      if (relevantId != null) {
+        query['relevantId'] = relevantId;
+      }
+      if (kindSpecific != null) {
+        query['kindSpecific'] = kindSpecific;
+      }
+      if (breedSpecific != null) {
+        query['breedSpecific'] = breedSpecific;
+      }
+      if (scaleSpecific != null) {
+        query['scaleSpecific'] = scaleSpecific.value.toString();
+      }
+      if (sexSpecific != null) {
+        query['sexSpecific'] = sexSpecific.toString();
+      }
+      if (showApprovedAndPending != null) {
+        query['showApprovedAndPending'] = showApprovedAndPending.toString();
+      }
 
       final response = await http.get(
         Uri.parse(

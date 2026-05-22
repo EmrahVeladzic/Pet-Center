@@ -47,7 +47,7 @@ class AnnouncementCard extends StatelessWidget {
                     fit: BoxFit.contain,
                     child: IconButton(
                       onPressed: onTap,
-                      icon: const Icon(Icons.arrow_forward),
+                      icon: const Icon(Icons.done_all),
                       padding: EdgeInsets.zero,
                       visualDensity: VisualDensity.compact,
                       constraints: const BoxConstraints(),

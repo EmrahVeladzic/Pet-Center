@@ -72,6 +72,7 @@ class PetCenterApp extends StatelessWidget {
               shape: const Border(),
               collapsedShape: const Border(),
             ),
+
             extensions: [ReactiveDesignSystem.fromMediaQuery(media)],
           );
 

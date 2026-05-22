@@ -26,6 +26,11 @@ class CacheManager {
     }
   }
 
+  static Future<void> delete(String entityId, CacheEntityType type) async {
+    final box = await _box();
+    await box.delete(_key(entityId, type));
+  }
+
   static Future<void> clear() async {
     final box = await _box();
 

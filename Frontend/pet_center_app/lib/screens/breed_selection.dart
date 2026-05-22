@@ -4,8 +4,10 @@ import 'package:pet_center_app/models/enums.dart';
 import 'package:pet_center_app/screens/components/breed/breed_card.dart';
 import 'package:pet_center_app/screens/components/breed/breed_filters.dart';
 import 'package:pet_center_app/screens/components/page_selector.dart';
+import 'package:pet_center_app/screens/listing_selection.dart';
 import 'package:pet_center_app/screens/templates/data_screen_scaffold.dart';
 import 'package:pet_center_app/services/breed_service.dart';
+import 'package:pet_center_app/services/listing_service.dart';
 
 import 'package:pet_center_app/utils/jwt_parser.dart';
 
@@ -49,7 +51,7 @@ class _BreedSelectionScreenState extends State<BreedSelectionScreen> {
       incomplete,
       widget.kindId,
     );
-    if (newDataSrc != null) {
+    if (newDataSrc != null && mounted) {
       setState(() {
         _initLoading = false;
         dataSource = newDataSrc;
@@ -59,21 +61,40 @@ class _BreedSelectionScreenState extends State<BreedSelectionScreen> {
     }
   }
 
-  void switchToSelection(String id) async {}
+  void switchToSelection(String id) async {
+    final count = await ListingService.count(
+      ListingType.pet,
+      OrderingMethod.id,
+      relevantId: id,
+    );
+    if (count != null && mounted) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => ListingSelectionScreen(
+            initType: ListingType.pet,
+            initRelevant: id,
+            maxPage: count,
+          ),
+        ),
+      );
+    }
+  }
 
   void resetPages(bool inc, bool adp) async {
     final output = await BreedService.count(adp, inc, widget.kindId);
-    if (!mounted) {
-      return;
-    }
-    setState(() {});
+
     if (output != null) {
-      if (!mounted) return;
+      if (!mounted) {
+        return;
+      }
+
       setState(() {
         incomplete = inc;
         adoption = adp;
+
+        _pageSelectorKey.currentState?.resetMax(output);
       });
-      _pageSelectorKey.currentState?.resetMax(output);
     }
   }
 
@@ -100,7 +121,13 @@ class _BreedSelectionScreenState extends State<BreedSelectionScreen> {
       itemBuilder: (p0, source) {
         return BreedCard(
           breed: source,
-          onTap: () {},
+          onTap: () {
+            final id = source.id;
+
+            if (id != null) {
+              switchToSelection(id);
+            }
+          },
           adminMode:
               (role == Access.admin ||
               role == Access.owner ||

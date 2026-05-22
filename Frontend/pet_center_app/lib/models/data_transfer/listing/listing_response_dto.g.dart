@@ -24,6 +24,8 @@ ListingResponseDTO _$ListingResponseDTOFromJson(Map<String, dynamic> json) =>
       franchiseName: json['franchiseName'] as String? ?? '',
       locked: json['locked'] as bool? ?? true,
       full: json['full'] as bool? ?? true,
+      approved: json['approved'] as bool? ?? false,
+      visible: json['visible'] as bool? ?? false,
       priceMinor: (json['priceMinor'] as num?)?.toInt() ?? 0,
       posted: json['posted'] == null
           ? null
@@ -79,6 +81,8 @@ Map<String, dynamic> _$ListingResponseDTOToJson(ListingResponseDTO instance) =>
       'franchiseId': instance.franchiseId,
       'contact': instance.contact,
       'franchiseName': instance.franchiseName,
+      'approved': instance.approved,
+      'visible': instance.visible,
       'priceMinor': instance.priceMinor,
       'type': _$ListingTypeEnumMap[instance.type]!,
       'productListingExtension': instance.productListingExtension?.toJson(),

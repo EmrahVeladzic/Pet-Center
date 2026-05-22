@@ -2,14 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:pet_center_app/models/data_transfer/franchise/franchise_request_dto.dart';
 
 import 'package:pet_center_app/models/data_transfer/franchise/franchise_response_dto.dart';
+import 'package:pet_center_app/models/enums.dart';
 import 'package:pet_center_app/screens/components/confirmation_dialog.dart';
 
 import 'package:pet_center_app/screens/components/franchise/franchise_card.dart';
 import 'package:pet_center_app/screens/components/franchise/franchise_edit_dialog.dart';
+import 'package:pet_center_app/screens/listing_selection.dart';
 import 'package:pet_center_app/screens/templates/screen_scaffold.dart';
 import 'package:pet_center_app/screens/user_page.dart';
 
 import 'package:pet_center_app/services/franchise_service.dart';
+import 'package:pet_center_app/services/listing_service.dart';
 import 'package:pet_center_app/services/static_user_data_service.dart';
 import 'package:pet_center_app/services/user_service.dart';
 
@@ -69,6 +72,30 @@ class _FranchiseViewScreenState extends State<FranchiseViewScreen> {
     }
   }
 
+  void switchToListingView(String id) async {
+    final output = await ListingService.count(
+      ListingType.generic,
+      OrderingMethod.id,
+      relevantId: id,
+    );
+    if (!mounted) {
+      return;
+    }
+    if (output != null) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => ListingSelectionScreen(
+            maxPage: output,
+            initRelevant: id,
+            initType: ListingType.generic,
+            initOrdering: OrderingMethod.id,
+          ),
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final ReactiveDesignSystem design = Theme.of(
@@ -91,6 +118,13 @@ class _FranchiseViewScreenState extends State<FranchiseViewScreen> {
           (e) => [
             FranchiseCard(
               franchise: e,
+              listingAction: () {
+                final id = e.id;
+                if (id == null) {
+                  return;
+                }
+                switchToListingView(id);
+              },
               editAction: () {
                 showDialog(
                   context: context,
@@ -135,6 +169,7 @@ class _FranchiseViewScreenState extends State<FranchiseViewScreen> {
           ],
         ),
       ],
+      bottomNavigationBar: BottomAppBar(),
     );
   }
 }

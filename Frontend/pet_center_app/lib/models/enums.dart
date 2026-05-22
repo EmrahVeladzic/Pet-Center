@@ -80,6 +80,19 @@ extension AccessExtension on Access {
         return 0;
     }
   }
+
+  String get displayName {
+    switch (this) {
+      case Access.owner:
+        return 'Owner';
+      case Access.admin:
+        return 'Admin';
+      case Access.business:
+        return 'Business';
+      case Access.user:
+        return 'User';
+    }
+  }
 }
 
 extension ListingTypeExtension on ListingType {
@@ -95,6 +108,20 @@ extension ListingTypeExtension on ListingType {
         return 3;
     }
   }
+
+  String get displayName {
+    switch (this) {
+      case ListingType.generic:
+        return "Generic";
+      case ListingType.pet:
+        return "Animal";
+      case ListingType.medical:
+        return "Medical";
+
+      case ListingType.product:
+        return "Product";
+    }
+  }
 }
 
 extension AnimalScaleExtension on AnimalScale {
@@ -106,6 +133,17 @@ extension AnimalScaleExtension on AnimalScale {
         return 1;
       case AnimalScale.large:
         return 2;
+    }
+  }
+
+  String get displayName {
+    switch (this) {
+      case AnimalScale.small:
+        return "Small";
+      case AnimalScale.medium:
+        return "Medium";
+      case AnimalScale.large:
+        return "Large";
     }
   }
 }
@@ -123,6 +161,21 @@ extension OrderingMethodExtension on OrderingMethod {
         return 3;
       case OrderingMethod.postedAscending:
         return 4;
+    }
+  }
+
+  String get displayName {
+    switch (this) {
+      case OrderingMethod.id:
+        return 'Default Sorting';
+      case OrderingMethod.priceDescending:
+        return 'Price: High to Low';
+      case OrderingMethod.priceAscending:
+        return 'Price: Low to High';
+      case OrderingMethod.postedDescending:
+        return 'Newest First';
+      case OrderingMethod.postedAscending:
+        return 'Oldest First';
     }
   }
 }

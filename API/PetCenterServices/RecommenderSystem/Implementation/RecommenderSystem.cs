@@ -78,12 +78,16 @@ namespace PetCenterServices.Recommender
             (b.Cohabitation   - IdealVector.Cohabitation)   * (b.Cohabitation   - IdealVector.Cohabitation);
         }
 
+      
         public async Task<IQueryable<Breed>> GetMostCompatibleBreeds(PetCenterDBContext ctx, IQueryable<Breed> filter, User user)
         {
-            PetCenterVector5 ideal = new(await ctx.LivingConditionEntries.Include(e=>e.Field).Where(e=>e.UserId==user.Id).ToListAsync());
-            Expression<Func<Breed, float>>  expression = BuildDistanceExpression(ideal);
-            return filter.OrderBy(expression);
+            PetCenterVector5 ideal = new(await ctx.LivingConditionEntries.Include(e => e.Field).Where(e => e.UserId == user.Id).ToListAsync());
+            Expression<Func<Breed, float>> expression = BuildDistanceExpression(ideal);
+            
+          
+            return filter.OrderBy(expression).ThenBy(b => b.Id);
         }
+
 
         public async Task RecommendListingToUsers(PetCenterDBContext ctx,Listing listing)
         {         
@@ -266,7 +270,7 @@ namespace PetCenterServices.Recommender
             NoteSubDTO output = new();
             output.Title="Supplies you may need to restock on:";
 
-            List<Individual> Animals = await ctx.IndividualAnimals.Include(i=>i.AnimalBreed).Where(i=>i.OwnerId==UserId).ToListAsync();
+            List<Individual> Animals = await ctx.IndividualAnimals.Include(i=>i.AnimalBreed).Where(i=>i.Owned && i.OwnerId==UserId).ToListAsync();
             List<Supplies> supplies = await ctx.SupplyRecords.Include(s=>s.KindDetails).Include(s=>s.ConsumableCategory).Where(s=>s.UserId==UserId).ToListAsync();
             Animals = Animals.Where(a=>a.AnimalBreed!=null).ToList();
 

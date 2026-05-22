@@ -62,12 +62,17 @@ class _ReportPageState extends State<ReportPage>
           return;
         }
 
-        Navigator.push(
+        final shouldRefresh = await Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => ListingViewScreen(listing: listing),
+            builder: (context) =>
+                ListingViewScreen(listing: listing, commentDeletionHook: load),
           ),
         );
+
+        if (shouldRefresh == true) {
+          load();
+        }
       }
     }
   }

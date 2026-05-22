@@ -103,6 +103,11 @@ class _UserViewScreenState extends State<UserViewScreen> {
 
   void clearCache() async {
     await CacheManager.clear();
+
+    visitedAnnouncementIndices.clear();
+    visitedReportIndices.clear();
+    visitedNotifIndices.clear();
+    visitedListingIndices.clear();
   }
 
   void resetUser() async {

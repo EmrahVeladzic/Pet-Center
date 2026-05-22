@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:pet_center_app/models/data_transfer/listing/listing_response_dto.dart';
+import 'package:pet_center_app/models/enums.dart';
 import 'package:pet_center_app/screens/components/image_display.dart';
+import 'package:pet_center_app/services/static_user_data_service.dart';
+
 import 'package:pet_center_app/utils/app_style.dart';
+import 'package:pet_center_app/utils/jwt_parser.dart';
+import 'package:pet_center_app/utils/pricing.dart';
 
 class ListingCard extends StatelessWidget {
   final ListingResponseDTO listing;
@@ -21,6 +26,8 @@ class ListingCard extends StatelessWidget {
       context,
     ).extension<ReactiveDesignSystem>()!;
 
+    final role = userToken?.role ?? Access.user;
+
     return Padding(
       padding: EdgeInsetsGeometry.symmetric(horizontal: 0, vertical: 1),
       child: Container(
@@ -38,7 +45,9 @@ class ListingCard extends StatelessWidget {
                   child: FittedBox(
                     fit: BoxFit.contain,
                     child: ImageDisplay(
-                      dataSource: listing.media[0],
+                      dataSource: (listing.media.isNotEmpty)
+                          ? listing.media[0]
+                          : null,
                       creationToken: null,
                       locked: true,
                       creating: false,
@@ -48,7 +57,12 @@ class ListingCard extends StatelessWidget {
               ),
             ),
 
-            Expanded(flex: 3, child: design.fittedText(listing.name)),
+            Expanded(
+              flex: 3,
+              child: design.fittedText(
+                "${(role == Access.business && (self?.workplaces?.any((w) => w.id == listing.franchiseId) == true) ? (listing.visible ? "(VISIBLE) - " : "(HIDDEN) - ") : "")}${listing.name} - ${fromMinor(listing.priceMinor, listing.listingDiscount?.percentage)}",
+              ),
+            ),
             Expanded(
               flex: 1,
               child: Align(
