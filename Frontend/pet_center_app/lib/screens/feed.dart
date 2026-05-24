@@ -14,8 +14,6 @@ class FeedScreen extends StatefulWidget {
 }
 
 class _FeedScreenState extends State<FeedScreen> {
-  Access role = userToken?.role ?? Access.user;
-
   @override
   Widget build(BuildContext context) {
     final ReactiveDesignSystem design = Theme.of(

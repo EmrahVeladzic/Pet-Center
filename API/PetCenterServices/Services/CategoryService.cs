@@ -12,6 +12,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Caching.Memory;
 
 
 namespace PetCenterServices.Services
@@ -19,10 +20,38 @@ namespace PetCenterServices.Services
     public class CategoryService : BaseCRUDService<Category,CategorySearchObject,CategoryDTO,CategoryDTO>, ICategoryService    
     {
 
-        public CategoryService(PetCenterDBContext ctx,ILoggerFactory _logger) : base(ctx,_logger)
+        private readonly IMemoryCache _cache;
+        public CategoryService(PetCenterDBContext ctx, ILoggerFactory _logger, IMemoryCache cache) : base(ctx, _logger)
         {
             dbSet = ctx.Categories;
+            _cache = cache;
         }
+
+        public override async Task<ServiceOutput<int>> Count(Guid token_holder, CategorySearchObject search)
+        {
+            string key = $"category_count_{StaticDataVersionHolder.CategoryVersion}";
+            if (!_cache.TryGetValue(key, out int cached))
+            {
+                ServiceOutput<int> result = await base.Count(token_holder, search);
+                _cache.Set(key, result.Body, TimeSpan.FromHours(6));
+                return result;
+            }
+            return ServiceOutput<int>.Success(cached);
+        }
+
+        public override async Task<ServiceOutput<List<CategoryDTO>>> Get(Guid token_holder, CategorySearchObject search)
+        {
+            string key = $"category_page_{StaticDataVersionHolder.CategoryVersion}_{search.Page}";
+            if (!_cache.TryGetValue(key, out List<CategoryDTO>? cached))
+            {
+                ServiceOutput<List<CategoryDTO>> result = await base.Get(token_holder, search);
+                _cache.Set(key, result.Body, TimeSpan.FromHours(6));
+                return result;
+            }
+            return ServiceOutput<List<CategoryDTO>>.Success(cached!);
+        }
+
+
 
         protected override void Touch()
         {
@@ -35,7 +64,7 @@ namespace PetCenterServices.Services
             
         }
 
-        public override async Task<ServiceOutput<CategoryDTO>> Put(Guid token_holder, CategoryDTO req)
+        public override async Task<ServiceOutput<CategoryDTO>> Put(Guid session,Guid token_holder, CategoryDTO req)
         {
             
             Category? ent = await dbSet.FindAsync(req.Id);

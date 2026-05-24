@@ -29,8 +29,17 @@ namespace PetCenterAPI.Controllers
 
         }
 
-        protected bool TryParseFileToken(out Guid user_id, out Guid album_id, out string file_hash, out string purpose, out PetCenterModels.ModelUtils.FileScope scope)
+        protected bool TryGetJTI(out Guid token_id){
+
+            token_id = default;
+
+            return Guid.TryParse(User.FindFirst(JwtRegisteredClaimNames.Jti)?.Value,out token_id);
+
+        }
+
+        protected bool TryParseFileToken(out Guid session, out Guid user_id, out Guid album_id, out string file_hash, out string purpose, out PetCenterModels.ModelUtils.FileScope scope)
         {
+            session=Guid.Empty;
             user_id = Guid.Empty;
             album_id = Guid.Empty;
             file_hash = string.Empty;
@@ -39,10 +48,12 @@ namespace PetCenterAPI.Controllers
 
             try
             {
-                if (!TryGetUserId(out user_id))
+                if (!TryGetUserId(out user_id)||!TryGetJTI(out session))
                 {
                     return false;
                 }
+
+
 
                 string? rawToken = Request.Headers["X-File-Token"].FirstOrDefault();
                 if (string.IsNullOrWhiteSpace(rawToken))
@@ -57,6 +68,13 @@ namespace PetCenterAPI.Controllers
                 string? hashClaim  = jwt.Claims.FirstOrDefault(c => c.Type == "file_hash")?.Value;
                 string? purposeClaim = jwt.Claims.FirstOrDefault(c => c.Type == "purpose")?.Value;
                 string? scopeClaim = jwt.Claims.FirstOrDefault(c => c.Type == "scope")?.Value;
+                string? sessionClaim = jwt.Claims.FirstOrDefault(c => c.Type == "session")?.Value;
+
+
+                if (!Guid.TryParse(sessionClaim, out Guid claimGuid) || session != claimGuid)
+                {
+                    return false;
+                }
 
                 if (!Guid.TryParse(albumClaim, out album_id))
                 {
@@ -108,7 +126,7 @@ namespace PetCenterAPI.Controllers
         [HttpGet]
         public virtual async Task<IActionResult> Get()
         {
-            if(TryParseFileToken(out Guid user_id, out Guid album_id, out string file_hash, out string purpose, out FileScope scope))
+            if(TryParseFileToken(out Guid session, out Guid user_id, out Guid album_id, out string file_hash, out string purpose, out FileScope scope))
             {
                 if (ControllerContext.ActionDescriptor.ControllerName.ToLowerInvariant() == purpose.ToLowerInvariant())
                 {
@@ -122,7 +140,7 @@ namespace PetCenterAPI.Controllers
         [HttpPost]
         public virtual async Task<IActionResult> Post()
         {
-            if(TryParseFileToken(out Guid user_id, out Guid album_id, out string file_hash, out string purpose, out FileScope scope))
+            if(TryParseFileToken(out Guid session,out Guid user_id, out Guid album_id, out string file_hash, out string purpose, out FileScope scope))
             {
                 if (ControllerContext.ActionDescriptor.ControllerName.ToLowerInvariant() == purpose.ToLowerInvariant() && scope == FileScope.Write)
                 {
@@ -133,7 +151,7 @@ namespace PetCenterAPI.Controllers
 
                         byte[] data = ms.ToArray();
 
-                        return ResultConverter.Convert<TDTO>(await service.Upload(user_id,album_id,data));
+                        return ResultConverter.Convert<TDTO>(await service.Upload(session,user_id,album_id,data));
                     
                     }
                 
@@ -148,7 +166,7 @@ namespace PetCenterAPI.Controllers
         [HttpDelete]
         public virtual async Task<IActionResult> Delete()
         {
-            if(TryParseFileToken(out Guid user_id, out Guid album_id, out string file_hash, out string purpose, out FileScope scope))
+            if(TryParseFileToken(out Guid session,out Guid user_id, out Guid album_id, out string file_hash, out string purpose, out FileScope scope))
             {
                 if (ControllerContext.ActionDescriptor.ControllerName.ToLowerInvariant() == purpose.ToLowerInvariant() && scope == FileScope.Write)
                 {

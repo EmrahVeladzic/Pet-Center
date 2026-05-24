@@ -38,7 +38,6 @@ class ListingViewScreen extends StatefulWidget {
 }
 
 class _ListingViewScreenState extends State<ListingViewScreen> {
-  Access role = userToken?.role ?? Access.user;
   bool mature = self?.matureAccount ?? false;
 
   void toggleVisibility() async {

@@ -65,7 +65,7 @@ namespace PetCenterServices.Services
             return ServiceOutput<List<IndividualResponseDTO>>.Success(output);
         }
 
-        public override async Task<ServiceOutput<IndividualResponseDTO>> Put(Guid token_holder, IndividualRequestDTO req)
+        public override async Task<ServiceOutput<IndividualResponseDTO>> Put(Guid session,Guid token_holder, IndividualRequestDTO req)
         {
             Individual? current = await dbSet.FindAsync(req.Id);
             if(current==null)

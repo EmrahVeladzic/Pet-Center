@@ -115,7 +115,7 @@ namespace PetCenterServices.Services
 
                     List<Individual> individuals = await dbContext.IndividualAnimals
                     .Include(i => i.AnimalBreed)
-                    .Where(i => i.Owned && i.OwnerId == token_holder)
+                    .Where(i => i.Owned && i.OwnerId == token_holder && i.AnimalBreed.KindId==search.KindSpecific)
                     .ToListAsync();
 
                     List<Usage> allEstimates = await dbContext.UsageEstimates
@@ -160,13 +160,13 @@ namespace PetCenterServices.Services
             {
                 
 
-                AttachTokensIfNeeded(response,search.FileRW);
+                AttachTokensIfNeeded(response,search.FileRW,search.Session);
             }
 
             return ServiceOutput<List<ListingResponseDTO>>.Success(output);
         }
 
-        public override async Task<ServiceOutput<ListingResponseDTO>> GetById(Guid token_holder, Guid id, Access authorization_level, FileScope fileScope = FileScope.ReadOnly)
+        public override async Task<ServiceOutput<ListingResponseDTO>> GetById(Guid session,Guid token_holder, Guid id, Access authorization_level, FileScope fileScope = FileScope.ReadOnly)
         {
             fileScope=FileScope.ReadOnly;
 
@@ -207,10 +207,12 @@ namespace PetCenterServices.Services
 
                     int supplies = sup?.MassGrams ?? 0;
 
-                    List<Individual> individuals = await dbContext.IndividualAnimals
+                     List<Individual> individuals = await dbContext.IndividualAnimals
                     .Include(i => i.AnimalBreed)
-                    .Where(i => i.Owned && i.OwnerId == token_holder)
+                    .Where(i => i.Owned && i.OwnerId == token_holder && i.AnimalBreed.KindId==output.ProductExtension.Product.KindId)
                     .ToListAsync();
+
+                  
 
                     List<Usage> allEstimates = await dbContext.UsageEstimates
                     .Where(u => u.CategoryId == output.ProductExtension.Product.CategoryId && u.KindId == output.ProductExtension.Product.KindId)
@@ -247,7 +249,7 @@ namespace PetCenterServices.Services
                 }
             }
 
-            AttachTokensIfNeeded(dto,fileScope);
+            AttachTokensIfNeeded(dto,fileScope,session);
           
             return ServiceOutput<ListingResponseDTO>.Success(dto);
         }
@@ -575,7 +577,7 @@ namespace PetCenterServices.Services
 
         }
 
-        public override async Task<ServiceOutput<ListingResponseDTO>> Post(Guid token_holder, ListingRequestDTO req)
+        public override async Task<ServiceOutput<ListingResponseDTO>> Post(Guid session,Guid token_holder, ListingRequestDTO req)
         {
             Listing? lst = req.ToEntity();
             ProductListing? plst = req?.ProductListingExtension?.ToEntity();
@@ -615,7 +617,7 @@ namespace PetCenterServices.Services
                        
                         await tx.CommitAsync();
                         
-                        return ServiceOutput<ListingResponseDTO>.Success(ListingResponseDTO.FromEntity(lst,Crypto.GenerateFileToken("",Purpose,FileScope.Write,lst.AlbumId)),HttpCode.Created);
+                        return ServiceOutput<ListingResponseDTO>.Success(ListingResponseDTO.FromEntity(lst,Crypto.GenerateFileToken("",Purpose,FileScope.Write,lst.AlbumId,session)),HttpCode.Created);
                     }
                     catch(Exception ex)
                     {
@@ -634,7 +636,7 @@ namespace PetCenterServices.Services
 
         }
 
-        public override async Task<ServiceOutput<ListingResponseDTO>> Put(Guid token_holder, ListingRequestDTO req)
+        public override async Task<ServiceOutput<ListingResponseDTO>> Put(Guid session,Guid token_holder, ListingRequestDTO req)
         {
             Listing? listing = await dbSet.Include(l=>l.ProductExtension).Include(l=>l.MedicalExtension).Include(l=>l.AnimalExtension).FirstOrDefaultAsync(l=>l.Id==req.Id);
 
@@ -664,7 +666,7 @@ namespace PetCenterServices.Services
 
                         if (response != null)
                         {
-                            AttachTokensIfNeeded(response,FileScope.Write);
+                            AttachTokensIfNeeded(response,FileScope.Write,session);
                         }
 
                         return ServiceOutput<ListingResponseDTO>.Success(response);

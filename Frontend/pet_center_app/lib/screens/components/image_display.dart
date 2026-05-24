@@ -5,6 +5,7 @@ import 'package:pet_center_app/models/data_transfer/image_dto.dart';
 import 'package:pet_center_app/services/image_service.dart';
 import 'package:pet_center_app/utils/app_style.dart';
 import 'package:pet_center_app/utils/image_cache_service.dart';
+import 'dart:ui' as ui;
 
 class ImageDisplay extends StatefulWidget {
   final ImageDTO? dataSource;
@@ -195,19 +196,44 @@ class _ImageDisplayState extends State<ImageDisplay> {
   }
 
   Future<void> _onCreate() async {
+    // 1. Pick the file
     final result = await FilePicker.pickFiles(
       type: FileType.custom,
       allowedExtensions: ['webp', 'png', 'jpg', 'jpeg', 'bmp', 'gif'],
       withData: true,
     );
 
-    if (result == null) {
-      return;
-    }
+    if (result == null) return;
 
     final bytes = result.files.single.bytes;
     if (bytes == null) {
       showSnackbar("Could not read file data.");
+      return;
+    }
+
+    try {
+      final ui.Codec codec = await ui.instantiateImageCodec(bytes);
+      final ui.FrameInfo frameInfo = await codec.getNextFrame();
+      final ui.Image image = frameInfo.image;
+
+      final int realWidth = image.width;
+      final int realHeight = image.height;
+      final double aspectRatio = realWidth / realHeight;
+
+      image.dispose();
+      codec.dispose();
+
+      if (realWidth > 4096 || realHeight > 4096) {
+        showSnackbar("Image resolution is too high (max 4096x4096).");
+        return;
+      }
+
+      if (aspectRatio < 0.5 || aspectRatio > 2.0) {
+        showSnackbar("Invalid aspect ratio. Try using a squarer image.");
+        return;
+      }
+    } catch (e) {
+      showSnackbar("Selected file is not a valid or readable image.");
       return;
     }
 

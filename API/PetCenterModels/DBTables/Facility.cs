@@ -16,8 +16,7 @@ namespace PetCenterModels.DBTables
     public class Facility : BaseTableEntity
     {
 
-        [Column("FranchiseID")]
-        [JsonIgnore]
+        [Column("FranchiseID")]      
         public Guid FranchiseId { get; set; }
 
         [ForeignKey(nameof(FranchiseId))]

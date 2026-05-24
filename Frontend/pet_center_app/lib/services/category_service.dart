@@ -12,18 +12,11 @@ import 'package:pet_center_app/utils/jwt_parser.dart';
 import 'package:pet_center_app/utils/service_output.dart';
 
 class CategoryService {
-  static Future<int?> count(bool? consumable) async {
+  static Future<int?> count() async {
     apiServiceBusy.value = true;
     try {
-      final query = <String, String>{};
-      if (consumable != null) {
-        query['consumable'] = consumable.toString();
-      }
-
       final response = await http.get(
-        Uri.parse(
-          "${AppConfig.apiBaseUrl}/api/Category/Count",
-        ).replace(queryParameters: query),
+        Uri.parse("${AppConfig.apiBaseUrl}/api/Category/Count"),
         headers: {'Authorization': 'Bearer $rawToken', 'Accept': 'text/plain'},
       );
 
@@ -41,14 +34,11 @@ class CategoryService {
     }
   }
 
-  static Future<List<CategoryDTO>?> get(bool? consumable, int page) async {
+  static Future<List<CategoryDTO>?> get(int page) async {
     apiServiceBusy.value = true;
     try {
       final query = <String, String>{};
       query['page'] = page.toString();
-      if (consumable != null) {
-        query['consumable'] = consumable.toString();
-      }
 
       final response = await http.get(
         Uri.parse(
@@ -76,8 +66,8 @@ class CategoryService {
     }
   }
 
-  static Future<List<CategoryDTO>?> getAll(bool? consumable) async {
-    final pageCount = await count(consumable);
+  static Future<List<CategoryDTO>?> getAll() async {
+    final pageCount = await count();
 
     if (pageCount == null) {
       return null;
@@ -87,7 +77,7 @@ class CategoryService {
     final seen = <String?>{};
 
     for (int i = 0; i < pageCount; i++) {
-      final newEntries = await get(consumable, i);
+      final newEntries = await get(i);
 
       if (newEntries == null) {
         return null;

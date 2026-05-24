@@ -133,8 +133,9 @@ namespace PetCenterAPI.Controllers
         [HttpGet]
         public virtual async Task<IActionResult>Get([FromQuery] TSearch search)
         {  
-            if (TryGetUserId(out Guid id))
+            if (TryGetUserId(out Guid id) && TryGetJTI (out Guid session))
             {
+                search.Session=session;
                 search.AuthoritySpecifier = SpecifySearchAuthority();
                 return ResultConverter.Convert<List<TResponse>>(await service.Get(id,search));
             }
@@ -148,9 +149,10 @@ namespace PetCenterAPI.Controllers
         public virtual async Task<IActionResult> Count([FromQuery] TSearch search)
         {
 
-            if (TryGetUserId(out Guid id))
+            if (TryGetUserId(out Guid id) && TryGetJTI(out Guid session))
             {
-                  return ResultConverter.Convert<int>(await service.Count(id,search));
+                search.Session=session;
+                return ResultConverter.Convert<int>(await service.Count(id,search));
             }
             return StatusCode(401,"Invalid token.");   
           
@@ -160,7 +162,7 @@ namespace PetCenterAPI.Controllers
         [HttpPost]
         public virtual async Task<IActionResult> Post([FromBody] TRequest ent)
         {
-            if(TryGetUserId(out Guid user_id))
+            if(TryGetUserId(out Guid user_id) && TryGetJTI(out Guid session))
             {
                 ServiceOutput<object> cleared = await service.IsClearedToCreate(user_id,ent);
 
@@ -169,7 +171,7 @@ namespace PetCenterAPI.Controllers
                     return ResultConverter.Convert<object>(cleared);
                 }
 
-                return ResultConverter.Convert<TResponse>(await service.Post(user_id,ent));
+                return ResultConverter.Convert<TResponse>(await service.Post(session,user_id,ent));
                               
                 
             }
@@ -179,7 +181,7 @@ namespace PetCenterAPI.Controllers
         [HttpPut("{id}")]
         public virtual async Task<IActionResult> Put([FromRoute] Guid id, [FromBody] TRequest ent)
         {
-            if(TryGetUserId(out Guid user_id))
+            if(TryGetUserId(out Guid user_id) && TryGetJTI(out Guid session))
             {
                 ent.Id = id;
                 
@@ -191,7 +193,7 @@ namespace PetCenterAPI.Controllers
                 }
 
 
-                return ResultConverter.Convert<TResponse>(await service.Put(user_id,ent));
+                return ResultConverter.Convert<TResponse>(await service.Put(session,user_id,ent));
                               
                 
             }

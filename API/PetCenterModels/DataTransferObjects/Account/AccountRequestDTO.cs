@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
@@ -8,11 +9,13 @@ using System.Threading.Tasks;
 using PetCenterModels.DBTables;
 using PetCenterModels.ModelUtils;
 
+
 namespace PetCenterModels.DataTransferObjects
 {
     public class AccountRequestDTO : IBaseRequestDTO
     {       
         [JsonIgnore]
+        [ReadOnly(true)]
         public Guid? Id {get; set;}
 
         public byte[] CurrentVersion { get; set; } = Array.Empty<byte>();

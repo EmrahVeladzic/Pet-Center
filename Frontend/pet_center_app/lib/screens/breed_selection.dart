@@ -92,16 +92,13 @@ class _BreedSelectionScreenState extends State<BreedSelectionScreen> {
       setState(() {
         incomplete = inc;
         adoption = adp;
-
-        _pageSelectorKey.currentState?.resetMax(output);
       });
+      _pageSelectorKey.currentState?.resetMax(output);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final role = userToken?.role ?? Access.user;
-
     return DataScreenScaffold<BreedFilters, BreedDTO>(
       maxPage: widget.maxPage,
       switchPage: switchPage,

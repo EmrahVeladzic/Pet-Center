@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
@@ -26,11 +27,13 @@ namespace PetCenterModels.DataTransferObjects
         public DateTime BirthDate {get; set;} = DateTime.UtcNow;
 
         [JsonIgnore]
+        [ReadOnly(true)]
         public Guid? OwnerId {get; set;} = null;
 
         public Guid? ShelterId {get; set;} = null;
     
         [JsonIgnore]
+        [ReadOnly(true)]
         public Access AuthoritySpecifier {get; set;} = Access.User;
 
 

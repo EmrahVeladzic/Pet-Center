@@ -74,7 +74,11 @@ namespace PetCenterServices.Workers
 
                             foreach (Supplies sup in supplies)
                             {
-                                sup.MassGrams -= Utils.UserUtils.GetTotalDailyUsageForCategory(allEstimates, sup.CategoryId, sup.KindId, sup.RelevantUser.OwnedAnimals.ToList());
+                                sup.MassGrams -= Utils.UserUtils.GetTotalDailyUsageForCategory(
+                                allEstimates, sup.CategoryId, sup.KindId,
+                                sup.RelevantUser.OwnedAnimals
+                                    .Where(a => a.Owned && a.AnimalBreed?.KindId == sup.KindId)
+                                    .ToList());
                                 sup.MassGrams = Math.Max(sup.MassGrams, 0);
                                 sup.Evaluated = DateTime.UtcNow;
                             }

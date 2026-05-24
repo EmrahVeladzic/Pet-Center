@@ -202,12 +202,12 @@ class AccountService {
     }
   }
 
-  static Future<String?> setRole(String id, Access role) async {
+  static Future<String?> setRole(String id, Access accRole) async {
     apiServiceBusy.value = true;
     try {
       final response = await http.put(
         Uri.parse(
-          "${AppConfig.apiBaseUrl}/api/Account/SetRole/$id/${role.value}",
+          "${AppConfig.apiBaseUrl}/api/Account/SetRole/$id/${accRole.value}",
         ),
         headers: {'Authorization': 'Bearer $rawToken', 'Accept': 'text/plain'},
       );
@@ -260,11 +260,20 @@ class AccountService {
     }
   }
 
-  static Future<int?> count() async {
+  static Future<int?> count(Access accRole, String contact) async {
     apiServiceBusy.value = true;
     try {
+      final query = <String, String>{};
+      if (contact.isNotEmpty) {
+        query['contact'] = contact;
+      }
+
+      query['role'] = accRole.value.toString();
+
       final response = await http.get(
-        Uri.parse("${AppConfig.apiBaseUrl}/api/Account/Count"),
+        Uri.parse(
+          "${AppConfig.apiBaseUrl}/api/Account/Count",
+        ).replace(queryParameters: query),
         headers: {'Authorization': 'Bearer $rawToken', 'Accept': 'text/plain'},
       );
 
@@ -282,11 +291,20 @@ class AccountService {
     }
   }
 
-  static Future<List<AccountResponseDTO>?> get(int page) async {
+  static Future<List<AccountResponseDTO>?> get(
+    int page,
+    Access accRole,
+    String contact,
+  ) async {
     apiServiceBusy.value = true;
     try {
       final query = <String, String>{};
       query['page'] = page.toString();
+      if (contact.isNotEmpty) {
+        query['contact'] = contact;
+      }
+
+      query['role'] = accRole.value.toString();
 
       final response = await http.get(
         Uri.parse(

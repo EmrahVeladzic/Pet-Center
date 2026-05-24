@@ -13,7 +13,7 @@ namespace PetCenterServices.Interfaces
 {
     public interface IBaseBLOBService<TEntity,TBLOB,TMeta,TDTO> where TEntity : BLOBReferencingEntity<TMeta>, new() where TBLOB : BaseBLOBEntity<TMeta> where TMeta : IMetadataOutput,new() where TDTO: IBLOBReferencingDTO<TEntity,TDTO,TMeta>
     {
-        public Task<ServiceOutput<TDTO>> Upload(Guid token_holder, Guid insert_album, byte[] data);
+        public Task<ServiceOutput<TDTO>> Upload(Guid session, Guid token_holder, Guid insert_album, byte[] data);
 
         public Task<ServiceOutput<byte[]>> Download(Guid token_holder, string hash);
 

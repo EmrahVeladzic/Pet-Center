@@ -58,7 +58,7 @@ namespace PetCenterServices.Services
             return Task.FromResult(output);
         }
 
-        public override async Task<ServiceOutput<UserResponseDTO>> GetById(Guid token_holder, Guid id, Access authorization_level, FileScope fileScope = FileScope.Invalid)
+        public override async Task<ServiceOutput<UserResponseDTO>> GetById(Guid session,Guid token_holder, Guid id, Access authorization_level, FileScope fileScope = FileScope.Invalid)
         {
             UserResponseDTO? output = UserResponseDTO.FromEntity(await dbSet.Include(u=>u.UserAccount).FirstOrDefaultAsync(u=>u.Id==id));
 
@@ -135,7 +135,7 @@ namespace PetCenterServices.Services
         }
 
 
-        public override async Task<ServiceOutput<UserResponseDTO>> Put(Guid token_holder,UserRequestDTO ent)
+        public override async Task<ServiceOutput<UserResponseDTO>> Put(Guid session,Guid token_holder,UserRequestDTO ent)
         {
 
             User? current = await dbContext.Users.FindAsync(ent.Id);
@@ -169,7 +169,7 @@ namespace PetCenterServices.Services
 
         }
 
-        public override Task<ServiceOutput<UserResponseDTO>> Post(Guid token_holder,UserRequestDTO ent)
+        public override Task<ServiceOutput<UserResponseDTO>> Post(Guid session,Guid token_holder,UserRequestDTO ent)
         {
             return Task.FromResult(ServiceOutput<UserResponseDTO>.Error(HttpCode.NotImplemented,"Illegal endpoint."));
         }

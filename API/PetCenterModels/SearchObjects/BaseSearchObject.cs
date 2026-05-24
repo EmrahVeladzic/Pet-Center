@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Text.Json.Serialization;
@@ -14,13 +15,25 @@ namespace PetCenterModels.SearchObjects
         public int Page { get; set; }
 
         [JsonIgnore]
+        [ReadOnly(true)]
+        
         public virtual int PageSize {get;} = 1000;
 
         [JsonIgnore]
+        [ReadOnly(true)]
+       
         public virtual FileScope FileRW {get; set;} = FileScope.Invalid;
 
 
         [JsonIgnore]
+        [ReadOnly(true)]       
         public Access AuthoritySpecifier {get; set;} = Access.User;
+
+
+
+        [JsonIgnore]
+        [ReadOnly(true)]       
+        public Guid Session {get; set;} = Guid.Empty;
+
     }
 }

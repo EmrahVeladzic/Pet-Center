@@ -53,7 +53,6 @@ class _LivingConditionCardState extends State<LivingConditionCard> {
     final ReactiveDesignSystem design = Theme.of(
       context,
     ).extension<ReactiveDesignSystem>()!;
-    final role = userToken?.role ?? Access.user;
 
     return Padding(
       padding: EdgeInsetsGeometry.symmetric(horizontal: 0, vertical: 1),

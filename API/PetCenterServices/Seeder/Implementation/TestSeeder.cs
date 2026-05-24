@@ -282,7 +282,7 @@ namespace PetCenterServices.Seeder
                     await ctx.FormTemplateFields.AddAsync(new FormTemplateField{FormTemplateId=template_two.Id,Description = "Personal ID:",Optional=false});
 
                     await ctx.SaveChangesAsync();
-                    template=await ctx.FormTemplates.Include(ft=>ft.Entries).FirstOrDefaultAsync(ft=>ft.Id==template.Id);
+                    template=await ctx.FormTemplates.Include(ft=>ft.Fields).FirstOrDefaultAsync(ft=>ft.Id==template.Id);
 
                     for(int i = 0; i<50; i++)
                     {
@@ -491,7 +491,7 @@ namespace PetCenterServices.Seeder
                         
                         for(int i = 0; i<2; i++)
                         {
-                            if (template == null || template.Entries.Count == 0)
+                            if (template == null || template.Fields.Count == 0)
                             {
                                 break;
                             }
@@ -509,7 +509,7 @@ namespace PetCenterServices.Seeder
                                 await ctx.Images.AddAsync(await CreateRandomImage(ctx,frm.AlbumId,rng));
                             }
 
-                            foreach(FormTemplateField ftf in template.Entries)
+                            foreach(FormTemplateField ftf in template.Fields)
                             {
                                 await ctx.FormFieldEntries.AddAsync(new FormFieldEntry{FormId=frm.Id,FormTemplateFieldId=ftf.Id,Serialized=(ftf.Optional)?"":base_name});
 

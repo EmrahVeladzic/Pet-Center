@@ -10,8 +10,7 @@ namespace PetCenterModels.SearchObjects
 {
     public class CategorySearchObject : BaseSearchObject
     {
-        public bool? Consumable { get; set; } = null;
-
+      
 
 
     }

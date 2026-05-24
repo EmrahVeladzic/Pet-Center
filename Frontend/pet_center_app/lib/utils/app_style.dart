@@ -58,6 +58,7 @@ class ReactiveDesignSystem extends ThemeExtension<ReactiveDesignSystem> {
   final double screenWidth;
   final double screenHeight;
   final double dialogWidth;
+  final double dropdownW;
 
   ReactiveDesignSystem({
     required this.spacing,
@@ -70,6 +71,7 @@ class ReactiveDesignSystem extends ThemeExtension<ReactiveDesignSystem> {
     required this.screenWidth,
     required this.screenHeight,
     required this.dialogWidth,
+    required this.dropdownW,
   });
 
   factory ReactiveDesignSystem.fromMediaQuery(MediaQueryData data) {
@@ -99,6 +101,8 @@ class ReactiveDesignSystem extends ThemeExtension<ReactiveDesignSystem> {
       screenWidth: width,
 
       screenHeight: height,
+
+      dropdownW: width * ((isLandscape) ? 0.25 : 0.5),
     );
   }
 
@@ -187,6 +191,7 @@ class ReactiveDesignSystem extends ThemeExtension<ReactiveDesignSystem> {
     double? screenHeight,
     double? bodyWMult,
     double? dialogWidth,
+    double? dropdownW,
   }) {
     return ReactiveDesignSystem(
       spacing: spacing ?? this.spacing,
@@ -199,6 +204,7 @@ class ReactiveDesignSystem extends ThemeExtension<ReactiveDesignSystem> {
       screenHeight: screenHeight ?? this.screenHeight,
       bodyWMult: bodyWMult ?? this.bodyWMult,
       dialogWidth: dialogWidth ?? this.dialogWidth,
+      dropdownW: dropdownW ?? this.dropdownW,
     );
   }
 
@@ -224,6 +230,8 @@ class ReactiveDesignSystem extends ThemeExtension<ReactiveDesignSystem> {
       layoutDirection: t < 0.5 ? layoutDirection : other.layoutDirection,
       bodyWMult: lerpDouble(bodyWMult, other.bodyWMult, t) ?? bodyWMult,
       dialogWidth: lerpDouble(dialogWidth, other.dialogWidth, t) ?? dialogWidth,
+
+      dropdownW: lerpDouble(dropdownW, other.dropdownW, t) ?? dropdownW,
     );
   }
 }

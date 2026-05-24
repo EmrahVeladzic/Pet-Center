@@ -43,8 +43,6 @@ class _KindSelectionScreenState extends State<KindSelectionScreen> {
       context,
     ).extension<ReactiveDesignSystem>()!;
 
-    final role = userToken?.role ?? Access.user;
-
     return BasicScreenScaffold(
       center: true,
       appBar: AppBar(

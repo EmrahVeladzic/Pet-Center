@@ -73,7 +73,7 @@ class StaticAndUserDataService {
     bool output = true;
 
     apiServiceBusy.value = true;
-    Access role = userToken?.role ?? Access.user;
+
     try {
       final userResponse = await UserService.getUserStatus();
       if (userResponse == null) {
@@ -119,7 +119,7 @@ class StaticAndUserDataService {
         if (currentStaticDataVersion.categoryVersion !=
                 result.categoryVersion ||
             currentStaticDataVersion.usageVersion != result.usageVersion) {
-          final newCategories = await CategoryService.getAll(null);
+          final newCategories = await CategoryService.getAll();
           if (newCategories != null) {
             categories = newCategories;
             currentStaticDataVersion.categoryVersion = result.categoryVersion;

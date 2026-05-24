@@ -56,7 +56,7 @@ class _NotificationPageState extends State<NotificationPage>
       ),
     );
 
-    if (shouldRefresh) {
+    if (shouldRefresh == true) {
       load();
     }
   }

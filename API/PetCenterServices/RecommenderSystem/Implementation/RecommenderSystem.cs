@@ -293,16 +293,18 @@ namespace PetCenterServices.Recommender
             for(int k = 0; k<kinds.Count; k++)
             {
                 string kind_title =kinds[k].Title.ToLowerInvariant();
-                                 
-                for(int s = 0; s<supplies.Count; s++)
+
+                List<Supplies> suppliesForKind = supplies.Where(s => s.KindId == kinds[k].Id).ToList();
+
+                for(int s = 0; s<suppliesForKind.Count; s++)
                 {
                     int daily_usage = Utils.UserUtils.GetTotalDailyUsageForCategory(
-                    allEstimates, supplies[s].CategoryId, kinds[k].Id,
+                    allEstimates, suppliesForKind[s].CategoryId, kinds[k].Id,
                     Animals.Where(a => a.AnimalBreed.KindId == kinds[k].Id).ToList());
-                    if (daily_usage > 0 && supplies[s].MassGrams / daily_usage < 7 && !eval.Any(ev => ev.CategoryId == supplies[s].CategoryId && ev.KindId == kinds[k].Id))
+                    if (daily_usage > 0 && suppliesForKind[s].MassGrams / daily_usage < 7 && !eval.Any(ev => ev.CategoryId == suppliesForKind[s].CategoryId && ev.KindId == kinds[k].Id))
                     {
-                        eval.Add(new EvaluatedSupply { KindId = kinds[k].Id, CategoryId = supplies[s].CategoryId });
-                        items.Add($"-{supplies[s].ConsumableCategory.Title} for {kind_title}");
+                        eval.Add(new EvaluatedSupply { KindId = kinds[k].Id, CategoryId = suppliesForKind[s].CategoryId });
+                        items.Add($"-{suppliesForKind[s].ConsumableCategory.Title} for {kind_title}");
                     }
 
                 }

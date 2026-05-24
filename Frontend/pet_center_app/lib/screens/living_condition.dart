@@ -52,7 +52,6 @@ class _LivingConditionScreenState extends State<LivingConditionScreen> {
     final ReactiveDesignSystem design = Theme.of(
       context,
     ).extension<ReactiveDesignSystem>()!;
-    final role = userToken?.role ?? Access.user;
 
     return BasicScreenScaffold(
       appBar: AppBar(

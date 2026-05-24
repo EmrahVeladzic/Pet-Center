@@ -32,7 +32,7 @@ namespace PetCenterModels.DBTables
         [Column("ApproximateAgeDays")]
         public int? ApproximateAge {get; set;}
 
-        [JsonIgnore]
+        
         [Column("SexSpecific")]
         public bool? SexSpecific {get; set;}
 

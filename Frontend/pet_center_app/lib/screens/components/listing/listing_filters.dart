@@ -3,6 +3,7 @@ import 'package:pet_center_app/models/data_transfer/category_dto.dart';
 import 'package:pet_center_app/models/data_transfer/kind_dto.dart';
 import 'package:pet_center_app/models/data_transfer/procedure_dto.dart';
 import 'package:pet_center_app/models/enums.dart';
+import 'package:pet_center_app/screens/components/dropdown_menus.dart';
 
 import 'package:pet_center_app/screens/templates/filter_template.dart';
 import 'package:pet_center_app/services/static_user_data_service.dart';
@@ -69,9 +70,6 @@ class _ListingFiltersState extends State<ListingFilters> {
   bool? sex;
   AnimalScale? scale;
 
-  final textCutoff = 20;
-  double dropdownW = 250.0;
-
   @override
   void initState() {
     super.initState();
@@ -98,197 +96,11 @@ class _ListingFiltersState extends State<ListingFilters> {
     );
   }
 
-  Widget _orderingWidget() {
-    return FittedBox(
-      fit: BoxFit.scaleDown,
-      child: SizedBox(
-        width: dropdownW,
-        child: DropdownMenu<OrderingMethod>(
-          expandedInsets: EdgeInsets.zero,
-          initialSelection: ordering,
-          requestFocusOnTap: false,
-          label: const Text('Sort:'),
-          onSelected: (OrderingMethod? newValue) {
-            if (newValue != null) {
-              setState(() {
-                ordering = newValue;
-              });
-              invokeCallback();
-            }
-          },
-          dropdownMenuEntries: OrderingMethod.values
-              .map<DropdownMenuEntry<OrderingMethod>>((OrderingMethod method) {
-                return DropdownMenuEntry<OrderingMethod>(
-                  value: method,
-                  label: method.displayName,
-                  labelWidget: Text(
-                    method.displayName.length > textCutoff
-                        ? '${method.displayName.substring(0, textCutoff)}...'
-                        : method.displayName,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                );
-              })
-              .toList(),
-        ),
-      ),
-    );
-  }
-
-  Widget _scaleWidget() {
-    return FittedBox(
-      fit: BoxFit.scaleDown,
-      child: SizedBox(
-        width: dropdownW,
-        child: DropdownMenu<AnimalScale>(
-          expandedInsets: EdgeInsets.zero,
-          initialSelection: scale ?? AnimalScale.medium,
-          requestFocusOnTap: false,
-          label: const Text('Scale:'),
-          onSelected: (AnimalScale? newValue) {
-            if (newValue != null) {
-              setState(() {
-                scale = newValue;
-              });
-              invokeCallback();
-            }
-          },
-          dropdownMenuEntries: AnimalScale.values
-              .map<DropdownMenuEntry<AnimalScale>>((AnimalScale method) {
-                return DropdownMenuEntry<AnimalScale>(
-                  value: method,
-                  label: method.displayName,
-                  labelWidget: Text(
-                    method.displayName.length > textCutoff
-                        ? '${method.displayName.substring(0, textCutoff)}...'
-                        : method.displayName,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                );
-              })
-              .toList(),
-        ),
-      ),
-    );
-  }
-
-  Widget _procedureWidget() {
-    return FittedBox(
-      fit: BoxFit.scaleDown,
-      child: SizedBox(
-        width: dropdownW,
-        child: DropdownMenu<ProcedureDTO>(
-          expandedInsets: EdgeInsets.zero,
-          initialSelection: procedures.isNotEmpty ? procedures.first : null,
-          enableFilter: true,
-          label: const Text('Procedure:'),
-          onSelected: (ProcedureDTO? newValue) {
-            if (newValue != null) {
-              setState(() => relevant = newValue.id);
-              invokeCallback();
-            }
-          },
-          dropdownMenuEntries: procedures
-              .map(
-                (dto) => DropdownMenuEntry<ProcedureDTO>(
-                  value: dto,
-                  label: dto.description,
-                  labelWidget: Text(
-                    dto.description.length > textCutoff
-                        ? '${dto.description.substring(0, textCutoff)}...'
-                        : dto.description,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              )
-              .toList(),
-        ),
-      ),
-    );
-  }
-
-  Widget _categoryWidget() {
-    return FittedBox(
-      fit: BoxFit.scaleDown,
-      child: SizedBox(
-        width: dropdownW,
-        child: DropdownMenu<CategoryDTO>(
-          expandedInsets: EdgeInsets.zero,
-          initialSelection: categories.isNotEmpty ? categories.first : null,
-          enableFilter: true,
-          label: const Text('Category:'),
-          onSelected: (CategoryDTO? newValue) {
-            if (newValue != null) {
-              setState(() => relevant = newValue.id);
-              invokeCallback();
-            }
-          },
-          dropdownMenuEntries: categories
-              .map(
-                (dto) => DropdownMenuEntry<CategoryDTO>(
-                  value: dto,
-                  label: dto.title,
-                  labelWidget: Text(
-                    dto.title.length > textCutoff
-                        ? '${dto.title.substring(0, textCutoff)}...'
-                        : dto.title,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              )
-              .toList(),
-        ),
-      ),
-    );
-  }
-
-  Widget _kindWidget() {
-    return FittedBox(
-      fit: BoxFit.scaleDown,
-      child: SizedBox(
-        width: dropdownW,
-        child: DropdownMenu<KindDTO>(
-          expandedInsets: EdgeInsets.zero,
-          initialSelection: kinds.isNotEmpty ? kinds.first : null,
-          enableFilter: true,
-          label: const Text('Kind:'),
-          onSelected: (KindDTO? newValue) {
-            if (newValue != null) {
-              setState(() => kind = newValue.id);
-              invokeCallback();
-            }
-          },
-          dropdownMenuEntries: kinds
-              .map(
-                (dto) => DropdownMenuEntry<KindDTO>(
-                  value: dto,
-                  labelWidget: Text(
-                    dto.title.length > textCutoff
-                        ? '${dto.title.substring(0, textCutoff)}...'
-                        : dto.title,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  label: dto.title,
-                ),
-              )
-              .toList(),
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final ReactiveDesignSystem design = Theme.of(
       context,
     ).extension<ReactiveDesignSystem>()!;
-
-    dropdownW = (design.bodyWMult * design.screenWidth) / 2;
 
     return SizedBox.expand(
       child: Container(
@@ -305,7 +117,21 @@ class _ListingFiltersState extends State<ListingFilters> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [Expanded(flex: 9, child: _orderingWidget())],
+                    children: [
+                      Expanded(
+                        flex: 9,
+                        child: orderingWidget(design.dropdownW, ordering, (
+                          OrderingMethod? newValue,
+                        ) {
+                          if (newValue != null) {
+                            setState(() {
+                              ordering = newValue;
+                            });
+                            invokeCallback();
+                          }
+                        }),
+                      ),
+                    ],
                   ),
                 ),
               ] else if (type == ListingType.medical) ...[
@@ -313,12 +139,34 @@ class _ListingFiltersState extends State<ListingFilters> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    Expanded(flex: 9, child: _orderingWidget()),
+                    Expanded(
+                      flex: 9,
+                      child: orderingWidget(design.dropdownW, ordering, (
+                        OrderingMethod? newValue,
+                      ) {
+                        if (newValue != null) {
+                          setState(() {
+                            ordering = newValue;
+                          });
+                          invokeCallback();
+                        }
+                      }),
+                    ),
                     Expanded(
                       flex: 1,
                       child: design.horizontalGap(design.spacing / 2),
                     ),
-                    Expanded(flex: 9, child: _procedureWidget()),
+                    Expanded(
+                      flex: 9,
+                      child: procedureWidget(design.dropdownW, procedures, (
+                        ProcedureDTO? newValue,
+                      ) {
+                        if (newValue != null) {
+                          setState(() => relevant = newValue.id);
+                          invokeCallback();
+                        }
+                      }),
+                    ),
                   ],
                 ),
               ] else if (type == ListingType.product) ...[
@@ -339,14 +187,42 @@ class _ListingFiltersState extends State<ListingFilters> {
                                     MainAxisAlignment.spaceEvenly,
                                 crossAxisAlignment: CrossAxisAlignment.stretch,
                                 children: [
-                                  Expanded(flex: 9, child: _orderingWidget()),
+                                  Expanded(
+                                    flex: 9,
+                                    child: orderingWidget(
+                                      design.dropdownW,
+                                      ordering,
+                                      (OrderingMethod? newValue) {
+                                        if (newValue != null) {
+                                          setState(() {
+                                            ordering = newValue;
+                                          });
+                                          invokeCallback();
+                                        }
+                                      },
+                                    ),
+                                  ),
                                   Expanded(
                                     flex: 1,
                                     child: design.horizontalGap(
                                       design.spacing / 2,
                                     ),
                                   ),
-                                  Expanded(flex: 9, child: _categoryWidget()),
+                                  Expanded(
+                                    flex: 9,
+                                    child: categoryWidget(
+                                      design.dropdownW,
+                                      categories,
+                                      (CategoryDTO? newValue) {
+                                        if (newValue != null) {
+                                          setState(
+                                            () => relevant = newValue.id,
+                                          );
+                                          invokeCallback();
+                                        }
+                                      },
+                                    ),
+                                  ),
                                 ],
                               ),
                             ),
@@ -357,14 +233,38 @@ class _ListingFiltersState extends State<ListingFilters> {
                                     MainAxisAlignment.spaceEvenly,
                                 crossAxisAlignment: CrossAxisAlignment.stretch,
                                 children: [
-                                  Expanded(flex: 9, child: _kindWidget()),
+                                  Expanded(
+                                    flex: 9,
+                                    child: kindWidget(design.dropdownW, kinds, (
+                                      KindDTO? newValue,
+                                    ) {
+                                      if (newValue != null) {
+                                        setState(() => kind = newValue.id);
+                                        invokeCallback();
+                                      }
+                                    }),
+                                  ),
                                   Expanded(
                                     flex: 1,
                                     child: design.horizontalGap(
                                       design.spacing / 2,
                                     ),
                                   ),
-                                  Expanded(flex: 9, child: _scaleWidget()),
+                                  Expanded(
+                                    flex: 9,
+                                    child: scaleWidget(
+                                      design.dropdownW,
+                                      scale,
+                                      (AnimalScale? newValue) {
+                                        if (newValue != null) {
+                                          setState(() {
+                                            scale = newValue;
+                                          });
+                                          invokeCallback();
+                                        }
+                                      },
+                                    ),
+                                  ),
                                 ],
                               ),
                             ),
@@ -382,7 +282,12 @@ class _ListingFiltersState extends State<ListingFilters> {
                             Checkbox(
                               value: false,
                               onChanged: (value) {
-                                type = ListingType.generic;
+                                if (!mounted) {
+                                  return;
+                                }
+                                setState(() {
+                                  type = ListingType.generic;
+                                });
                                 invokeCallback();
                               },
                             ),
@@ -397,7 +302,19 @@ class _ListingFiltersState extends State<ListingFilters> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    Expanded(flex: 9, child: _orderingWidget()),
+                    Expanded(
+                      flex: 9,
+                      child: orderingWidget(design.dropdownW, ordering, (
+                        OrderingMethod? newValue,
+                      ) {
+                        if (newValue != null) {
+                          setState(() {
+                            ordering = newValue;
+                          });
+                          invokeCallback();
+                        }
+                      }),
+                    ),
                     Expanded(
                       flex: 1,
                       child: design.horizontalGap(design.spacing / 2),
@@ -412,7 +329,12 @@ class _ListingFiltersState extends State<ListingFilters> {
                           Checkbox(
                             value: true,
                             onChanged: (value) {
-                              type = ListingType.product;
+                              if (!mounted) {
+                                return;
+                              }
+                              setState(() {
+                                type = ListingType.product;
+                              });
                               invokeCallback();
                             },
                           ),
@@ -428,7 +350,19 @@ class _ListingFiltersState extends State<ListingFilters> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    Expanded(flex: 9, child: _orderingWidget()),
+                    Expanded(
+                      flex: 9,
+                      child: orderingWidget(design.dropdownW, ordering, (
+                        OrderingMethod? newValue,
+                      ) {
+                        if (newValue != null) {
+                          setState(() {
+                            ordering = newValue;
+                          });
+                          invokeCallback();
+                        }
+                      }),
+                    ),
                     Expanded(
                       flex: 1,
                       child: design.horizontalGap(design.spacing / 2),
