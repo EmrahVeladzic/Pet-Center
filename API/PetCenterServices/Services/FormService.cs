@@ -55,7 +55,7 @@ namespace PetCenterServices.Services
              
         }       
 
-        public override async Task<ServiceOutput<FormDTO>> Post(Guid token_holder, FormDTO resource)
+        public override async Task<ServiceOutput<FormDTO>> Post(Guid session,Guid token_holder, FormDTO resource)
         {
             Form? ent = resource.ToEntity();
 
@@ -75,7 +75,7 @@ namespace PetCenterServices.Services
                         }
                         await dbContext.SaveChangesAsync();
                         await tx.CommitAsync();
-                        return ServiceOutput<FormDTO>.Success(FormDTO.FromEntity(ent,Crypto.GenerateFileToken("",Purpose,FileScope.Write,ent.AlbumId)),HttpCode.Created);
+                        return ServiceOutput<FormDTO>.Success(FormDTO.FromEntity(ent,Crypto.GenerateFileToken("",Purpose,FileScope.Write,ent.AlbumId,session)),HttpCode.Created);
                     }
                     catch(Exception ex)
                     {
@@ -90,7 +90,7 @@ namespace PetCenterServices.Services
             return ServiceOutput<FormDTO>.Error(HttpCode.BadRequest,"DTO corruption."); 
         }
 
-        public override async Task<ServiceOutput<FormDTO>> Put(Guid token_holder, FormDTO resource)
+        public override async Task<ServiceOutput<FormDTO>> Put(Guid session,Guid token_holder, FormDTO resource)
         {
             Form? ent = await dbSet.FirstOrDefaultAsync(f=>f.Id==resource.Id && f.UserId==token_holder);
 

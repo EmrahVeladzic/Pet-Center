@@ -12,9 +12,9 @@ namespace PetCenterModels.SearchObjects
     public class AccountSearchObject : BaseSearchObject
     {
         
-        public Access? Role {get; set;} = null;
+        public Access Role {get; set;} = Access.User;
 
-       
+        public string Contact {get; set;} = string.Empty;
 
         
 

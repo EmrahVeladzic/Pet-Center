@@ -50,7 +50,7 @@ namespace PetCenterServices.Services
             return ServiceOutput<List<FranchiseResponseDTO>>.Success(entities.Select(e=>FranchiseResponseDTO.FromEntity(e, search.RelatedUser != null && e.OwnerId == search.RelatedUser)!).ToList());
         }
 
-        public override async Task<ServiceOutput<FranchiseResponseDTO>> Post(Guid token_holder, FranchiseRequestDTO req)
+        public override async Task<ServiceOutput<FranchiseResponseDTO>> Post(Guid session,Guid token_holder, FranchiseRequestDTO req)
         {
             Form? frm = await dbContext.Forms.FindAsync(req.CreationFormId);
             if (frm == null)
@@ -101,7 +101,7 @@ namespace PetCenterServices.Services
 
         }
 
-        public override async Task<ServiceOutput<FranchiseResponseDTO>> Put(Guid token_holder, FranchiseRequestDTO req)
+        public override async Task<ServiceOutput<FranchiseResponseDTO>> Put(Guid session,Guid token_holder, FranchiseRequestDTO req)
         {
             Franchise? franch = await dbSet.Include(f=>f.Facilities).FirstOrDefaultAsync(f=>f.Id==req.Id);
             if(franch==null){return ServiceOutput<FranchiseResponseDTO>.Error(HttpCode.NotFound,"Franchise does not exist.");}

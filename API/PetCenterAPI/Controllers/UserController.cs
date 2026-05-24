@@ -22,9 +22,9 @@ namespace PetCenterAPI.Controllers
         [HttpGet("Me")]
         public async Task<IActionResult> GetSelf()
         {
-            if(TryGetUserId(out Guid user_id))
+            if(TryGetUserId(out Guid user_id) && TryGetJTI(out Guid session))
             {
-                return ResultConverter.Convert<UserResponseDTO>(await service.GetById(user_id,user_id,SpecifySearchAuthority(),FileScope.Invalid));
+                return ResultConverter.Convert<UserResponseDTO>(await service.GetById(session,user_id,user_id,SpecifySearchAuthority(),FileScope.Invalid));
             }
             return StatusCode(401,"Invalid token.");  
         }

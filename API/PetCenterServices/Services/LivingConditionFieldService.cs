@@ -12,6 +12,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Caching.Memory;
 
 
 namespace PetCenterServices.Services
@@ -19,11 +20,27 @@ namespace PetCenterServices.Services
     public class LivingconditionFieldService : BaseCRUDService<LivingConditionField,LivingConditionSearchObject,LivingConditionFieldDTO,LivingConditionFieldDTO>, ILivingConditionFieldService    
     {
 
-        public LivingconditionFieldService(PetCenterDBContext ctx,ILoggerFactory _logger) : base(ctx,_logger)
+       private readonly IMemoryCache _cache;
+
+        public LivingconditionFieldService(PetCenterDBContext ctx, ILoggerFactory _logger, IMemoryCache cache) : base(ctx, _logger)
         {
             dbSet = ctx.LivingConditionFields;
+            _cache = cache;
         }
 
+        public override async Task<ServiceOutput<int>> Count(Guid token_holder, LivingConditionSearchObject search)
+        {
+            string key = $"livingcondition_count_{StaticDataVersionHolder.LivingConditionVersion}";
+            if (!_cache.TryGetValue(key, out int cached))
+            {
+                ServiceOutput<int> result = await base.Count(token_holder, search);
+                _cache.Set(key, result.Body, TimeSpan.FromHours(6));
+                return result;
+            }
+            return ServiceOutput<int>.Success(cached);
+        }
+
+      
         protected override void Touch()
         {
             StaticDataVersionHolder.LivingConditionVersion=Guid.NewGuid();

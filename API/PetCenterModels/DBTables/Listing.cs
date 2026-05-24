@@ -51,7 +51,6 @@ namespace PetCenterModels.DBTables
         [Column("Updated")]
         public bool Updated {get; set;} = true;
 
-        [JsonIgnore]
         [ForeignKey(nameof(FranchiseId))]
         public Franchise Business {  get; set; } = null!;
 

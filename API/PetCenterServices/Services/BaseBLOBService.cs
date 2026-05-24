@@ -36,7 +36,7 @@ namespace PetCenterServices.Services
             dbSetBLOB = dbContext.Set<TBLOB>();
         }
 
-        public virtual async Task<ServiceOutput<TDTO>> Upload(Guid token_holder, Guid insert_album, byte[] data)
+        public virtual async Task<ServiceOutput<TDTO>> Upload(Guid session, Guid token_holder, Guid insert_album, byte[] data)
         {
             Album? album = await dbContext.Albums.FindAsync(insert_album);
 
@@ -83,7 +83,7 @@ namespace PetCenterServices.Services
                         await dbContext.SaveChangesAsync();
                         await tx.CommitAsync();
 
-                        return ServiceOutput<TDTO>.Success(TDTO.FromEntity(entity,Crypto.GenerateFileToken(entity.BLOBId,Purpose,FileScope.Write,insert_album)));
+                        return ServiceOutput<TDTO>.Success(TDTO.FromEntity(entity,Crypto.GenerateFileToken(entity.BLOBId,Purpose,FileScope.Write,insert_album,session)));
 
                     }
                     catch(Exception ex)

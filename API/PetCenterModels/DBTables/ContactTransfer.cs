@@ -15,7 +15,7 @@ namespace PetCenterModels.DBTables
     public class ContactTransfer : ExpirableTableEntity
     {            
 
-        [JsonIgnore]
+        
         [ForeignKey(nameof(Id))]
         public Account RelevantAccount { get; set; } = null!; 
 

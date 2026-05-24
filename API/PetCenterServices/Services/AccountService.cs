@@ -34,14 +34,14 @@ namespace PetCenterServices.Services
         protected override Task<IQueryable<Account>> Filter(Guid token_holder, AccountSearchObject search)
         {
             IQueryable<Account> output = dbSet.Include(a=>a.AccountUser).OrderBy(a=>a.Id);
-            if (search.Role != null)
-            {
-                output = output.Where(a=>a.AccessLevel==search.Role);
-            }
+            output=output.Where(q=>q.Contact.ToLower().StartsWith(search.Contact));
+            
+            output = output.Where(a=>a.AccessLevel==search.Role);
+            
             return Task<IQueryable<Account>>.FromResult(output);
         }
 
-        public override async Task<ServiceOutput<AccountResponseDTO>> Post(Guid token_holder,AccountRequestDTO req)
+        public override async Task<ServiceOutput<AccountResponseDTO>> Post(Guid session,Guid token_holder,AccountRequestDTO req)
         {
             if (!req.Validate())
             {
@@ -234,7 +234,7 @@ namespace PetCenterServices.Services
             return ServiceOutput<string>.Success("Your account transfer code pair will be sent shortly.");
         }
 
-        public override async Task<ServiceOutput<AccountResponseDTO>> Put(Guid token_holder,AccountRequestDTO req)
+        public override async Task<ServiceOutput<AccountResponseDTO>> Put(Guid session,Guid token_holder,AccountRequestDTO req)
         {      
 
             Account? acc = await dbContext.Accounts.Include(a=>a.AccountUser).FirstOrDefaultAsync(a=>a.Id==req.Id);
@@ -337,7 +337,7 @@ namespace PetCenterServices.Services
                             await dbContext.SaveChangesAsync();
                         }
 
-                        return ServiceOutput<string>.Success(Utils.Crypto.GenerateJWT(usr));
+                        return ServiceOutput<string>.Success(Utils.Crypto.GenerateJWT(usr,null));
 
                     }
                    
@@ -408,7 +408,7 @@ namespace PetCenterServices.Services
             
         } 
 
-        public async Task<ServiceOutput<string>> VerifyAccount(Guid id, int code)
+        public async Task<ServiceOutput<string>> VerifyAccount(Guid id, int code, Guid session)
         {
             Registration? reg = await dbContext.Registrations.Include(r => r.RelevantAccount).FirstOrDefaultAsync(r => r.Id == id);
 
@@ -446,7 +446,7 @@ namespace PetCenterServices.Services
                         if (usr != null)
                         {
 
-                            return ServiceOutput<string>.Success(Utils.Crypto.GenerateJWT(usr));
+                            return ServiceOutput<string>.Success(Utils.Crypto.GenerateJWT(usr,session));
 
                         }
 

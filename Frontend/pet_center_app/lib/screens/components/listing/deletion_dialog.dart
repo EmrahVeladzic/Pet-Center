@@ -23,8 +23,6 @@ class _DeletionDialogState extends State<DeletionDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final Access role = userToken?.role ?? Access.user;
-
     final ReactiveDesignSystem design = Theme.of(
       context,
     ).extension<ReactiveDesignSystem>()!;

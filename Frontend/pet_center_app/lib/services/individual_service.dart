@@ -230,4 +230,33 @@ class IndividualService {
       return null;
     }
   }
+
+  static Future<List<IndividualResponseDTO>?> getAll(
+    String? fromFranchise,
+  ) async {
+    final pageCount = await count(fromFranchise);
+
+    if (pageCount == null) {
+      return null;
+    }
+
+    List<IndividualResponseDTO> output = [];
+    final seen = <String?>{};
+
+    for (int i = 0; i < pageCount; i++) {
+      final newEntries = await get(fromFranchise, i);
+
+      if (newEntries == null) {
+        return null;
+      }
+
+      for (final ent in newEntries) {
+        if (seen.add(ent.id)) {
+          output.add(ent);
+        }
+      }
+    }
+
+    return output;
+  }
 }

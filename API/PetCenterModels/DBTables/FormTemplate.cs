@@ -19,7 +19,7 @@ namespace PetCenterModels.DBTables
         public string Description {get; set;} = string.Empty;
 
         [InverseProperty(nameof(FormTemplateField.Template))]
-        public List<FormTemplateField> Entries {get; set;} = new();
+        public List<FormTemplateField> Fields {get; set;} = new();
 
         public override async Task StageDeletion<T>(PetCenterDBContext ctx, DbSet<T> set,CancellationToken cancel = default)
         {

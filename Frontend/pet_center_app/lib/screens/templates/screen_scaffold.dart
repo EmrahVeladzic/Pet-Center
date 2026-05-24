@@ -6,6 +6,7 @@ class BasicScreenScaffold extends StatelessWidget {
   final List<Widget> body;
   final AppBar? appBar;
   final BottomAppBar? bottomNavigationBar;
+  final GlobalKey<FormState>? formKey;
 
   const BasicScreenScaffold({
     super.key,
@@ -13,6 +14,7 @@ class BasicScreenScaffold extends StatelessWidget {
     this.body = const [],
     this.appBar,
     this.bottomNavigationBar,
+    this.formKey,
   });
 
   @override
@@ -25,33 +27,36 @@ class BasicScreenScaffold extends StatelessWidget {
       backgroundColor: mainTone,
       appBar: appBar ?? AppBar(),
       body: Center(
-        child: FractionallySizedBox(
-          widthFactor: design.bodyWMult,
-          heightFactor: 1.0,
-          child: Container(
-            decoration: design.panelDecoration(),
+        child: Form(
+          key: formKey,
+          child: FractionallySizedBox(
+            widthFactor: design.bodyWMult,
+            heightFactor: 1.0,
+            child: Container(
+              decoration: design.panelDecoration(),
 
-            child: center
-                ? Padding(
-                    padding: EdgeInsets.all(design.spacing),
-                    child: LayoutBuilder(
-                      builder: (context, boxConstraints) {
-                        return SingleChildScrollView(
-                          child: ConstrainedBox(
-                            constraints: BoxConstraints(
-                              minHeight: boxConstraints.maxHeight,
+              child: center
+                  ? Padding(
+                      padding: EdgeInsets.all(design.spacing),
+                      child: LayoutBuilder(
+                        builder: (context, boxConstraints) {
+                          return SingleChildScrollView(
+                            child: ConstrainedBox(
+                              constraints: BoxConstraints(
+                                minHeight: boxConstraints.maxHeight,
+                              ),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: body,
+                              ),
                             ),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: body,
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  )
-                : ListView(children: body),
+                          );
+                        },
+                      ),
+                    )
+                  : ListView(children: body),
+            ),
           ),
         ),
       ),

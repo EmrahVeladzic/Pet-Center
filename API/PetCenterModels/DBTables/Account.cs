@@ -24,28 +24,21 @@ namespace PetCenterModels.DBTables
     public class Account : BaseTableEntity
     {
         [Column("Contact")]
-        [Required]
         public string Contact {  get; set; } = string.Empty;   
 
         [Column("PasswordHash")]
-        [JsonIgnore]
-        [Required]
         public string PasswordHash { get; set; } = string.Empty;
 
         [Column("PasswordSalt")]
-        [JsonIgnore]
         public string PasswordSalt { get; set; } = string.Empty;
 
         [Column("RegistrationDate")]
-        [JsonIgnore]
         public DateTime RegistrationDate {get; set;} = DateTime.UtcNow;
 
         [Column("AccessLevel")]
-        [JsonIgnore]
         public Access AccessLevel { get; set; }
 
         [Column("Verified")]
-        [JsonIgnore]
         public bool Verified { get; set; }
 
         [InverseProperty(nameof(User.UserAccount))]

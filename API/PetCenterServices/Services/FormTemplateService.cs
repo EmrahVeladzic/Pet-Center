@@ -12,6 +12,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Caching.Memory;
 
 
 namespace PetCenterServices.Services
@@ -19,11 +20,37 @@ namespace PetCenterServices.Services
     public class FormTemplateService : BaseCRUDService<FormTemplate,FormTemplateSearchObject,FormTemplateDTO,FormTemplateDTO>, IFormTemplateService    
     {
 
-        public FormTemplateService(PetCenterDBContext ctx,ILoggerFactory _logger) : base(ctx,_logger)
+        private readonly IMemoryCache _cache;
+
+        public FormTemplateService(PetCenterDBContext ctx, ILoggerFactory _logger, IMemoryCache cache) : base(ctx, _logger)
         {
             dbSet = ctx.FormTemplates;
+            _cache = cache;
         }
 
+        public override async Task<ServiceOutput<int>> Count(Guid token_holder, FormTemplateSearchObject search)
+        {
+            string key = $"formtemplate_count_{StaticDataVersionHolder.FormTemplateVersion}";
+            if (!_cache.TryGetValue(key, out int cached))
+            {
+                ServiceOutput<int> result = await base.Count(token_holder, search);
+                _cache.Set(key, result.Body, TimeSpan.FromHours(6));
+                return result;
+            }
+            return ServiceOutput<int>.Success(cached);
+        }
+
+        public override async Task<ServiceOutput<List<FormTemplateDTO>>> Get(Guid token_holder, FormTemplateSearchObject search)
+        {
+            string key = $"formtemplate_page_{StaticDataVersionHolder.FormTemplateVersion}_{search.Page}";
+            if (!_cache.TryGetValue(key, out List<FormTemplateDTO>? cached))
+            {
+                ServiceOutput<List<FormTemplateDTO>> result = await base.Get(token_holder, search);
+                _cache.Set(key, result.Body, TimeSpan.FromHours(6));
+                return result;
+            }
+            return ServiceOutput<List<FormTemplateDTO>>.Success(cached!);
+        }
         protected override void Touch()
         {
             StaticDataVersionHolder.FormTemplateVersion=Guid.NewGuid();
@@ -32,7 +59,7 @@ namespace PetCenterServices.Services
         protected override async Task<IQueryable<FormTemplate>> Filter(Guid token_holder, FormTemplateSearchObject search)
         {
             IQueryable<FormTemplate> query = await base.Filter(token_holder, search);
-            query = query.Include(ft => ft.Entries);
+            query = query.Include(ft => ft.Fields);
             return query;
         }
 

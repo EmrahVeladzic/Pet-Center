@@ -7,6 +7,15 @@ bool validGuid(String? id) {
       id != "00000000-0000-0000-0000-000000000000");
 }
 
-String formatDate(DateTime input) {
-  return DateFormat(AppConfig.datetimeFormat).format(input.toLocal());
+String formatDate(DateTime input, [bool dateOnly = false]) {
+  String dtFormat = AppConfig.datetimeFormat;
+
+  if (dateOnly) {
+    dtFormat = dtFormat
+        .replaceAll(RegExp(r'[:\s]*[Hms][:\s]*|[\s]*[aA][\s]*'), '')
+        .replaceAll(RegExp(r'^[^a-zA-Z0-9]+|[^a-zA-Z0-9]+$'), '')
+        .trim();
+  }
+
+  return DateFormat(dtFormat).format(input.toLocal());
 }

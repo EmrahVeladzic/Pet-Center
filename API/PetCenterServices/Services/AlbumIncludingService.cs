@@ -48,7 +48,7 @@ namespace PetCenterServices.Services
             return Task.FromResult<IQueryable<TEntity>>(WithAlbum().OrderBy(o=>o.Id));
         }
 
-        public void AttachTokensIfNeeded(TResponse response, FileScope fileScope)
+        public void AttachTokensIfNeeded(TResponse response, FileScope fileScope, Guid session)
         {
             FileScope scope = fileScope;
 
@@ -58,12 +58,12 @@ namespace PetCenterServices.Services
             }
 
             if(scope==FileScope.Write){
-                response.MediaCreationToken=Crypto.GenerateFileToken("",Purpose,scope,response.AlbumId);
+                response.MediaCreationToken=Crypto.GenerateFileToken("",Purpose,scope,response.AlbumId,session);
             }
             foreach(TMedia media in response.Media)
             {
                 media.CanWrite=(scope==FileScope.Write);
-                media.Token=Crypto.GenerateFileToken(media.Hash,Purpose,scope,response.AlbumId);
+                media.Token=Crypto.GenerateFileToken(media.Hash,Purpose,scope,response.AlbumId,session);
             }
         }
 
@@ -76,7 +76,7 @@ namespace PetCenterServices.Services
             {
                 foreach(TResponse response in responses)
                 {
-                   AttachTokensIfNeeded(response,search.FileRW);
+                   AttachTokensIfNeeded(response,search.FileRW,search.Session);
                     
                 }
             }
@@ -85,7 +85,7 @@ namespace PetCenterServices.Services
             return  ServiceOutput<List<TResponse>>.Success(responses);
         }
 
-        public override async Task<ServiceOutput<TResponse>> GetById(Guid token_holder, Guid id, Access authorization_level, FileScope file_scope = FileScope.Invalid)
+        public override async Task<ServiceOutput<TResponse>> GetById(Guid session,Guid token_holder, Guid id, Access authorization_level, FileScope file_scope = FileScope.Invalid)
         {
             TEntity? entity = await WithAlbum().FirstOrDefaultAsync(e=>e.Id==id);
 
@@ -95,7 +95,7 @@ namespace PetCenterServices.Services
 
                 if(output!=null && output.Media.Count > 0 && file_scope!=FileScope.Invalid)
                 {
-                    AttachTokensIfNeeded(output,file_scope);
+                    AttachTokensIfNeeded(output,file_scope,session);
                 }
 
                 return  ServiceOutput<TResponse>.Success(output);                  
@@ -105,7 +105,7 @@ namespace PetCenterServices.Services
             
         }
 
-        public override async Task<ServiceOutput<TResponse>> Post(Guid token_holder,TRequest req)
+        public override async Task<ServiceOutput<TResponse>> Post(Guid session,Guid token_holder,TRequest req)
         {
             bool valid = req.Validate();
             if (!valid)
@@ -127,7 +127,7 @@ namespace PetCenterServices.Services
                             await dbSet.AddAsync(ent);
                             await dbContext.SaveChangesAsync();
                             await tx.CommitAsync();
-                            return ServiceOutput<TResponse>.Success(TResponse.FromEntity(ent,Crypto.GenerateFileToken("",Purpose,FileScope.Write,ent.AlbumId)),HttpCode.Created);
+                            return ServiceOutput<TResponse>.Success(TResponse.FromEntity(ent,Crypto.GenerateFileToken("",Purpose,FileScope.Write,ent.AlbumId,session)),HttpCode.Created);
                         }
                         catch(Exception ex)
                         {

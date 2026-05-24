@@ -60,7 +60,7 @@ namespace PetCenterServices.Services
             return  ServiceOutput<List<TResponse>>.Success(entities.Select(e=>TResponse.FromEntity(e)!).ToList());
         }
 
-        public virtual async Task<ServiceOutput<TResponse>> GetById(Guid token_holder,Guid id, Access authorization_level, FileScope fileScope = FileScope.Invalid)
+        public virtual async Task<ServiceOutput<TResponse>> GetById(Guid session,Guid token_holder,Guid id, Access authorization_level, FileScope fileScope = FileScope.Invalid)
         {
             TEntity? entity = await dbSet.FindAsync(id);
 
@@ -73,7 +73,7 @@ namespace PetCenterServices.Services
             
         }
 
-        public virtual async Task<ServiceOutput<TResponse>> Post(Guid token_holder,TRequest req)
+        public virtual async Task<ServiceOutput<TResponse>> Post(Guid session,Guid token_holder,TRequest req)
         {
             bool valid = req.Validate();
             if (!valid)
@@ -112,7 +112,7 @@ namespace PetCenterServices.Services
             return ServiceOutput<TResponse>.Error(HttpCode.BadRequest, "DTO format not valid.");
         }
 
-        public virtual async Task<ServiceOutput<TResponse>> Put(Guid token_holder,TRequest req)
+        public virtual async Task<ServiceOutput<TResponse>> Put(Guid session,Guid token_holder,TRequest req)
         {      
 
             TEntity? ent = await dbSet.FindAsync(req.Id);

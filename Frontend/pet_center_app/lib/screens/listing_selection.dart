@@ -127,9 +127,8 @@ class _ListingSelectionScreenState extends State<ListingSelectionScreen> {
         breed = b;
         sex = s;
         scale = sc;
-
-        _pageSelectorKey.currentState?.resetMax(output);
       });
+      _pageSelectorKey.currentState?.resetMax(output);
     }
   }
 
@@ -171,8 +170,6 @@ class _ListingSelectionScreenState extends State<ListingSelectionScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final role = userToken?.role ?? Access.user;
-
     return DataScreenScaffold<ListingFilters, ListingResponseDTO>(
       maxPage: widget.maxPage,
       switchPage: switchPage,

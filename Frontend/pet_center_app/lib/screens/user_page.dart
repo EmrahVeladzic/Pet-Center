@@ -77,17 +77,15 @@ class _UserPageScreenState extends State<UserPageScreen> {
         return;
       }
       setState(() {
-        _pageSelectorKey.currentState?.resetMax(output);
         include = inc;
         userName = name;
       });
+      _pageSelectorKey.currentState?.resetMax(output);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final role = userToken?.role ?? Access.user;
-
     return DataScreenScaffold<UserFilters, UserResponseDTO>(
       appTitle: 'People:',
       maxPage: pageCount,

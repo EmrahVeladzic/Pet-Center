@@ -47,7 +47,17 @@ builder.Services.AddCors(options =>
 
 });
 
-builder.Services.AddControllers();
+builder.Services.AddMemoryCache();
+
+builder.Services.AddControllers(options =>
+{
+    
+    options.ModelMetadataDetailsProviders.Add(
+        new Microsoft.AspNetCore.Mvc.ModelBinding.Metadata.ExcludeBindingMetadataProvider(
+            typeof(System.ComponentModel.ReadOnlyAttribute) 
+        )
+    );
+});
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 
@@ -152,6 +162,10 @@ string? jwtKey = builder.Configuration["Jwt:Key"];
 jwtValidIssuer=Environment.GetEnvironmentVariable("JWT_ISSUER")??jwtValidIssuer;
 jwtValidAudience=Environment.GetEnvironmentVariable("JWT_AUDIENCE")??jwtValidAudience;
 jwtKey=Environment.GetEnvironmentVariable("JWT_KEY")??jwtKey;
+
+builder.Configuration["Jwt:Key"]=jwtKey;
+builder.Configuration["Jwt:Issuer"]=jwtValidIssuer;
+builder.Configuration["Jwt:Audience"]=jwtValidAudience;
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -289,7 +303,7 @@ while (retry)
                     }
 
 
-                    await svc.Post(Guid.Empty,owner_req);
+                    await svc.Post(Guid.Empty,Guid.Empty,owner_req);
 
                    
 

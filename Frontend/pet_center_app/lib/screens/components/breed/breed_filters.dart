@@ -57,8 +57,6 @@ class _BreedFiltersState extends State<BreedFilters> {
       context,
     ).extension<ReactiveDesignSystem>()!;
 
-    final role = userToken?.role ?? Access.user;
-
     return SizedBox.expand(
       child: Container(
         decoration: BoxDecoration(color: filterTone),

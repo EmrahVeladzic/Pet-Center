@@ -1,0 +1,192 @@
+import 'package:flutter/material.dart';
+import 'package:pet_center_app/models/data_transfer/category_dto.dart';
+import 'package:pet_center_app/models/data_transfer/kind_dto.dart';
+import 'package:pet_center_app/models/data_transfer/procedure_dto.dart';
+import 'package:pet_center_app/models/enums.dart';
+
+Widget accessWidget(
+  double w,
+  Access? src,
+  void Function(Access? newValue) onChange, {
+  bool enable = true,
+  Key? key,
+}) {
+  return FittedBox(
+    key: key,
+    fit: BoxFit.scaleDown,
+    child: SizedBox(
+      width: w,
+      child: DropdownMenu<Access>(
+        enabled: enable,
+        expandedInsets: EdgeInsets.zero,
+        initialSelection: src ?? Access.user,
+        requestFocusOnTap: false,
+        label: const Text('Role:'),
+        onSelected: onChange,
+        dropdownMenuEntries: Access.values.map<DropdownMenuEntry<Access>>((
+          Access method,
+        ) {
+          return DropdownMenuEntry<Access>(
+            value: method,
+            label: method.displayName,
+          );
+        }).toList(),
+      ),
+    ),
+  );
+}
+
+Widget orderingWidget(
+  double w,
+  OrderingMethod? src,
+  void Function(OrderingMethod? newValue) onChange, {
+  bool enable = true,
+  Key? key,
+}) {
+  return FittedBox(
+    key: key,
+    fit: BoxFit.scaleDown,
+    child: SizedBox(
+      width: w,
+      child: DropdownMenu<OrderingMethod>(
+        enabled: enable,
+        expandedInsets: EdgeInsets.zero,
+        initialSelection: src ?? OrderingMethod.id,
+        requestFocusOnTap: false,
+        label: const Text('Sort:'),
+        onSelected: onChange,
+        dropdownMenuEntries: OrderingMethod.values
+            .map<DropdownMenuEntry<OrderingMethod>>((OrderingMethod method) {
+              return DropdownMenuEntry<OrderingMethod>(
+                value: method,
+                label: method.displayName,
+              );
+            })
+            .toList(),
+      ),
+    ),
+  );
+}
+
+Widget scaleWidget(
+  double w,
+  AnimalScale? src,
+  void Function(AnimalScale? newValue) onChange, {
+  bool enable = true,
+  Key? key,
+}) {
+  return FittedBox(
+    key: key,
+    fit: BoxFit.scaleDown,
+    child: SizedBox(
+      width: w,
+      child: DropdownMenu<AnimalScale>(
+        enabled: enable,
+        expandedInsets: EdgeInsets.zero,
+        initialSelection: src ?? AnimalScale.medium,
+        requestFocusOnTap: false,
+        label: const Text('Scale:'),
+        onSelected: onChange,
+        dropdownMenuEntries: AnimalScale.values
+            .map<DropdownMenuEntry<AnimalScale>>((AnimalScale method) {
+              return DropdownMenuEntry<AnimalScale>(
+                value: method,
+                label: method.displayName,
+              );
+            })
+            .toList(),
+      ),
+    ),
+  );
+}
+
+Widget procedureWidget(
+  double w,
+  List<ProcedureDTO> src,
+  void Function(ProcedureDTO? newValue) onChange, {
+  bool enable = true,
+  Key? key,
+}) {
+  return FittedBox(
+    key: key,
+    fit: BoxFit.scaleDown,
+    child: SizedBox(
+      width: w,
+      child: DropdownMenu<ProcedureDTO>(
+        enabled: enable,
+        expandedInsets: EdgeInsets.zero,
+        initialSelection: src.isNotEmpty ? src.first : null,
+        enableFilter: true,
+        label: const Text('Procedure:'),
+        onSelected: onChange,
+        dropdownMenuEntries: src
+            .map(
+              (dto) => DropdownMenuEntry<ProcedureDTO>(
+                value: dto,
+                label: dto.description,
+              ),
+            )
+            .toList(),
+      ),
+    ),
+  );
+}
+
+Widget categoryWidget(
+  double w,
+  List<CategoryDTO> src,
+  void Function(CategoryDTO? newValue) onChange, {
+  bool enable = true,
+  Key? key,
+}) {
+  return FittedBox(
+    key: key,
+    fit: BoxFit.scaleDown,
+    child: SizedBox(
+      width: w,
+      child: DropdownMenu<CategoryDTO>(
+        enabled: enable,
+        expandedInsets: EdgeInsets.zero,
+        initialSelection: src.isNotEmpty ? src.first : null,
+        enableFilter: true,
+        label: const Text('Category:'),
+        onSelected: onChange,
+        dropdownMenuEntries: src
+            .map(
+              (dto) =>
+                  DropdownMenuEntry<CategoryDTO>(value: dto, label: dto.title),
+            )
+            .toList(),
+      ),
+    ),
+  );
+}
+
+Widget kindWidget(
+  double w,
+  List<KindDTO> src,
+  void Function(KindDTO? newValue) onChange, {
+  bool enable = true,
+  Key? key,
+}) {
+  return FittedBox(
+    key: key,
+    fit: BoxFit.scaleDown,
+    child: SizedBox(
+      width: w,
+      child: DropdownMenu<KindDTO>(
+        enabled: enable,
+        expandedInsets: EdgeInsets.zero,
+        initialSelection: src.isNotEmpty ? src.first : null,
+        enableFilter: true,
+        label: const Text('Kind:'),
+        onSelected: onChange,
+        dropdownMenuEntries: src
+            .map(
+              (dto) => DropdownMenuEntry<KindDTO>(value: dto, label: dto.title),
+            )
+            .toList(),
+      ),
+    ),
+  );
+}

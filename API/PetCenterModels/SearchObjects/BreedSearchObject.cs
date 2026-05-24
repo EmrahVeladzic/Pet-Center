@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Text.Json.Serialization;
@@ -16,7 +17,8 @@ namespace PetCenterModels.SearchObjects
 
         public Guid? KindId { get; set; } =null;
 
-        [JsonIgnore]
+         [JsonIgnore]
+        [ReadOnly(true)]
         public override int PageSize {get;} = 10;
     }
 }

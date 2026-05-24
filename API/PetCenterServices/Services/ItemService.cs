@@ -12,16 +12,43 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace PetCenterServices.Services
 {
     public class ItemService : BaseCRUDService<Item,ItemSearchObject,ItemDTO,ItemDTO>, IItemService
     {
 
+        private readonly IMemoryCache _cache;
 
-        public ItemService(PetCenterDBContext ctx,ILoggerFactory _logger) : base(ctx,_logger)
+        public ItemService(PetCenterDBContext ctx, ILoggerFactory _logger, IMemoryCache cache) : base(ctx, _logger)
         {
             dbSet = ctx.Items;
+            _cache = cache;
+        }
+
+        public override async Task<ServiceOutput<int>> Count(Guid token_holder, ItemSearchObject search)
+        {
+            string key = $"item_count_{StaticDataVersionHolder.ProductVersion}";
+            if (!_cache.TryGetValue(key, out int cached))
+            {
+                ServiceOutput<int> result = await base.Count(token_holder, search);
+                _cache.Set(key, result.Body, TimeSpan.FromHours(6));
+                return result;
+            }
+            return ServiceOutput<int>.Success(cached);
+        }
+
+        public override async Task<ServiceOutput<List<ItemDTO>>> Get(Guid token_holder, ItemSearchObject search)
+        {
+            string key = $"item_page_{StaticDataVersionHolder.ProductVersion}_{search.Page}";
+            if (!_cache.TryGetValue(key, out List<ItemDTO>? cached))
+            {
+                ServiceOutput<List<ItemDTO>> result = await base.Get(token_holder, search);
+                _cache.Set(key, result.Body, TimeSpan.FromHours(6));
+                return result;
+            }
+            return ServiceOutput<List<ItemDTO>>.Success(cached!);
         }
 
         protected override void Touch()
