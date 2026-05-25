@@ -237,7 +237,7 @@ class _CredentialsScreenState extends State<CredentialsScreen> {
                                 onChanged: (v) =>
                                     verificationCode = int.tryParse(v) ?? 0,
 
-                                validator: (value) => validateCode(value),
+                                validator: (value) => validateNumeric(value),
                               ),
                             ],
 

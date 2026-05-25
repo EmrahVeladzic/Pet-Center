@@ -204,9 +204,12 @@ namespace PetCenterServices.Seeder
                         rng=new Random((int)seed);
                     }
 
+                    Kind usage_kind = new Kind {Title="Hamsters"};
+
                     await ctx.AnimalKinds.AddAsync(new Kind{Title="Dogs"});
                     await ctx.AnimalKinds.AddAsync(new Kind{Title="Cats"});
                     await ctx.AnimalKinds.AddAsync(new Kind{Title="Rabbits"});
+                   
 
                     await ctx.SaveChangesAsync();                    
                  
@@ -221,6 +224,8 @@ namespace PetCenterServices.Seeder
                     List<Category> categories = await ctx.Categories.ToListAsync();
                     List<Kind> kinds = await ctx.AnimalKinds.ToListAsync();
                     AnimalScale[] scales = Enum.GetValues<AnimalScale>();
+
+                    await ctx.AnimalKinds.AddAsync(usage_kind);
 
                     foreach(Category cat in categories)
                     {                        
@@ -263,6 +268,9 @@ namespace PetCenterServices.Seeder
                         
                     }
 
+                   
+
+
                     await ctx.SaveChangesAsync();  
 
                     FormTemplate? template = new FormTemplate{Description="Generic business form"};
@@ -283,6 +291,32 @@ namespace PetCenterServices.Seeder
 
                     await ctx.SaveChangesAsync();
                     template=await ctx.FormTemplates.Include(ft=>ft.Fields).FirstOrDefaultAsync(ft=>ft.Id==template.Id);
+
+
+                    Guid l_ham_album = await BreedService.CreateAlbum(null,ctx,1);
+                    Guid b_ham_album = await BreedService.CreateAlbum(null,ctx,1);
+
+                    await ctx.Images.AddAsync(await CreateRandomImage(ctx,l_ham_album,rng));
+                    await ctx.Images.AddAsync(await CreateRandomImage(ctx,b_ham_album,rng));
+
+                    await ctx.SaveChangesAsync();
+
+                    Breed bigHamster = new Breed{AlbumId=b_ham_album, Scale= AnimalScale.Large, KindId=usage_kind.Id,Title="European Furball",Investment=rng.NextSingle(),Territory=rng.NextSingle(),Pricing=rng.NextSingle(),Longevity=0.0f,Cohabitation=rng.NextSingle()};
+                    Breed littleHamster = new Breed{AlbumId=l_ham_album, Scale=AnimalScale.Small, KindId=usage_kind.Id,Title="Continental Furball",Investment=rng.NextSingle(),Territory=rng.NextSingle(),Pricing=rng.NextSingle(),Longevity=0.0f,Cohabitation=rng.NextSingle()};
+
+
+
+                    await ctx.AnimalBreeds.AddAsync(bigHamster);
+                    await ctx.AnimalBreeds.AddAsync(littleHamster);
+
+                    Guid usageCategory = categories.First(c=>c.Consumable==true).Id;
+
+                    Item hamsterItem = new Item{Title="Hamster product", MassGrams = 100, CategoryId= usageCategory, KindId = usage_kind.Id};
+
+                    await ctx.Items.AddAsync(hamsterItem);
+
+                    await ctx.UsageEstimates.AddAsync(new Usage{KindId=usage_kind.Id,ScaleSpecific = AnimalScale.Small, CategoryId=usageCategory,AverageDailyAmountGrams=20});
+                    await ctx.UsageEstimates.AddAsync(new Usage{KindId=usage_kind.Id,ScaleSpecific = AnimalScale.Large, CategoryId=usageCategory,AverageDailyAmountGrams=30});
 
                     for(int i = 0; i<50; i++)
                     {
@@ -543,6 +577,12 @@ namespace PetCenterServices.Seeder
 
                         }
 
+                        Individual lolek = new Individual{Owned=true,ShelterId=null,OwnerId=Users[0].Id,Name="Lolek",Sex=true,BreedId=littleHamster.Id,AnimalIdentity=Guid.NewGuid(),BirthDate=DateTime.UtcNow.AddDays(-(rng.Next(500,1500)))};
+                        Individual bolek= new Individual{Owned=true,ShelterId=null,OwnerId=Users[0].Id,Name="Bolek",Sex=true,BreedId=bigHamster.Id,AnimalIdentity=Guid.NewGuid(),BirthDate=DateTime.UtcNow.AddDays(-(rng.Next(500,1500)))}; 
+
+                        await ctx.IndividualAnimals.AddAsync(lolek);
+                        await ctx.IndividualAnimals.AddAsync(bolek);
+
                         for(int i = 0; i< kinds.Count; i++)
                         {
                             Breed? brd = await ctx.AnimalBreeds.FirstOrDefaultAsync(b=>b.KindId==kinds[i].Id);
@@ -562,9 +602,13 @@ namespace PetCenterServices.Seeder
                             };
                         }
 
-                        
+                        await ctx.SupplyRecords.AddAsync(new Supplies{UserId=Users[0].Id, KindId = usage_kind.Id,CategoryId=usageCategory,MassGrams=1000,Evaluated= DateTime.UtcNow.AddHours(-36)});
 
                         await ctx.SaveChangesAsync();
+
+                        await ctx.MedicalRecordEntries.AddAsync(new MedicalRecordEntry{ProcedureId=proc.Id,AnimalId=lolek.Id});
+                        await ctx.MedicalRecordEntries.AddAsync(new MedicalRecordEntry{ProcedureId=proc_two.Id,AnimalId=lolek.Id});
+                        await ctx.MedicalRecordEntries.AddAsync(new MedicalRecordEntry{ProcedureId=proc.Id,AnimalId=bolek.Id});
 
                         List<LivingConditionField> livingConditions = await ctx.LivingConditionFields.ToListAsync();
 
@@ -731,7 +775,7 @@ namespace PetCenterServices.Seeder
 
 
 
-                                Listing new_listing = new Listing{Type=ListingType.Pet,FranchiseId=franch.Id,PriceMinor=rng.Next(10000),AlbumId=album_id,Approved=true,Updated=false,Visible=true,ListingName=$"{ind.Name}-{adoptables}",ListingDescription=GenerateLoremIpsum(450,rng),Posted=creation};
+                                Listing new_listing = new Listing{Type=ListingType.Pet,FranchiseId=franch.Id,PriceMinor=rng.Next(10000),AlbumId=album_id,Approved=true,Updated=false,Visible=true,ListingName=$"{ind.Name}-{adoptables}",ListingDescription=GenerateLoremIpsum(rng.Next(500,1000),rng),Posted=creation};
                                 await ctx.Listings.AddAsync(new_listing);
 
                                 listings.Add(new_listing);
@@ -778,6 +822,23 @@ namespace PetCenterServices.Seeder
                         }
 
 
+                             
+                        Guid usage_album_id = await ListingService.CreateAlbum(franch.OwnerId,ctx,1);
+                        await ctx.Images.AddAsync(await CreateRandomImage(ctx,usage_album_id,rng));
+
+                        Listing usage_listing = new Listing{Type=ListingType.Product,FranchiseId=franch.Id,PriceMinor=rng.Next(10000),AlbumId=usage_album_id,Approved=true,Updated=false,Visible=true,ListingName=$"Hamster product for sale",ListingDescription=$"Why do people even get hamsters?",Posted=DateTime.UtcNow};
+                        await ctx.Listings.AddAsync(usage_listing);
+
+                        
+                            
+                        await ctx.SaveChangesAsync();
+
+                        await ctx.ProductListings.AddAsync(new ProductListing{Id=usage_listing.Id,ProductId=hamsterItem.Id,PerListing=2});
+                                                              
+
+                            
+
+
                         for(int i = 0;i<5; i++)
                         {
                             
@@ -815,6 +876,16 @@ namespace PetCenterServices.Seeder
                             "Just what I needed.",
                         };
 
+
+                        Listing? orphanBlobListing = await ctx.Listings.FirstOrDefaultAsync(l=>l.Type==ListingType.Generic);
+
+                        if (orphanBlobListing != null)
+                        {
+                            listings.Remove(orphanBlobListing);
+                            await orphanBlobListing.StageDeletion<Listing>(ctx,ctx.Listings);
+                        }
+
+                        await ctx.SaveChangesAsync();
 
                         List<Comment> comments = new();
 

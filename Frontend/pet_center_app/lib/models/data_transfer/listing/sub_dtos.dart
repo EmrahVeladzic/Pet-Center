@@ -38,12 +38,14 @@ class AnimalListingSubDTO {
   String currentVersion;
   List<NoteSubDTO>? notes;
   String animalId;
+  String identity;
 
   AnimalListingSubDTO({
     this.id,
     this.currentVersion = '',
     this.notes,
     this.animalId = '',
+    this.identity = '',
   });
 
   factory AnimalListingSubDTO.fromJson(Map<String, dynamic> json) =>
@@ -56,6 +58,7 @@ class AnimalListingSubDTO {
     currentVersion: currentVersion,
     notes: notes?.map((n) => n.copy()).toList(),
     animalId: animalId,
+    identity: identity,
   );
 }
 

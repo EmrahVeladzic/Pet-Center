@@ -90,7 +90,7 @@ class MedicalRecordEntryCard extends StatelessWidget {
                   child: FittedBox(
                     fit: BoxFit.contain,
                     child: IconButton(
-                      onPressed: onTap,
+                      onPressed: onDelete,
                       icon: const Icon(Icons.delete),
                       padding: EdgeInsets.zero,
                       visualDensity: VisualDensity.compact,

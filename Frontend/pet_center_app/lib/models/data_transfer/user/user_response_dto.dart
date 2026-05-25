@@ -74,6 +74,7 @@ class SuppliesSubDTO {
   String currentVersion;
   String kindId;
   String consumableId;
+  int massGrams;
   List<NoteSubDTO>? notes;
 
   SuppliesSubDTO({
@@ -82,6 +83,7 @@ class SuppliesSubDTO {
     this.kindId = '',
     this.consumableId = '',
     this.notes,
+    this.massGrams = 0,
   });
 
   factory SuppliesSubDTO.fromJson(Map<String, dynamic> json) =>
@@ -94,6 +96,7 @@ class SuppliesSubDTO {
     currentVersion: currentVersion,
     kindId: kindId,
     consumableId: consumableId,
+    massGrams: massGrams,
     notes: notes?.map((n) => n.copy()).toList(),
   );
 }

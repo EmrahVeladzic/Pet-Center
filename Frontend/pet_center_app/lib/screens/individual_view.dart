@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 
 import 'package:pet_center_app/models/data_transfer/individual/individual_response_dto.dart';
+import 'package:pet_center_app/screens/components/confirmation_dialog.dart';
 
 import 'package:pet_center_app/screens/components/individual/individual_card.dart';
 import 'package:pet_center_app/screens/medical_record_view.dart';
 import 'package:pet_center_app/screens/templates/screen_scaffold.dart';
+import 'package:pet_center_app/services/individual_service.dart';
 
 import 'package:pet_center_app/utils/app_style.dart';
 
@@ -24,6 +26,16 @@ class _IndividualViewScreenState extends State<IndividualViewScreen> {
     super.initState();
 
     dataSource = widget.src ?? [];
+  }
+
+  void removeAnimal(String id) async {
+    final output = await IndividualService.delete(id);
+
+    if (mounted && output == true) {
+      setState(() {
+        dataSource.removeWhere((i) => i.id == id);
+      });
+    }
   }
 
   void viewMedical(IndividualResponseDTO src) async {
@@ -60,12 +72,24 @@ class _IndividualViewScreenState extends State<IndividualViewScreen> {
               onMedical: () {
                 viewMedical(e);
               },
+              onDelete: () {
+                if (e.id == null) {
+                  return;
+                }
+                showDialog(
+                  context: context,
+                  builder: (_) => ConfirmationDialog(
+                    confirmAction: () {
+                      removeAnimal(e.id!);
+                    },
+                  ),
+                );
+              },
             ),
             design.verticalGap(1),
           ],
         ),
       ],
-      bottomNavigationBar: BottomAppBar(),
     );
   }
 }

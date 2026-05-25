@@ -76,6 +76,8 @@ namespace PetCenterModels.DataTransferObjects
 
         public Guid ConsumableId {get; set;}
 
+        public int MassGrams {get; set;} 
+
         public List<NoteSubDTO>? Notes {get; set;} = null;
 
         public static SuppliesSubDTO? FromEntity(Supplies? supplies)
@@ -87,6 +89,7 @@ namespace PetCenterModels.DataTransferObjects
             output.CurrentVersion=supplies.CurrentVersion;
             output.KindId=supplies.KindId;
             output.ConsumableId=supplies.CategoryId;
+            output.MassGrams=supplies.MassGrams;
 
             output.Notes=new();
             

@@ -81,7 +81,7 @@ class _UserViewScreenState extends State<UserViewScreen> {
             linkName: "Send new codes.",
             firstDecor: "First code...",
             secondDecor: "Second code...",
-            sharedValidation: (value) => validateCode(value),
+            sharedValidation: (value) => validateNumeric(value),
           ),
         );
       }

@@ -3,8 +3,8 @@ import 'package:pet_center_app/models/data_transfer/living_condition_dto.dart';
 
 import 'package:pet_center_app/models/enums.dart';
 import 'package:pet_center_app/screens/components/confirmation_dialog.dart';
-import 'package:pet_center_app/screens/components/living_condition_card.dart';
-import 'package:pet_center_app/screens/components/living_condition_dialog.dart';
+import 'package:pet_center_app/screens/components/living%20condition/living_condition_card.dart';
+import 'package:pet_center_app/screens/components/living%20condition/living_condition_dialog.dart';
 import 'package:pet_center_app/screens/templates/screen_scaffold.dart';
 import 'package:pet_center_app/services/living_condition_service.dart';
 

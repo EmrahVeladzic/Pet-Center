@@ -64,6 +64,8 @@ namespace PetCenterModels.DataTransferObjects
 
         public Guid AnimalId {get; set;} = Guid.Empty;
 
+        public Guid Identity {get; set;} = Guid.Empty;
+
 
         public bool Validate()
         {
@@ -85,7 +87,8 @@ namespace PetCenterModels.DataTransferObjects
             {
                 Id=entity.Id,
                 CurrentVersion=entity.CurrentVersion,
-                AnimalId = entity.AnimalId
+                AnimalId = entity.AnimalId,
+                Identity = entity.Animal.AnimalIdentity
             };
 
         }

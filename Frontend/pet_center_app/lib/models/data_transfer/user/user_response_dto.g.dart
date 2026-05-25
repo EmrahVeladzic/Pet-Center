@@ -63,6 +63,7 @@ SuppliesSubDTO _$SuppliesSubDTOFromJson(Map<String, dynamic> json) =>
       notes: (json['notes'] as List<dynamic>?)
           ?.map((e) => NoteSubDTO.fromJson(e as Map<String, dynamic>))
           .toList(),
+      massGrams: (json['massGrams'] as num?)?.toInt() ?? 0,
     );
 
 Map<String, dynamic> _$SuppliesSubDTOToJson(SuppliesSubDTO instance) =>
@@ -71,6 +72,7 @@ Map<String, dynamic> _$SuppliesSubDTOToJson(SuppliesSubDTO instance) =>
       'currentVersion': instance.currentVersion,
       'kindId': instance.kindId,
       'consumableId': instance.consumableId,
+      'massGrams': instance.massGrams,
       'notes': instance.notes?.map((e) => e.toJson()).toList(),
     };
 
