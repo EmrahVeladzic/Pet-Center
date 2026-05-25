@@ -73,7 +73,7 @@ namespace PetCenterServices.Services
                 return ServiceOutput<IndividualResponseDTO>.Error(HttpCode.NotFound,"The specified animal does not exist.");
             }
 
-        await using(IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync())
+            await using(IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync())
             {
 
                 try
@@ -232,6 +232,14 @@ namespace PetCenterServices.Services
                     return ServiceOutput<MedicalEntrySubDTO>.Error(HttpCode.Forbidden,"You lack the permission to perform this action.");
                 }
             }
+
+            if (days_since_procedure!=null && days_since_procedure > (DateTime.UtcNow - individual.BirthDate).Days)
+            {
+                return ServiceOutput<MedicalEntrySubDTO>.Error(HttpCode.BadRequest,"Prenatal procedures must be dated as the birth date.");
+            }
+
+          
+
             MedicalRecordEntry? medical = await dbContext.MedicalRecordEntries.FirstOrDefaultAsync(m=>m.AnimalId==animal_id && m.ProcedureId == procedure_id);
             if (medical == null)
             {
@@ -241,7 +249,8 @@ namespace PetCenterServices.Services
                 }
                 else
                 {
-                    days_since_procedure=Math.Max((int)days_since_procedure,0);
+                  
+                    days_since_procedure=Math.Max((int)days_since_procedure,(int)-days_since_procedure);
                     days_since_procedure*=-1;
                     MedicalRecordEntry new_entry = new MedicalRecordEntry
                     {
@@ -264,7 +273,7 @@ namespace PetCenterServices.Services
                 }
                 else
                 {
-                    days_since_procedure=Math.Max((int)days_since_procedure,0);
+                    days_since_procedure=Math.Max((int)days_since_procedure,(int)-days_since_procedure);
                     days_since_procedure*=-1;
                     medical.DatePerformed=DateTime.UtcNow.AddDays((int)days_since_procedure);
                     await dbContext.SaveChangesAsync();

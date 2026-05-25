@@ -43,7 +43,7 @@ class _NotificationViewScreenState extends State<NotificationViewScreen> {
       MaterialPageRoute(
         builder: (context) => ListingViewScreen(
           listing: relevant!,
-          onModify: () {
+          onModify: (hard) {
             if (mounted) {
               setState(() {});
             }

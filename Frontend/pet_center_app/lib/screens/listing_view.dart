@@ -1,18 +1,25 @@
 import 'package:flutter/material.dart';
+import 'package:pet_center_app/models/data_transfer/individual/individual_response_dto.dart';
+import 'package:pet_center_app/models/data_transfer/item_dto.dart';
 import 'package:pet_center_app/models/data_transfer/listing/listing_response_dto.dart';
 import 'package:pet_center_app/models/data_transfer/listing/sub_dtos.dart';
 import 'package:pet_center_app/models/data_transfer/user/user_response_dto.dart';
 import 'package:pet_center_app/models/enums.dart';
+import 'package:pet_center_app/screens/components/confirmation_dialog.dart';
 
 import 'package:pet_center_app/screens/components/listing/availability_card.dart';
 import 'package:pet_center_app/screens/components/listing/comment_card.dart';
 import 'package:pet_center_app/screens/components/listing/comment_creator.dart';
 import 'package:pet_center_app/screens/components/image_display.dart';
 import 'package:pet_center_app/screens/components/listing/deletion_dialog.dart';
+import 'package:pet_center_app/screens/components/listing/evaluate_dialog.dart';
 import 'package:pet_center_app/screens/components/listing/listing_extension_card.dart';
 import 'package:pet_center_app/screens/components/listing/report_dialog.dart';
 import 'package:pet_center_app/screens/components/note_card.dart';
+import 'package:pet_center_app/screens/components/text_entry_dialog.dart';
 import 'package:pet_center_app/screens/templates/screen_scaffold.dart';
+import 'package:pet_center_app/services/category_service.dart';
+import 'package:pet_center_app/services/individual_service.dart';
 import 'package:pet_center_app/services/listing_service.dart';
 import 'package:pet_center_app/services/static_user_data_service.dart';
 import 'package:pet_center_app/utils/app_style.dart';
@@ -20,18 +27,22 @@ import 'package:pet_center_app/utils/helpers.dart';
 import 'package:pet_center_app/utils/hive_cache.dart';
 import 'package:pet_center_app/utils/jwt_parser.dart';
 import 'package:pet_center_app/utils/pricing.dart';
+import 'package:pet_center_app/utils/validators.dart';
 
 class ListingViewScreen extends StatefulWidget {
   final ListingResponseDTO listing;
 
-  final VoidCallback? onModify;
+  final void Function(bool hard)? onModify;
   final VoidCallback? commentDeletionHook;
+  final String? forAnimal;
+  final VoidCallback? obtainHook;
   const ListingViewScreen({
     super.key,
     required this.listing,
     this.onModify,
-
+    this.forAnimal,
     this.commentDeletionHook,
+    this.obtainHook,
   });
   @override
   State<StatefulWidget> createState() => _ListingViewScreenState();
@@ -39,6 +50,134 @@ class ListingViewScreen extends StatefulWidget {
 
 class _ListingViewScreenState extends State<ListingViewScreen> {
   bool mature = self?.matureAccount ?? false;
+
+  void evaluate() {
+    if (widget.listing.id == null) {
+      return;
+    }
+
+    showDialog(
+      context: context,
+      builder: (_) => EvaluateDialog(
+        listingId: widget.listing.id!,
+        evaluateCallback: (eval) {
+          if (eval != widget.listing.approved && widget.onModify != null) {
+            widget.onModify!(true);
+          }
+
+          if (mounted) {
+            setState(() {
+              widget.listing.approved = eval;
+            });
+          }
+        },
+      ),
+    );
+  }
+
+  void product() async {
+    if (self?.userSupplies == null) {
+      return;
+    }
+
+    final item = items.cast<ItemDTO?>().firstWhere(
+      (i) =>
+          i?.id == widget.listing.productListingExtension!.productId &&
+          i?.mass != null,
+    );
+
+    if (item == null) {
+      return;
+    }
+
+    final supply = self!.userSupplies!.cast<SuppliesSubDTO?>().firstWhere(
+      (s) => s?.consumableId == item.categoryId && s?.kindId == item.kindId,
+    );
+
+    int current = supply?.massGrams ?? 0;
+
+    int newTotal =
+        current +
+        (widget.listing.productListingExtension!.perListing * item.mass!);
+
+    final output = await CategoryService.trackSupplies(
+      item.categoryId,
+      item.kindId,
+      newTotal,
+    );
+
+    if (mounted && output != null && self != null) {
+      setState(() {
+        if (self!.ownedAnimals != null) {
+          self!.userSupplies!.removeWhere(
+            (s) =>
+                s.kindId == output.kindId &&
+                s.consumableId == output.consumableId,
+          );
+          self!.userSupplies!.add(output);
+        } else {
+          self!.userSupplies = [output];
+        }
+      });
+
+      if (widget.obtainHook != null) {
+        widget.obtainHook!();
+      }
+    }
+  }
+
+  void adopt() async {
+    final output = await IndividualService.copy(
+      widget.listing.animalListingExtension!.animalId,
+      null,
+    );
+
+    if (mounted && output != null && self != null) {
+      setState(() {
+        if (self!.ownedAnimals != null) {
+          self!.ownedAnimals!.add(output);
+        } else {
+          self!.ownedAnimals = [output];
+        }
+      });
+
+      if (widget.obtainHook != null) {
+        widget.obtainHook!();
+      }
+    }
+  }
+
+  void medical(int days) async {
+    final output = await IndividualService.setMedical(
+      widget.forAnimal!,
+      widget.listing.medicalListingExtension!.procedureId,
+      days,
+    );
+
+    if (mounted &&
+        output != null &&
+        self != null &&
+        self!.ownedAnimals != null) {
+      setState(() {
+        final animal = self!.ownedAnimals!
+            .cast<IndividualResponseDTO?>()
+            .firstWhere((i) => i?.id == widget.forAnimal);
+
+        if (animal != null) {
+          animal.medicalRecord.removeWhere(
+            (m) =>
+                m.procedureId ==
+                widget.listing.medicalListingExtension!.procedureId,
+          );
+          animal.medicalRecord.add(output);
+        }
+      });
+
+      if (widget.obtainHook != null) {
+        widget.obtainHook!();
+      }
+    }
+  }
 
   void toggleVisibility() async {
     final output = await ListingService.setVisibility(
@@ -52,7 +191,7 @@ class _ListingViewScreenState extends State<ListingViewScreen> {
       });
 
       if (widget.onModify != null) {
-        widget.onModify!();
+        widget.onModify!(false);
       }
     }
   }
@@ -320,7 +459,87 @@ class _ListingViewScreenState extends State<ListingViewScreen> {
         ],
       ],
 
-      bottomNavigationBar: BottomAppBar(),
+      bottomNavigationBar: BottomAppBar(
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              if (role == Access.user) ...[
+                if (widget.listing.type == ListingType.product &&
+                    widget.listing.productListingExtension != null &&
+                    items.any(
+                      (i) =>
+                          i.id ==
+                              widget
+                                  .listing
+                                  .productListingExtension!
+                                  .productId &&
+                          categories.any((c) => c.id == i.categoryId),
+                    )) ...[
+                  ElevatedButton(
+                    onPressed: () {
+                      showDialog(
+                        context: context,
+                        builder: (_) =>
+                            ConfirmationDialog(confirmAction: product),
+                      );
+                    },
+                    child: design.fittedText("Get"),
+                  ),
+                ] else if (widget.listing.type == ListingType.pet &&
+                    widget.listing.animalListingExtension != null &&
+                    self?.ownedAnimals != null &&
+                    !self!.ownedAnimals!.any(
+                      (i) =>
+                          i.identity ==
+                          widget.listing.animalListingExtension?.identity,
+                    )) ...[
+                  ElevatedButton(
+                    onPressed: () {
+                      showDialog(
+                        context: context,
+                        builder: (_) =>
+                            ConfirmationDialog(confirmAction: adopt),
+                      );
+                    },
+                    child: design.fittedText("Adopt"),
+                  ),
+                ] else if (widget.listing.type == ListingType.medical &&
+                    widget.listing.medicalListingExtension != null &&
+                    widget.forAnimal != null) ...[
+                  ElevatedButton(
+                    onPressed: () {
+                      showDialog(
+                        context: context,
+                        builder: (_) => TextEntryDialog(
+                          dialogName: "Days since procedure",
+                          inputDecoration: "Days",
+                          validation: (value) => validateNumeric(value),
+                          limit: 4,
+                          callback: (value) {
+                            int? days = int.tryParse(value);
+                            if (days != null) {
+                              medical(days);
+                            }
+                          },
+                        ),
+                      );
+                    },
+                    child: design.fittedText("Treat pet"),
+                  ),
+                ],
+              ] else if ((role == Access.admin || role == Access.owner) &&
+                  !widget.listing.approved) ...[
+                ElevatedButton(
+                  onPressed: evaluate,
+                  child: design.fittedText("Evaluate"),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

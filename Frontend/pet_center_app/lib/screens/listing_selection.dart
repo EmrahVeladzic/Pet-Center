@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:pet_center_app/models/data_transfer/breed_dto.dart';
+import 'package:pet_center_app/models/data_transfer/individual/individual_response_dto.dart';
 import 'package:pet_center_app/models/data_transfer/listing/listing_response_dto.dart';
 import 'package:pet_center_app/models/enums.dart';
 import 'package:pet_center_app/screens/components/listing/listing_card.dart';
@@ -14,28 +16,23 @@ import 'package:pet_center_app/utils/jwt_parser.dart';
 
 class ListingSelectionScreen extends StatefulWidget {
   final int maxPage;
-  final String? kindId;
   final ListingType initType;
   final OrderingMethod initOrdering;
   final String? initRelevant;
   final bool? initShowApproved;
-  final String? initKind;
-  final String? initBreed;
-  final bool? initSex;
-  final AnimalScale? initScale;
+  final IndividualResponseDTO? initAnimal;
+  final VoidCallback? onModify;
 
   const ListingSelectionScreen({
     super.key,
     required this.maxPage,
-    this.kindId,
+
     required this.initType,
     this.initOrdering = OrderingMethod.id,
     this.initRelevant,
     this.initShowApproved,
-    this.initKind,
-    this.initBreed,
-    this.initSex,
-    this.initScale,
+    this.initAnimal,
+    this.onModify,
   });
 
   @override
@@ -85,10 +82,28 @@ class _ListingSelectionScreenState extends State<ListingSelectionScreen> {
     ordering = widget.initOrdering;
     relevant = widget.initRelevant;
     showApproved = widget.initShowApproved;
-    kind = widget.initKind;
-    breed = widget.initBreed;
-    sex = widget.initSex;
-    scale = widget.initScale;
+
+    breed = widget.initAnimal?.breedId;
+    sex = widget.initAnimal?.sex;
+
+    scale = kinds
+        .expand((kind) => kind.breeds)
+        .cast<BreedDTO?>()
+        .firstWhere(
+          (breed) => breed?.id == widget.initAnimal?.breedId,
+          orElse: () => null,
+        )
+        ?.scale;
+
+    kind = kinds
+        .expand((kind) => kind.breeds)
+        .cast<BreedDTO?>()
+        .firstWhere(
+          (breed) => breed?.id == widget.initAnimal?.breedId,
+          orElse: () => null,
+        )
+        ?.kindId;
+
     switchPage(0);
   }
 
@@ -145,9 +160,26 @@ class _ListingSelectionScreenState extends State<ListingSelectionScreen> {
         MaterialPageRoute(
           builder: (_) => ListingViewScreen(
             listing: src,
-            onModify: () {
+            forAnimal: widget.initAnimal?.id,
+            onModify: (hard) {
               if (mounted) {
-                setState(() {});
+                if (hard) {
+                  resetPages(
+                    type,
+                    ordering,
+                    relevant,
+                    showApproved,
+                    kind,
+                    breed,
+                    sex,
+                    scale,
+                  );
+                } else {
+                  setState(() {});
+                }
+                if (widget.onModify != null) {
+                  widget.onModify!();
+                }
               }
             },
           ),

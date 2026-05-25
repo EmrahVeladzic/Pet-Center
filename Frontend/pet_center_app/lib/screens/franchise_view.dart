@@ -169,7 +169,6 @@ class _FranchiseViewScreenState extends State<FranchiseViewScreen> {
           ],
         ),
       ],
-      bottomNavigationBar: BottomAppBar(),
     );
   }
 }

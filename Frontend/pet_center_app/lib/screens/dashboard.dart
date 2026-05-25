@@ -39,8 +39,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             maxPage: count,
             initType: ListingType.product,
             initOrdering: OrderingMethod.id,
-            initScale: AnimalScale.medium,
-            initKind: (kinds.isNotEmpty) ? kinds.first.id : null,
+
             initRelevant: (categories.isNotEmpty) ? categories.first.id : null,
           ),
         ),
@@ -217,7 +216,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
         ),
       ],
-      bottomNavigationBar: BottomAppBar(),
     );
   }
 }

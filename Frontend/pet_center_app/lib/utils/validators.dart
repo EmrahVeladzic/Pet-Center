@@ -41,9 +41,9 @@ String? validateContact(String? input) {
   return null;
 }
 
-String? validateCode(String? code) {
-  if (code == null || int.tryParse(code) == null) {
-    return "The code needs to be numeric with no whitespace.";
+String? validateNumeric(String? num) {
+  if (num == null || int.tryParse(num) == null) {
+    return "The value needs to be numeric with no whitespace.";
   }
   return null;
 }

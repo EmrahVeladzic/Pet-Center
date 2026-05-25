@@ -194,18 +194,16 @@ class IndividualService {
     }
   }
 
-  static Future<MedicalEntrySubDTO?> medical(
+  static Future<MedicalEntrySubDTO?> setMedical(
     String animalId,
     String procedureId,
-    int? daysSince,
+    int daysSince,
   ) async {
     apiServiceBusy.value = true;
     try {
       final query = <String, String>{};
 
-      if (daysSince != null) {
-        query['days_since'] = daysSince.toString();
-      }
+      query['days_since'] = daysSince.toString();
 
       final response = await http.put(
         Uri.parse(
@@ -228,6 +226,24 @@ class IndividualService {
       showError(ex);
       apiServiceBusy.value = false;
       return null;
+    }
+  }
+
+  static Future<bool> removeMedical(String animalId, String procedureId) async {
+    try {
+      final response = await http.put(
+        Uri.parse(
+          "${AppConfig.apiBaseUrl}/api/Individual/Medical/$animalId/$procedureId",
+        ),
+        headers: {'Authorization': 'Bearer $rawToken'},
+      );
+
+      apiServiceBusy.value = false;
+      return ServiceOutput.isSuccess(response);
+    } catch (ex) {
+      showError(ex);
+      apiServiceBusy.value = false;
+      return false;
     }
   }
 

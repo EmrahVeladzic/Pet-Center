@@ -10,12 +10,14 @@ class IndividualCard extends StatelessWidget {
   final IndividualResponseDTO individual;
   final VoidCallback onTap;
   final VoidCallback onMedical;
+  final VoidCallback onDelete;
 
   const IndividualCard({
     super.key,
     required this.individual,
     required this.onTap,
     required this.onMedical,
+    required this.onDelete,
   });
 
   @override
@@ -98,6 +100,27 @@ class IndividualCard extends StatelessWidget {
                     child: IconButton(
                       onPressed: onTap,
                       icon: const Icon(Icons.edit),
+                      padding: EdgeInsets.zero,
+                      visualDensity: VisualDensity.compact,
+                      constraints: const BoxConstraints(),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+
+            Expanded(
+              flex: 1,
+              child: Align(
+                alignment: Alignment.center,
+                child: SizedBox(
+                  width: design.boundedIconSize,
+                  height: design.boundedIconSize,
+                  child: FittedBox(
+                    fit: BoxFit.contain,
+                    child: IconButton(
+                      onPressed: onDelete,
+                      icon: const Icon(Icons.playlist_remove),
                       padding: EdgeInsets.zero,
                       visualDensity: VisualDensity.compact,
                       constraints: const BoxConstraints(),

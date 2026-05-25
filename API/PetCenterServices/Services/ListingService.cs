@@ -138,10 +138,9 @@ namespace PetCenterServices.Services
 
                 else if (search.Type == ListingType.Medical)
                 {
-                    List<Individual> individuals = await dbContext.IndividualAnimals.Where(i=>i.Owned==true&&i.OwnerId==token_holder).ToListAsync();
+                    List<Individual> individuals = await dbContext.IndividualAnimals.Include(a=>a.AnimalBreed).Include(a=>a.MedicalRecord).Where(i=>i.Owned==true&&i.OwnerId==token_holder).ToListAsync();
 
                     List<Procedure> procedures = await dbContext.MedicalProcedures.Include(p=>p.Specifications).ToListAsync();
-                   
                     for(int i = 0; (i< output.Count && i<entities.Count); i++)
                     {
                         if (entities[i]!=null && output[i]!=null && entities[i].MedicalExtension != null)
@@ -225,7 +224,7 @@ namespace PetCenterServices.Services
                 else if(output.Type ==ListingType.Medical && output.MedicalExtension != null)
                 {
                 
-                    List<Individual> individuals = await dbContext.IndividualAnimals.Include(a=>a.AnimalBreed).Where(i=>i.Owned==true&&i.OwnerId==token_holder).ToListAsync();
+                    List<Individual> individuals = await dbContext.IndividualAnimals.Include(a=>a.AnimalBreed).Include(a=>a.MedicalRecord).Where(i=>i.Owned==true&&i.OwnerId==token_holder).ToListAsync();
 
                     List<Procedure> procedures = await dbContext.MedicalProcedures.Include(p=>p.Specifications).ToListAsync();
                    

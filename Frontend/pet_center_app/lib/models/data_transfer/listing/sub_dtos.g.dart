@@ -36,6 +36,7 @@ AnimalListingSubDTO _$AnimalListingSubDTOFromJson(Map<String, dynamic> json) =>
           ?.map((e) => NoteSubDTO.fromJson(e as Map<String, dynamic>))
           .toList(),
       animalId: json['animalId'] as String? ?? '',
+      identity: json['identity'] as String? ?? '',
     );
 
 Map<String, dynamic> _$AnimalListingSubDTOToJson(
@@ -45,6 +46,7 @@ Map<String, dynamic> _$AnimalListingSubDTOToJson(
   'currentVersion': instance.currentVersion,
   'notes': instance.notes?.map((e) => e.toJson()).toList(),
   'animalId': instance.animalId,
+  'identity': instance.identity,
 };
 
 MedicalListingSubDTO _$MedicalListingSubDTOFromJson(
