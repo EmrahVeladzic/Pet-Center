@@ -276,10 +276,10 @@ class UserService {
     }
   }
 
-  static Future<String?> setWishlistTerm(String term, bool addOrRemove) async {
+  static Future<String?> setWishlistTerm(String term) async {
     apiServiceBusy.value = true;
     try {
-      final query = <String, String>{'add_remove': addOrRemove.toString()};
+      final query = <String, String>{'add_remove': true.toString()};
 
       final response = await http.put(
         Uri.parse(
@@ -299,6 +299,27 @@ class UserService {
       showError(ex);
       apiServiceBusy.value = false;
       return null;
+    }
+  }
+
+  static Future<bool> removeWishlistTerm(String term) async {
+    apiServiceBusy.value = true;
+    try {
+      final query = <String, String>{'add_remove': false.toString()};
+
+      final response = await http.put(
+        Uri.parse(
+          "${AppConfig.apiBaseUrl}/api/User/SetTerm/$term",
+        ).replace(queryParameters: query),
+        headers: {'Authorization': 'Bearer $rawToken', 'Accept': 'text/plain'},
+      );
+
+      apiServiceBusy.value = false;
+      return ServiceOutput.isSuccess(response);
+    } catch (ex) {
+      showError(ex);
+      apiServiceBusy.value = false;
+      return false;
     }
   }
 

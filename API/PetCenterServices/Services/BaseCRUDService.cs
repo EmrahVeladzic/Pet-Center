@@ -140,7 +140,7 @@ namespace PetCenterServices.Services
                             dbSet.Entry(ent).Property(e => e.CurrentVersion).OriginalValue = overwrite.CurrentVersion;
 
                             
-                            var originalVersion = overwrite.CurrentVersion;
+                            byte[] originalVersion = overwrite.CurrentVersion;
                             overwrite.CurrentVersion = ent.CurrentVersion; 
                             dbSet.Entry(ent).CurrentValues.SetValues(overwrite);
 

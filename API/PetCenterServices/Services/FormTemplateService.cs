@@ -93,6 +93,72 @@ namespace PetCenterServices.Services
           
         }
 
+        public override async Task<ServiceOutput<FormTemplateDTO>> Put(Guid session,Guid token_holder,FormTemplateDTO req)
+        {      
+
+            FormTemplate? ent = await dbSet.FindAsync(req.Id);
+
+            if (ent != null)
+            {
+
+                
+                FormTemplate? overwrite = req.ToEntity();
+                    
+                if (overwrite != null)
+                {
+                        
+
+                    await using(IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync()){
+                       
+                       
+                        try
+                        {
+                            
+                            overwrite.Id = ent.Id;
+
+                            
+                            dbSet.Entry(ent).Property(e => e.CurrentVersion).OriginalValue = overwrite.CurrentVersion;
+
+                            
+                            byte[] originalVersion = overwrite.CurrentVersion;
+                            overwrite.CurrentVersion = ent.CurrentVersion; 
+                            dbSet.Entry(ent).CurrentValues.SetValues(overwrite);
+
+                            await dbContext.SaveChangesAsync();
+
+                            
+
+                            await tx.CommitAsync();
+
+                            await dbSet.Entry(ent).Collection(e=>e.Fields).LoadAsync();
+
+                            Touch();
+                            return ServiceOutput<FormTemplateDTO>.Success(FormTemplateDTO.FromEntity(ent));
+                               
+                        }
+                        catch(Exception ex)
+                        {
+                            await tx.RollbackAsync();
+                            return ServiceOutput<FormTemplateDTO>.FromException(ex,logger);
+                        }
+
+                    }
+                        
+
+
+
+                    
+                    
+
+                }
+               
+               
+
+            }
+
+            return ServiceOutput<FormTemplateDTO>.Error(HttpCode.NotFound,"No resource with this ID exists.");
+        }
+
         public override Task<ServiceOutput<object>> IsClearedToDelete(Guid token_holder, Guid resourceId)
         {           
             

@@ -122,7 +122,7 @@ namespace PetCenterServices.Services
             {
                 return ServiceOutput<ProcedureSpecificationSubDTO>.Error(HttpCode.NotFound,"The selected animal kind does not exist.");
             }
-            if(breed_id!=null && !await dbContext.AnimalBreeds.AnyAsync(b => b.Id == breed_id))
+            if(breed_id!=null && !await dbContext.AnimalBreeds.AnyAsync(b => b.Id == breed_id && b.KindId==kind_id))
             {
                 return ServiceOutput<ProcedureSpecificationSubDTO>.Error(HttpCode.NotFound,"The selected animal breed does not exist.");
             }
@@ -168,6 +168,8 @@ namespace PetCenterServices.Services
                 existing=new_spec;
 
             }
+
+            Touch();
             
             StaticDataVersionHolder.SpecificationVersion=Guid.NewGuid();
             return ServiceOutput<ProcedureSpecificationSubDTO>.Success(ProcedureSpecificationSubDTO.FromEntity(existing));
@@ -198,6 +200,8 @@ namespace PetCenterServices.Services
                 }
                 
             }
+
+            Touch();
 
             StaticDataVersionHolder.SpecificationVersion=Guid.NewGuid();
             return ServiceOutput<object>.Success(null,HttpCode.NoContent);

@@ -31,6 +31,7 @@ namespace PetCenterServices.Services
         protected override void Touch()
         {
             StaticDataVersionHolder.BreedVersion = Guid.NewGuid();
+            StaticDataVersionHolder.KindVersion=Guid.NewGuid();
         }
 
         protected override async Task<IQueryable<Breed>> Filter(Guid token_holder, BreedSearchObject search)
@@ -64,6 +65,11 @@ namespace PetCenterServices.Services
                 query=await recommender.GetMostCompatibleBreeds(dbContext,query,usr);
 
 
+            }
+
+            else
+            {
+                query=query.OrderBy(q=>q.Id);
             }
 
             return query;

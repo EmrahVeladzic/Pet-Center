@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:pet_center_app/models/data_transfer/category_dto.dart';
+import 'package:pet_center_app/screens/components/category/usage_dialog.dart';
 import 'package:pet_center_app/screens/components/confirmation_dialog.dart';
 import 'package:pet_center_app/screens/components/category/usage_card.dart';
+import 'package:pet_center_app/screens/item_view.dart';
+import 'package:pet_center_app/services/category_service.dart';
+import 'package:pet_center_app/services/static_user_data_service.dart';
 import 'package:pet_center_app/utils/app_style.dart';
 
 class CategoryCard extends StatelessWidget {
@@ -11,18 +15,22 @@ class CategoryCard extends StatelessWidget {
 
   final VoidCallback rebuildCallback;
 
-  final void Function(UsageSubDTO input)? setUsageCallback;
-  final void Function(String id)? removeUsageCallback;
-
   const CategoryCard({
     super.key,
     required this.category,
     required this.editAction,
     required this.deleteAction,
     required this.rebuildCallback,
-    this.setUsageCallback,
-    this.removeUsageCallback,
   });
+
+  void removeUsage(String id) async {
+    final output = await CategoryService.removeUsageEstimate(id);
+
+    if (output == true) {
+      category.usageSpecifics?.removeWhere((s) => s.id == id);
+      rebuildCallback();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -94,7 +102,18 @@ class CategoryCard extends StatelessWidget {
                         child: FittedBox(
                           fit: BoxFit.contain,
                           child: IconButton(
-                            onPressed: editAction,
+                            onPressed: () {
+                              if (category.id == null) {
+                                return;
+                              }
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) =>
+                                      ItemView(categoryId: category.id!),
+                                ),
+                              );
+                            },
                             icon: const Icon(Icons.view_list),
                             padding: EdgeInsets.zero,
                             visualDensity: VisualDensity.compact,
@@ -115,8 +134,26 @@ class CategoryCard extends StatelessWidget {
                           child: FittedBox(
                             fit: BoxFit.contain,
                             child: IconButton(
-                              onPressed: editAction,
-                              icon: const Icon(Icons.note),
+                              onPressed: () {
+                                if (kinds.isEmpty) {
+                                  return;
+                                }
+                                showDialog(
+                                  context: context,
+                                  builder: (_) => UsageCreationDialog(
+                                    callback: (value) {
+                                      category.usageSpecifics?.removeWhere(
+                                        (u) => u.id == value.id,
+                                      );
+
+                                      category.usageSpecifics?.add(value);
+                                      rebuildCallback();
+                                    },
+                                    categoryId: category.id!,
+                                  ),
+                                );
+                              },
+                              icon: const Icon(Icons.note_add),
                               padding: EdgeInsets.zero,
                               visualDensity: VisualDensity.compact,
                               constraints: const BoxConstraints(),
@@ -158,7 +195,25 @@ class CategoryCard extends StatelessWidget {
                         UsageCard(
                           usage: e,
 
-                          editAction: () {},
+                          editAction: () {
+                            if (category.id == null || kinds.isEmpty) {
+                              return;
+                            }
+                            showDialog(
+                              context: context,
+                              builder: (_) => UsageCreationDialog(
+                                callback: (value) {
+                                  category.usageSpecifics?.removeWhere(
+                                    (u) => u.id == e.id,
+                                  );
+                                  category.usageSpecifics?.add(value);
+                                  rebuildCallback();
+                                },
+                                categoryId: category.id!,
+                                fromCurrent: e,
+                              ),
+                            );
+                          },
                           deleteAction: () {
                             showDialog(
                               context: context,
@@ -169,7 +224,7 @@ class CategoryCard extends StatelessWidget {
                                 confirmAction: () {
                                   final id = e.id;
                                   if (id != null) {
-                                    removeUsageCallback?.call(id);
+                                    removeUsage(id);
                                   }
                                 },
                               ),

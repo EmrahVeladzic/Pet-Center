@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:pet_center_app/utils/app_style.dart';
 
 class DualTextEntryDialog extends StatefulWidget {
+  final String firstInitText;
+  final String secondInitText;
   final int limit;
   final String? dialogName;
   final String? linkName;
@@ -27,6 +29,8 @@ class DualTextEntryDialog extends StatefulWidget {
     this.firstValidation,
     this.secondValidation,
     this.sharedValidation,
+    this.firstInitText = "",
+    this.secondInitText = "",
   });
 
   @override
@@ -35,12 +39,19 @@ class DualTextEntryDialog extends StatefulWidget {
 
 class _DualTextEntryDialogState extends State<DualTextEntryDialog> {
   final _formKey = GlobalKey<FormState>();
-  final TextEditingController _firstController = TextEditingController();
-  final TextEditingController _secondController = TextEditingController();
+  late final TextEditingController _firstController;
+  late final TextEditingController _secondController;
   void invokeCallback() async {
     final firstText = _firstController.text.trim();
     final secondText = _secondController.text.trim();
     widget.callback(firstText, secondText);
+  }
+
+  @override
+  void initState() {
+    _firstController = TextEditingController(text: widget.firstInitText);
+    _secondController = TextEditingController(text: widget.secondInitText);
+    super.initState();
   }
 
   @override

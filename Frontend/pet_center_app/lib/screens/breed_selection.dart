@@ -100,6 +100,11 @@ class _BreedSelectionScreenState extends State<BreedSelectionScreen> {
   @override
   Widget build(BuildContext context) {
     return DataScreenScaffold<BreedFilters, BreedDTO>(
+      importActions: [
+        if (role == Access.admin || role == Access.owner) ...[
+          IconButton(icon: Icon(Icons.add), onPressed: () {}),
+        ],
+      ],
       maxPage: widget.maxPage,
       switchPage: switchPage,
       pageSelectorKey: _pageSelectorKey,
@@ -125,10 +130,7 @@ class _BreedSelectionScreenState extends State<BreedSelectionScreen> {
               switchToSelection(id);
             }
           },
-          adminMode:
-              (role == Access.admin ||
-              role == Access.owner ||
-              role == Access.user),
+          adminMode: (role == Access.admin || role == Access.owner),
         );
       },
     );

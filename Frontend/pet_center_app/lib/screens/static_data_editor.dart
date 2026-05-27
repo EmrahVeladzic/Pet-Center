@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:pet_center_app/screens/category_view.dart';
+import 'package:pet_center_app/screens/form_template_view.dart';
+import 'package:pet_center_app/screens/kind_view.dart';
 import 'package:pet_center_app/screens/living_condition.dart';
+import 'package:pet_center_app/screens/procedure_view.dart';
 import 'package:pet_center_app/screens/templates/screen_scaffold.dart';
 import 'package:pet_center_app/utils/app_style.dart';
 
@@ -34,7 +37,12 @@ class _StaticDataEditorScreenState extends State<StaticDataEditorScreen> {
           widthFactor: 0.5,
           alignment: Alignment.center,
           child: ElevatedButton(
-            onPressed: () {},
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => ProcedureView()),
+              );
+            },
             child: design.fittedText('Procedures'),
           ),
         ),
@@ -71,7 +79,12 @@ class _StaticDataEditorScreenState extends State<StaticDataEditorScreen> {
           widthFactor: 0.5,
           alignment: Alignment.center,
           child: ElevatedButton(
-            onPressed: () {},
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => FormTemplateView()),
+              );
+            },
             child: design.fittedText('Form templates'),
           ),
         ),
@@ -80,7 +93,12 @@ class _StaticDataEditorScreenState extends State<StaticDataEditorScreen> {
           widthFactor: 0.5,
           alignment: Alignment.center,
           child: ElevatedButton(
-            onPressed: () {},
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => KindViewScreen()),
+              );
+            },
             child: design.fittedText('Animals'),
           ),
         ),
