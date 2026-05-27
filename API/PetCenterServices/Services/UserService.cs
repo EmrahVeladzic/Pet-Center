@@ -71,7 +71,7 @@ namespace PetCenterServices.Services
             if (authorization_level == Access.BusinessAccount)
             {
                 IQueryable<Guid> records = dbContext.EmployeeRecords.Where(e=>e.UserId==token_holder).Select(e=>e.FranchiseId);
-                List<Franchise> workplaces =  await dbContext.Franchises.Include(f=>f.Facilities).Where(f=>records.Contains(f.Id)||f.OwnerId==token_holder).OrderBy(w=>w.Id).ToListAsync();
+                List<Franchise> workplaces =  await dbContext.Franchises.Include(f=>f.Facilities).Include(f=>f.ShelteredAnimals).Where(f=>records.Contains(f.Id)||f.OwnerId==token_holder).OrderBy(w=>w.Id).ToListAsync();
                 output.Workplaces=workplaces.Select(w=>FranchiseResponseDTO.FromEntity(w,w.OwnerId==token_holder)!).ToList();
               
                 List<Guid> workplace_ids = workplaces.Select(w=>w.Id).ToList();

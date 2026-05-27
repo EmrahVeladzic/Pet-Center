@@ -109,6 +109,11 @@ namespace PetCenterServices.Services
 
         public async Task<ServiceOutput<ProcedureSpecificationSubDTO>> SetSpecification(Guid procedure_id,Guid kind_id, Guid? breed_id, bool optional, bool? sex_specific, int? age, short? interval)
         {
+            if(interval!=null && interval < 1)
+            {
+                return ServiceOutput<ProcedureSpecificationSubDTO>.Error(HttpCode.BadRequest,"The interval needs to be a valid number above 0.");
+            }
+
             if(!await dbContext.MedicalProcedures.AnyAsync(p => p.Id == procedure_id))
             {
                 return ServiceOutput<ProcedureSpecificationSubDTO>.Error(HttpCode.NotFound,"The selected procedure does not exist.");

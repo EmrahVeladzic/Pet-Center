@@ -58,7 +58,7 @@ namespace PetCenterAPI.Controllers
             return ResultConverter.Convert<object>(await service.Evaluate(id,approve,note));
         }
 
-        [Authorize(Roles ="Owner,Admin")]
+        [Authorize(Roles ="Employee")]
         [HttpPost("Discount/{id}")]
         public async Task<IActionResult> Discount([FromRoute]Guid id,[FromQuery] byte percentage, [FromQuery] byte days_valid)
         {

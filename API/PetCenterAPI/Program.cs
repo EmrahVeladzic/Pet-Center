@@ -324,8 +324,9 @@ while (retry)
 
             }
     }
-    catch
+    catch( Exception ex)
     {
+        logger.LogTrace(ex,"Startup error.");
         retry = true;
         await Task.Delay(2500);
     }

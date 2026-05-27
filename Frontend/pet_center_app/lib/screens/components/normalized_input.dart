@@ -37,7 +37,7 @@ class _NormalizedInputState extends State<NormalizedInput> {
     return Row(
       children: [
         Expanded(
-          flex: 3,
+          flex: 4,
           child: Slider(
             value: value,
             max: 1.0,
@@ -45,10 +45,9 @@ class _NormalizedInputState extends State<NormalizedInput> {
             onChanged: onChange,
           ),
         ),
-        const SizedBox(width: 8),
-        SizedBox(
-          width: 50,
-          child: Text(value.toStringAsFixed(2), textAlign: TextAlign.right),
+        Expanded(
+          flex: 1,
+          child: Text(value.toStringAsFixed(2), textAlign: TextAlign.center),
         ),
       ],
     );

@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:pet_center_app/models/data_transfer/franchise/franchise_request_dto.dart';
-
 import 'package:pet_center_app/models/data_transfer/franchise/franchise_response_dto.dart';
+
 import 'package:pet_center_app/models/enums.dart';
 import 'package:pet_center_app/screens/components/confirmation_dialog.dart';
 
 import 'package:pet_center_app/screens/components/franchise/franchise_card.dart';
 import 'package:pet_center_app/screens/components/franchise/franchise_edit_dialog.dart';
+import 'package:pet_center_app/screens/individual_view.dart';
 import 'package:pet_center_app/screens/listing_selection.dart';
 import 'package:pet_center_app/screens/templates/screen_scaffold.dart';
 import 'package:pet_center_app/screens/user_page.dart';
@@ -26,8 +27,6 @@ class FranchiseViewScreen extends StatefulWidget {
 }
 
 class _FranchiseViewScreenState extends State<FranchiseViewScreen> {
-  List<FranchiseResponseDTO> dataSource = self?.workplaces ?? [];
-
   void updateFranchise(String id, FranchiseRequestDTO input) async {
     final output = await FranchiseService.put(input, id);
 
@@ -52,9 +51,7 @@ class _FranchiseViewScreenState extends State<FranchiseViewScreen> {
     if (!mounted) {
       return;
     }
-    setState(() {
-      dataSource = self?.workplaces ?? [];
-    });
+    setState(() {});
   }
 
   void switchToUserView(String id) async {
@@ -96,6 +93,19 @@ class _FranchiseViewScreenState extends State<FranchiseViewScreen> {
     }
   }
 
+  void switchToAnimalView(FranchiseResponseDTO dt) async {
+    if (!mounted) {
+      return;
+    }
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) =>
+            IndividualViewScreen(src: dt.shelteredAnimals, onBehalf: dt.id),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final ReactiveDesignSystem design = Theme.of(
@@ -114,7 +124,7 @@ class _FranchiseViewScreenState extends State<FranchiseViewScreen> {
         ),
       ),
       body: [
-        ...dataSource.expand(
+        ...(self?.workplaces ?? []).expand(
           (e) => [
             FranchiseCard(
               franchise: e,
@@ -124,6 +134,12 @@ class _FranchiseViewScreenState extends State<FranchiseViewScreen> {
                   return;
                 }
                 switchToListingView(id);
+              },
+              animalAction: () {
+                if (e.id == null) {
+                  return;
+                }
+                switchToAnimalView(e);
               },
               editAction: () {
                 showDialog(

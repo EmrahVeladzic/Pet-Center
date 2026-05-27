@@ -12,6 +12,7 @@ import 'package:pet_center_app/screens/components/listing/comment_card.dart';
 import 'package:pet_center_app/screens/components/listing/comment_creator.dart';
 import 'package:pet_center_app/screens/components/image_display.dart';
 import 'package:pet_center_app/screens/components/listing/deletion_dialog.dart';
+import 'package:pet_center_app/screens/components/listing/discount_dialog.dart';
 import 'package:pet_center_app/screens/components/listing/evaluate_dialog.dart';
 import 'package:pet_center_app/screens/components/listing/listing_extension_card.dart';
 import 'package:pet_center_app/screens/components/listing/report_dialog.dart';
@@ -302,6 +303,34 @@ class _ListingViewScreenState extends State<ListingViewScreen> {
                   if (!mounted) {
                     return;
                   }
+                },
+              ),
+            ],
+            if (widget.listing.listingDiscount == null &&
+                widget.listing.id != null) ...[
+              IconButton(
+                icon: const Icon(Icons.local_offer),
+
+                onPressed: () {
+                  if (!mounted) {
+                    return;
+                  }
+
+                  showDialog(
+                    context: context,
+                    builder: (_) => DiscountDialog(
+                      callback: (p0) {
+                        if (!mounted) {
+                          return;
+                        }
+
+                        setState(() {
+                          widget.listing.listingDiscount = p0;
+                        });
+                      },
+                      listing: widget.listing.id!,
+                    ),
+                  );
                 },
               ),
             ],

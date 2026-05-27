@@ -78,6 +78,7 @@ namespace PetCenterModels.DataTransferObjects
         public Category? ToEntity()
         {
             Category category = new();
+            
             category.CurrentVersion=CurrentVersion;
             category.Title=Title;
             category.Consumable=Consumable;

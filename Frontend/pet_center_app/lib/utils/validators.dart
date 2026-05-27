@@ -48,6 +48,24 @@ String? validateNumeric(String? num) {
   return null;
 }
 
+String? validateNumericInRange(String? num, int min, int max) {
+  if (num == null) {
+    return "The value cannot be null.";
+  }
+
+  int? numeric = int.tryParse(num);
+
+  if (numeric == null) {
+    return "The value needs to be numeric with no whitespace.";
+  }
+
+  if (numeric > max || numeric < min) {
+    return "The value needs to be between $min and $max.";
+  }
+
+  return null;
+}
+
 String? validatePassword(String? pwd) {
   if (pwd == null || pwd.isEmpty) {
     return "The password is required.";

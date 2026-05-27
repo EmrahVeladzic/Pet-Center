@@ -75,22 +75,6 @@ class StaticAndUserDataService {
     apiServiceBusy.value = true;
 
     try {
-      final userResponse = await UserService.getUserStatus();
-      if (userResponse == null) {
-        output = false;
-      }
-      if (userResponse != userStatus) {
-        final newSelf = await UserService.getSelf();
-        if (newSelf != null) {
-          self = newSelf;
-          if (userResponse != null) {
-            userStatus = userResponse;
-          }
-        } else {
-          output = false;
-        }
-      }
-
       final response = await http.get(
         Uri.parse("${AppConfig.apiBaseUrl}/Static"),
         headers: {
@@ -191,6 +175,22 @@ class StaticAndUserDataService {
             currentStaticDataVersion.procedureVersion = result.procedureVersion;
             currentStaticDataVersion.specificationVersion =
                 result.specificationVersion;
+          } else {
+            output = false;
+          }
+        }
+
+        final userResponse = await UserService.getUserStatus();
+        if (userResponse == null) {
+          output = false;
+        }
+        if (userResponse != userStatus) {
+          final newSelf = await UserService.getSelf();
+          if (newSelf != null) {
+            self = newSelf;
+            if (userResponse != null) {
+              userStatus = userResponse;
+            }
           } else {
             output = false;
           }

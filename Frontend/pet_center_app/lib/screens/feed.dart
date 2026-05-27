@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:pet_center_app/models/enums.dart';
+import 'package:pet_center_app/screens/components/feed/announcement_creation_dialog.dart';
 import 'package:pet_center_app/screens/components/feed/announcement_page.dart';
 import 'package:pet_center_app/screens/components/feed/note_page.dart';
 import 'package:pet_center_app/screens/components/feed/notification_page.dart';
@@ -9,35 +10,36 @@ import 'package:pet_center_app/utils/jwt_parser.dart';
 
 class FeedScreen extends StatefulWidget {
   const FeedScreen({super.key});
+
   @override
   State<StatefulWidget> createState() => _FeedScreenState();
 }
 
 class _FeedScreenState extends State<FeedScreen> {
+  final GlobalKey<AnnouncementPageState> announcementKey =
+      GlobalKey<AnnouncementPageState>();
+
   @override
   Widget build(BuildContext context) {
     final ReactiveDesignSystem design = Theme.of(
       context,
     ).extension<ReactiveDesignSystem>()!;
 
-    List<Widget> tabs = [
+    final List<Widget> tabs = [
       const Tab(text: 'Announcements'),
-      if (role != Access.admin && role != Access.owner) ...{
+      if (role != Access.admin && role != Access.owner)
         const Tab(text: 'Notifications'),
-      },
-      if (role == Access.admin || role == Access.owner) ...{
+      if (role == Access.admin || role == Access.owner)
         const Tab(text: 'Reports'),
-      },
-      if (role == Access.user) ...{const Tab(text: 'Automated')},
+      if (role == Access.user) const Tab(text: 'Automated'),
     ];
 
-    List<Widget> pages = [
-      const AnnouncementPage(),
-      if (role != Access.admin && role != Access.owner) ...{
+    final List<Widget> pages = [
+      AnnouncementPage(key: announcementKey),
+      if (role != Access.admin && role != Access.owner)
         const NotificationPage(),
-      },
-      if (role == Access.admin || role == Access.owner) ...{const ReportPage()},
-      if (role == Access.user) ...{const NotePage()},
+      if (role == Access.admin || role == Access.owner) const ReportPage(),
+      if (role == Access.user) const NotePage(),
     ];
 
     return DefaultTabController(
@@ -52,7 +54,41 @@ class _FeedScreenState extends State<FeedScreen> {
               design.screenWidth * marqueeTitleWMult,
             ),
           ),
+
+          actions: [
+            Builder(
+              builder: (context) {
+                final controller = DefaultTabController.of(context);
+
+                return AnimatedBuilder(
+                  animation: controller,
+                  builder: (context, _) {
+                    final index = controller.index;
+
+                    if (index == 0) {
+                      return IconButton(
+                        icon: const Icon(Icons.add),
+                        onPressed: () {
+                          showDialog(
+                            context: context,
+                            builder: (_) => AnnouncementCreationDialog(
+                              callback: () {
+                                announcementKey.currentState?.load();
+                              },
+                            ),
+                          );
+                        },
+                      );
+                    }
+
+                    return const SizedBox.shrink();
+                  },
+                );
+              },
+            ),
+          ],
         ),
+
         body: LayoutBuilder(
           builder: (context, constraints) {
             return Align(
@@ -66,9 +102,7 @@ class _FeedScreenState extends State<FeedScreen> {
                     headerSliverBuilder: (context, innerBoxIsScrolled) => [
                       SliverAppBar(
                         backgroundColor: listTone,
-
                         pinned: true,
-
                         toolbarHeight: 0,
 
                         bottom: TabBar(tabs: tabs),
@@ -78,7 +112,6 @@ class _FeedScreenState extends State<FeedScreen> {
                       behavior: ScrollConfiguration.of(
                         context,
                       ).copyWith(scrollbars: false),
-
                       child: TabBarView(children: pages),
                     ),
                   ),
@@ -87,6 +120,7 @@ class _FeedScreenState extends State<FeedScreen> {
             );
           },
         ),
+
         bottomNavigationBar: const BottomAppBar(),
       ),
     );

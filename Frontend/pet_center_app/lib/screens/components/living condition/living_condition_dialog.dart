@@ -30,9 +30,12 @@ class _LivingConditionDialogState extends State<LivingConditionDialog> {
     super.initState();
 
     data = widget.existing?.copy() ?? LivingConditionFieldDTO();
+    _controller.text = data.title;
   }
 
-  void invokeCallback() async {}
+  void invokeCallback() async {
+    widget.callback(data, widget.existing != null);
+  }
 
   @override
   void dispose() {
@@ -74,6 +77,9 @@ class _LivingConditionDialogState extends State<LivingConditionDialog> {
                   ColoredBox(
                     color: listTone,
                     child: TextFormField(
+                      onChanged: (value) {
+                        data.title = value;
+                      },
                       controller: _controller,
                       maxLines: null,
                       maxLength: 75,

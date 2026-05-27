@@ -1,31 +1,31 @@
 import 'package:flutter/material.dart';
+import 'package:pet_center_app/models/data_transfer/individual/individual_request_dto.dart';
 
 import 'package:pet_center_app/models/data_transfer/individual/individual_response_dto.dart';
 import 'package:pet_center_app/screens/components/confirmation_dialog.dart';
 
 import 'package:pet_center_app/screens/components/individual/individual_card.dart';
+import 'package:pet_center_app/screens/components/individual/individual_dialog.dart';
 import 'package:pet_center_app/screens/medical_record_view.dart';
 import 'package:pet_center_app/screens/templates/screen_scaffold.dart';
 import 'package:pet_center_app/services/individual_service.dart';
+import 'package:pet_center_app/services/static_user_data_service.dart';
 
 import 'package:pet_center_app/utils/app_style.dart';
 
 class IndividualViewScreen extends StatefulWidget {
   final List<IndividualResponseDTO>? src;
-  const IndividualViewScreen({super.key, this.src});
+  final String? onBehalf;
+  const IndividualViewScreen({super.key, this.src, this.onBehalf});
 
   @override
   State<StatefulWidget> createState() => _IndividualViewScreenState();
 }
 
 class _IndividualViewScreenState extends State<IndividualViewScreen> {
-  late List<IndividualResponseDTO> dataSource;
-
   @override
   void initState() {
     super.initState();
-
-    dataSource = widget.src ?? [];
   }
 
   void removeAnimal(String id) async {
@@ -33,7 +33,7 @@ class _IndividualViewScreenState extends State<IndividualViewScreen> {
 
     if (mounted && output == true) {
       setState(() {
-        dataSource.removeWhere((i) => i.id == id);
+        widget.src?.removeWhere((i) => i.id == id);
       });
     }
   }
@@ -43,6 +43,27 @@ class _IndividualViewScreenState extends State<IndividualViewScreen> {
       context,
       MaterialPageRoute(builder: (_) => MedicalRecordViewScreen(src: src)),
     );
+  }
+
+  void addAnimal(IndividualRequestDTO req) async {
+    final output = await IndividualService.post(req);
+
+    if (output != null && mounted) {
+      setState(() {
+        widget.src?.add(output);
+      });
+    }
+  }
+
+  void editAnimal(String id, IndividualRequestDTO req) async {
+    final output = await IndividualService.put(req, id);
+
+    if (output != null && mounted) {
+      setState(() {
+        widget.src?.removeWhere((s) => s.id == id);
+        widget.src?.add(output);
+      });
+    }
   }
 
   @override
@@ -62,13 +83,52 @@ class _IndividualViewScreenState extends State<IndividualViewScreen> {
             design.screenWidth * marqueeTitleWMult,
           ),
         ),
+        actions: [
+          if ((widget.src ?? []).length < 50) ...[
+            IconButton(
+              icon: const Icon(Icons.add),
+
+              onPressed: () {
+                if (!mounted || kinds.isEmpty || kinds.first.breeds.isEmpty) {
+                  return;
+                }
+                showDialog(
+                  context: context,
+                  builder: (_) => IndividualCreationDialog(
+                    callback: (value) {
+                      addAnimal(value);
+                    },
+
+                    shelterId: widget.onBehalf,
+                  ),
+                );
+              },
+            ),
+          ],
+        ],
       ),
       body: [
-        ...dataSource.expand(
+        ...(widget.src ?? []).expand(
           (e) => [
             IndividualCard(
               individual: e,
-              onTap: () {},
+              onTap: () {
+                if (e.id == null ||
+                    kinds.isEmpty ||
+                    kinds.first.breeds.isEmpty) {
+                  return;
+                }
+                showDialog(
+                  context: context,
+                  builder: (_) => IndividualCreationDialog(
+                    callback: (value) {
+                      editAnimal(e.id!, value);
+                    },
+                    fromCurrent: e,
+                    shelterId: widget.onBehalf,
+                  ),
+                );
+              },
               onMedical: () {
                 viewMedical(e);
               },

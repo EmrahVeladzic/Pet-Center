@@ -7,6 +7,7 @@ using System.Text;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+
 using PetCenterModels.ModelUtils;
 using PetCenterServices;
 
@@ -33,6 +34,9 @@ namespace PetCenterModels.DBTables
 
         [InverseProperty(nameof(EmployeeRecord.Business))]
         public List<EmployeeRecord> EmployeeRecords {get; set;} = new();
+
+        [InverseProperty(nameof(Individual.Shelter))]
+        public List<Individual> ShelteredAnimals {get; set;} = new();
 
         public override async Task StageDeletion<T>(PetCenterDBContext ctx, DbSet<T> set,CancellationToken cancel = default)
         {
