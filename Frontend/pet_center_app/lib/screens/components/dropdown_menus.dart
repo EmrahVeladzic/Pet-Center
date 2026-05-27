@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:pet_center_app/models/data_transfer/breed_dto.dart';
 import 'package:pet_center_app/models/data_transfer/category_dto.dart';
 import 'package:pet_center_app/models/data_transfer/kind_dto.dart';
 import 'package:pet_center_app/models/data_transfer/procedure_dto.dart';
 import 'package:pet_center_app/models/enums.dart';
+import 'package:pet_center_app/services/static_user_data_service.dart';
 
 Widget accessWidget(
   double w,
@@ -157,6 +159,41 @@ Widget categoryWidget(
                   DropdownMenuEntry<CategoryDTO>(value: dto, label: dto.title),
             )
             .toList(),
+      ),
+    ),
+  );
+}
+
+Widget breedWidget(
+  double w,
+  List<BreedDTO> src,
+  void Function(BreedDTO? newValue) onChange, {
+  bool enable = true,
+  Key? key,
+}) {
+  return FittedBox(
+    key: key,
+    fit: BoxFit.scaleDown,
+    child: SizedBox(
+      width: w,
+      child: DropdownMenu<BreedDTO>(
+        enabled: enable,
+        expandedInsets: EdgeInsets.zero,
+        initialSelection: src.isNotEmpty ? src.first : null,
+        enableFilter: true,
+        label: const Text('Breed:'),
+        onSelected: onChange,
+        dropdownMenuEntries: src.map((dto) {
+          final kindTitle = kinds
+              .where((k) => k.breeds.any((b) => b.id == dto.id))
+              .firstOrNull
+              ?.title;
+
+          return DropdownMenuEntry<BreedDTO>(
+            value: dto,
+            label: "${dto.title}${kindTitle != null ? " - $kindTitle" : ""}",
+          );
+        }).toList(),
       ),
     ),
   );

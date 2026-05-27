@@ -22,6 +22,13 @@ FranchiseResponseDTO _$FranchiseResponseDTOFromJson(
           ?.map((e) => FacilityDTO.fromJson(e as Map<String, dynamic>))
           .toList() ??
       const [],
+  shelteredAnimals:
+      (json['shelteredAnimals'] as List<dynamic>?)
+          ?.map(
+            (e) => IndividualResponseDTO.fromJson(e as Map<String, dynamic>),
+          )
+          .toList() ??
+      const [],
 );
 
 Map<String, dynamic> _$FranchiseResponseDTOToJson(
@@ -33,5 +40,6 @@ Map<String, dynamic> _$FranchiseResponseDTOToJson(
   'contact': instance.contact,
   'notes': instance.notes?.map((e) => e.toJson()).toList(),
   'facilities': instance.facilities.map((e) => e.toJson()).toList(),
+  'shelteredAnimals': instance.shelteredAnimals.map((e) => e.toJson()).toList(),
   'owned': instance.owned,
 };

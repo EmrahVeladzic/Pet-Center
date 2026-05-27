@@ -6,6 +6,7 @@ import 'package:pet_center_app/screens/franchise_view.dart';
 import 'package:pet_center_app/screens/individual_view.dart';
 import 'package:pet_center_app/screens/kind_selection.dart';
 import 'package:pet_center_app/screens/listing_selection.dart';
+import 'package:pet_center_app/screens/static_data_editor.dart';
 import 'package:pet_center_app/screens/templates/screen_scaffold.dart';
 import 'package:pet_center_app/screens/user_view.dart';
 import 'package:pet_center_app/services/account_service.dart';
@@ -64,6 +65,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
   }
 
+  void staticDataEditor() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => StaticDataEditorScreen()),
+    );
+  }
+
   void evaluateListings() async {
     final count = await ListingService.count(
       ListingType.generic,
@@ -119,7 +127,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               child: design.fittedText('Adopt a pet'),
             ),
           ),
-          SizedBox(height: design.spacing),
+          design.verticalGap(design.spacing),
           FractionallySizedBox(
             widthFactor: 0.5,
             alignment: Alignment.center,
@@ -128,7 +136,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               child: design.fittedText('Market'),
             ),
           ),
-          SizedBox(height: design.spacing),
+          design.verticalGap(design.spacing),
           FractionallySizedBox(
             widthFactor: 0.5,
             alignment: Alignment.center,
@@ -142,7 +150,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ),
                 );
               },
-              child: design.fittedText('My pets'),
+              child: design.fittedText('Pets and supplies'),
             ),
           ),
         ] else if (role == Access.business) ...[
@@ -168,7 +176,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               child: design.fittedText('Evaluate listings'),
             ),
           ),
-          SizedBox(height: design.spacing),
+          design.verticalGap(design.spacing),
           FractionallySizedBox(
             widthFactor: 0.5,
             alignment: Alignment.center,
@@ -177,7 +185,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               child: design.fittedText('Evaluate forms'),
             ),
           ),
-          SizedBox(height: design.spacing),
+          design.verticalGap(design.spacing),
           FractionallySizedBox(
             widthFactor: 0.5,
             alignment: Alignment.center,
@@ -186,8 +194,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
               child: design.fittedText('Manage users'),
             ),
           ),
+          design.verticalGap(design.spacing),
+          FractionallySizedBox(
+            widthFactor: 0.5,
+            alignment: Alignment.center,
+            child: ElevatedButton(
+              onPressed: staticDataEditor,
+              child: design.fittedText('Manage static data'),
+            ),
+          ),
         ],
-        SizedBox(height: design.spacing),
+        design.verticalGap(design.spacing),
         FractionallySizedBox(
           widthFactor: 0.5,
           alignment: Alignment.center,
@@ -201,7 +218,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             child: design.fittedText('Messages'),
           ),
         ),
-        SizedBox(height: design.spacing),
+        design.verticalGap(design.spacing),
         FractionallySizedBox(
           widthFactor: 0.5,
           alignment: Alignment.center,

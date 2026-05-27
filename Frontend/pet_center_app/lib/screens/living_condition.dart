@@ -90,7 +90,7 @@ class _LivingConditionScreenState extends State<LivingConditionScreen> {
                   builder: (_) => LivingConditionDialog(
                     existing: e.copy(),
                     callback: (output, exists) {
-                      editField(output.id!, output);
+                      editField(e.id!, output);
                     },
                   ),
                 );

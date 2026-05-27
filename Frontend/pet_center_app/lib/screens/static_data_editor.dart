@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:pet_center_app/screens/category_view.dart';
+import 'package:pet_center_app/screens/living_condition.dart';
 import 'package:pet_center_app/screens/templates/screen_scaffold.dart';
 import 'package:pet_center_app/utils/app_style.dart';
 
@@ -27,7 +29,63 @@ class _StaticDataEditorScreenState extends State<StaticDataEditorScreen> {
           ),
         ),
       ),
-      body: [],
+      body: [
+        FractionallySizedBox(
+          widthFactor: 0.5,
+          alignment: Alignment.center,
+          child: ElevatedButton(
+            onPressed: () {},
+            child: design.fittedText('Procedures'),
+          ),
+        ),
+        design.verticalGap(design.spacing),
+        FractionallySizedBox(
+          widthFactor: 0.5,
+          alignment: Alignment.center,
+          child: ElevatedButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => CategoryView()),
+              );
+            },
+            child: design.fittedText('Categories'),
+          ),
+        ),
+        design.verticalGap(design.spacing),
+        FractionallySizedBox(
+          widthFactor: 0.5,
+          alignment: Alignment.center,
+          child: ElevatedButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => LivingConditionScreen()),
+              );
+            },
+            child: design.fittedText('Living condition'),
+          ),
+        ),
+        design.verticalGap(design.spacing),
+        FractionallySizedBox(
+          widthFactor: 0.5,
+          alignment: Alignment.center,
+          child: ElevatedButton(
+            onPressed: () {},
+            child: design.fittedText('Form templates'),
+          ),
+        ),
+        design.verticalGap(design.spacing),
+        FractionallySizedBox(
+          widthFactor: 0.5,
+          alignment: Alignment.center,
+          child: ElevatedButton(
+            onPressed: () {},
+            child: design.fittedText('Animals'),
+          ),
+        ),
+        design.verticalGap(design.spacing),
+      ],
     );
   }
 }

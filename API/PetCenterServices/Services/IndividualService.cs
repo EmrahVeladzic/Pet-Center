@@ -127,6 +127,10 @@ namespace PetCenterServices.Services
                 return ServiceOutput<object>.Error(HttpCode.NotFound,"The specified animal breed does not exist.");
             }
             
+            if((resource.OwnerId!=null && await dbSet.CountAsync(i=>i.OwnerId==token_holder)>50)||(resource.ShelterId!=null && await dbSet.CountAsync(i => i.ShelterId == resource.ShelterId) > 50))
+            {
+                return ServiceOutput<object>.Error(HttpCode.Conflict,"You may not track more than 50 animals at any given time.");
+            }
         
             return ServiceOutput<object>.Success(null);
         }

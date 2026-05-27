@@ -27,13 +27,9 @@ class MedicalRecordViewScreen extends StatefulWidget {
 }
 
 class _MedicalRecordViewScreenState extends State<MedicalRecordViewScreen> {
-  late List<MedicalEntrySubDTO> dataSource;
-
   @override
   void initState() {
     super.initState();
-
-    dataSource = widget.src.medicalRecord;
   }
 
   void deleteEntry(String procId) async {
@@ -47,9 +43,7 @@ class _MedicalRecordViewScreenState extends State<MedicalRecordViewScreen> {
         (element) => element.procedureId == procId,
       );
 
-      setState(() {
-        dataSource = widget.src.medicalRecord;
-      });
+      setState(() {});
     }
   }
 
@@ -66,9 +60,7 @@ class _MedicalRecordViewScreenState extends State<MedicalRecordViewScreen> {
       );
       widget.src.medicalRecord.add(output);
 
-      setState(() {
-        dataSource = widget.src.medicalRecord;
-      });
+      setState(() {});
     }
   }
 
@@ -152,7 +144,7 @@ class _MedicalRecordViewScreenState extends State<MedicalRecordViewScreen> {
         ],
       ),
       body: [
-        ...dataSource.expand(
+        ...widget.src.medicalRecord.expand(
           (e) => [
             MedicalRecordEntryCard(
               entry: e,

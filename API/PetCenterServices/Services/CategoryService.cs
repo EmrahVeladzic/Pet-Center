@@ -83,6 +83,8 @@ namespace PetCenterServices.Services
                     {
                         try
                         {
+                            overwrite.Id=ent.Id;
+
                             if(ent.Consumable==true && req.Consumable == false)
                             {
                                 if(await dbContext.UsageEstimates.Where(u=>u.CategoryId==ent.Id).ToArrayAsync() is Usage[] u){dbContext.UsageEstimates.RemoveRange(u);}
@@ -93,7 +95,16 @@ namespace PetCenterServices.Services
                             dbSet.Entry(ent).CurrentValues.SetValues(overwrite);
                             await dbContext.SaveChangesAsync();
                             await tx.CommitAsync();
+
+                            if(overwrite.Consumable){
+
+                                await dbContext.Entry(ent)
+                                .Collection(e => e.UsageSpecifics)
+                                .LoadAsync();
+                            }
+
                             Touch();
+                            
                             return ServiceOutput<CategoryDTO>.Success(CategoryDTO.FromEntity(ent));
                                
                         }

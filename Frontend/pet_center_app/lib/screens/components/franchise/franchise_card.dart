@@ -20,6 +20,7 @@ class FranchiseCard extends StatelessWidget {
   final VoidCallback employeeViewAction;
   final VoidCallback listingAction;
   final VoidCallback rebuildCallback;
+  final VoidCallback animalAction;
 
   const FranchiseCard({
     super.key,
@@ -29,6 +30,7 @@ class FranchiseCard extends StatelessWidget {
     required this.employeeViewAction,
     required this.rebuildCallback,
     required this.listingAction,
+    required this.animalAction,
   });
 
   void removeFacility(String input) async {
@@ -88,7 +90,7 @@ class FranchiseCard extends StatelessWidget {
               child: Row(
                 children: [
                   Expanded(
-                    flex: 4,
+                    flex: 6,
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -120,6 +122,26 @@ class FranchiseCard extends StatelessWidget {
                             child: IconButton(
                               onPressed: listingAction,
                               icon: const Icon(Icons.local_offer),
+                              padding: EdgeInsets.zero,
+                              visualDensity: VisualDensity.compact,
+                              constraints: const BoxConstraints(),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      flex: 1,
+                      child: Align(
+                        alignment: Alignment.center,
+                        child: SizedBox(
+                          width: design.boundedIconSize,
+                          height: design.boundedIconSize,
+                          child: FittedBox(
+                            fit: BoxFit.contain,
+                            child: IconButton(
+                              onPressed: animalAction,
+                              icon: const Icon(Icons.pets),
                               padding: EdgeInsets.zero,
                               visualDensity: VisualDensity.compact,
                               constraints: const BoxConstraints(),
@@ -231,6 +253,26 @@ class FranchiseCard extends StatelessWidget {
                             child: IconButton(
                               onPressed: listingAction,
                               icon: const Icon(Icons.local_offer),
+                              padding: EdgeInsets.zero,
+                              visualDensity: VisualDensity.compact,
+                              constraints: const BoxConstraints(),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      flex: 1,
+                      child: Align(
+                        alignment: Alignment.center,
+                        child: SizedBox(
+                          width: design.boundedIconSize,
+                          height: design.boundedIconSize,
+                          child: FittedBox(
+                            fit: BoxFit.contain,
+                            child: IconButton(
+                              onPressed: animalAction,
+                              icon: const Icon(Icons.pets),
                               padding: EdgeInsets.zero,
                               visualDensity: VisualDensity.compact,
                               constraints: const BoxConstraints(),

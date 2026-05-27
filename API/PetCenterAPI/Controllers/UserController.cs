@@ -97,7 +97,7 @@ namespace PetCenterAPI.Controllers
         }
         
         [HttpDelete("Announcement/{announcement_id}")]
-        [Authorize(Roles = "Owner,Admin")]
+        [Authorize(Roles = "Owner")]
         public async Task<IActionResult> RemoveAnnouncement([FromRoute] Guid announcement_id)
         {
             

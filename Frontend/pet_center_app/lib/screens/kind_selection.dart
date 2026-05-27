@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:pet_center_app/models/data_transfer/kind_dto.dart';
 import 'package:pet_center_app/models/enums.dart';
 import 'package:pet_center_app/screens/breed_selection.dart';
 import 'package:pet_center_app/screens/living_condition.dart';
@@ -18,8 +17,6 @@ class KindSelectionScreen extends StatefulWidget {
 }
 
 class _KindSelectionScreenState extends State<KindSelectionScreen> {
-  List<KindDTO> dataSource = kinds;
-
   void switchToSelection(String id, bool userMode) async {
     final count = await BreedService.count(userMode, false, id);
     if (count != null && mounted) {
@@ -58,7 +55,7 @@ class _KindSelectionScreenState extends State<KindSelectionScreen> {
         ),
       ),
       body: [
-        ...dataSource.expand(
+        ...kinds.expand(
           (e) => [
             FractionallySizedBox(
               widthFactor: 0.5,

@@ -22,6 +22,8 @@ namespace PetCenterModels.DataTransferObjects
 
         public List<FacilityDTO> Facilities {get; set;} = new List<FacilityDTO>();
 
+        public List<IndividualResponseDTO> ShelteredAnimals {get; set;} = new List<IndividualResponseDTO>();
+
         public List<NoteSubDTO>? Notes {get; set;}
 
         public bool? Owned {get; set;} = null;
@@ -36,7 +38,8 @@ namespace PetCenterModels.DataTransferObjects
                 CurrentVersion=model.CurrentVersion,
                 FranchiseName = model.FranchiseName,
                 Contact = model.Contact,
-                Facilities = model.Facilities.Select(e=>FacilityDTO.FromEntity(e)!).ToList()
+                Facilities = model.Facilities.Select(e=>FacilityDTO.FromEntity(e)!).ToList(),
+                ShelteredAnimals = model.ShelteredAnimals.Select(e=>IndividualResponseDTO.FromEntity(e)!).ToList()
             };
 
             
@@ -54,7 +57,7 @@ namespace PetCenterModels.DataTransferObjects
                 FranchiseName = model.FranchiseName,
                 Contact = model.Contact,  
                 Owned = owned,
-                
+                ShelteredAnimals = model.ShelteredAnimals.Select(e=>IndividualResponseDTO.FromEntity(e)!).ToList()
                          
             };
 

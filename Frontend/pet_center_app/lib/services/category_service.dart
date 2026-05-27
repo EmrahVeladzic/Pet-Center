@@ -116,6 +116,7 @@ class CategoryService {
       final response = await http.post(
         Uri.parse("${AppConfig.apiBaseUrl}/api/Category"),
         headers: {
+          'Authorization': 'Bearer $rawToken',
           'Content-Type': 'application/json',
           'Accept': 'application/json',
         },

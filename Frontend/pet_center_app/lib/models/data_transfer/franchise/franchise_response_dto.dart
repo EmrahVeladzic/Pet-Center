@@ -1,5 +1,6 @@
 import 'package:json_annotation/json_annotation.dart';
 import 'package:pet_center_app/models/data_transfer/facility_dto.dart';
+import 'package:pet_center_app/models/data_transfer/individual/individual_response_dto.dart';
 import 'package:pet_center_app/models/data_transfer/note_sub_dto.dart';
 part 'franchise_response_dto.g.dart';
 
@@ -11,6 +12,7 @@ class FranchiseResponseDTO {
   String contact;
   List<NoteSubDTO>? notes;
   List<FacilityDTO> facilities;
+  List<IndividualResponseDTO> shelteredAnimals;
   bool? owned;
 
   FranchiseResponseDTO({
@@ -21,6 +23,7 @@ class FranchiseResponseDTO {
     this.notes,
     this.owned,
     this.facilities = const [],
+    this.shelteredAnimals = const [],
   });
 
   factory FranchiseResponseDTO.fromJson(Map<String, dynamic> json) =>
@@ -36,5 +39,6 @@ class FranchiseResponseDTO {
     notes: notes?.map((n) => n.copy()).toList(),
     owned: owned,
     facilities: facilities.map((f) => f.copy()).toList(),
+    shelteredAnimals: shelteredAnimals.map((s) => s.copy()).toList(),
   );
 }
