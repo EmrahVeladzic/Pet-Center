@@ -317,6 +317,8 @@ namespace PetCenterServices.Services
                         await dbContext.SaveChangesAsync();
                         StaticDataVersionHolder.UsageVersion=Guid.NewGuid();
                         await tx.CommitAsync();
+
+                        Touch();
                     }
                     catch(Exception ex)
                     {

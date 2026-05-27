@@ -152,6 +152,7 @@ namespace PetCenterAPI.Controllers
             if (TryGetUserId(out Guid id) && TryGetJTI(out Guid session))
             {
                 search.Session=session;
+                search.AuthoritySpecifier = SpecifySearchAuthority();
                 return ResultConverter.Convert<int>(await service.Count(id,search));
             }
             return StatusCode(401,"Invalid token.");   

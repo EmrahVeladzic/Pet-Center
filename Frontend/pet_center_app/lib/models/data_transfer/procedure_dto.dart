@@ -24,8 +24,8 @@ class ProcedureSpecificationSubDTO {
     this.breedId,
     this.optional = true,
     this.sexSpecific,
-    this.approximateAge,
-    this.interval,
+    this.approximateAge = 31,
+    this.interval = 7,
   });
 
   factory ProcedureSpecificationSubDTO.fromJson(Map<String, dynamic> json) =>

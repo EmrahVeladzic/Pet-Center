@@ -43,7 +43,7 @@ namespace PetCenterAPI.Controllers
 
         [Authorize(Roles = "Admin,Owner")]
         [HttpPut("Specification/{procedure_id}/{kind_id}")]
-        public async Task<IActionResult> SetSpecification([FromRoute]Guid procedure_id,[FromRoute]Guid kind_id, [FromQuery] Guid? breed_id, [FromQuery] bool optional, [FromQuery] bool? sex, [FromQuery] int? age, [FromQuery] short? interval)
+        public async Task<IActionResult> SetSpecification([FromRoute]Guid procedure_id,[FromRoute]Guid kind_id, [FromQuery] Guid? breed_id = null, [FromQuery] bool optional = false, [FromQuery] bool? sex = null,  [FromQuery] int? age = null, [FromQuery] short? interval = null)
         {
             return ResultConverter.Convert<ProcedureSpecificationSubDTO>(await service.SetSpecification(procedure_id,kind_id,breed_id,optional,sex,age,interval));
         }

@@ -45,7 +45,7 @@ class CategoryDTO {
   List<NoteSubDTO>? notes;
   String title;
   bool consumable;
-  List<UsageSubDTO?>? usageSpecifics;
+  List<UsageSubDTO>? usageSpecifics;
 
   CategoryDTO({
     this.id,
@@ -62,7 +62,7 @@ class CategoryDTO {
     notes: notes?.map((n) => n.copy()).toList(),
     title: title,
     consumable: consumable,
-    usageSpecifics: usageSpecifics?.map((u) => u?.copy()).toList(),
+    usageSpecifics: usageSpecifics?.map((u) => u.copy()).toList(),
   );
 
   factory CategoryDTO.fromJson(Map<String, dynamic> json) =>

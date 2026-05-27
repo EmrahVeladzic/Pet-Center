@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:pet_center_app/utils/app_style.dart';
 
 class TextEntryDialog extends StatefulWidget {
+  final String initText;
   final int limit;
   final String? dialogName;
   final String? inputDecoration;
@@ -17,6 +18,7 @@ class TextEntryDialog extends StatefulWidget {
     this.dialogName,
     this.inputDecoration,
     this.validation,
+    this.initText = "",
   });
 
   @override
@@ -25,7 +27,14 @@ class TextEntryDialog extends StatefulWidget {
 
 class _TextEntryDialogState extends State<TextEntryDialog> {
   final _formKey = GlobalKey<FormState>();
-  final TextEditingController _controller = TextEditingController();
+  late final TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _controller = TextEditingController(text: widget.initText);
+  }
 
   void invokeCallback() async {
     final text = _controller.text.trim();

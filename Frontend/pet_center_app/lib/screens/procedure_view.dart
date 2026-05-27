@@ -1,60 +1,59 @@
 import 'package:flutter/material.dart';
-import 'package:pet_center_app/models/data_transfer/category_dto.dart';
-
-import 'package:pet_center_app/screens/components/category/category_card.dart';
-import 'package:pet_center_app/screens/components/category/category_creation_dialog.dart';
+import 'package:pet_center_app/models/data_transfer/procedure_dto.dart';
 import 'package:pet_center_app/screens/components/confirmation_dialog.dart';
-
+import 'package:pet_center_app/screens/components/text_entry_dialog.dart';
+import 'package:pet_center_app/screens/components/procedure/procedure_card.dart';
 import 'package:pet_center_app/screens/templates/screen_scaffold.dart';
-import 'package:pet_center_app/services/category_service.dart';
-
+import 'package:pet_center_app/services/procedure_service.dart';
 import 'package:pet_center_app/services/static_user_data_service.dart';
-
 import 'package:pet_center_app/utils/app_style.dart';
+import 'package:pet_center_app/utils/validators.dart';
 
-class CategoryView extends StatefulWidget {
-  const CategoryView({super.key});
+class ProcedureView extends StatefulWidget {
+  const ProcedureView({super.key});
 
   @override
-  State<StatefulWidget> createState() => _CategoryViewState();
+  State<StatefulWidget> createState() => _ProcedureViewState();
 }
 
-class _CategoryViewState extends State<CategoryView> {
-  void post(CategoryDTO dto) async {
-    final newCat = await CategoryService.post(dto);
+class _ProcedureViewState extends State<ProcedureView> {
+  @override
+  void initState() {
+    super.initState();
+  }
 
-    if (newCat != null && mounted) {
+  void post(String description) async {
+    final dto = ProcedureDTO()..description = description;
+    final output = await ProcedureService.post(dto);
+    if (output != null && mounted) {
       setState(() {
-        categories.add(newCat);
+        procedures.add(output);
       });
     }
   }
 
-  void edit(CategoryDTO dto, String id) async {
-    final newCat = await CategoryService.put(id, dto);
-
-    if (newCat != null && mounted) {
+  void edit(ProcedureDTO current, String description) async {
+    final dto = current.copy()..description = description;
+    final output = await ProcedureService.put(dto, current.id!);
+    if (output != null && mounted) {
       setState(() {
-        categories.removeWhere((c) => c.id == id);
-        categories.add(newCat);
+        procedures.removeWhere((p) => p.id == current.id);
+        procedures.add(output);
       });
     }
   }
 
   void delete(String id) async {
-    final output = await CategoryService.delete(id);
-
+    final output = await ProcedureService.delete(id);
     if (output == true && mounted) {
       setState(() {
-        categories.removeWhere((c) => c.id == id);
+        procedures.removeWhere((p) => p.id == id);
       });
     }
   }
 
   void rebuild() {
-    if (!mounted) {
-      return;
-    }
+    if (!mounted) return;
     setState(() {});
   }
 
@@ -70,7 +69,7 @@ class _CategoryViewState extends State<CategoryView> {
           width: design.screenWidth * marqueeTitleWMult,
           height: design.marqueeSize,
           child: design.textMarquee(
-            'Categories:',
+            'Procedures:',
             design.screenWidth * marqueeTitleWMult,
           ),
         ),
@@ -79,7 +78,12 @@ class _CategoryViewState extends State<CategoryView> {
             onPressed: () {
               showDialog(
                 context: context,
-                builder: (_) => CategoryCreationDialog(callback: post),
+                builder: (_) => TextEntryDialog(
+                  limit: 50,
+                  inputDecoration: "Description...",
+                  validation: (value) => validateGeneric(value),
+                  callback: post,
+                ),
               );
             },
             icon: const Icon(Icons.add),
@@ -90,22 +94,22 @@ class _CategoryViewState extends State<CategoryView> {
         ],
       ),
       body: [
-        ...categories.expand(
+        ...procedures.expand(
           (e) => [
-            CategoryCard(
-              category: e,
-
+            ProcedureCard(
+              procedure: e,
               editAction: () {
                 showDialog(
                   context: context,
-                  builder: (_) => CategoryCreationDialog(
-                    fromCurrent: e,
+                  builder: (_) => TextEntryDialog(
+                    limit: 50,
+                    inputDecoration: "Description...",
+                    validation: (value) => validateGeneric(value),
                     callback: (value) {
                       if (e.id == null) {
                         return;
                       }
-
-                      edit(value, e.id!);
+                      edit(e, value);
                     },
                   ),
                 );
@@ -114,6 +118,8 @@ class _CategoryViewState extends State<CategoryView> {
                 showDialog(
                   context: context,
                   builder: (_) => ConfirmationDialog(
+                    title: "Remove procedure",
+                    body: "Are you sure you wish to remove this procedure?",
                     confirmAction: () {
                       final id = e.id;
                       if (id != null) {
@@ -123,7 +129,6 @@ class _CategoryViewState extends State<CategoryView> {
                   ),
                 );
               },
-
               rebuildCallback: rebuild,
             ),
             design.verticalGap(1),

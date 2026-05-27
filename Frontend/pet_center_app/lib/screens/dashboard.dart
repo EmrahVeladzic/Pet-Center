@@ -7,6 +7,7 @@ import 'package:pet_center_app/screens/individual_view.dart';
 import 'package:pet_center_app/screens/kind_selection.dart';
 import 'package:pet_center_app/screens/listing_selection.dart';
 import 'package:pet_center_app/screens/static_data_editor.dart';
+import 'package:pet_center_app/screens/supplies_view.dart';
 import 'package:pet_center_app/screens/templates/screen_scaffold.dart';
 import 'package:pet_center_app/screens/user_view.dart';
 import 'package:pet_center_app/services/account_service.dart';
@@ -150,7 +151,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ),
                 );
               },
-              child: design.fittedText('Pets and supplies'),
+              child: design.fittedText('Pets'),
+            ),
+          ),
+          design.verticalGap(design.spacing),
+          FractionallySizedBox(
+            widthFactor: 0.5,
+            alignment: Alignment.center,
+            child: ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => SuppliesViewScreen()),
+                );
+              },
+              child: design.fittedText('Supplies and wishlist'),
             ),
           ),
         ] else if (role == Access.business) ...[

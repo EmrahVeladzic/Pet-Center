@@ -15,6 +15,7 @@ class DataScreenScaffold<F extends FilterTemplate, T> extends StatefulWidget {
   final String appTitle;
   final F filter;
   final Widget Function(BuildContext, T source) itemBuilder;
+  final List<Widget> importActions;
 
   const DataScreenScaffold({
     super.key,
@@ -27,6 +28,7 @@ class DataScreenScaffold<F extends FilterTemplate, T> extends StatefulWidget {
     required this.dataSource,
     required this.filter,
     required this.itemBuilder,
+    this.importActions = const [],
   });
 
   @override
@@ -56,6 +58,7 @@ class _DataScreenScaffoldState<F extends FilterTemplate, T>
           ),
         ),
         actions: [
+          if (widget.importActions.isNotEmpty) ...widget.importActions,
           if (widget.filterPrereq) ...[
             IconButton(
               icon: _filterVisible

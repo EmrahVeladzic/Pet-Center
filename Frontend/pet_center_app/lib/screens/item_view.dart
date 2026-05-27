@@ -1,61 +1,64 @@
 import 'package:flutter/material.dart';
-import 'package:pet_center_app/models/data_transfer/category_dto.dart';
-
-import 'package:pet_center_app/screens/components/category/category_card.dart';
-import 'package:pet_center_app/screens/components/category/category_creation_dialog.dart';
+import 'package:pet_center_app/models/data_transfer/item_dto.dart';
 import 'package:pet_center_app/screens/components/confirmation_dialog.dart';
-
+import 'package:pet_center_app/screens/components/category/item_card.dart';
+import 'package:pet_center_app/screens/components/category/item_creation_dialog.dart';
 import 'package:pet_center_app/screens/templates/screen_scaffold.dart';
-import 'package:pet_center_app/services/category_service.dart';
-
+import 'package:pet_center_app/services/item_service.dart';
 import 'package:pet_center_app/services/static_user_data_service.dart';
-
 import 'package:pet_center_app/utils/app_style.dart';
 
-class CategoryView extends StatefulWidget {
-  const CategoryView({super.key});
+class ItemView extends StatefulWidget {
+  final String categoryId;
+
+  const ItemView({super.key, required this.categoryId});
 
   @override
-  State<StatefulWidget> createState() => _CategoryViewState();
+  State<StatefulWidget> createState() => _ItemViewState();
 }
 
-class _CategoryViewState extends State<CategoryView> {
-  void post(CategoryDTO dto) async {
-    final newCat = await CategoryService.post(dto);
+class _ItemViewState extends State<ItemView> {
+  List<ItemDTO> src = [];
 
-    if (newCat != null && mounted) {
-      setState(() {
-        categories.add(newCat);
-      });
+  void load() {
+    setState(() {
+      src = items.where((i) => i.categoryId == widget.categoryId).toList();
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    load();
+  }
+
+  void post(ItemDTO dto) async {
+    final output = await ItemService.post(dto);
+    if (output != null && mounted) {
+      items.add(output);
+      load();
     }
   }
 
-  void edit(CategoryDTO dto, String id) async {
-    final newCat = await CategoryService.put(id, dto);
-
-    if (newCat != null && mounted) {
+  void edit(ItemDTO dto, String id) async {
+    final output = await ItemService.put(dto, id);
+    if (output != null && mounted) {
       setState(() {
-        categories.removeWhere((c) => c.id == id);
-        categories.add(newCat);
+        items.removeWhere((i) => i.id == id);
+        items.add(output);
+        load();
       });
     }
   }
 
   void delete(String id) async {
-    final output = await CategoryService.delete(id);
-
+    final output = await ItemService.delete(id);
     if (output == true && mounted) {
       setState(() {
-        categories.removeWhere((c) => c.id == id);
+        items.removeWhere((i) => i.id == id);
+        load();
       });
     }
-  }
-
-  void rebuild() {
-    if (!mounted) {
-      return;
-    }
-    setState(() {});
   }
 
   @override
@@ -70,7 +73,7 @@ class _CategoryViewState extends State<CategoryView> {
           width: design.screenWidth * marqueeTitleWMult,
           height: design.marqueeSize,
           child: design.textMarquee(
-            'Categories:',
+            'Items:',
             design.screenWidth * marqueeTitleWMult,
           ),
         ),
@@ -79,7 +82,10 @@ class _CategoryViewState extends State<CategoryView> {
             onPressed: () {
               showDialog(
                 context: context,
-                builder: (_) => CategoryCreationDialog(callback: post),
+                builder: (_) => ItemCreationDialog(
+                  categoryId: widget.categoryId,
+                  callback: post,
+                ),
               );
             },
             icon: const Icon(Icons.add),
@@ -90,21 +96,18 @@ class _CategoryViewState extends State<CategoryView> {
         ],
       ),
       body: [
-        ...categories.expand(
+        ...src.expand(
           (e) => [
-            CategoryCard(
-              category: e,
-
+            ItemCard(
+              item: e,
               editAction: () {
                 showDialog(
                   context: context,
-                  builder: (_) => CategoryCreationDialog(
+                  builder: (_) => ItemCreationDialog(
+                    categoryId: widget.categoryId,
                     fromCurrent: e,
                     callback: (value) {
-                      if (e.id == null) {
-                        return;
-                      }
-
+                      if (e.id == null) return;
                       edit(value, e.id!);
                     },
                   ),
@@ -123,8 +126,6 @@ class _CategoryViewState extends State<CategoryView> {
                   ),
                 );
               },
-
-              rebuildCallback: rebuild,
             ),
             design.verticalGap(1),
           ],
