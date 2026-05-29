@@ -490,20 +490,19 @@ namespace PetCenterServices.Services
                         notif= newNotification;
                     }
 
-                    usr.UserState= Guid.NewGuid();
+                  
 
                     if (franch != null)
                     {
                         
-                        List<User> users = await dbSet
-                        .Where(u => dbContext.EmployeeRecords
-                        .Any(e => e.FranchiseId == franchiseId && e.UserId == u.Id))
-                        .ToListAsync();
+                            
+                        List<User> emp = await dbContext.Users.Where(u=> (dbContext.Franchises.Any(f=>f.Id==franchiseId && f.OwnerId==u.Id)||dbContext.EmployeeRecords.Any(e=>e.UserId==u.Id&&e.FranchiseId==franchiseId))).ToListAsync();
 
-                        foreach(User u in users)
+                        foreach(User e in emp)
                         {
-                            u.UserState=Guid.NewGuid();
+                            e.UserState=Guid.NewGuid();
                         }
+
                     }
 
                     await dbContext.SaveChangesAsync();

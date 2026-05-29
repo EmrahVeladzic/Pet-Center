@@ -105,7 +105,7 @@ Future<void> formToPdf(String id) async {
 
             return [
               templateField?.description ?? 'QUESTION',
-              e.serialized.isEmpty ? 'NO-ANSWER' : e.serialized,
+              e.serialized.isEmpty ? '---' : e.serialized,
             ];
           }).toList(),
         ),
