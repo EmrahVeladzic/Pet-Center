@@ -6,12 +6,12 @@ import 'package:pet_center_app/models/enums.dart';
 import 'package:pet_center_app/screens/components/listing/listing_card.dart';
 import 'package:pet_center_app/screens/components/listing/listing_filters.dart';
 import 'package:pet_center_app/screens/components/page_selector.dart';
+import 'package:pet_center_app/screens/listing_edit.dart';
 import 'package:pet_center_app/screens/listing_view.dart';
 import 'package:pet_center_app/screens/templates/data_screen_scaffold.dart';
 import 'package:pet_center_app/services/listing_service.dart';
 import 'package:pet_center_app/services/static_user_data_service.dart';
 import 'package:pet_center_app/utils/hive_cache.dart';
-
 import 'package:pet_center_app/utils/jwt_parser.dart';
 
 class ListingSelectionScreen extends StatefulWidget {
@@ -21,17 +21,18 @@ class ListingSelectionScreen extends StatefulWidget {
   final String? initRelevant;
   final bool? initShowApproved;
   final IndividualResponseDTO? initAnimal;
+  final String? initKind;
   final VoidCallback? onModify;
 
   const ListingSelectionScreen({
     super.key,
     required this.maxPage,
-
     required this.initType,
     this.initOrdering = OrderingMethod.id,
     this.initRelevant,
     this.initShowApproved,
     this.initAnimal,
+    this.initKind,
     this.onModify,
   });
 
@@ -53,28 +54,6 @@ class _ListingSelectionScreenState extends State<ListingSelectionScreen> {
   bool? sex;
   AnimalScale? scale;
 
-  void switchPage(int page) async {
-    final newDataSrc = await ListingService.get(
-      page,
-      type,
-      ordering,
-      relevantId: relevant,
-      showApprovedAndPending: showApproved,
-      kindSpecific: kind,
-      breedSpecific: breed,
-      sexSpecific: sex,
-      scaleSpecific: scale,
-    );
-    if (newDataSrc != null && mounted) {
-      setState(() {
-        _initLoading = false;
-        dataSource = newDataSrc;
-      });
-    } else {
-      _pageSelectorKey.currentState?.revertPage();
-    }
-  }
-
   @override
   void initState() {
     super.initState();
@@ -95,16 +74,40 @@ class _ListingSelectionScreenState extends State<ListingSelectionScreen> {
         )
         ?.scale;
 
-    kind = kinds
-        .expand((kind) => kind.breeds)
-        .cast<BreedDTO?>()
-        .firstWhere(
-          (breed) => breed?.id == widget.initAnimal?.breedId,
-          orElse: () => null,
-        )
-        ?.kindId;
+    kind =
+        widget.initKind ??
+        kinds
+            .expand((kind) => kind.breeds)
+            .cast<BreedDTO?>()
+            .firstWhere(
+              (breed) => breed?.id == widget.initAnimal?.breedId,
+              orElse: () => null,
+            )
+            ?.kindId;
 
     switchPage(0);
+  }
+
+  void switchPage(int page) async {
+    final newDataSrc = await ListingService.get(
+      page,
+      type,
+      ordering,
+      relevantId: relevant,
+      showApprovedAndPending: showApproved,
+      kindSpecific: kind,
+      breedSpecific: breed,
+      sexSpecific: sex,
+      scaleSpecific: scale,
+    );
+    if (newDataSrc != null && mounted) {
+      setState(() {
+        _initLoading = false;
+        dataSource = newDataSrc;
+      });
+    } else {
+      _pageSelectorKey.currentState?.revertPage();
+    }
   }
 
   void resetPages(
@@ -129,9 +132,7 @@ class _ListingSelectionScreenState extends State<ListingSelectionScreen> {
     );
 
     if (output != null) {
-      if (!mounted) {
-        return;
-      }
+      if (!mounted) return;
 
       setState(() {
         type = t;
@@ -147,68 +148,113 @@ class _ListingSelectionScreenState extends State<ListingSelectionScreen> {
     }
   }
 
-  void switchToSelection(ListingResponseDTO src) async {
+  void createListing() async {
+    if (relevant == null) return;
+
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => ListingEditScreen(
+          franchiseId: relevant!,
+          callback: (value) {
+            resetPages(
+              type,
+              ordering,
+              relevant,
+              showApproved,
+              kind,
+              breed,
+              sex,
+              scale,
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  void viewListing(ListingResponseDTO src) async {
     await CacheManager.write(src.id!, CacheEntityType.listing);
     setState(() {
       if (!visitedListingIndices.contains(src.id!)) {
         visitedListingIndices.add(src.id!);
       }
     });
-    if (mounted) {
-      final shouldRefresh = await Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => ListingViewScreen(
-            listing: src,
-            forAnimal: widget.initAnimal?.id,
-            onModify: (hard) {
-              if (mounted) {
-                if (hard) {
-                  resetPages(
-                    type,
-                    ordering,
-                    relevant,
-                    showApproved,
-                    kind,
-                    breed,
-                    sex,
-                    scale,
-                  );
-                } else {
-                  setState(() {});
-                }
-                if (widget.onModify != null) {
-                  widget.onModify!();
-                }
-              }
-            },
-          ),
+
+    if (!mounted) return;
+
+    final shouldRefresh = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => ListingViewScreen(
+          listing: src,
+          forAnimal: widget.initAnimal?.id,
+          obtainHook: () {
+            if (mounted) {
+              resetPages(
+                type,
+                ordering,
+                relevant,
+                showApproved,
+                kind,
+                breed,
+                sex,
+                scale,
+              );
+
+              if (widget.onModify != null) widget.onModify!();
+            }
+          },
+          onModify: (hard) {
+            if (mounted) {
+              resetPages(
+                type,
+                ordering,
+                relevant,
+                showApproved,
+                kind,
+                breed,
+                sex,
+                scale,
+              );
+
+              if (widget.onModify != null) widget.onModify!();
+            }
+          },
         ),
+      ),
+    );
+
+    if (shouldRefresh == true) {
+      resetPages(
+        type,
+        ordering,
+        relevant,
+        showApproved,
+        kind,
+        breed,
+        sex,
+        scale,
       );
-      if (shouldRefresh == true) {
-        resetPages(
-          type,
-          ordering,
-          relevant,
-          showApproved,
-          kind,
-          breed,
-          sex,
-          scale,
-        );
-      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return DataScreenScaffold<ListingFilters, ListingResponseDTO>(
+      importActions: [
+        if (role == Access.business &&
+            relevant != null &&
+            self?.workplaces?.any((w) => w.id == relevant) == true) ...[
+          IconButton(icon: const Icon(Icons.add), onPressed: createListing),
+        ],
+      ],
       maxPage: widget.maxPage,
       switchPage: switchPage,
       pageSelectorKey: _pageSelectorKey,
       appTitle: "Listings:",
       loading: _initLoading,
-      filterPrereq: (true),
+      filterPrereq: true,
       dataSource: dataSource,
       filter: ListingFilters(
         role: role,
@@ -226,13 +272,10 @@ class _ListingSelectionScreenState extends State<ListingSelectionScreen> {
         return ListingCard(
           listing: source,
           onTap: () {
-            final id = source.id;
-
-            if (id != null) {
-              switchToSelection(source);
+            if (source.id != null) {
+              viewListing(source);
             }
           },
-
           visited: visitedListingIndices.contains(source.id),
         );
       },

@@ -69,7 +69,7 @@ namespace PetCenterServices.Services
                         if (!present)
                         {
                             await dbSetBLOB.AddAsync(blob);
-                           
+                            await dbContext.SaveChangesAsync();
                         }
                         
                         TEntity entity = new();

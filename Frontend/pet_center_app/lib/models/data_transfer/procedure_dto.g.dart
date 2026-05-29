@@ -19,8 +19,8 @@ ProcedureSpecificationSubDTO _$ProcedureSpecificationSubDTOFromJson(
   breedId: json['breedId'] as String?,
   optional: json['optional'] as bool? ?? true,
   sexSpecific: json['sexSpecific'] as bool?,
-  approximateAge: (json['approximateAge'] as num?)?.toInt(),
-  interval: (json['interval'] as num?)?.toInt(),
+  approximateAge: (json['approximateAge'] as num?)?.toInt() ?? 31,
+  interval: (json['interval'] as num?)?.toInt() ?? 7,
 );
 
 Map<String, dynamic> _$ProcedureSpecificationSubDTOToJson(

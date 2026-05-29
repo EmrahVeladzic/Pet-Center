@@ -79,7 +79,7 @@ namespace PetCenterServices.Services
 
         public override async Task<ServiceOutput<List<BreedDTO>>> Get(Guid token_holder, BreedSearchObject search)
         {
-            if(search.Incomplete && search.AuthoritySpecifier == Access.Admin)
+            if(search.AuthoritySpecifier == Access.Admin)
             {
                 search.FileRW = FileScope.Write;
             }

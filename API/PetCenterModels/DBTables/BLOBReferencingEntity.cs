@@ -26,10 +26,12 @@ namespace PetCenterModels.DBTables
         public override async Task StageDeletion<T>(PetCenterDBContext ctx, DbSet<T> set, CancellationToken cancel = default)
         {
             DBUtils.EnsureInTransaction(ctx);
-            if(await ctx.Albums.FindAsync(AlbumId) is Album alb){alb.Capacity--;alb.Capacity=Math.Max(alb.Capacity,(byte)0);}
-            await base.StageDeletion(ctx, set, cancel);
+            if (await ctx.Albums.FindAsync(AlbumId) is Album alb && alb.Reserved > 0)
+            {
+                alb.Reserved--;
+            }
+            await base.StageDeletion(ctx,set,cancel);
         }
-
         public virtual void LoadMetadata(TMeta metadata)
         {
             

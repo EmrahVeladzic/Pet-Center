@@ -57,13 +57,17 @@ namespace PetCenterServices.Services
                 scope = FileScope.ReadOnly;
             }
 
-            if(scope==FileScope.Write){
-                response.MediaCreationToken=Crypto.GenerateFileToken("",Purpose,scope,response.AlbumId,session);
-            }
-            foreach(TMedia media in response.Media)
-            {
-                media.CanWrite=(scope==FileScope.Write);
-                media.Token=Crypto.GenerateFileToken(media.Hash,Purpose,scope,response.AlbumId,session);
+            if(response.AlbumId!=null){
+
+                if(scope==FileScope.Write){
+                    response.MediaCreationToken=Crypto.GenerateFileToken("",Purpose,scope,response.AlbumId.Value,session);
+                }
+                foreach(TMedia media in response.Media)
+                {
+                    media.CanWrite=(scope==FileScope.Write);
+                    media.Token=Crypto.GenerateFileToken(media.Hash,Purpose,scope,response.AlbumId.Value,session);
+                }
+
             }
         }
 
@@ -127,6 +131,7 @@ namespace PetCenterServices.Services
                             await dbSet.AddAsync(ent);
                             await dbContext.SaveChangesAsync();
                             await tx.CommitAsync();
+                            Touch();
                             return ServiceOutput<TResponse>.Success(TResponse.FromEntity(ent,Crypto.GenerateFileToken("",Purpose,FileScope.Write,ent.AlbumId,session)),HttpCode.Created);
                         }
                         catch(Exception ex)
@@ -145,6 +150,73 @@ namespace PetCenterServices.Services
            
             return ServiceOutput<TResponse>.Error(HttpCode.BadRequest, "DTO format not valid.");
 
+        }
+
+         public override async Task<ServiceOutput<TResponse>> Put(Guid session,Guid token_holder,TRequest req)
+        {      
+
+            TEntity? ent = await dbSet.FindAsync(req.Id);
+
+            if (ent != null)
+            {
+
+                if(req is ISerializableRequestDTO<TEntity> serializable)                
+                {
+                    TEntity? overwrite = serializable.ToEntity();
+                    
+                    if (overwrite != null)
+                    {
+                        
+
+                    await using(IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync())
+                       
+                       
+                        try
+                        {
+                            
+                            overwrite.Id = ent.Id;
+
+                            
+                            dbSet.Entry(ent).Property(e => e.CurrentVersion).OriginalValue = overwrite.CurrentVersion;
+
+                            
+                            byte[] originalVersion = overwrite.CurrentVersion;
+                            overwrite.CurrentVersion = ent.CurrentVersion; 
+                            dbSet.Entry(ent).CurrentValues.SetValues(overwrite);
+
+                            await dbContext.SaveChangesAsync();
+                            await tx.CommitAsync();
+                            Touch();
+
+                            TResponse? response = TResponse.FromEntity(ent);
+
+                                if (response != null)
+                                {
+                                    AttachTokensIfNeeded(response,FileScope.Write,session);
+                                }
+
+                            return ServiceOutput<TResponse>.Success(response);
+                               
+                        }
+                        catch(Exception ex)
+                        {
+                            await tx.RollbackAsync();
+                            return ServiceOutput<TResponse>.FromException(ex,logger);
+                        }
+                        
+
+
+
+                    }
+                    
+
+                }
+               
+               
+
+            }
+
+            return ServiceOutput<TResponse>.Error(HttpCode.NotFound,"No resource with this ID exists.");
         }
 
 

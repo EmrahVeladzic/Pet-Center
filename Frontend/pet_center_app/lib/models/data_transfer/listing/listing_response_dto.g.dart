@@ -13,7 +13,7 @@ ListingResponseDTO _$ListingResponseDTOFromJson(Map<String, dynamic> json) =>
       notes: (json['notes'] as List<dynamic>?)
           ?.map((e) => NoteSubDTO.fromJson(e as Map<String, dynamic>))
           .toList(),
-      albumId: json['albumId'] as String? ?? '',
+      albumId: json['albumId'] as String?,
       media: (json['media'] as List<dynamic>?)
           ?.map((e) => ImageDTO.fromJson(e as Map<String, dynamic>))
           .toList(),

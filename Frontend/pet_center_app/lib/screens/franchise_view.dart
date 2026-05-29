@@ -1,3 +1,5 @@
+// ignore_for_file: unused_import
+
 import 'package:flutter/material.dart';
 import 'package:pet_center_app/models/data_transfer/franchise/franchise_request_dto.dart';
 import 'package:pet_center_app/models/data_transfer/franchise/franchise_response_dto.dart';
@@ -7,10 +9,14 @@ import 'package:pet_center_app/screens/components/confirmation_dialog.dart';
 
 import 'package:pet_center_app/screens/components/franchise/franchise_card.dart';
 import 'package:pet_center_app/screens/components/franchise/franchise_edit_dialog.dart';
+
+import 'package:pet_center_app/screens/form_selection.dart';
 import 'package:pet_center_app/screens/individual_view.dart';
 import 'package:pet_center_app/screens/listing_selection.dart';
+import 'package:pet_center_app/screens/template_selection.dart';
 import 'package:pet_center_app/screens/templates/screen_scaffold.dart';
 import 'package:pet_center_app/screens/user_page.dart';
+import 'package:pet_center_app/services/form_service.dart';
 
 import 'package:pet_center_app/services/franchise_service.dart';
 import 'package:pet_center_app/services/listing_service.dart';
@@ -185,6 +191,29 @@ class _FranchiseViewScreenState extends State<FranchiseViewScreen> {
           ],
         ),
       ],
+      bottomNavigationBar: BottomAppBar(
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              if (templates.isNotEmpty) ...[
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => TemplateSelectionScreen(),
+                      ),
+                    );
+                  },
+                  child: design.fittedText("Register franchise"),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

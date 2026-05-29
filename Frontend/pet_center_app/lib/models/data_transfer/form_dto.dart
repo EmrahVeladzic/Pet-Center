@@ -7,7 +7,7 @@ part 'form_dto.g.dart';
 class FormEntrySubDTO {
   String? id;
   String currentVersion;
-  String formId;
+  String? formId;
   String formTemplateFieldId;
   String serialized;
   List<NoteSubDTO>? notes;
@@ -15,7 +15,7 @@ class FormEntrySubDTO {
   FormEntrySubDTO({
     this.id,
     this.currentVersion = '',
-    this.formId = '',
+    this.formId,
     this.formTemplateFieldId = '',
     this.serialized = '',
     this.notes,
@@ -45,7 +45,7 @@ class FormDTO {
   List<FormEntrySubDTO> entries;
   String userId;
   String formTemplateId;
-  String albumId;
+  String? albumId;
   List<ImageDTO> media;
   bool locked;
   bool full;
@@ -60,7 +60,7 @@ class FormDTO {
     List<FormEntrySubDTO>? entries,
     this.userId = '',
     this.formTemplateId = '',
-    this.albumId = '',
+    this.albumId,
     this.mediaCreationToken,
     this.locked = true,
     this.full = true,

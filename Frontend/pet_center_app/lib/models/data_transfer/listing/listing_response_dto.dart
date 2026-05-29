@@ -10,7 +10,7 @@ class ListingResponseDTO {
   String? id;
   String currentVersion;
   List<NoteSubDTO>? notes;
-  String albumId;
+  String? albumId;
   List<ImageDTO> media;
   bool locked;
   bool full;
@@ -36,7 +36,7 @@ class ListingResponseDTO {
     this.id,
     this.currentVersion = '',
     this.notes,
-    this.albumId = '',
+    this.albumId,
     List<ImageDTO>? media,
     this.name = '',
     this.description = '',

@@ -523,14 +523,14 @@ namespace PetCenterServices.Seeder
 
                         await ctx.SaveChangesAsync();
                         
-                        for(int i = 0; i<2; i++)
+                        for(int i = 0; i<4; i++)
                         {
                             if (template == null || template.Fields.Count == 0)
                             {
                                 break;
                             }
-                            bool visible = i==0;
-                            string base_name = (visible)? "Visible":"Invisible";
+                            bool visible = ((i&0x1)==0);
+                            string base_name = (visible)? $"Visible{i}":$"Invisible{i}";
                             
                             Form frm = new Form{FormTemplateId=template.Id,UserId=Employees[0].Id,FranchiseName=$"{base_name}Corp",DefaultContact=$"{base_name.ToLower()}@example.com",AlbumId=await FormService.CreateAlbum(Employees[0].Id,ctx,1)};
 
@@ -958,17 +958,18 @@ namespace PetCenterServices.Seeder
 
                         await ctx.SaveChangesAsync();
 
-                    }
 
-                    
+                        List<Album> locked = await ctx.Albums.Where(a=> ctx.Listings.Any(l=>l.AlbumId==a.Id && l.Approved) && a.Reserved!=0).ToListAsync();
 
-                    List<Album> locked = await ctx.Albums.Where(a=> ctx.Listings.Any(l=>l.AlbumId==a.Id) && a.Reserved!=0).ToListAsync();
+                        foreach(Album lockedAlbum in locked)
+                        {
+                            lockedAlbum.Locked=true;
+                        }
 
-                    foreach(Album lockedAlbum in locked)
-                    {
-                        lockedAlbum.Locked=true;
-                    }
 
+                    }                    
+
+                  
                     await ctx.SaveChangesAsync();
 
 

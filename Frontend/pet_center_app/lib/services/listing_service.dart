@@ -402,11 +402,10 @@ class ListingService {
   static Future<AvailabilityResponseSubDTO?> setAvailability(
     String listingId,
     String facilityId,
-    bool addRemove,
   ) async {
     apiServiceBusy.value = true;
     try {
-      final query = <String, String>{'add_remove': addRemove.toString()};
+      final query = <String, String>{'add_remove': true.toString()};
 
       final response = await http.put(
         Uri.parse(
@@ -432,6 +431,30 @@ class ListingService {
       showError(ex);
       apiServiceBusy.value = false;
       return null;
+    }
+  }
+
+  static Future<bool> removeAvailability(
+    String listingId,
+    String facilityId,
+  ) async {
+    apiServiceBusy.value = true;
+    try {
+      final query = <String, String>{'add_remove': false.toString()};
+
+      final response = await http.put(
+        Uri.parse(
+          "${AppConfig.apiBaseUrl}/api/Listing/Available/$listingId/$facilityId",
+        ).replace(queryParameters: query),
+        headers: {'Authorization': 'Bearer $rawToken'},
+      );
+
+      apiServiceBusy.value = false;
+      return ServiceOutput.isSuccess(response);
+    } catch (ex) {
+      showError(ex);
+      apiServiceBusy.value = false;
+      return false;
     }
   }
 }

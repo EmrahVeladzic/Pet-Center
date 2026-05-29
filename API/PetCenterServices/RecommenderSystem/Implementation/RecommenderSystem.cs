@@ -26,11 +26,11 @@ namespace PetCenterServices.Recommender
     public class PetCenterVector5
     {
 
-        public float Investment {get; set;} = 0.0f;
-        public float Territory {get; set;} = 0.0f;
-        public float Pricing {get; set;} = 0.0f;
-        public float Longevity {get; set;} = 0.0f;
-        public float Cohabitation {get; set;} = 0.0f;
+        public float Investment {get; set;} = 0.5f;
+        public float Territory {get; set;} = 0.5f;
+        public float Pricing {get; set;} = 0.5f;
+        public float Longevity {get; set;} = 0.5f;
+        public float Cohabitation {get; set;} = 0.5f;
 
         public PetCenterVector5(List<LivingConditionEntry> entries)
         {
@@ -99,13 +99,30 @@ namespace PetCenterServices.Recommender
             if (listing.ProductExtension != null && listing.ProductExtension.Product!=null)
             {
                 string ProductTitle = listing.ProductExtension.Product.Title.ToLowerInvariant();
-                List<Wishlist> wishlists = await ctx.Wishlists.Include(w=>w.RelevantUser).ThenInclude(r=>r.OwnedAnimals).ThenInclude(o=>o.AnimalBreed).Where(w=>ProductTitle.Contains(w.Term.ToLower())).Include(w=>w.RelevantUser).ThenInclude(r=>r.Notifications).ToListAsync();
-                wishlists = wishlists.Where(w=>w.RelevantUser!=null && !w.RelevantUser.Notifications.Any(n=>n.ListingId==listing.Id)  && w.RelevantUser.OwnedAnimals.Any(o=>o.AnimalBreed!=null && (listing.ProductExtension.Product.TargetKind==null ||o.AnimalBreed.KindId==listing.ProductExtension.Product.KindId) && (listing.ProductExtension.Product.TargetScale==null||listing.ProductExtension.Product.TargetScale==o.AnimalBreed.Scale))).ToList();
 
+                List<Wishlist> wishlists = await ctx.Wishlists
+                .Include(w => w.RelevantUser)
+                    .ThenInclude(r => r.OwnedAnimals)
+                        .ThenInclude(o => o.AnimalBreed)
+                .Include(w => w.RelevantUser)
+                    .ThenInclude(r => r.Notifications)
+                .Where(w =>
+                    ProductTitle.Contains(w.Term.ToLower()) &&
+                    w.RelevantUser != null &&
+                    !w.RelevantUser.Notifications.Any(n => n.ListingId == listing.Id))
+                .ToListAsync();
+
+
+                List<Wishlist>  grouped_wishlists = wishlists
+                .GroupBy(w => w.UserId)
+                .Select(g => g.First())
+                .ToList();
 
                 int progress = 0;
-                foreach(Wishlist w in wishlists)
+                foreach(Wishlist w in grouped_wishlists)
                 {
+                    bool multiple = wishlists.Count((wl)=>wl.UserId==w.UserId)>1;
+
                     Notification notif = new();
                     notif.UserId=w.UserId;
                     notif.FranchiseId=null;
@@ -115,15 +132,15 @@ namespace PetCenterServices.Recommender
                     {
                  
                         notif.Expiry=listing.ListingDiscount.Expiry;
-                        notif.Title = $"Discount - {w.Term}";
+                        notif.Title = $"Discount - {w.Term}{(multiple ? " & more" : "")}";
                         notif.Body = $"A new discount of {(int)listing.ListingDiscount.PercentDiscount}% has been applied to a product you might want.";
                     
                     }
                     else
                     {
                         notif.Expiry=DateTime.UtcNow.AddDays(3);
-                        notif.Title=$"New listing - {w.Term}";
-                        notif.Body=$"A new listing including the term \"{w.Term}\" that you may be interested in has just been made visible.";
+                        notif.Title = $"New listing - {w.Term}{(multiple ? " & more" : "")}";
+                        notif.Body=$"A new listing including the term \"{w.Term}\"{(multiple? ", among others":"")} that you may be interested in has just been made visible.";
                     }
 
                     await ctx.Notifications.AddAsync(notif);

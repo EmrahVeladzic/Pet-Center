@@ -41,7 +41,7 @@ namespace PetCenterModels.DataTransferObjects
         [MaxLength(75)]
         public string Title {get; set;} = string.Empty;
 
-        public Guid AlbumId {get; set;} = Guid.Empty;
+        public Guid? AlbumId {get; set;} = null;
 
         public List<ImageDTO> Media {get; set;} = new();
 
@@ -92,7 +92,10 @@ namespace PetCenterModels.DataTransferObjects
             Breed breed = new();
             breed.CurrentVersion=CurrentVersion;
             breed.KindId=KindId;
-            breed.AlbumId=AlbumId;
+            if (AlbumId != null)
+            {
+                breed.AlbumId=AlbumId.Value;
+            }            
             breed.Scale=Scale;
             breed.Investment=Investment;
             breed.Territory=Territory;

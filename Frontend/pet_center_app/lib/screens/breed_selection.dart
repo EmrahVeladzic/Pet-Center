@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:pet_center_app/models/data_transfer/breed_dto.dart';
 import 'package:pet_center_app/models/enums.dart';
+import 'package:pet_center_app/screens/breed_edit.dart';
 import 'package:pet_center_app/screens/components/breed/breed_card.dart';
 import 'package:pet_center_app/screens/components/breed/breed_filters.dart';
+import 'package:pet_center_app/screens/components/confirmation_dialog.dart';
 import 'package:pet_center_app/screens/components/page_selector.dart';
 import 'package:pet_center_app/screens/listing_selection.dart';
 import 'package:pet_center_app/screens/templates/data_screen_scaffold.dart';
@@ -97,12 +99,61 @@ class _BreedSelectionScreenState extends State<BreedSelectionScreen> {
     }
   }
 
+  void removeBreed(String id) async {
+    final output = await BreedService.delete(id);
+
+    if (output) {
+      resetPages(incomplete, adoption);
+    }
+  }
+
+  void createBreed() async {
+    if (widget.kindId == null) {
+      return;
+    }
+    final shouldRefresh = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => BreedEditScreen(
+          kindId: widget.kindId!,
+          callback: () {
+            resetPages(incomplete, adoption);
+          },
+        ),
+      ),
+    );
+    if (shouldRefresh == true) {
+      resetPages(incomplete, adoption);
+    }
+  }
+
+  void editBreed(BreedDTO current) async {
+    if (widget.kindId == null) {
+      return;
+    }
+    final shouldRefresh = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => BreedEditScreen(
+          fromCurrent: current,
+          kindId: widget.kindId!,
+          callback: () {
+            resetPages(incomplete, adoption);
+          },
+        ),
+      ),
+    );
+    if (shouldRefresh == true) {
+      resetPages(incomplete, adoption);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return DataScreenScaffold<BreedFilters, BreedDTO>(
       importActions: [
         if (role == Access.admin || role == Access.owner) ...[
-          IconButton(icon: Icon(Icons.add), onPressed: () {}),
+          IconButton(icon: Icon(Icons.add), onPressed: createBreed),
         ],
       ],
       maxPage: widget.maxPage,
@@ -130,6 +181,27 @@ class _BreedSelectionScreenState extends State<BreedSelectionScreen> {
               switchToSelection(id);
             }
           },
+          onAdminTap: () {
+            if (source.id == null) {
+              return;
+            }
+            editBreed(source);
+          },
+          onDelete: () {
+            showDialog(
+              context: context,
+              builder: (_) => ConfirmationDialog(
+                confirmAction: () {
+                  final id = source.id;
+
+                  if (id != null) {
+                    removeBreed(id);
+                  }
+                },
+              ),
+            );
+          },
+
           adminMode: (role == Access.admin || role == Access.owner),
         );
       },

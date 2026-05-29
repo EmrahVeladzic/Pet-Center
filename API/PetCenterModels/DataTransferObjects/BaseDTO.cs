@@ -59,7 +59,7 @@ namespace PetCenterModels.DataTransferObjects
     {
         public List<TMedia> Media { get; set; }
 
-        public Guid AlbumId {get; set;}
+        public Guid? AlbumId {get; set;}
 
         public bool Locked {get; set;}
 
