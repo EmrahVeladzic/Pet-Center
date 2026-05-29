@@ -179,6 +179,8 @@ namespace PetCenterServices.Services
                 return ServiceOutput<ListingResponseDTO>.Error(HttpCode.NotFound,"This listing does not exist.");
             }
 
+            
+
             if (authorization_level == Access.Admin)
             {
                 

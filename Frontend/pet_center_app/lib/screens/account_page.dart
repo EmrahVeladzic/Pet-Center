@@ -9,6 +9,7 @@ import 'package:pet_center_app/screens/components/page_selector.dart';
 import 'package:pet_center_app/screens/templates/data_screen_scaffold.dart';
 import 'package:pet_center_app/services/account_service.dart';
 import 'package:pet_center_app/utils/app_style.dart';
+import 'package:pet_center_app/utils/pdf_utils.dart';
 
 class AccountPageScreen extends StatefulWidget {
   final int maxPage;
@@ -95,10 +96,17 @@ class _AccountPageScreen extends State<AccountPageScreen> {
     }
   }
 
+  void toPdf() async {
+    await accountsToPdf(accRole, accContact);
+  }
+
   @override
   Widget build(BuildContext context) {
     return DataScreenScaffold<AccountFilters, AccountResponseDTO>(
       appTitle: 'People:',
+      importActions: [
+        IconButton(icon: Icon(Icons.picture_as_pdf), onPressed: toPdf),
+      ],
       maxPage: pageCount,
       pageSelectorKey: _pageSelectorKey,
       switchPage: switchPage,

@@ -53,7 +53,46 @@ namespace PetCenterServices.Services
 
             return Task.FromResult<IQueryable<Form>>(query);
              
-        }       
+        }      
+
+        public override async Task<ServiceOutput<FormDTO>> GetById(Guid session,Guid token_holder, Guid id, Access authorization_level, FileScope fileScope = FileScope.ReadOnly)
+        {
+            fileScope=FileScope.ReadOnly;
+
+            Form? frm = await dbSet.Include(f=>f.Entries).Include(f=>f.Album).ThenInclude(a=>a.Images).FirstOrDefaultAsync(f=>f.Id==id);
+
+            if(frm==null)
+            {
+                return ServiceOutput<FormDTO>.Error(HttpCode.NotFound,"No form with this ID exists.");
+            }
+
+            if(authorization_level == Access.BusinessAccount)
+            {
+
+                if (frm.UserId != token_holder)
+                {
+                    return ServiceOutput<FormDTO>.Error(HttpCode.Forbidden,"You do not own this form.");
+                }
+
+                fileScope= FileScope.Write;
+            }
+
+            else if(authorization_level == Access.Admin && frm.Album.Reserved == 0)
+            {
+               return ServiceOutput<FormDTO>.Error(HttpCode.Forbidden,"You may not evaluate forms with no images.");
+            }
+
+            FormDTO? output = FormDTO.FromEntity(frm);
+
+            if (output != null)
+            {
+                AttachTokensIfNeeded(output,fileScope,session);
+            }
+
+            return ServiceOutput<FormDTO>.Success(output);
+            
+
+        }
 
         public override async Task<ServiceOutput<FormDTO>> Post(Guid session,Guid token_holder, FormDTO resource)
         {

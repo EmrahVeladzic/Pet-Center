@@ -417,7 +417,7 @@ namespace PetCenterServices.Services
             return ServiceOutput<string>.Success("Announcement removed successfully.");
         }
 
-        public async Task<ServiceOutput<NotificationSubDTO>> AddNotification(string title,string body,Guid userId,Guid? franchiseId,Guid? listingId,int expiry)
+        public async Task<ServiceOutput<NotificationSubDTO>> AddNotification(Guid token_holder,Access auth, string title,string body,Guid userId,Guid? franchiseId,Guid? listingId,int expiry)
         {
             if (string.IsNullOrWhiteSpace(title) || string.IsNullOrWhiteSpace(body))
             {
@@ -429,6 +429,7 @@ namespace PetCenterServices.Services
             {
                 return ServiceOutput<NotificationSubDTO>.Error(HttpCode.NotFound,"The specified user does not exist.");
             }
+            
 
             Franchise? franch = null;
 
@@ -441,6 +442,13 @@ namespace PetCenterServices.Services
                     return ServiceOutput<NotificationSubDTO>.Error(HttpCode.NotFound,"Could not find specified franchise.");
                 }
             }
+
+
+            if(auth==Access.BusinessAccount && (franch == null||franch.OwnerId!=token_holder))
+            {
+                return ServiceOutput<NotificationSubDTO>.Error(HttpCode.NotFound,"You do not own a franchise with the provided ID.");
+            }
+            
 
 
             await using (IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync()){
