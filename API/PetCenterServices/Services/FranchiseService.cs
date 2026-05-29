@@ -65,6 +65,7 @@ namespace PetCenterServices.Services
 
             Franchise franch = new();
 
+            franch.OwnerId=frm.UserId;
             franch.Contact=frm.DefaultContact;
             franch.FranchiseName = frm.FranchiseName;
 
@@ -82,6 +83,14 @@ namespace PetCenterServices.Services
             {
                 try
                 {                 
+
+                    User? usr = await dbContext.Users.FindAsync(frm.UserId);
+                    if (usr != null)
+                    {
+                        usr.UserState=Guid.NewGuid();
+                    }
+
+
                     await dbContext.Notifications.AddAsync(notif);
                     await dbSet.AddAsync(franch);
                     await frm.StageDeletion<Form>(dbContext,dbContext.Forms);

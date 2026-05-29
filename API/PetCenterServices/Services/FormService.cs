@@ -70,9 +70,11 @@ namespace PetCenterServices.Services
                         await dbContext.SaveChangesAsync();
                         foreach(FormEntrySubDTO entry in resource.Entries)
                         {
-                            entry.FormId=ent.Id;
-                            await dbContext.AddAsync(entry.ToEntity()!);
+                            FormFieldEntry fieldEntry = entry.ToEntity()!;
+                            fieldEntry.FormId = ent.Id;
+                            await dbContext.FormFieldEntries.AddAsync(fieldEntry);
                         }
+
                         await dbContext.SaveChangesAsync();
                         await tx.CommitAsync();
                         return ServiceOutput<FormDTO>.Success(FormDTO.FromEntity(ent,Crypto.GenerateFileToken("",Purpose,FileScope.Write,ent.AlbumId,session)),HttpCode.Created);
@@ -100,7 +102,15 @@ namespace PetCenterServices.Services
                 ent.FranchiseName=resource.FranchiseName;
 
                 await dbContext.SaveChangesAsync();
-                return ServiceOutput<FormDTO>.Success(FormDTO.FromEntity(ent));
+
+                FormDTO? output = FormDTO.FromEntity(ent);
+
+                if (output != null)
+                {
+                    AttachTokensIfNeeded(output,FileScope.Write,session);
+                }
+
+                return ServiceOutput<FormDTO>.Success(output);
                    
             }   
 
@@ -194,6 +204,13 @@ namespace PetCenterServices.Services
                         notif.Title = $"Form denial for franchise \"{frm.FranchiseName}\".";
                         notif.Body = $"Reason for denial: \"{reason}\".";
                         notif.UserId=frm.UserId;
+
+                        User? usr = await dbContext.Users.FindAsync(frm.UserId);
+                        if (usr != null)
+                        {
+                            usr.UserState=Guid.NewGuid();
+                        }
+
                         await dbContext.Notifications.AddAsync(notif);
                         await dbContext.SaveChangesAsync();
                         await tx.CommitAsync();

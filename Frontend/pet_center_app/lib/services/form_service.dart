@@ -90,6 +90,7 @@ class FormService {
       return result;
     } catch (ex) {
       showError(ex);
+
       apiServiceBusy.value = false;
       return null;
     }

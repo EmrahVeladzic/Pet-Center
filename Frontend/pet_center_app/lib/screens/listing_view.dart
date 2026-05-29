@@ -18,6 +18,7 @@ import 'package:pet_center_app/screens/components/listing/listing_extension_card
 import 'package:pet_center_app/screens/components/listing/report_dialog.dart';
 import 'package:pet_center_app/screens/components/note_card.dart';
 import 'package:pet_center_app/screens/components/text_entry_dialog.dart';
+import 'package:pet_center_app/screens/listing_edit.dart';
 import 'package:pet_center_app/screens/templates/screen_scaffold.dart';
 import 'package:pet_center_app/services/category_service.dart';
 import 'package:pet_center_app/services/individual_service.dart';
@@ -121,7 +122,10 @@ class _ListingViewScreenState extends State<ListingViewScreen> {
         }
       });
 
+      showSnackbar("Obtained.");
+
       if (widget.obtainHook != null) {
+        Navigator.pop(context);
         widget.obtainHook!();
       }
     }
@@ -192,7 +196,7 @@ class _ListingViewScreenState extends State<ListingViewScreen> {
       });
 
       if (widget.onModify != null) {
-        widget.onModify!(false);
+        widget.onModify!(true);
       }
     }
   }
@@ -234,6 +238,37 @@ class _ListingViewScreenState extends State<ListingViewScreen> {
         widget.commentDeletionHook!();
       }
     });
+  }
+
+  void setAvailability(
+    AvailabilityResponseSubDTO available,
+    bool addRemove,
+  ) async {
+    if (addRemove) {
+      final output = await ListingService.setAvailability(
+        widget.listing.id!,
+        available.facilityId,
+      );
+      if (output != null && mounted) {
+        setState(() {
+          widget.listing.availability.add(output);
+        });
+        if (widget.onModify != null) widget.onModify!(true);
+      }
+    } else {
+      final output = await ListingService.removeAvailability(
+        widget.listing.id!,
+        available.facilityId,
+      );
+      if (output && mounted) {
+        setState(() {
+          widget.listing.availability.removeWhere(
+            (a) => a.facilityId == available.facilityId,
+          );
+        });
+        if (widget.onModify != null) widget.onModify!(true);
+      }
+    }
   }
 
   void deleteListing(bool ban) async {
@@ -300,9 +335,40 @@ class _ListingViewScreenState extends State<ListingViewScreen> {
                 icon: const Icon(Icons.edit),
 
                 onPressed: () {
-                  if (!mounted) {
-                    return;
-                  }
+                  if (!mounted) return;
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => ListingEditScreen(
+                        franchiseId: widget.listing.franchiseId,
+                        fromCurrent: widget.listing,
+                        callback: (value) {
+                          if (mounted) {
+                            setState(() {
+                              widget.listing.name = value.name;
+                              widget.listing.description = value.description;
+                              widget.listing.priceMinor = value.priceMinor;
+                              widget.listing.mediaCreationToken =
+                                  value.mediaCreationToken;
+
+                              if (widget.listing.productListingExtension !=
+                                      null &&
+                                  value.productListingExtension != null) {
+                                widget
+                                        .listing
+                                        .productListingExtension!
+                                        .perListing =
+                                    value.productListingExtension!.perListing;
+                              }
+                            });
+                          }
+                          if (widget.onModify != null) {
+                            widget.onModify!(true);
+                          }
+                        },
+                      ),
+                    ),
+                  );
                 },
               ),
             ],
@@ -442,7 +508,48 @@ class _ListingViewScreenState extends State<ListingViewScreen> {
           ),
           ...widget.listing.notes!.map((note) => NoteCard(note: note)),
         ],
-        if (widget.listing.availability.isNotEmpty) ...[
+        if (role == Access.business &&
+            self?.workplaces?.any((w) => w.id == widget.listing.franchiseId) ==
+                true &&
+            self?.workplaces != null) ...[
+          design.verticalGap(),
+          Padding(
+            padding: EdgeInsetsGeometry.symmetric(horizontal: design.spacing),
+            child: design.textMarquee('Availability:'),
+          ),
+          ...self!.workplaces!.expand((w) => w.facilities).map((facility) {
+            final active = widget.listing.availability.any(
+              (a) => a.facilityId == facility.id,
+            );
+            return Material(
+              color: Colors.transparent,
+              child: CheckboxListTile(
+                value: active,
+                title: Text('${facility.city}, ${facility.street}'),
+                onChanged: (value) {
+                  if (value != null && widget.listing.id != null) {
+                    final existing = widget.listing.availability
+                        .cast<AvailabilityResponseSubDTO?>()
+                        .firstWhere(
+                          (a) => a?.facilityId == facility.id,
+                          orElse: () => null,
+                        );
+                    if (value && existing == null) {
+                      setAvailability(
+                        AvailabilityResponseSubDTO(
+                          facilityId: facility.id ?? '',
+                        ),
+                        true,
+                      );
+                    } else if (!value && existing != null) {
+                      setAvailability(existing, false);
+                    }
+                  }
+                },
+              ),
+            );
+          }),
+        ] else if (widget.listing.availability.isNotEmpty) ...[
           design.verticalGap(),
           Padding(
             padding: EdgeInsetsGeometry.symmetric(horizontal: design.spacing),

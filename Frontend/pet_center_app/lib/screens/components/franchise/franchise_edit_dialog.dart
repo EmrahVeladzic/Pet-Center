@@ -31,6 +31,8 @@ class _FranchiseEditDialogState extends State<FranchiseEditDialog> {
     output = FranchiseRequestDTO(
       id: widget.editedObject.id,
       currentVersion: widget.editedObject.currentVersion,
+      contact: widget.editedObject.contact,
+      franchiseName: widget.editedObject.franchiseName,
     );
 
     _contactController = TextEditingController(text: output.contact);

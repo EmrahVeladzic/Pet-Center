@@ -19,7 +19,7 @@ namespace PetCenterModels.DataTransferObjects
 
         public byte[] CurrentVersion { get; set; } = Array.Empty<byte>();
 
-        public Guid FormId {get; set;} = Guid.Empty;
+        public Guid? FormId {get; set;} = null;
 
         public Guid FormTemplateFieldId {get; set;} = Guid.Empty;
 
@@ -45,7 +45,9 @@ namespace PetCenterModels.DataTransferObjects
         {
             FormFieldEntry field = new();
             field.CurrentVersion=CurrentVersion;
-            field.FormId=FormId;
+            if(FormId!=null){
+            field.FormId=FormId.Value;
+            }
             field.FormTemplateFieldId=FormTemplateFieldId;
             field.Serialized=Serialized;          
             
@@ -80,8 +82,7 @@ namespace PetCenterModels.DataTransferObjects
 
         public Guid FormTemplateId {get; set;} = Guid.Empty;
 
-        public Guid AlbumId {get; set;} = Guid.Empty;
-
+        public Guid? AlbumId {get; set;} = null;
         public bool Locked {get; set;} = true;
 
         public List<ImageDTO> Media {get; set;} = new();
@@ -132,7 +133,9 @@ namespace PetCenterModels.DataTransferObjects
             Form form = new();
             form.CurrentVersion=CurrentVersion;
             form.UserId=UserId;
-            form.AlbumId=AlbumId;
+            if(AlbumId!=null){
+                form.AlbumId=AlbumId.Value;
+            }
             form.DefaultContact=DefaultContact;
             form.FranchiseName=FranchiseName;
             form.FormTemplateId=FormTemplateId;          

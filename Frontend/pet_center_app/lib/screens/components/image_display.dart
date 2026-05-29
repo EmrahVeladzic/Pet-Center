@@ -2,6 +2,7 @@ import 'dart:typed_data';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:pet_center_app/models/data_transfer/image_dto.dart';
+import 'package:pet_center_app/screens/components/confirmation_dialog.dart';
 import 'package:pet_center_app/services/image_service.dart';
 import 'package:pet_center_app/utils/app_style.dart';
 import 'package:pet_center_app/utils/image_cache_service.dart';
@@ -12,6 +13,7 @@ class ImageDisplay extends StatefulWidget {
   final String? creationToken;
   final bool locked;
   final bool creating;
+  final void Function(ImageDTO? output)? editCallback;
 
   const ImageDisplay({
     super.key,
@@ -19,13 +21,14 @@ class ImageDisplay extends StatefulWidget {
     required this.creationToken,
     required this.locked,
     required this.creating,
+    this.editCallback,
   });
 
   @override
-  State<ImageDisplay> createState() => _ImageDisplayState();
+  State<ImageDisplay> createState() => ImageDisplayState();
 }
 
-class _ImageDisplayState extends State<ImageDisplay> {
+class ImageDisplayState extends State<ImageDisplay> {
   Uint8List? _decoded;
   ImageDTO? dataSrc;
   bool _loading = true;
@@ -42,7 +45,8 @@ class _ImageDisplayState extends State<ImageDisplay> {
   void didUpdateWidget(covariant ImageDisplay oldWidget) {
     super.didUpdateWidget(oldWidget);
 
-    if (oldWidget.dataSource?.hash != widget.dataSource?.hash) {
+    if (oldWidget.dataSource?.hash != widget.dataSource?.hash &&
+        widget.dataSource?.hash != dataSrc?.hash) {
       dataSrc = widget.dataSource;
       _decoded = null;
       _loading = true;
@@ -77,6 +81,27 @@ class _ImageDisplayState extends State<ImageDisplay> {
         setState(() => _loading = false);
       }
     }
+  }
+
+  bool validate() {
+    if (_loading) {
+      showSnackbar("The image is still loading.", false);
+      return false;
+    }
+
+    if (_error) {
+      showSnackbar("The image failed to load.", false);
+      return false;
+    }
+
+    final hasImage = (_decoded != null);
+
+    if (!hasImage) {
+      showSnackbar("An image is required.", false);
+      return false;
+    }
+
+    return true;
   }
 
   @override
@@ -134,7 +159,16 @@ class _ImageDisplayState extends State<ImageDisplay> {
                   top: 0,
                   right: 0,
                   child: GestureDetector(
-                    onTap: _onDelete,
+                    onTap: () {
+                      showDialog(
+                        context: context,
+                        builder: (_) => ConfirmationDialog(
+                          confirmAction: _onDelete,
+                          title: "Delete image",
+                          body: "Are you sure you wish to delete this image?",
+                        ),
+                      );
+                    },
                     child: ColoredBox(
                       color: visitedPanelTone,
                       child: Icon(Icons.delete_outline, size: nw * 0.125),
@@ -192,11 +226,13 @@ class _ImageDisplayState extends State<ImageDisplay> {
         _decoded = null;
         dataSrc = null;
       });
+      if (widget.editCallback != null) {
+        widget.editCallback!(null);
+      }
     }
   }
 
   Future<void> _onCreate() async {
-    // 1. Pick the file
     final result = await FilePicker.pickFiles(
       type: FileType.custom,
       allowedExtensions: ['webp', 'png', 'jpg', 'jpeg', 'bmp', 'gif'],
@@ -248,10 +284,14 @@ class _ImageDisplayState extends State<ImageDisplay> {
 
     final dto = await ImageService.post(widget.creationToken, bytes);
     if (dto != null) {
+      dto.canWrite = true;
       setState(() {
         dataSrc = dto;
         _decoded = bytes;
       });
+      if (widget.editCallback != null) {
+        widget.editCallback!(dto);
+      }
     }
   }
 
@@ -266,9 +306,13 @@ class _ImageDisplayState extends State<ImageDisplay> {
 
     final dto = await ImageService.post(creationToken, _decoded);
     if (dto != null) {
+      dto.canWrite = true;
       setState(() {
         dataSrc = dto;
       });
+      if (widget.editCallback != null) {
+        widget.editCallback!(dto);
+      }
     }
   }
 }

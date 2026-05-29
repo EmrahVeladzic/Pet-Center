@@ -10,7 +10,7 @@ FormEntrySubDTO _$FormEntrySubDTOFromJson(Map<String, dynamic> json) =>
     FormEntrySubDTO(
       id: json['id'] as String?,
       currentVersion: json['currentVersion'] as String? ?? '',
-      formId: json['formId'] as String? ?? '',
+      formId: json['formId'] as String?,
       formTemplateFieldId: json['formTemplateFieldId'] as String? ?? '',
       serialized: json['serialized'] as String? ?? '',
       notes: (json['notes'] as List<dynamic>?)
@@ -41,7 +41,7 @@ FormDTO _$FormDTOFromJson(Map<String, dynamic> json) => FormDTO(
       .toList(),
   userId: json['userId'] as String? ?? '',
   formTemplateId: json['formTemplateId'] as String? ?? '',
-  albumId: json['albumId'] as String? ?? '',
+  albumId: json['albumId'] as String?,
   mediaCreationToken: json['mediaCreationToken'] as String?,
   locked: json['locked'] as bool? ?? true,
   full: json['full'] as bool? ?? true,

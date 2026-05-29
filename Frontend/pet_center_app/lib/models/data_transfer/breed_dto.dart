@@ -17,7 +17,7 @@ class BreedDTO {
   double cohabitation;
   List<NoteSubDTO>? notes;
   String title;
-  String albumId;
+  String? albumId;
   List<ImageDTO> media;
   bool locked;
   bool full;
@@ -28,14 +28,14 @@ class BreedDTO {
     this.currentVersion = '',
     this.kindId = '',
     this.scale = AnimalScale.medium,
-    this.investment = 0.0,
-    this.territory = 0.0,
-    this.pricing = 0.0,
-    this.longevity = 0.0,
-    this.cohabitation = 0.0,
+    this.investment = 0.5,
+    this.territory = 0.5,
+    this.pricing = 0.5,
+    this.longevity = 0.5,
+    this.cohabitation = 0.5,
     this.notes,
     this.title = '',
-    this.albumId = '',
+    this.albumId,
     this.locked = true,
     this.full = true,
     this.mediaCreationToken,

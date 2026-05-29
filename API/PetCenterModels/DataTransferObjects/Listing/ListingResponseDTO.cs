@@ -21,7 +21,7 @@ namespace PetCenterModels.DataTransferObjects
 
         public List<NoteSubDTO>? Notes {get; set;} = null;
 
-        public Guid AlbumId {get; set;} = Guid.Empty;
+        public Guid? AlbumId {get; set;} = null;
 
         public bool Approved {get; set;} = false;
 

@@ -65,7 +65,8 @@ class _FeedScreenState extends State<FeedScreen> {
                   builder: (context, _) {
                     final index = controller.index;
 
-                    if (index == 0) {
+                    if (index == 0 &&
+                        (role == Access.admin || role == Access.owner)) {
                       return IconButton(
                         icon: const Icon(Icons.add),
                         onPressed: () {

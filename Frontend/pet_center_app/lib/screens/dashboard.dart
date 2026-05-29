@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:pet_center_app/models/enums.dart';
 import 'package:pet_center_app/screens/account_page.dart';
 import 'package:pet_center_app/screens/feed.dart';
+import 'package:pet_center_app/screens/form_selection.dart';
 import 'package:pet_center_app/screens/franchise_view.dart';
 import 'package:pet_center_app/screens/individual_view.dart';
 import 'package:pet_center_app/screens/kind_selection.dart';
@@ -11,6 +12,7 @@ import 'package:pet_center_app/screens/supplies_view.dart';
 import 'package:pet_center_app/screens/templates/screen_scaffold.dart';
 import 'package:pet_center_app/screens/user_view.dart';
 import 'package:pet_center_app/services/account_service.dart';
+import 'package:pet_center_app/services/form_service.dart';
 import 'package:pet_center_app/services/listing_service.dart';
 import 'package:pet_center_app/services/static_user_data_service.dart';
 import 'package:pet_center_app/utils/app_style.dart';
@@ -24,13 +26,16 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
+  final knd = (kinds.isNotEmpty) ? kinds.first.id : null;
+  final rlv = (categories.isNotEmpty) ? categories.first.id : null;
+
   void enterMarket() async {
     final count = await ListingService.count(
       ListingType.product,
       OrderingMethod.id,
       scaleSpecific: AnimalScale.medium,
-      kindSpecific: (kinds.isNotEmpty) ? kinds.first.id : null,
-      relevantId: (categories.isNotEmpty) ? categories.first.id : null,
+      kindSpecific: knd,
+      relevantId: rlv,
     );
 
     if (count != null && mounted) {
@@ -41,8 +46,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
             maxPage: count,
             initType: ListingType.product,
             initOrdering: OrderingMethod.id,
-
-            initRelevant: (categories.isNotEmpty) ? categories.first.id : null,
+            initKind: knd,
+            initRelevant: rlv,
           ),
         ),
       );
@@ -90,6 +95,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
             initOrdering: OrderingMethod.id,
             initShowApproved: false,
           ),
+        ),
+      );
+    }
+  }
+
+  void viewForms() async {
+    final output = await FormService.count(null);
+    if (output != null && mounted) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) =>
+              FormSelectionScreen(maxPage: output, templateId: null),
         ),
       );
     }
@@ -196,7 +214,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             widthFactor: 0.5,
             alignment: Alignment.center,
             child: ElevatedButton(
-              onPressed: () {},
+              onPressed: viewForms,
               child: design.fittedText('Evaluate forms'),
             ),
           ),

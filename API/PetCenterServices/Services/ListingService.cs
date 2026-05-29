@@ -416,7 +416,23 @@ namespace PetCenterServices.Services
                 listing.Visible = visible;
                 await dbContext.SaveChangesAsync();
                 
-                await recommender.RecommendListingToUsers(dbContext,listing);
+                if(visible){
+                    await recommender.RecommendListingToUsers(dbContext,listing);
+                }
+                else
+                {
+                   dbContext.Notifications.RemoveRange(
+                    await dbContext.Notifications
+                        .Include(n => n.RelevantUser)
+                            .ThenInclude(u => u.UserAccount)
+                        .Where(n => 
+                            n.ListingId == ListingId &&
+                            n.RelevantUser != null &&
+                            n.RelevantUser.UserAccount != null &&
+                            n.RelevantUser.UserAccount.AccessLevel == Access.User)
+                        .ToListAsync());
+                    await dbContext.SaveChangesAsync();
+                }
                 
                 return ServiceOutput<object>.Success(null);
 
@@ -583,7 +599,7 @@ namespace PetCenterServices.Services
             MedicalListing? mlst = req?.MedicalListingExtension?.ToEntity();
             AnimalListing? alst = req?.AnimalListingExtension?.ToEntity();
 
-            if(lst!=null && ((lst.Type==ListingType.Product&&plst!=null)||(lst.Type==ListingType.Medical&&mlst!=null)||(lst.Type==ListingType.Pet&&alst!=null)))
+            if(lst!=null && ((lst.Type==ListingType.Product&&plst!=null)||(lst.Type==ListingType.Medical&&mlst!=null)||(lst.Type==ListingType.Pet&&alst!=null)||lst.Type==ListingType.Generic))
             {
 
                 await using(IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync())
@@ -615,6 +631,17 @@ namespace PetCenterServices.Services
                         
                        
                         await tx.CommitAsync();
+
+
+                        if(lst.Type==ListingType.Pet && lst.AnimalExtension != null)
+                        {
+                            Individual? ind = await dbContext.IndividualAnimals.FindAsync(lst.AnimalExtension.AnimalId);
+                            if (ind != null)
+                            {
+                                lst.AnimalExtension.Animal=ind;
+                            }
+                        }
+
                         
                         return ServiceOutput<ListingResponseDTO>.Success(ListingResponseDTO.FromEntity(lst,Crypto.GenerateFileToken("",Purpose,FileScope.Write,lst.AlbumId,session)),HttpCode.Created);
                     }
@@ -637,6 +664,21 @@ namespace PetCenterServices.Services
 
         public override async Task<ServiceOutput<ListingResponseDTO>> Put(Guid session,Guid token_holder, ListingRequestDTO req)
         {
+
+            if (req.Type != ListingType.Medical)
+            {
+                req.MedicalListingExtension=null;
+            }
+            if (req.Type != ListingType.Product)
+            {
+                req.ProductListingExtension=null;
+            }
+            if (req.Type != ListingType.Pet)
+            {
+                req.AnimalListingExtension=null;
+            }
+
+
             Listing? listing = await dbSet.Include(l=>l.ProductExtension).Include(l=>l.MedicalExtension).Include(l=>l.AnimalExtension).FirstOrDefaultAsync(l=>l.Id==req.Id);
 
             if (listing != null)
@@ -660,6 +702,15 @@ namespace PetCenterServices.Services
                         await dbContext.SaveChangesAsync();
                         
                         await tx.CommitAsync();
+
+                        if(listing.Type==ListingType.Pet && listing.AnimalExtension != null)
+                        {
+                            Individual? ind = await dbContext.IndividualAnimals.FindAsync(listing.AnimalExtension.AnimalId);
+                            if (ind != null)
+                            {
+                                listing.AnimalExtension.Animal=ind;
+                            }
+                        }
 
                         ListingResponseDTO? response = ListingResponseDTO.FromEntity(listing);
 
@@ -686,6 +737,21 @@ namespace PetCenterServices.Services
 
         public override async Task<ServiceOutput<object>> IsClearedToCreate(Guid token_holder, ListingRequestDTO resource)
         {
+
+            if (resource.Type != ListingType.Medical)
+            {
+                resource.MedicalListingExtension=null;
+            }
+            if (resource.Type != ListingType.Product)
+            {
+                resource.ProductListingExtension=null;
+            }
+            if (resource.Type != ListingType.Pet)
+            {
+                resource.AnimalListingExtension=null;
+            }
+
+
             if (!resource.Validate())
             {
                 return ServiceOutput<object>.Error(HttpCode.BadRequest,"DTO validation failed.");
@@ -694,6 +760,12 @@ namespace PetCenterServices.Services
             {
                 return ServiceOutput<object>.Error(HttpCode.Forbidden,"You lack the permissions to post listings for this franchise.");
             }
+            
+            if(resource.Type==ListingType.Pet && resource.AnimalListingExtension?.AnimalId!=null && await dbContext.AnimalListings.AnyAsync(a => a.AnimalId == resource.AnimalListingExtension!.AnimalId))
+            {
+                return ServiceOutput<object>.Error(HttpCode.Conflict,"This pet is already up for adoption.");
+            }
+            
             return ServiceOutput<object>.Success(null,HttpCode.NoContent);
         }
 
