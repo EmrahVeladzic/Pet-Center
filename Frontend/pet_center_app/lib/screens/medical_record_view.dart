@@ -59,6 +59,7 @@ class _MedicalRecordViewScreenState extends State<MedicalRecordViewScreen> {
       widget.src.medicalRecord.removeWhere(
         (element) => element.procedureId == procId,
       );
+      widget.src.medicalRecord.removeWhere((m) => m.id == output.id);
       widget.src.medicalRecord.add(output);
 
       setState(() {});
@@ -151,6 +152,9 @@ class _MedicalRecordViewScreenState extends State<MedicalRecordViewScreen> {
                       return;
                     }
                     setState(() {
+                      widget.src.medicalRecord.removeWhere(
+                        (m) => m.id == value.id,
+                      );
                       widget.src.medicalRecord.add(value);
                     });
                   },
