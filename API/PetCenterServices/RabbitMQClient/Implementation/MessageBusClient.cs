@@ -4,12 +4,10 @@ using Microsoft.Extensions.Configuration;
 using PetCenterServices;
 using PetCenterShared;
 using RabbitMQ.Client;
-
 public class MessageBusClient : IMessageBusClient
 {
     private readonly RabbitMQSettings _settings;
     private readonly IConnection _connection;
-
     private class RabbitMQSettings
     {
         public string HostName { get; set; } = "localhost";
@@ -17,11 +15,9 @@ public class MessageBusClient : IMessageBusClient
         public string UserName { get; set; } = "guest";
         public string Password { get; set; } = "guest";
     }
-
     public MessageBusClient(IConfiguration config)
     {
         IConfigurationSection section = config.GetSection("RabbitMQ");
-
         _settings = new RabbitMQSettings
         {
             HostName = section["HostName"] ?? "localhost",
@@ -29,53 +25,32 @@ public class MessageBusClient : IMessageBusClient
             UserName = section["UserName"] ?? "guest",
             Password = section["Password"] ?? "guest"
         };
-
-        string? envHost = Environment.GetEnvironmentVariable("RABBITMQ_HOSTNAME");
-        if (!string.IsNullOrWhiteSpace(envHost)) _settings.HostName = envHost;
-
-        string? envQueue = Environment.GetEnvironmentVariable("RABBITMQ_QUEUENAME");
-        if (!string.IsNullOrWhiteSpace(envQueue)) _settings.QueueName = envQueue;
-
-        string? envUser = Environment.GetEnvironmentVariable("RABBITMQ_USERNAME");
-        if (!string.IsNullOrWhiteSpace(envUser)) _settings.UserName = envUser;
-
-        string? envPass = Environment.GetEnvironmentVariable("RABBITMQ_PASSWORD");
-        if (!string.IsNullOrWhiteSpace(envPass)) _settings.Password = envPass;
-
         ConnectionFactory factory = new ConnectionFactory()
         {
             HostName = _settings.HostName,
             UserName = _settings.UserName,
             Password = _settings.Password
         };
-
         _connection = factory.CreateConnectionAsync().GetAwaiter().GetResult();
     }
-
     public async Task SendEmailMessage(ConsumerMessage message)
     {
         bool repeat = true;
         int delay = 1000;
-
-
         while (repeat)
         {
             try
             {
                 repeat = false;
-
                 using IChannel channel = await _connection.CreateChannelAsync();
-
                 await channel.QueueDeclareAsync(
                     queue: _settings.QueueName,
                     durable: false,
                     exclusive: false,
                     autoDelete: false
                 );
-
                 string json = JsonSerializer.Serialize(message);
                 byte[] body = Encoding.UTF8.GetBytes(json);
-
                 await channel.BasicPublishAsync(
                     exchange: string.Empty,
                     routingKey: _settings.QueueName,
@@ -86,8 +61,8 @@ public class MessageBusClient : IMessageBusClient
             {
                 repeat = true;
                 await Task.Delay(delay);
-                delay *=2;
-                delay=Math.Min(delay,15000);
+                delay *= 2;
+                delay = Math.Min(delay, 15000);
             }
         }
     }

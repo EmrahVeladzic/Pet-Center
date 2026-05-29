@@ -22,16 +22,14 @@ var builder = WebApplication.CreateBuilder(args);
 
 
 
-string[] allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
-
-allowedOrigins = builder.Configuration["CORS_ALLOWED_ORIGINS"]?.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)?? allowedOrigins;
-
+string[] allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
+    ?? builder.Configuration["Cors__AllowedOrigins"]?.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+    ?? [];
 
 builder.Services.AddCors(options =>
 {
     options.AddPolicy(name: "DEFAULT", policy =>
     {
-
         if (allowedOrigins.Contains("*"))
         {
             policy.AllowAnyOrigin();
@@ -43,29 +41,25 @@ builder.Services.AddCors(options =>
         policy.WithHeaders("Authorization","Content-Type","Accept","X-File-Token");
         policy.WithMethods("GET", "POST", "PUT", "DELETE", "OPTIONS");
     });
-    
-
 });
 
 builder.Services.AddMemoryCache();
 
 builder.Services.AddControllers(options =>
 {
-    
     options.ModelMetadataDetailsProviders.Add(
         new Microsoft.AspNetCore.Mvc.ModelBinding.Metadata.ExcludeBindingMetadataProvider(
-            typeof(System.ComponentModel.ReadOnlyAttribute) 
+            typeof(System.ComponentModel.ReadOnlyAttribute)
         )
     );
 });
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+
 builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.AddSwaggerGen(cfg =>
 {
     cfg.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo { Title = "PetCenter API", Version = "v1" });
 
-    // Main JWT
     cfg.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
     {
         Name = "Authorization",
@@ -75,7 +69,6 @@ builder.Services.AddSwaggerGen(cfg =>
         In = Microsoft.OpenApi.Models.ParameterLocation.Header,
     });
 
-    
     cfg.AddSecurityDefinition("FileToken", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
     {
         Name = "X-File-Token",
@@ -117,7 +110,6 @@ builder.Services.AddSwaggerGen(cfg =>
 builder.Services.AddSingleton<IRecommenderSystem,RecommenderSystem>();
 builder.Services.AddSingleton<ISeeder,TestSeeder>();
 
-
 builder.Services.AddHostedService<CleanupService>();
 builder.Services.AddHostedService<SupplyService>();
 
@@ -139,33 +131,16 @@ builder.Services.AddScoped<IListingService,ListingService>();
 
 builder.Services.AddScoped<IMessageBusClient, MessageBusClient>();
 
-string? dbConnection = builder.Configuration.GetConnectionString("DefaultConnection");
-dbConnection= Environment.GetEnvironmentVariable("DB_CONNECTION_STRING")??dbConnection;
-
 builder.Services.AddDbContext<PetCenterDBContext>(options =>
 {
-
-    options.UseSqlServer(dbConnection);
-
-    
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
     options.EnableDetailedErrors();
-    
-
-    options.ConfigureWarnings(w =>  w.Ignore(RelationalEventId.MultipleCollectionIncludeWarning));
-
+    options.ConfigureWarnings(w => w.Ignore(RelationalEventId.MultipleCollectionIncludeWarning));
 });
 
 string? jwtValidIssuer = builder.Configuration["Jwt:Issuer"];
 string? jwtValidAudience = builder.Configuration["Jwt:Audience"];
 string? jwtKey = builder.Configuration["Jwt:Key"];
-
-jwtValidIssuer=Environment.GetEnvironmentVariable("JWT_ISSUER")??jwtValidIssuer;
-jwtValidAudience=Environment.GetEnvironmentVariable("JWT_AUDIENCE")??jwtValidAudience;
-jwtKey=Environment.GetEnvironmentVariable("JWT_KEY")??jwtKey;
-
-builder.Configuration["Jwt:Key"]=jwtKey;
-builder.Configuration["Jwt:Issuer"]=jwtValidIssuer;
-builder.Configuration["Jwt:Audience"]=jwtValidAudience;
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -188,7 +163,6 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 string? jti = context.Principal?
                     .FindFirst(JwtRegisteredClaimNames.Jti)?.Value;
 
-              
                 if (jti == null || !Guid.TryParse(jti, out var parsedJti))
                 {
                     context.Fail("Invalid token.");
@@ -229,8 +203,6 @@ var app = builder.Build();
 
 ILogger<Program> logger = app.Services.GetRequiredService<ILogger<Program>>();
 
-
-
 app.UseExceptionHandler(errorApp =>
 {
     errorApp.Run(async context =>
@@ -241,11 +213,8 @@ app.UseExceptionHandler(errorApp =>
     });
 });
 
-
-
 app.UseRouting();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -256,27 +225,22 @@ else
     app.UseHttpsRedirection();
 }
 
-
 app.UseCors("DEFAULT");
-
 
 app.UseAuthentication();
 
 app.UseAuthorization();
 
-
-string? contact = Environment.GetEnvironmentVariable("INSTANCE_OWNER_CONTACT");
-string? password = Environment.GetEnvironmentVariable("INSTANCE_OWNER_PASSWORD");
-bool seeder_static =bool.TryParse(Environment.GetEnvironmentVariable("SEEDER_STATIC"), out bool result)&& result;
-bool hasSeed = int.TryParse(Environment.GetEnvironmentVariable("SEEDER_SEED"),out int seed);
-
+string? contact = builder.Configuration["InstanceOwner:Contact"];
+string? password = builder.Configuration["InstanceOwner:Password"];
+bool seeder_static = bool.TryParse(builder.Configuration["Seeder:Static"], out bool result) && result;
+bool hasSeed = int.TryParse(builder.Configuration["Seeder:Seed"], out int seed);
 
 bool retry = true;
 while (retry)
 {
     try
     {
-        
         retry = false;
 
         using (IServiceScope scope = app.Services.CreateScope())
@@ -284,60 +248,38 @@ while (retry)
             PetCenterDBContext ctx = scope.ServiceProvider.GetRequiredService<PetCenterDBContext>();
             IAccountService svc = scope.ServiceProvider.GetRequiredService<IAccountService>();
             ISeeder seeder = scope.ServiceProvider.GetRequiredService<ISeeder>();
-                    
-                if (!await ctx.Accounts.AnyAsync())
+
+            if (!await ctx.Accounts.AnyAsync())
+            {
+                AccountRequestDTO owner_req = new AccountRequestDTO()
                 {
+                    Contact = contact ?? "Null@example.com",
+                    Password = password ?? "Null",
+                };
 
-                    IConfigurationSection instance_owner = builder.Configuration.GetSection("InstanceOwner");
-                    AccountRequestDTO owner_req = new AccountRequestDTO(){
-                        Contact = instance_owner["Contact"]??"Null@example.com",            
-                        Password = instance_owner["Password"]??"Null",
-                    };
+                await svc.Post(Guid.Empty, Guid.Empty, owner_req);
 
-                  
-                    if (!string.IsNullOrWhiteSpace(contact) && !string.IsNullOrWhiteSpace(password)){
-
-                        owner_req.Contact = contact;
-                        owner_req.Password = password;
-
-                    }
-
-
-                    await svc.Post(Guid.Empty,Guid.Empty,owner_req);
-
-                   
-
-                    if(hasSeed)
-                    {
-                        await seeder.SeedDatabase(ctx,!seeder_static,seed);
-                    
-                    }
-                    else
-                    {
-                        await seeder.SeedDatabase(ctx,!seeder_static);
-                    }
-
-                   
+                if (hasSeed)
+                {
+                    await seeder.SeedDatabase(ctx, !seeder_static, seed);
                 }
-
-                await Task.Delay(2500);
-
+                else
+                {
+                    await seeder.SeedDatabase(ctx, !seeder_static);
+                }
             }
+
+            await Task.Delay(2500);
+        }
     }
-    catch( Exception ex)
+    catch (Exception ex)
     {
-        logger.LogTrace(ex,"Startup error.");
+        logger.LogTrace(ex, "Startup error.");
         retry = true;
         await Task.Delay(2500);
     }
-
 }
-    
-
-
-
 
 app.MapControllers();
-
 
 app.Run();
