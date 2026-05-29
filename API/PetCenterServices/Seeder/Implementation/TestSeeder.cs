@@ -501,7 +501,12 @@ namespace PetCenterServices.Seeder
                         Franchise franch_two = new Franchise{OwnerId=Employees[0].Id,Contact="micro@example.com",FranchiseName="MicroCorp"};
                         await ctx.Franchises.AddAsync(franch_two);
 
+                        Franchise off_franch = new Franchise{OwnerId=Employees[1].Id,Contact="offbrand@example.com",FranchiseName="OffCorp"};
+                        await ctx.Franchises.AddAsync(off_franch);
+
                         await ctx.SaveChangesAsync();
+
+                        await ctx.EmployeeRecords.AddAsync(new EmployeeRecord{FranchiseId=off_franch.Id,UserId=Employees[0].Id});
                        
 
                         await ctx.Notifications.AddAsync(new Notification{UserId=franch.OwnerId,FranchiseId=null,ListingId=null,Title="Notification - OWNER", Body="Only you, the owner, can see this notification."});

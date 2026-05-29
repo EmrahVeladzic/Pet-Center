@@ -1,10 +1,14 @@
+// ignore_for_file: unused_import
+
 import 'package:flutter/material.dart';
 import 'package:pet_center_app/models/data_transfer/facility_dto.dart';
 import 'package:pet_center_app/models/data_transfer/franchise/franchise_response_dto.dart';
+import 'package:pet_center_app/models/data_transfer/user/user_response_dto.dart';
 import 'package:pet_center_app/models/enums.dart';
 import 'package:pet_center_app/screens/components/confirmation_dialog.dart';
 import 'package:pet_center_app/screens/components/franchise/facility_card.dart';
 import 'package:pet_center_app/screens/components/franchise/facility_creation_dialog.dart';
+import 'package:pet_center_app/screens/components/user/notification_dialog.dart';
 import 'package:pet_center_app/services/facility_service.dart';
 
 import 'package:pet_center_app/services/static_user_data_service.dart';
@@ -111,132 +115,213 @@ class FranchiseCard extends StatelessWidget {
                   ),
                   if (role == Access.business && franchise.owned == true) ...[
                     Expanded(
-                      flex: 1,
-                      child: Align(
-                        alignment: Alignment.center,
-                        child: SizedBox(
-                          width: design.boundedIconSize,
-                          height: design.boundedIconSize,
-                          child: FittedBox(
-                            fit: BoxFit.contain,
-                            child: IconButton(
-                              onPressed: listingAction,
-                              icon: const Icon(Icons.local_offer),
-                              padding: EdgeInsets.zero,
-                              visualDensity: VisualDensity.compact,
-                              constraints: const BoxConstraints(),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                      flex: 1,
-                      child: Align(
-                        alignment: Alignment.center,
-                        child: SizedBox(
-                          width: design.boundedIconSize,
-                          height: design.boundedIconSize,
-                          child: FittedBox(
-                            fit: BoxFit.contain,
-                            child: IconButton(
-                              onPressed: animalAction,
-                              icon: const Icon(Icons.pets),
-                              padding: EdgeInsets.zero,
-                              visualDensity: VisualDensity.compact,
-                              constraints: const BoxConstraints(),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                      flex: 1,
-                      child: Align(
-                        alignment: Alignment.center,
-                        child: SizedBox(
-                          width: design.boundedIconSize,
-                          height: design.boundedIconSize,
-                          child: FittedBox(
-                            fit: BoxFit.contain,
-                            child: IconButton(
-                              onPressed: employeeViewAction,
-                              icon: const Icon(Icons.person),
-                              padding: EdgeInsets.zero,
-                              visualDensity: VisualDensity.compact,
-                              constraints: const BoxConstraints(),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                      flex: 1,
-                      child: Align(
-                        alignment: Alignment.center,
-                        child: SizedBox(
-                          width: design.boundedIconSize,
-                          height: design.boundedIconSize,
-                          child: FittedBox(
-                            fit: BoxFit.contain,
-                            child: IconButton(
-                              onPressed: () {
-                                showDialog(
-                                  context: context,
-                                  builder: (_) => FacilityCreationDialog(
-                                    creationCallback: (input) =>
-                                        setFacility(input),
-                                    owningFranchiseId: franchise.id ?? "",
+                      flex: 4,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Expanded(
+                                flex: 1,
+                                child: Align(
+                                  alignment: Alignment.center,
+                                  child: SizedBox(
+                                    width: design.boundedIconSize,
+                                    height: design.boundedIconSize,
+                                    child: FittedBox(
+                                      fit: BoxFit.contain,
+                                      child: IconButton(
+                                        onPressed: listingAction,
+                                        icon: const Icon(Icons.local_offer),
+                                        padding: EdgeInsets.zero,
+                                        visualDensity: VisualDensity.compact,
+                                        constraints: const BoxConstraints(),
+                                      ),
+                                    ),
                                   ),
-                                );
-                              },
-                              icon: const Icon(Icons.add),
-                              padding: EdgeInsets.zero,
-                              visualDensity: VisualDensity.compact,
-                              constraints: const BoxConstraints(),
-                            ),
+                                ),
+                              ),
+                              Expanded(
+                                flex: 1,
+                                child: Align(
+                                  alignment: Alignment.center,
+                                  child: SizedBox(
+                                    width: design.boundedIconSize,
+                                    height: design.boundedIconSize,
+                                    child: FittedBox(
+                                      fit: BoxFit.contain,
+                                      child: IconButton(
+                                        onPressed: animalAction,
+                                        icon: const Icon(Icons.pets),
+                                        padding: EdgeInsets.zero,
+                                        visualDensity: VisualDensity.compact,
+                                        constraints: const BoxConstraints(),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+
+                              Expanded(
+                                flex: 1,
+                                child: Align(
+                                  alignment: Alignment.center,
+                                  child: SizedBox(
+                                    width: design.boundedIconSize,
+                                    height: design.boundedIconSize,
+                                    child: FittedBox(
+                                      fit: BoxFit.contain,
+                                      child: IconButton(
+                                        onPressed: employeeViewAction,
+                                        icon: const Icon(Icons.person),
+                                        padding: EdgeInsets.zero,
+                                        visualDensity: VisualDensity.compact,
+                                        constraints: const BoxConstraints(),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              Expanded(
+                                flex: 1,
+                                child: Align(
+                                  alignment: Alignment.center,
+                                  child: SizedBox(
+                                    width: design.boundedIconSize,
+                                    height: design.boundedIconSize,
+                                    child: FittedBox(
+                                      fit: BoxFit.contain,
+                                      child: IconButton(
+                                        onPressed: () {
+                                          if (self?.id == null ||
+                                              franchise.id == null) {
+                                            return;
+                                          }
+
+                                          showDialog(
+                                            context: context,
+                                            builder: (_) => NotificationDialog(
+                                              callback: (value) {
+                                                if (value == null ||
+                                                    self == null) {
+                                                  return;
+                                                }
+
+                                                if (self!.notifications !=
+                                                    null) {
+                                                  self!.notifications
+                                                      ?.removeWhere(
+                                                        (n) => n.id == value.id,
+                                                      );
+                                                  self!.notifications?.add(
+                                                    value,
+                                                  );
+                                                } else {
+                                                  self!.notifications = [value];
+                                                }
+                                                showSnackbar(
+                                                  "Notification added.",
+                                                );
+                                              },
+                                              userId: self!.id!,
+                                              franchiseId: franchise.id,
+                                            ),
+                                          );
+                                        },
+                                        icon: const Icon(Icons.note_add),
+                                        padding: EdgeInsets.zero,
+                                        visualDensity: VisualDensity.compact,
+                                        constraints: const BoxConstraints(),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                      flex: 1,
-                      child: Align(
-                        alignment: Alignment.center,
-                        child: SizedBox(
-                          width: design.boundedIconSize,
-                          height: design.boundedIconSize,
-                          child: FittedBox(
-                            fit: BoxFit.contain,
-                            child: IconButton(
-                              onPressed: editAction,
-                              icon: const Icon(Icons.edit),
-                              padding: EdgeInsets.zero,
-                              visualDensity: VisualDensity.compact,
-                              constraints: const BoxConstraints(),
-                            ),
+                          design.verticalGap(design.spacing),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Expanded(
+                                flex: 1,
+                                child: Align(
+                                  alignment: Alignment.center,
+                                  child: SizedBox(
+                                    width: design.boundedIconSize,
+                                    height: design.boundedIconSize,
+                                    child: FittedBox(
+                                      fit: BoxFit.contain,
+                                      child: IconButton(
+                                        onPressed: editAction,
+                                        icon: const Icon(Icons.edit),
+                                        padding: EdgeInsets.zero,
+                                        visualDensity: VisualDensity.compact,
+                                        constraints: const BoxConstraints(),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              Expanded(
+                                flex: 1,
+                                child: Align(
+                                  alignment: Alignment.center,
+                                  child: SizedBox(
+                                    width: design.boundedIconSize,
+                                    height: design.boundedIconSize,
+                                    child: FittedBox(
+                                      fit: BoxFit.contain,
+                                      child: IconButton(
+                                        onPressed: () {
+                                          showDialog(
+                                            context: context,
+                                            builder: (_) =>
+                                                FacilityCreationDialog(
+                                                  creationCallback: (input) =>
+                                                      setFacility(input),
+                                                  owningFranchiseId:
+                                                      franchise.id ?? "",
+                                                ),
+                                          );
+                                        },
+                                        icon: const Icon(Icons.add),
+                                        padding: EdgeInsets.zero,
+                                        visualDensity: VisualDensity.compact,
+                                        constraints: const BoxConstraints(),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              Expanded(
+                                flex: 1,
+                                child: Align(
+                                  alignment: Alignment.center,
+                                  child: SizedBox(
+                                    width: design.boundedIconSize,
+                                    height: design.boundedIconSize,
+                                    child: FittedBox(
+                                      fit: BoxFit.contain,
+                                      child: IconButton(
+                                        onPressed: deleteAction,
+                                        icon: const Icon(Icons.delete),
+                                        padding: EdgeInsets.zero,
+                                        visualDensity: VisualDensity.compact,
+                                        constraints: const BoxConstraints(),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                      flex: 1,
-                      child: Align(
-                        alignment: Alignment.center,
-                        child: SizedBox(
-                          width: design.boundedIconSize,
-                          height: design.boundedIconSize,
-                          child: FittedBox(
-                            fit: BoxFit.contain,
-                            child: IconButton(
-                              onPressed: deleteAction,
-                              icon: const Icon(Icons.delete),
-                              padding: EdgeInsets.zero,
-                              visualDensity: VisualDensity.compact,
-                              constraints: const BoxConstraints(),
-                            ),
-                          ),
-                        ),
+                        ],
                       ),
                     ),
                   ] else if (role == Access.business &&
