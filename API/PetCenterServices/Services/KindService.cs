@@ -11,6 +11,8 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Caching.Memory;
 
 
 namespace PetCenterServices.Services
@@ -18,11 +20,39 @@ namespace PetCenterServices.Services
     public class KindService : BaseCRUDService<Kind,KindSearchObject,KindDTO,KindDTO>, IKindService    
     {
 
-        public KindService(PetCenterDBContext ctx) : base(ctx)
+        private readonly IMemoryCache _cache;
+
+        public KindService(PetCenterDBContext ctx, ILoggerFactory _logger, IMemoryCache cache) : base(ctx, _logger)
         {
             dbSet = ctx.AnimalKinds;
+            _cache = cache;
         }
 
+        
+
+        public override async Task<ServiceOutput<int>> Count(Guid token_holder, KindSearchObject search)
+        {
+            string key = $"kind_count_{StaticDataVersionHolder.KindVersion}";
+            if (!_cache.TryGetValue(key, out int cached))
+            {
+                ServiceOutput<int> result = await base.Count(token_holder, search);
+                _cache.Set(key, result.Body, TimeSpan.FromHours(6));
+                return result;
+            }
+            return ServiceOutput<int>.Success(cached);
+        }
+
+        public override async Task<ServiceOutput<List<KindDTO>>> Get(Guid token_holder, KindSearchObject search)
+        {
+            string key = $"kind_page_{StaticDataVersionHolder.KindVersion}_{search.Page}";
+            if (!_cache.TryGetValue(key, out List<KindDTO>? cached))
+            {
+                ServiceOutput<List<KindDTO>> result = await base.Get(token_holder, search);
+                _cache.Set(key, result.Body, TimeSpan.FromHours(6));
+                return result;
+            }
+            return ServiceOutput<List<KindDTO>>.Success(cached!);
+        }
         protected override void Touch()
         {
             StaticDataVersionHolder.KindVersion=Guid.NewGuid();
@@ -31,16 +61,7 @@ namespace PetCenterServices.Services
         protected override Task<IQueryable<Kind>> Filter(Guid token_holder, KindSearchObject search)
         {
             IQueryable<Kind> query = dbSet.Include(k=>k.Breeds).OrderBy(k=>k.Id);
-            if (search.AuthoritySpecifier == Access.User && search.AdoptionPurposes)
-            {
-                query = dbSet.OrderBy(k=>k.Id);
-                query = query.Where(k =>
-                dbContext.AnimalListings.Any(al =>
-                al.Animal.AnimalBreed.KindId == k.Id &&
-                al.Base.Visible &&
-                al.Base.Approved &&
-                al.Base.Type == ListingType.Pet));
-            }
+            
             return Task.FromResult(query);
         }
 

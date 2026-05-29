@@ -11,6 +11,8 @@ GO
 
 CREATE SCHEMA [File]
 GO
+CREATE SCHEMA [BLOB]
+GO
 CREATE SCHEMA [Person]
 GO
 CREATE SCHEMA [Business]
@@ -26,6 +28,12 @@ GO
 CREATE SCHEMA [Product]
 GO
 CREATE SCHEMA [Service]
+GO
+
+CREATE TABLE [BLOB].[ImageBLOB](
+    ID VARCHAR(44) NOT NULL PRIMARY KEY,    
+    BinaryData VARBINARY(MAX) NOT NULL,
+);
 GO
 
 CREATE TABLE [Person].[Account](
@@ -48,7 +56,8 @@ CREATE TABLE [File].[Album](
     Capacity TINYINT NOT NULL,
     Reserved TINYINT NOT NULL,
     Locked BIT NOT NULL,
-	OwnerID UNIQUEIDENTIFIER FOREIGN KEY REFERENCES [Person].[Account](ID)	
+	OwnerID UNIQUEIDENTIFIER FOREIGN KEY REFERENCES [Person].[Account](ID),
+    CONSTRAINT CHK_Album_Reserved CHECK (Reserved >= 0 AND Reserved <= Capacity)	
 );
 GO  
     
@@ -58,15 +67,17 @@ CREATE TABLE [File].[Image](
     OwningAlbumID UNIQUEIDENTIFIER NOT NULL,
     Width SMALLINT NOT NULL,
     Height SMALLINT NOT NULL,
-    ImageData VARCHAR(MAX) NOT NULL,
+    BLOBID VARCHAR(44) NOT NULL FOREIGN KEY REFERENCES [BLOB].[ImageBLOB](ID),
 
-    CONSTRAINT FK_Image_Album FOREIGN KEY (OwningAlbumID) REFERENCES [File].[Album](ID) ON DELETE CASCADE
+    CONSTRAINT FK_Image_Album FOREIGN KEY (OwningAlbumID) REFERENCES [File].[Album](ID) ON DELETE CASCADE,
+    CONSTRAINT UQ_Image_Album_BLOB UNIQUE (OwningAlbumID, BLOBID)
 );
 GO
 
 CREATE TABLE [Person].[User](
     ID UNIQUEIDENTIFIER NOT NULL PRIMARY KEY FOREIGN KEY REFERENCES [Person].[Account](ID),
     CurrentVersion ROWVERSION NOT NULL,   
+    UserState UNIQUEIDENTIFIER NOT NULL DEFAULT NEWID(),
     UserName NVARCHAR(75) NOT NULL,
 
     CONSTRAINT UQ_UserName UNIQUE (UserName),
@@ -343,7 +354,7 @@ CREATE TABLE [Offer].[Listing](
     ID UNIQUEIDENTIFIER NOT NULL DEFAULT NEWSEQUENTIALID() PRIMARY KEY,
     CurrentVersion ROWVERSION NOT NULL,
     ListingName NVARCHAR(75) NOT NULL,
-    ListingDescription NVARCHAR(500) NOT NULL,
+    ListingDescription NVARCHAR(1000) NOT NULL,
     FranchiseID UNIQUEIDENTIFIER NOT NULL FOREIGN KEY REFERENCES [Business].[Franchise](ID),
     AlbumID UNIQUEIDENTIFIER NOT NULL FOREIGN KEY REFERENCES [File].[Album](ID),
     PriceMinor BIGINT NOT NULL,
@@ -398,7 +409,7 @@ GO
 CREATE TABLE [Offer].[MedicalListing](
     ID UNIQUEIDENTIFIER NOT NULL PRIMARY KEY FOREIGN KEY REFERENCES [Offer].[Listing](ID),
     CurrentVersion ROWVERSION NOT NULL,
-    ProcedureID UNIQUEIDENTIFIER NOT NULL FOREIGN KEY REFERENCES [Service].[MedicalProcedure](ID)
+    ProcedureID UNIQUEIDENTIFIER NOT NULL FOREIGN KEY REFERENCES [Service].[MedicalProcedure](ID),
 );
 GO
 
@@ -433,6 +444,7 @@ CREATE TABLE [Communication].[Notification](
     Title NVARCHAR(75) NOT NULL,
     Body NVARCHAR(255) NOT NULL,
     ListingID UNIQUEIDENTIFIER FOREIGN KEY REFERENCES [Offer].[Listing](ID),
+    DatePosted DATETIME2 NOT NULL,
     Expiry DATETIME2 NOT NULL,
 
     CONSTRAINT FK_Notification_User FOREIGN KEY (UserID) REFERENCES [Person].[User](ID) ON DELETE CASCADE
@@ -445,6 +457,7 @@ CREATE TABLE [Communication].[Announcement](
     UserVisible BIT NOT NULL,
     BusinessVisible BIT NOT NULL,
     AnnouncementBody NVARCHAR(255) NOT NULL,
+    DatePosted DATETIME2 NOT NULL,
     Expiry DATETIME2 NOT NULL,
 
     CONSTRAINT UQ_Announcement_User_Business UNIQUE (AnnouncementBody, UserVisible, BusinessVisible)
@@ -458,6 +471,7 @@ CREATE TABLE [Communication].[Report](
     ListingID UNIQUEIDENTIFIER NOT NULL FOREIGN KEY REFERENCES [Offer].[Listing](ID),
     Reason NVARCHAR(255) NOT NULL,
     Expiry DATETIME2 NOT NULL,
+    DatePosted DATETIME2 NOT NULL,
     ReporterID UNIQUEIDENTIFIER NOT NULL FOREIGN KEY REFERENCES [Person].[User](ID),
 
     CONSTRAINT UQ_Report_Reporter_Listing UNIQUE (ReporterID, ListingID),

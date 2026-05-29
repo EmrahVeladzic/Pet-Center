@@ -415,3 +415,7 @@ FodyWeavers.xsd
 *.msix
 *.msm
 *.msp
+
+#Flutter Hive cache
+**/cache.hive
+**/cache.lock

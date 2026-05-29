@@ -17,24 +17,49 @@ class BreedDTO {
   double cohabitation;
   List<NoteSubDTO>? notes;
   String title;
-  String albumId;
-  List<ImageDTO> images;
+  String? albumId;
+  List<ImageDTO> media;
+  bool locked;
+  bool full;
+  String? mediaCreationToken;
 
   BreedDTO({
     this.id,
     this.currentVersion = '',
     this.kindId = '',
     this.scale = AnimalScale.medium,
-    this.investment = 0.0,
-    this.territory = 0.0,
-    this.pricing = 0.0,
-    this.longevity = 0.0,
-    this.cohabitation = 0.0,
+    this.investment = 0.5,
+    this.territory = 0.5,
+    this.pricing = 0.5,
+    this.longevity = 0.5,
+    this.cohabitation = 0.5,
     this.notes,
     this.title = '',
-    this.albumId = '',
-    List<ImageDTO>? images,
-  }) : images = images ?? [];
+    this.albumId,
+    this.locked = true,
+    this.full = true,
+    this.mediaCreationToken,
+    List<ImageDTO>? media,
+  }) : media = media ?? [];
+
+  BreedDTO copy() => BreedDTO(
+    id: id,
+    currentVersion: currentVersion,
+    kindId: kindId,
+    scale: scale,
+    investment: investment,
+    territory: territory,
+    pricing: pricing,
+    longevity: longevity,
+    cohabitation: cohabitation,
+    notes: notes?.map((n) => n.copy()).toList(),
+    title: title,
+    albumId: albumId,
+    locked: locked,
+    full: full,
+    mediaCreationToken: mediaCreationToken,
+    media: media.map((m) => m.copy()).toList(),
+  );
 
   factory BreedDTO.fromJson(Map<String, dynamic> json) =>
       _$BreedDTOFromJson(json);

@@ -9,6 +9,9 @@ enum CacheEntityType {
 
   @JsonValue('report')
   report,
+
+  @JsonValue('listing')
+  listing,
 }
 
 enum Access {
@@ -49,4 +52,130 @@ enum AnimalScale {
   medium,
   @JsonValue(2)
   large,
+}
+
+enum OrderingMethod {
+  @JsonValue(0)
+  id,
+  @JsonValue(1)
+  priceDescending,
+  @JsonValue(2)
+  priceAscending,
+  @JsonValue(3)
+  postedDescending,
+  @JsonValue(4)
+  postedAscending,
+}
+
+extension AccessExtension on Access {
+  int get value {
+    switch (this) {
+      case Access.owner:
+        return 255;
+      case Access.admin:
+        return 254;
+      case Access.business:
+        return 1;
+      case Access.user:
+        return 0;
+    }
+  }
+
+  String get displayName {
+    switch (this) {
+      case Access.owner:
+        return 'Owner';
+      case Access.admin:
+        return 'Admin';
+      case Access.business:
+        return 'Business';
+      case Access.user:
+        return 'User';
+    }
+  }
+}
+
+extension ListingTypeExtension on ListingType {
+  int get value {
+    switch (this) {
+      case ListingType.generic:
+        return 0;
+      case ListingType.product:
+        return 1;
+      case ListingType.pet:
+        return 2;
+      case ListingType.medical:
+        return 3;
+    }
+  }
+
+  String get displayName {
+    switch (this) {
+      case ListingType.generic:
+        return "Generic";
+      case ListingType.pet:
+        return "Animal";
+      case ListingType.medical:
+        return "Medical";
+
+      case ListingType.product:
+        return "Product";
+    }
+  }
+}
+
+extension AnimalScaleExtension on AnimalScale {
+  int get value {
+    switch (this) {
+      case AnimalScale.small:
+        return 0;
+      case AnimalScale.medium:
+        return 1;
+      case AnimalScale.large:
+        return 2;
+    }
+  }
+
+  String get displayName {
+    switch (this) {
+      case AnimalScale.small:
+        return "Small";
+      case AnimalScale.medium:
+        return "Medium";
+      case AnimalScale.large:
+        return "Large";
+    }
+  }
+}
+
+extension OrderingMethodExtension on OrderingMethod {
+  int get value {
+    switch (this) {
+      case OrderingMethod.id:
+        return 0;
+      case OrderingMethod.priceDescending:
+        return 1;
+      case OrderingMethod.priceAscending:
+        return 2;
+      case OrderingMethod.postedDescending:
+        return 3;
+      case OrderingMethod.postedAscending:
+        return 4;
+    }
+  }
+
+  String get displayName {
+    switch (this) {
+      case OrderingMethod.id:
+        return 'Default Sorting';
+      case OrderingMethod.priceDescending:
+        return 'Price: High to Low';
+      case OrderingMethod.priceAscending:
+        return 'Price: Low to High';
+      case OrderingMethod.postedDescending:
+        return 'Newest First';
+      case OrderingMethod.postedAscending:
+        return 'Oldest First';
+    }
+  }
 }

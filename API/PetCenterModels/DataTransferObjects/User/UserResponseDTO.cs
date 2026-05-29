@@ -22,6 +22,9 @@ namespace PetCenterModels.DataTransferObjects
 
         public string Body {get; set;} = string.Empty;
 
+           
+        public DateTime DatePosted {get; set;} = DateTime.UtcNow;
+
         public static AnnouncementSubDTO? FromEntity(Announcement? announcement)
         {
             if(announcement==null){return null;}
@@ -29,7 +32,8 @@ namespace PetCenterModels.DataTransferObjects
             {
                 Id=announcement.Id,
                 CurrentVersion=announcement.CurrentVersion,
-                Body=announcement.Body
+                Body=announcement.Body,
+                DatePosted=announcement.DatePosted
             };
         }
     }
@@ -43,6 +47,8 @@ namespace PetCenterModels.DataTransferObjects
         public Guid? ListingId {get; set;} = null;
         public string Title {get; set;} = string.Empty;
 
+        public DateTime DatePosted {get; set;} = DateTime.UtcNow;
+
         public string Body {get; set;} = string.Empty;
 
         public static NotificationSubDTO? FromEntity(Notification? notification)
@@ -54,7 +60,8 @@ namespace PetCenterModels.DataTransferObjects
                 CurrentVersion=notification.CurrentVersion,
                 Title = notification.Title,
                 Body=notification.Body,
-                ListingId=notification.ListingId
+                ListingId=notification.ListingId,
+                DatePosted=notification.DatePosted
             };
         }
     }
@@ -69,6 +76,8 @@ namespace PetCenterModels.DataTransferObjects
 
         public Guid ConsumableId {get; set;}
 
+        public int MassGrams {get; set;} 
+
         public List<NoteSubDTO>? Notes {get; set;} = null;
 
         public static SuppliesSubDTO? FromEntity(Supplies? supplies)
@@ -80,6 +89,7 @@ namespace PetCenterModels.DataTransferObjects
             output.CurrentVersion=supplies.CurrentVersion;
             output.KindId=supplies.KindId;
             output.ConsumableId=supplies.CategoryId;
+            output.MassGrams=supplies.MassGrams;
 
             output.Notes=new();
             
@@ -97,16 +107,20 @@ namespace PetCenterModels.DataTransferObjects
 
         public byte[] CurrentVersion { get; set; } = Array.Empty<byte>();
 
-        public string? UserName {get; set;}
+        public string UserName {get; set;} = string.Empty;
         public List<NoteSubDTO>? Notes {get; set;}
 
-        public List<AnnouncementSubDTO>? Announcements {get; set;} = null;
+        public List<NotificationSubDTO>? Notifications {get; set;} = null;  
 
-        public List<NotificationSubDTO>? Notifications {get; set;} = null;
+        public List<SuppliesSubDTO>? UserSupplies {get; set;} = null; 
 
-        public List<ReportResponseSubDTO>? Reports {get; set;} = null;
+        public List<FranchiseResponseDTO>? Workplaces {get; set;} = null;
+
+        public List<IndividualResponseDTO>? OwnedAnimals {get; set;} = null;
 
         public bool MatureAccount {get; set;} = false;
+
+        public List<string>? UserWishlist {get; set;} = null;
 
         public static UserResponseDTO? FromEntity(User? usr)
         {
@@ -117,8 +131,8 @@ namespace PetCenterModels.DataTransferObjects
                 Id=usr.Id,
                 CurrentVersion=usr.CurrentVersion,
                 UserName=usr.UserName,
-                MatureAccount=ModelValidationUtils.IsMature(usr.UserAccount)
-               
+                MatureAccount=ModelValidationUtils.IsMature(usr.UserAccount),
+                UserWishlist = usr.UserWishlist.Select(w=>w.Term).ToList()
             };
         }
     }

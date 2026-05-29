@@ -48,10 +48,7 @@ CategoryDTO _$CategoryDTOFromJson(Map<String, dynamic> json) => CategoryDTO(
   title: json['title'] as String? ?? '',
   consumable: json['consumable'] as bool? ?? false,
   usageSpecifics: (json['usageSpecifics'] as List<dynamic>?)
-      ?.map(
-        (e) =>
-            e == null ? null : UsageSubDTO.fromJson(e as Map<String, dynamic>),
-      )
+      ?.map((e) => UsageSubDTO.fromJson(e as Map<String, dynamic>))
       .toList(),
 );
 
@@ -63,5 +60,5 @@ Map<String, dynamic> _$CategoryDTOToJson(
   'notes': instance.notes?.map((e) => e.toJson()).toList(),
   'title': instance.title,
   'consumable': instance.consumable,
-  'usageSpecifics': instance.usageSpecifics?.map((e) => e?.toJson()).toList(),
+  'usageSpecifics': instance.usageSpecifics?.map((e) => e.toJson()).toList(),
 };

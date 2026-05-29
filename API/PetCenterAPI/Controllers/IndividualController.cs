@@ -20,12 +20,7 @@ namespace PetCenterAPI.Controllers
         public IndividualController(IIndividualService s):base(s) { }
 
       
-        [HttpGet("Count")]
-        [NonAction]
-        public override Task<IActionResult> Count([FromQuery] IndividualSearchObject search)
-        {
-            throw new NotImplementedException();
-        }
+     
 
         [Authorize(Roles ="Employee,User")]
         [HttpPost]
@@ -50,7 +45,7 @@ namespace PetCenterAPI.Controllers
 
         [Authorize(Roles ="Employee,User")]
         [HttpPut("Medical/{animal_id}/{procedure_id}")]
-        public async Task<IActionResult> SetMedicalRecord([FromRoute] Guid animal_id, [FromRoute] Guid procedure_id, [FromQuery] int? days_since)
+        public async Task<IActionResult> SetMedicalRecord([FromRoute] Guid animal_id, [FromRoute] Guid procedure_id, [FromQuery] int? days_since = null)
         {
             if(TryGetUserId(out Guid user_id))
             {

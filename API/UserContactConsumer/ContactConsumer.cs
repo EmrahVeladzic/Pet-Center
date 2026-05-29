@@ -8,6 +8,7 @@ using UserContactConsumer.Services;
 using PetCenterShared;
 using System.Text.Json;
 using System.ComponentModel.DataAnnotations;
+using Microsoft.Extensions.Logging;
 
 public class RabbitMQCfg
 {
@@ -19,14 +20,17 @@ public class RabbitMQCfg
 public class ContactConsumer
 {
     private readonly IConfiguration cfg;
+
+    private readonly ILogger logger;
     private IChannel? channel;
     private readonly EmailService email_service;
     private readonly RabbitMQCfg rabbitmq;
     private IConnection? connection;
 
-    public ContactConsumer(IConfiguration c, EmailService e)
+    public ContactConsumer(IConfiguration c, EmailService e, ILogger _logger)
     {
         cfg = c;
+        logger=_logger;
         email_service= e;
         IConfigurationSection rabbitmq_cfg = cfg.GetSection("RabbitMQ");
 
@@ -72,10 +76,10 @@ public class ContactConsumer
       
     }
 
-    public static async Task<ContactConsumer> CreateAsync(IConfiguration c, EmailService e)
+    public static async Task<ContactConsumer> CreateAsync(IConfiguration c, EmailService e, ILogger _logger)
     {
 
-        ContactConsumer consumer = new(c, e);
+        ContactConsumer consumer = new(c, e,_logger);
 
         ConnectionFactory factory = new ConnectionFactory()
         {
@@ -125,50 +129,50 @@ public class ContactConsumer
 
     public async Task StartListening()
     {
-
         if (channel != null)
         {
             AsyncEventingBasicConsumer consumer = new AsyncEventingBasicConsumer(channel);
-        
-              
             consumer.ReceivedAsync += async (sender, input) =>
-            {
+            {            
+                byte[] body = input.Body.ToArray();
+                string json = Encoding.UTF8.GetString(body);
+                ConsumerMessage? msg = JsonSerializer.Deserialize<ConsumerMessage>(json);
 
-                if (this.channel != null)
+                int delay = 1000;
+                long attempt = 0;
+
+                while (true)
                 {
-                    try 
+                    try
                     {
-                        byte[] body = input.Body.ToArray();
-                        string json = Encoding.UTF8.GetString(body);
-                        ConsumerMessage? msg = JsonSerializer.Deserialize<ConsumerMessage>(json);
-
                         if (msg != null && !string.IsNullOrWhiteSpace(msg.Contact))
                         {
-                          
                             await email_service.SendEmail(msg.Contact, msg.Message, msg.Subject, msg.Name);
                         }
 
-                     
-                        await this.channel.BasicAckAsync(input.DeliveryTag, false);
-                        
+                        await channel.BasicAckAsync(input.DeliveryTag, false);
+                        logger.LogInformation("Message acked successfully on attempt {Attempt}.", ++attempt);
+                        break;
+                    }
+                    catch (PermanentDeliveryException ex)
+                    {
+                    
+                        logger.LogCritical(ex, "Permanent delivery failure, message will not be retried. Contact: {Contact}", msg?.Contact);
+                        await channel.BasicAckAsync(input.DeliveryTag, false);
+                    
+                        break;
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine(ex.ToString());
-                        
-                        await this.channel.BasicNackAsync(input.DeliveryTag, false, true);
+                        logger.LogError(ex, "Delivery failed on attempt {Attempt}. Retrying in {Delay}ms.", ++attempt, delay);
+                        await Task.Delay(delay);
+                        delay = Math.Min(delay * 2, 15000);
                     }
-                  
                 }
             };
 
-
-            await channel!.BasicConsumeAsync(queue:rabbitmq!.queue!,autoAck:false,consumer:consumer);
-
+            await channel!.BasicConsumeAsync(queue: rabbitmq!.queue!, autoAck: false, consumer: consumer);
         }
-         
-
     }
-
 
 }

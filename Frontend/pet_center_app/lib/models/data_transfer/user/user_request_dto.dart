@@ -11,5 +11,12 @@ class UserRequestDTO {
 
   factory UserRequestDTO.fromJson(Map<String, dynamic> json) =>
       _$UserRequestDTOFromJson(json);
+
   Map<String, dynamic> toJson() => _$UserRequestDTOToJson(this);
+
+  UserRequestDTO copy() => UserRequestDTO(
+    id: id,
+    currentVersion: currentVersion,
+    userName: userName,
+  );
 }

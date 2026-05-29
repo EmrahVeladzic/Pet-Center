@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Text.Json.Serialization;
@@ -20,25 +21,26 @@ namespace PetCenterModels.SearchObjects
     public class ListingSearchObject:BaseSearchObject
     {
     
-        public ListingType Type {get; set;} = ListingType.Generic;
-
-        public Guid RelevantId {get; set;} = Guid.Empty;
+        public ListingType Type {get; set;} = ListingType.Generic;      
 
         public OrderingMethod OrderBy {get; set;} = OrderingMethod.ID;
 
         public bool ShowApprovedAndPending {get; set;} = false;
 
+        public Guid RelevantId {get; set;} = Guid.Empty;
+
         public Guid KindSpecific {get; set;} = Guid.Empty;
 
         public Guid BreedSpecific {get; set;} = Guid.Empty;
 
-        public bool SexSpecific {get; set;}
+        public bool SexSpecific {get; set;} = true;
 
-        public AnimalScale ScaleSpecific {get; set;} 
+        public AnimalScale ScaleSpecific {get; set;} = AnimalScale.Small;
 
 
         [JsonIgnore]
-        public override int PageSize =>10;
+        [ReadOnly(true)]
+        public override int PageSize {get;} = 10;
 
     }
 }

@@ -13,8 +13,8 @@ ListingResponseDTO _$ListingResponseDTOFromJson(Map<String, dynamic> json) =>
       notes: (json['notes'] as List<dynamic>?)
           ?.map((e) => NoteSubDTO.fromJson(e as Map<String, dynamic>))
           .toList(),
-      albumId: json['albumId'] as String? ?? '',
-      images: (json['images'] as List<dynamic>?)
+      albumId: json['albumId'] as String?,
+      media: (json['media'] as List<dynamic>?)
           ?.map((e) => ImageDTO.fromJson(e as Map<String, dynamic>))
           .toList(),
       name: json['name'] as String? ?? '',
@@ -22,7 +22,14 @@ ListingResponseDTO _$ListingResponseDTOFromJson(Map<String, dynamic> json) =>
       franchiseId: json['franchiseId'] as String? ?? '',
       contact: json['contact'] as String? ?? '',
       franchiseName: json['franchiseName'] as String? ?? '',
+      locked: json['locked'] as bool? ?? true,
+      full: json['full'] as bool? ?? true,
+      approved: json['approved'] as bool? ?? false,
+      visible: json['visible'] as bool? ?? false,
       priceMinor: (json['priceMinor'] as num?)?.toInt() ?? 0,
+      posted: json['posted'] == null
+          ? null
+          : DateTime.parse(json['posted'] as String),
       type:
           $enumDecodeNullable(_$ListingTypeEnumMap, json['type']) ??
           ListingType.generic,
@@ -46,6 +53,7 @@ ListingResponseDTO _$ListingResponseDTOFromJson(Map<String, dynamic> json) =>
           : DiscountResponseSubDTO.fromJson(
               json['listingDiscount'] as Map<String, dynamic>,
             ),
+      mediaCreationToken: json['mediaCreationToken'] as String?,
       availability: (json['availability'] as List<dynamic>?)
           ?.map(
             (e) =>
@@ -65,12 +73,16 @@ Map<String, dynamic> _$ListingResponseDTOToJson(ListingResponseDTO instance) =>
       'currentVersion': instance.currentVersion,
       'notes': instance.notes?.map((e) => e.toJson()).toList(),
       'albumId': instance.albumId,
-      'images': instance.images.map((e) => e.toJson()).toList(),
+      'media': instance.media.map((e) => e.toJson()).toList(),
+      'locked': instance.locked,
+      'full': instance.full,
       'name': instance.name,
       'description': instance.description,
       'franchiseId': instance.franchiseId,
       'contact': instance.contact,
       'franchiseName': instance.franchiseName,
+      'approved': instance.approved,
+      'visible': instance.visible,
       'priceMinor': instance.priceMinor,
       'type': _$ListingTypeEnumMap[instance.type]!,
       'productListingExtension': instance.productListingExtension?.toJson(),
@@ -79,6 +91,8 @@ Map<String, dynamic> _$ListingResponseDTOToJson(ListingResponseDTO instance) =>
       'listingDiscount': instance.listingDiscount?.toJson(),
       'availability': instance.availability.map((e) => e.toJson()).toList(),
       'comments': instance.comments.map((e) => e.toJson()).toList(),
+      'mediaCreationToken': instance.mediaCreationToken,
+      'posted': instance.posted.toIso8601String(),
     };
 
 const _$ListingTypeEnumMap = {

@@ -1,5 +1,6 @@
 import 'package:json_annotation/json_annotation.dart';
-import 'package:pet_center_app/models/data_transfer/listing/sub_dtos.dart';
+import 'package:pet_center_app/models/data_transfer/franchise/franchise_response_dto.dart';
+import 'package:pet_center_app/models/data_transfer/individual/individual_response_dto.dart';
 import 'package:pet_center_app/models/data_transfer/note_sub_dto.dart';
 part 'user_response_dto.g.dart';
 
@@ -9,17 +10,27 @@ class AnnouncementSubDTO {
   String currentVersion;
   List<NoteSubDTO>? notes;
   String body;
+  DateTime datePosted;
 
   AnnouncementSubDTO({
     this.id,
     this.currentVersion = '',
     this.notes,
     this.body = '',
-  });
+    DateTime? datePosted,
+  }) : datePosted = datePosted ?? DateTime.now().toUtc();
 
   factory AnnouncementSubDTO.fromJson(Map<String, dynamic> json) =>
       _$AnnouncementSubDTOFromJson(json);
+
   Map<String, dynamic> toJson() => _$AnnouncementSubDTOToJson(this);
+
+  AnnouncementSubDTO copy() => AnnouncementSubDTO(
+    id: id,
+    currentVersion: currentVersion,
+    notes: notes?.map((n) => n.copy()).toList(),
+    body: body,
+  );
 }
 
 @JsonSerializable(explicitToJson: true)
@@ -30,6 +41,7 @@ class NotificationSubDTO {
   String? listingId;
   String title;
   String body;
+  DateTime datePosted;
 
   NotificationSubDTO({
     this.id,
@@ -38,11 +50,22 @@ class NotificationSubDTO {
     this.listingId,
     this.title = '',
     this.body = '',
-  });
+    DateTime? datePosted,
+  }) : datePosted = datePosted ?? DateTime.now().toUtc();
 
   factory NotificationSubDTO.fromJson(Map<String, dynamic> json) =>
       _$NotificationSubDTOFromJson(json);
+
   Map<String, dynamic> toJson() => _$NotificationSubDTOToJson(this);
+
+  NotificationSubDTO copy() => NotificationSubDTO(
+    id: id,
+    currentVersion: currentVersion,
+    notes: notes?.map((n) => n.copy()).toList(),
+    listingId: listingId,
+    title: title,
+    body: body,
+  );
 }
 
 @JsonSerializable(explicitToJson: true)
@@ -51,6 +74,7 @@ class SuppliesSubDTO {
   String currentVersion;
   String kindId;
   String consumableId;
+  int massGrams;
   List<NoteSubDTO>? notes;
 
   SuppliesSubDTO({
@@ -59,11 +83,22 @@ class SuppliesSubDTO {
     this.kindId = '',
     this.consumableId = '',
     this.notes,
+    this.massGrams = 0,
   });
 
   factory SuppliesSubDTO.fromJson(Map<String, dynamic> json) =>
       _$SuppliesSubDTOFromJson(json);
+
   Map<String, dynamic> toJson() => _$SuppliesSubDTOToJson(this);
+
+  SuppliesSubDTO copy() => SuppliesSubDTO(
+    id: id,
+    currentVersion: currentVersion,
+    kindId: kindId,
+    consumableId: consumableId,
+    massGrams: massGrams,
+    notes: notes?.map((n) => n.copy()).toList(),
+  );
 }
 
 @JsonSerializable(explicitToJson: true)
@@ -71,24 +106,42 @@ class UserResponseDTO {
   String? id;
   String currentVersion;
   bool matureAccount;
-  String? userName;
+  String userName;
   List<NoteSubDTO>? notes;
-  List<AnnouncementSubDTO>? announcements;
   List<NotificationSubDTO>? notifications;
-  List<ReportResponseSubDTO>? reports;
+  List<SuppliesSubDTO>? userSupplies;
+  List<FranchiseResponseDTO>? workplaces;
+  List<IndividualResponseDTO>? ownedAnimals;
+  List<String>? userWishlist;
 
   UserResponseDTO({
     this.id,
     this.currentVersion = '',
-    this.userName,
+    this.userName = '',
     this.notes,
-    this.announcements,
+    this.userSupplies,
     this.notifications,
-    this.reports,
     this.matureAccount = false,
+    this.ownedAnimals,
+    this.workplaces,
+    this.userWishlist,
   });
 
   factory UserResponseDTO.fromJson(Map<String, dynamic> json) =>
       _$UserResponseDTOFromJson(json);
+
   Map<String, dynamic> toJson() => _$UserResponseDTOToJson(this);
+
+  UserResponseDTO copy() => UserResponseDTO(
+    id: id,
+    currentVersion: currentVersion,
+    matureAccount: matureAccount,
+    userName: userName,
+    notes: notes?.map((n) => n.copy()).toList(),
+    notifications: notifications?.map((n) => n.copy()).toList(),
+    userSupplies: userSupplies?.map((s) => s.copy()).toList(),
+    workplaces: workplaces?.map((w) => w.copy()).toList(),
+    ownedAnimals: ownedAnimals?.map((a) => a.copy()).toList(),
+    userWishlist: userWishlist,
+  );
 }

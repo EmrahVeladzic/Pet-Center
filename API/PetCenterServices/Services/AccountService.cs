@@ -15,6 +15,7 @@ using System.Threading.Tasks;
 using RabbitMQ.Client;
 using PetCenterShared;
 using PetCenterModels.ModelUtils;
+using Microsoft.Extensions.Logging;
 
 
 namespace PetCenterServices.Services
@@ -24,23 +25,23 @@ namespace PetCenterServices.Services
 
         private IMessageBusClient message_bus_client;
 
-        public AccountService(PetCenterDBContext ctx,IMessageBusClient client):base(ctx)
+        public AccountService(PetCenterDBContext ctx,ILoggerFactory _logger,IMessageBusClient client):base(ctx,_logger)
         {
             dbSet = ctx.Accounts;
             message_bus_client=client;
         }
 
-        protected override async Task<IQueryable<Account>> Filter(Guid token_holder, AccountSearchObject search)
+        protected override Task<IQueryable<Account>> Filter(Guid token_holder, AccountSearchObject search)
         {
-            IQueryable<Account> output = await base.Filter(token_holder,search);
-            if (search.Role != null)
-            {
-                output = output.Where(a=>a.AccessLevel==search.Role);
-            }
-            return output;
+            IQueryable<Account> output = dbSet.Include(a=>a.AccountUser).OrderBy(a=>a.Id);
+            output=output.Where(q=>q.Contact.ToLower().StartsWith(search.Contact));
+            
+            output = output.Where(a=>a.AccessLevel==search.Role);
+            
+            return Task<IQueryable<Account>>.FromResult(output);
         }
 
-        public override async Task<ServiceOutput<AccountResponseDTO>> Post(Guid token_holder,AccountRequestDTO req)
+        public override async Task<ServiceOutput<AccountResponseDTO>> Post(Guid session,Guid token_holder,AccountRequestDTO req)
         {
             if (!req.Validate())
             {
@@ -64,7 +65,7 @@ namespace PetCenterServices.Services
                 acc.Verified = true;
             }
 
-            using (IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync())
+        await using(IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync())
             {
                 try
                 {
@@ -102,12 +103,15 @@ namespace PetCenterServices.Services
                         await message_bus_client.SendEmailMessage(new ConsumerMessage(){Contact=acc.Contact,Message=$"Your verification code is {code}.",Subject="Welcome!",Name=usr.UserName});
 
                     }
+
+                    acc.AccountUser=usr;
+
                     return ServiceOutput<AccountResponseDTO>.Success(AccountResponseDTO.FromEntity(acc),HttpCode.Created);
                 }
                 catch(Exception ex)
                 {
                     await tx.RollbackAsync();
-                    return ServiceOutput<AccountResponseDTO>.FromException(ex);
+                    return ServiceOutput<AccountResponseDTO>.FromException(ex,logger);
                     
                 }
             }
@@ -125,7 +129,7 @@ namespace PetCenterServices.Services
                 return ServiceOutput<string>.Error(HttpCode.NotFound,"No account with this ID exists.");
             }
 
-            using (IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync())
+        await using(IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync())
             {
                 try
                 {
@@ -135,12 +139,7 @@ namespace PetCenterServices.Services
                     if(old_hash!=ct.OldCodeHash || new_hash!= ct.NewCodeHash)
                     {
                         return ServiceOutput<string>.Error(HttpCode.BadRequest,"One or both of the sent codes are not correct.");
-                    }
-
-                    if (!ModelValidationUtils.ValidateContact(ct.NewContact))
-                    {
-                        return ServiceOutput<string>.Error(HttpCode.InternalError,"Internal server error.");
-                    }
+                    }                 
 
                     Account? acc = await dbSet.FirstOrDefaultAsync(a=>a.Contact==ct.NewContact);
                     if (acc != null)
@@ -159,7 +158,7 @@ namespace PetCenterServices.Services
                 catch(Exception ex)
                 {
                     await tx.RollbackAsync();
-                    return ServiceOutput<string>.FromException(ex);
+                    return ServiceOutput<string>.FromException(ex,logger);
                 }
             }
             
@@ -170,23 +169,23 @@ namespace PetCenterServices.Services
 
         public async Task<ServiceOutput<string>> RequestAccountTransfer(Guid token_holder, string? contact_overwrite)
         {
+            if(contact_overwrite!=null && !ModelValidationUtils.ValidateContact(contact_overwrite))
+            {
+                return ServiceOutput<string>.Error(HttpCode.BadRequest,"Please make sure you have entered a valid contact.");
+            }
             Account? acc = await dbSet.Include(a=>a.AccountUser).FirstOrDefaultAsync(a=>a.Id == token_holder);
             ContactTransfer? ctf = await dbContext.ContactTransfers.FindAsync(token_holder);
             if (acc == null)
             {
                 return ServiceOutput<string>.Error(HttpCode.NotFound,"No account with this ID exists.");
-            }
-            if (acc.AccountUser == null)
-            {
-                return ServiceOutput<string>.Error(HttpCode.InternalError,"Internal server error.");
-            }
+            }           
             if (acc.Contact == contact_overwrite)
             {
                 return ServiceOutput<string>.Error(HttpCode.Conflict,"You already use this contact.");
             }
             if(ctf==null && !ModelValidationUtils.ValidateContact(contact_overwrite))
             {
-                return ServiceOutput<string>.Error(HttpCode.BadRequest,"Please provide a valid contact to transfer your account to.");
+                return ServiceOutput<string>.Error(HttpCode.BadRequest,"Please provide a contact to transfer your account to.");
             }
             int old_code = Crypto.GenerateCode();
             int new_code = Crypto.GenerateCode();
@@ -227,7 +226,7 @@ namespace PetCenterServices.Services
             }
             catch(Exception ex)
             {
-                return ServiceOutput<string>.FromException(ex);
+                return ServiceOutput<string>.FromException(ex,logger);
             }
             await message_bus_client.SendEmailMessage(new ConsumerMessage(){Contact=acc.Contact,Message=$"Your first transfer code is {old_code}.",Subject="Account transfer",Name=acc.AccountUser.UserName});
             await message_bus_client.SendEmailMessage(new ConsumerMessage(){Contact=transfer.NewContact,Message=$"Your second transfer code is {new_code}.",Subject="Account transfer",Name=acc.AccountUser.UserName});
@@ -235,10 +234,10 @@ namespace PetCenterServices.Services
             return ServiceOutput<string>.Success("Your account transfer code pair will be sent shortly.");
         }
 
-        public override async Task<ServiceOutput<AccountResponseDTO>> Put(Guid token_holder,AccountRequestDTO req)
+        public override async Task<ServiceOutput<AccountResponseDTO>> Put(Guid session,Guid token_holder,AccountRequestDTO req)
         {      
 
-            Account? acc = await dbContext.Accounts.FindAsync(req.Id);
+            Account? acc = await dbContext.Accounts.Include(a=>a.AccountUser).FirstOrDefaultAsync(a=>a.Id==req.Id);
 
             if (acc != null)
             {                
@@ -246,13 +245,13 @@ namespace PetCenterServices.Services
                 bool updated_contact = false;
                 bool updated_password = false;
 
-                if (ModelValidationUtils.ValidateContact(req.Contact))
+                if (!string.IsNullOrWhiteSpace(req.Contact))
                 {
                     ServiceOutput<string> s_out = await RequestAccountTransfer(token_holder,req.Contact);
                     
                     updated_contact = ServiceOutput<string>.IsSuccess(s_out);
 
-                    if(string.IsNullOrWhiteSpace(req.Password)){return ServiceOutput<AccountResponseDTO>.Error(s_out.Code,s_out.ErrorMessage!);}
+                    if(!updated_contact){return ServiceOutput<AccountResponseDTO>.Error(s_out.Code,s_out.ErrorMessage!);}
                 }
                 
 
@@ -281,7 +280,7 @@ namespace PetCenterServices.Services
                 catch(Exception ex)
                 {
                         
-                    return ServiceOutput<AccountResponseDTO>.FromException(ex);
+                    return ServiceOutput<AccountResponseDTO>.FromException(ex,logger);
                 }
                 
                 
@@ -338,12 +337,10 @@ namespace PetCenterServices.Services
                             await dbContext.SaveChangesAsync();
                         }
 
-                        return ServiceOutput<string>.Success(Utils.Crypto.GenerateJWT(usr));
+                        return ServiceOutput<string>.Success(Utils.Crypto.GenerateJWT(usr,null));
 
                     }
-
-                    return ServiceOutput<string>.Error(HttpCode.InternalError,"Internal server error.");
-
+                   
                 }
             }
 
@@ -356,11 +353,7 @@ namespace PetCenterServices.Services
             Registration? reg = await dbContext.Registrations.Include(r=>r.RelevantAccount).ThenInclude(a=>a.AccountUser).FirstOrDefaultAsync(r=>r.Id==id);
 
             if (reg != null)
-            {
-                if (reg.RelevantAccount == null||reg.RelevantAccount.AccountUser==null)
-                {
-                    return ServiceOutput<string>.Error(HttpCode.InternalError,"Internal server error.");
-                }
+            {                
 
                 int code = Utils.Crypto.GenerateCode();
                 reg.CodeSalt=Crypto.GenerateSalt();
@@ -388,11 +381,7 @@ namespace PetCenterServices.Services
             if (acc == null)
             {
                 return ServiceOutput<string>.Error(HttpCode.NotFound,"The account with the provided contact does not exist.");
-            }
-            if (acc.AccountUser == null)
-            {                
-                return ServiceOutput<string>.Error(HttpCode.InternalError,"Internal server error.");
-            }
+            }            
 
             SingleTimeEntry? temp = await dbContext.SingleTimeEntries.FindAsync(acc.Id);
 
@@ -419,7 +408,7 @@ namespace PetCenterServices.Services
             
         } 
 
-        public async Task<ServiceOutput<string>> VerifyAccount(Guid id, int code)
+        public async Task<ServiceOutput<string>> VerifyAccount(Guid id, int code, Guid session)
         {
             Registration? reg = await dbContext.Registrations.Include(r => r.RelevantAccount).FirstOrDefaultAsync(r => r.Id == id);
 
@@ -438,7 +427,7 @@ namespace PetCenterServices.Services
                 return ServiceOutput<string>.Error(HttpCode.TooManyRequests,"Too early for next attempt.");
             }
 
-            using (IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync())
+        await using(IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync())
             {
                 try
                 {
@@ -457,7 +446,7 @@ namespace PetCenterServices.Services
                         if (usr != null)
                         {
 
-                            return ServiceOutput<string>.Success(Utils.Crypto.GenerateJWT(usr));
+                            return ServiceOutput<string>.Success(Utils.Crypto.GenerateJWT(usr,session));
 
                         }
 
@@ -479,7 +468,7 @@ namespace PetCenterServices.Services
                 catch(Exception ex)
                 {
                     await tx.RollbackAsync();
-                    return ServiceOutput<string>.FromException(ex);
+                    return ServiceOutput<string>.FromException(ex,logger);
                     
                 }
             }
@@ -509,7 +498,7 @@ namespace PetCenterServices.Services
             catch(Exception ex)
             {
                    
-                return ServiceOutput<object>.FromException(ex);
+                return ServiceOutput<object>.FromException(ex,logger);
                     
             }
             
@@ -519,12 +508,12 @@ namespace PetCenterServices.Services
         public async Task<ServiceOutput<string>> SetRole(Guid owner_id, Guid id, Access role)
         {
 
-            using (IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync(IsolationLevel.Serializable))
+        await using(IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync(IsolationLevel.Serializable))
             {
                 try
                 {
 
-                    Account? acc = await dbContext.Accounts.FindAsync(id);
+                    Account? acc = await dbContext.Accounts.Include(a=>a.AccountUser).FirstOrDefaultAsync(a=>a.Id==id);
                     if (acc != null)
                     {
                     
@@ -534,11 +523,7 @@ namespace PetCenterServices.Services
                             return ServiceOutput<string>.Error(HttpCode.Forbidden,"This action is not allowed.");
                         }
 
-                        User? usr = await dbContext.Users.FindAsync(id);
-                        if (usr == null)
-                        {
-                            return ServiceOutput<string>.Error(HttpCode.InternalError,"Internal server error.");
-                        }
+                        User usr = acc.AccountUser;
 
                         await usr.StageDeletion<User>(dbContext,dbContext.Users);
 
@@ -558,7 +543,7 @@ namespace PetCenterServices.Services
                 catch(Exception ex)
                 {
                     await tx.RollbackAsync();
-                    return ServiceOutput<string>.FromException(ex);                    
+                    return ServiceOutput<string>.FromException(ex,logger);                    
 
                 }
             }
@@ -567,7 +552,7 @@ namespace PetCenterServices.Services
 
         public override async Task <ServiceOutput<object>> Delete(Guid token_holder,Guid id)
         {
-            using (IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync(IsolationLevel.Serializable))
+        await using(IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync(IsolationLevel.Serializable))
             {
                 try
                 {
@@ -582,7 +567,7 @@ namespace PetCenterServices.Services
                             return ServiceOutput<object>.Error(HttpCode.Forbidden,"This action is not allowed.");
                         }                       
 
-
+                       
                         await current.StageDeletion<Account>(dbContext,dbSet);
                         await dbContext.SaveChangesAsync();                
                         await tx.CommitAsync();
@@ -596,7 +581,7 @@ namespace PetCenterServices.Services
                 catch(Exception ex)
                 {
                     await tx.RollbackAsync();
-                    return ServiceOutput<object>.FromException(ex);
+                    return ServiceOutput<object>.FromException(ex,logger);
                     
 
                 }

@@ -12,7 +12,7 @@ using PetCenterModels.SearchObjects;
 
 namespace PetCenterModels.DataTransferObjects
 {
-    public class BreedDTO : ISerializableRequestDTO<Breed>, IAlbumCarryingDTO<Breed,BreedDTO>
+    public class BreedDTO : ISerializableRequestDTO<Breed>, IAlbumCarryingDTO<Breed,BreedDTO,ImageDTO,Image,ImageMetadata>
     {
        
         public Guid? Id {get; set;} = null;
@@ -21,7 +21,12 @@ namespace PetCenterModels.DataTransferObjects
 
         public Guid KindId {get; set;} = Guid.Empty;
 
+        public bool Locked {get; set;} = true;
+
         public AnimalScale Scale {get; set;}
+
+        public bool Full {get; set;}=true;
+
 
         public float Investment {get; set;} = 0.0f;
         public float Territory {get; set;} = 0.0f;
@@ -29,14 +34,16 @@ namespace PetCenterModels.DataTransferObjects
         public float Longevity {get; set;} = 0.0f;
         public float Cohabitation {get; set;} = 0.0f;
 
+        public string? MediaCreationToken {get; set;} = string.Empty;
+
         public List<NoteSubDTO>? Notes {get; set;} = null;
 
         [MaxLength(75)]
         public string Title {get; set;} = string.Empty;
 
-        public Guid AlbumId {get; set;} = Guid.Empty;
+        public Guid? AlbumId {get; set;} = null;
 
-        public List<ImageDTO> Images {get; set;} = new();
+        public List<ImageDTO> Media {get; set;} = new();
 
 
         public static BreedDTO? FromEntity(Breed? entity)
@@ -59,8 +66,23 @@ namespace PetCenterModels.DataTransferObjects
 
             if (entity.Album != null)
             {
-                output.Images = entity.Album.Images.Select(i=>ImageDTO.FromEntity(i)!).ToList();
+                output.Media = entity.Album.Images.Select(i=>ImageDTO.FromEntity(i)!).ToList();
+                output.Locked=entity.Album.Locked;
+                output.Full=entity.Album.Reserved>=entity.Album.Capacity;
             }
+
+            return output;
+        }
+
+        public static BreedDTO? FromEntity(Breed? entity, string token)
+        {
+            BreedDTO? output = FromEntity(entity);
+
+            if (output != null)
+            {
+                output.MediaCreationToken=token;
+            }
+
 
             return output;
         }
@@ -70,7 +92,10 @@ namespace PetCenterModels.DataTransferObjects
             Breed breed = new();
             breed.CurrentVersion=CurrentVersion;
             breed.KindId=KindId;
-            breed.AlbumId=AlbumId;
+            if (AlbumId != null)
+            {
+                breed.AlbumId=AlbumId.Value;
+            }            
             breed.Scale=Scale;
             breed.Investment=Investment;
             breed.Territory=Territory;
@@ -80,6 +105,8 @@ namespace PetCenterModels.DataTransferObjects
             breed.Title=Title;
             return breed;
         }
+
+        
         
         
         public bool Validate()

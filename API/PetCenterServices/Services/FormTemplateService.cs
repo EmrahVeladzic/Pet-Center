@@ -11,6 +11,8 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Caching.Memory;
 
 
 namespace PetCenterServices.Services
@@ -18,11 +20,37 @@ namespace PetCenterServices.Services
     public class FormTemplateService : BaseCRUDService<FormTemplate,FormTemplateSearchObject,FormTemplateDTO,FormTemplateDTO>, IFormTemplateService    
     {
 
-        public FormTemplateService(PetCenterDBContext ctx) : base(ctx)
+        private readonly IMemoryCache _cache;
+
+        public FormTemplateService(PetCenterDBContext ctx, ILoggerFactory _logger, IMemoryCache cache) : base(ctx, _logger)
         {
             dbSet = ctx.FormTemplates;
+            _cache = cache;
         }
 
+        public override async Task<ServiceOutput<int>> Count(Guid token_holder, FormTemplateSearchObject search)
+        {
+            string key = $"formtemplate_count_{StaticDataVersionHolder.FormTemplateVersion}";
+            if (!_cache.TryGetValue(key, out int cached))
+            {
+                ServiceOutput<int> result = await base.Count(token_holder, search);
+                _cache.Set(key, result.Body, TimeSpan.FromHours(6));
+                return result;
+            }
+            return ServiceOutput<int>.Success(cached);
+        }
+
+        public override async Task<ServiceOutput<List<FormTemplateDTO>>> Get(Guid token_holder, FormTemplateSearchObject search)
+        {
+            string key = $"formtemplate_page_{StaticDataVersionHolder.FormTemplateVersion}_{search.Page}";
+            if (!_cache.TryGetValue(key, out List<FormTemplateDTO>? cached))
+            {
+                ServiceOutput<List<FormTemplateDTO>> result = await base.Get(token_holder, search);
+                _cache.Set(key, result.Body, TimeSpan.FromHours(6));
+                return result;
+            }
+            return ServiceOutput<List<FormTemplateDTO>>.Success(cached!);
+        }
         protected override void Touch()
         {
             StaticDataVersionHolder.FormTemplateVersion=Guid.NewGuid();
@@ -31,7 +59,7 @@ namespace PetCenterServices.Services
         protected override async Task<IQueryable<FormTemplate>> Filter(Guid token_holder, FormTemplateSearchObject search)
         {
             IQueryable<FormTemplate> query = await base.Filter(token_holder, search);
-            query = query.Include(ft => ft.Entries);
+            query = query.Include(ft => ft.Fields);
             return query;
         }
 
@@ -63,6 +91,72 @@ namespace PetCenterServices.Services
 
             return ServiceOutput<object>.Success(null,HttpCode.OK);
           
+        }
+
+        public override async Task<ServiceOutput<FormTemplateDTO>> Put(Guid session,Guid token_holder,FormTemplateDTO req)
+        {      
+
+            FormTemplate? ent = await dbSet.FindAsync(req.Id);
+
+            if (ent != null)
+            {
+
+                
+                FormTemplate? overwrite = req.ToEntity();
+                    
+                if (overwrite != null)
+                {
+                        
+
+                    await using(IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync()){
+                       
+                       
+                        try
+                        {
+                            
+                            overwrite.Id = ent.Id;
+
+                            
+                            dbSet.Entry(ent).Property(e => e.CurrentVersion).OriginalValue = overwrite.CurrentVersion;
+
+                            
+                            byte[] originalVersion = overwrite.CurrentVersion;
+                            overwrite.CurrentVersion = ent.CurrentVersion; 
+                            dbSet.Entry(ent).CurrentValues.SetValues(overwrite);
+
+                            await dbContext.SaveChangesAsync();
+
+                            
+
+                            await tx.CommitAsync();
+
+                            await dbSet.Entry(ent).Collection(e=>e.Fields).LoadAsync();
+
+                            Touch();
+                            return ServiceOutput<FormTemplateDTO>.Success(FormTemplateDTO.FromEntity(ent));
+                               
+                        }
+                        catch(Exception ex)
+                        {
+                            await tx.RollbackAsync();
+                            return ServiceOutput<FormTemplateDTO>.FromException(ex,logger);
+                        }
+
+                    }
+                        
+
+
+
+                    
+                    
+
+                }
+               
+               
+
+            }
+
+            return ServiceOutput<FormTemplateDTO>.Error(HttpCode.NotFound,"No resource with this ID exists.");
         }
 
         public override Task<ServiceOutput<object>> IsClearedToDelete(Guid token_holder, Guid resourceId)
@@ -109,7 +203,7 @@ namespace PetCenterServices.Services
             if(formTemplateField!=null)
             {
 
-                using (IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync())
+            await using(IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync())
                 {
                     try
                     {
@@ -121,7 +215,7 @@ namespace PetCenterServices.Services
                     catch(Exception ex)
                     {
                         await tx.RollbackAsync();
-                        return ServiceOutput<object>.FromException(ex);
+                        return ServiceOutput<object>.FromException(ex,logger);
                     }
                 }
             }

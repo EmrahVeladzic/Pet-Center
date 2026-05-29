@@ -1,22 +1,51 @@
+import 'dart:convert';
+
 import 'package:http/http.dart' as http;
 import 'package:pet_center_app/models/data_transfer/form_template_dto.dart';
 
 import 'package:pet_center_app/utils/app_config.dart';
 import 'package:pet_center_app/utils/app_style.dart';
+import 'package:pet_center_app/utils/globals.dart';
 import 'package:pet_center_app/utils/jwt_parser.dart';
 import 'package:pet_center_app/utils/service_output.dart';
 
 class FormTemplateService {
-  static Future<List<FormTemplateDTO>?> get() async {
+  static Future<int?> count() async {
+    apiServiceBusy.value = true;
+    try {
+      final response = await http.get(
+        Uri.parse("${AppConfig.apiBaseUrl}/api/FormTemplate/Count"),
+        headers: {'Authorization': 'Bearer $rawToken', 'Accept': 'text/plain'},
+      );
+
+      final result = await ServiceOutput.fromResponse<int>(
+        response,
+        (json) => (json as int),
+      );
+
+      apiServiceBusy.value = false;
+      return result;
+    } catch (ex) {
+      showError(ex);
+      apiServiceBusy.value = false;
+      return null;
+    }
+  }
+
+  static Future<List<FormTemplateDTO>?> get(int page) async {
+    apiServiceBusy.value = true;
     try {
       final query = <String, String>{};
-      query['page'] = 0.toString();
+      query['page'] = page.toString();
 
       final response = await http.get(
         Uri.parse(
           "${AppConfig.apiBaseUrl}/api/FormTemplate",
         ).replace(queryParameters: query),
-        headers: {'Authorization': 'Bearer $rawToken'},
+        headers: {
+          'Authorization': 'Bearer $rawToken',
+          'Accept': 'application/json',
+        },
       );
 
       final result = await ServiceOutput.fromResponse<List<FormTemplateDTO>>(
@@ -26,9 +55,155 @@ class FormTemplateService {
             .toList(),
       );
 
+      apiServiceBusy.value = false;
       return result;
     } catch (ex) {
       showError(ex);
+      apiServiceBusy.value = false;
+      return null;
+    }
+  }
+
+  static Future<List<FormTemplateDTO>?> getAll() async {
+    final pageCount = await count();
+
+    if (pageCount == null) {
+      return null;
+    }
+
+    List<FormTemplateDTO> output = [];
+    final seen = <String?>{};
+
+    for (int i = 0; i < pageCount; i++) {
+      final newEntries = await get(i);
+
+      if (newEntries == null) {
+        return null;
+      }
+
+      for (final ent in newEntries) {
+        if (seen.add(ent.id)) {
+          output.add(ent);
+        }
+      }
+    }
+
+    return output;
+  }
+
+  static Future<FormTemplateDTO?> put(FormTemplateDTO input, String id) async {
+    apiServiceBusy.value = true;
+    try {
+      final response = await http.put(
+        Uri.parse("${AppConfig.apiBaseUrl}/api/FormTemplate/$id"),
+        headers: {
+          'Authorization': 'Bearer $rawToken',
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: jsonEncode(input.toJson()),
+      );
+
+      final result = await ServiceOutput.fromResponse<FormTemplateDTO>(
+        response,
+        (json) => FormTemplateDTO.fromJson(json as Map<String, dynamic>),
+      );
+
+      apiServiceBusy.value = false;
+      return result;
+    } catch (ex) {
+      showError(ex);
+      apiServiceBusy.value = false;
+      return null;
+    }
+  }
+
+  static Future<FormTemplateDTO?> post(FormTemplateDTO input) async {
+    apiServiceBusy.value = true;
+    try {
+      final response = await http.post(
+        Uri.parse("${AppConfig.apiBaseUrl}/api/FormTemplate"),
+        headers: {
+          'Authorization': 'Bearer $rawToken',
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: jsonEncode(input.toJson()),
+      );
+
+      final result = await ServiceOutput.fromResponse<FormTemplateDTO>(
+        response,
+        (json) => FormTemplateDTO.fromJson(json as Map<String, dynamic>),
+      );
+
+      apiServiceBusy.value = false;
+      return result;
+    } catch (ex) {
+      showError(ex);
+      apiServiceBusy.value = false;
+      return null;
+    }
+  }
+
+  static Future<bool> delete(String id) async {
+    apiServiceBusy.value = true;
+    try {
+      final response = await http.delete(
+        Uri.parse("${AppConfig.apiBaseUrl}/api/FormTemplate/$id"),
+        headers: {'Authorization': 'Bearer $rawToken'},
+      );
+
+      apiServiceBusy.value = false;
+      return ServiceOutput.isSuccess(response);
+    } catch (ex) {
+      showError(ex);
+      apiServiceBusy.value = false;
+      return false;
+    }
+  }
+
+  static Future<bool> deleteField(String id) async {
+    apiServiceBusy.value = true;
+    try {
+      final response = await http.delete(
+        Uri.parse("${AppConfig.apiBaseUrl}/api/FormTemplate/Field/$id"),
+        headers: {'Authorization': 'Bearer $rawToken'},
+      );
+
+      apiServiceBusy.value = false;
+      return ServiceOutput.isSuccess(response);
+    } catch (ex) {
+      showError(ex);
+      apiServiceBusy.value = false;
+      return false;
+    }
+  }
+
+  static Future<FormTemplateFieldDTO?> setField(
+    FormTemplateFieldDTO input,
+  ) async {
+    apiServiceBusy.value = true;
+    try {
+      final response = await http.put(
+        Uri.parse("${AppConfig.apiBaseUrl}/api/FormTemplate/Field"),
+        headers: {
+          'Authorization': 'Bearer $rawToken',
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: jsonEncode(input.toJson()),
+      );
+
+      final result = await ServiceOutput.fromResponse<FormTemplateFieldDTO>(
+        response,
+        (json) => FormTemplateFieldDTO.fromJson(json as Map<String, dynamic>),
+      );
+
+      apiServiceBusy.value = false;
+      return result;
+    } catch (ex) {
+      showError(ex);
+      apiServiceBusy.value = false;
       return null;
     }
   }

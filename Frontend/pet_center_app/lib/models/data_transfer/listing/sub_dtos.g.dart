@@ -36,6 +36,7 @@ AnimalListingSubDTO _$AnimalListingSubDTOFromJson(Map<String, dynamic> json) =>
           ?.map((e) => NoteSubDTO.fromJson(e as Map<String, dynamic>))
           .toList(),
       animalId: json['animalId'] as String? ?? '',
+      identity: json['identity'] as String? ?? '',
     );
 
 Map<String, dynamic> _$AnimalListingSubDTOToJson(
@@ -45,6 +46,7 @@ Map<String, dynamic> _$AnimalListingSubDTOToJson(
   'currentVersion': instance.currentVersion,
   'notes': instance.notes?.map((e) => e.toJson()).toList(),
   'animalId': instance.animalId,
+  'identity': instance.identity,
 };
 
 MedicalListingSubDTO _$MedicalListingSubDTOFromJson(
@@ -79,6 +81,9 @@ CommentResponseSubDTO _$CommentResponseSubDTOFromJson(
   notes: (json['notes'] as List<dynamic>?)
       ?.map((e) => NoteSubDTO.fromJson(e as Map<String, dynamic>))
       .toList(),
+  lastEditDate: json['lastEditDate'] == null
+      ? null
+      : DateTime.parse(json['lastEditDate'] as String),
 );
 
 Map<String, dynamic> _$CommentResponseSubDTOToJson(
@@ -91,6 +96,7 @@ Map<String, dynamic> _$CommentResponseSubDTOToJson(
   'posterName': instance.posterName,
   'contents': instance.contents,
   'notes': instance.notes?.map((e) => e.toJson()).toList(),
+  'lastEditDate': instance.lastEditDate.toIso8601String(),
 };
 
 AvailabilityResponseSubDTO _$AvailabilityResponseSubDTOFromJson(
@@ -158,6 +164,9 @@ ReportResponseSubDTO _$ReportResponseSubDTOFromJson(
   notes: (json['notes'] as List<dynamic>?)
       ?.map((e) => NoteSubDTO.fromJson(e as Map<String, dynamic>))
       .toList(),
+  datePosted: json['datePosted'] == null
+      ? null
+      : DateTime.parse(json['datePosted'] as String),
 );
 
 Map<String, dynamic> _$ReportResponseSubDTOToJson(
@@ -171,4 +180,5 @@ Map<String, dynamic> _$ReportResponseSubDTOToJson(
   'commentId': instance.commentId,
   'expiry': instance.expiry.toIso8601String(),
   'notes': instance.notes?.map((e) => e.toJson()).toList(),
+  'datePosted': instance.datePosted.toIso8601String(),
 };

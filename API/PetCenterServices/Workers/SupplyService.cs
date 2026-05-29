@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using PetCenterModels.DBTables;
+using Microsoft.Extensions.Logging;
 
 namespace PetCenterServices.Workers
 {
@@ -14,9 +15,12 @@ namespace PetCenterServices.Workers
     {
         
         private readonly IServiceScopeFactory scope_factory;
-        public SupplyService(IServiceScopeFactory factory)
+
+        private readonly ILogger<SupplyService> logger; 
+        public SupplyService(IServiceScopeFactory factory, ILogger<SupplyService> _logger)
         {
             scope_factory = factory;
+            logger=_logger;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -28,8 +32,9 @@ namespace PetCenterServices.Workers
                 await using(AsyncServiceScope scope = scope_factory.CreateAsyncScope())
                 {
                     PetCenterDBContext dBContext = scope.ServiceProvider.GetRequiredService<PetCenterDBContext>();
-                    IHostEnvironment environment = scope.ServiceProvider.GetRequiredService<IHostEnvironment>();
-                    await RunRecalculation(dBContext,environment,stoppingToken);
+                    
+                   
+                    await RunRecalculation(dBContext,logger,stoppingToken);
                 }
 
                 
@@ -38,27 +43,44 @@ namespace PetCenterServices.Workers
 
         }
 
-        private async Task RunRecalculation(PetCenterDBContext dBContext,IHostEnvironment environment, CancellationToken stoppingToken)
+        private async Task RunRecalculation(PetCenterDBContext dBContext, ILogger logger, CancellationToken stoppingToken)
         {
-            
             try
-            {              
+            {
                 bool proceed = true;
-                while(proceed && !stoppingToken.IsCancellationRequested)
+                while (proceed && !stoppingToken.IsCancellationRequested)
                 {
                     await using (IDbContextTransaction tx = await dBContext.Database.BeginTransactionAsync(stoppingToken))
                     {
                         try
                         {
-                            List<Supplies> supplies = await dBContext.SupplyRecords.Include(s=>s.RelevantUser).ThenInclude(u=>u.OwnedAnimals).Where(s=>s.Evaluated<DateTime.UtcNow.AddDays(-1)).OrderBy(s=>s.Id).Take(50).ToListAsync(stoppingToken);
-                            proceed = supplies.Count>0;
+                            List<Supplies> supplies = await dBContext.SupplyRecords
+                                .Include(s => s.RelevantUser)
+                                    .ThenInclude(u => u.OwnedAnimals)
+                                        .ThenInclude(a => a.AnimalBreed)
+                                .Where(s => s.Evaluated < DateTime.UtcNow.AddDays(-1))
+                                .OrderBy(s => s.Id)
+                                .Take(50)
+                                .ToListAsync(stoppingToken);
 
-                            foreach(Supplies sup in supplies)
+                            proceed = supplies.Count > 0;
+
+                            HashSet<Guid> categoryIds = supplies.Select(s => s.CategoryId).ToHashSet();
+                            HashSet<Guid> kindIds = supplies.Select(s => s.KindId).ToHashSet();
+
+                            List<Usage> allEstimates = await dBContext.UsageEstimates
+                                .Where(u => categoryIds.Contains(u.CategoryId) && kindIds.Contains(u.KindId))
+                                .ToListAsync(stoppingToken);
+
+                            foreach (Supplies sup in supplies)
                             {
-                                
-                                sup.MassGrams-= await Utils.UserUtils.GetTotalDailyUsageForCategory(dBContext,sup.CategoryId,sup.KindId,sup.RelevantUser.OwnedAnimals,stoppingToken);
-                                sup.MassGrams=Math.Max(sup.MassGrams,0);
-                                sup.Evaluated=DateTime.UtcNow;
+                                sup.MassGrams -= Utils.UserUtils.GetTotalDailyUsageForCategory(
+                                allEstimates, sup.CategoryId, sup.KindId,
+                                sup.RelevantUser.OwnedAnimals
+                                    .Where(a => a.Owned && a.AnimalBreed?.KindId == sup.KindId)
+                                    .ToList());
+                                sup.MassGrams = Math.Max(sup.MassGrams, 0);
+                                sup.Evaluated = DateTime.UtcNow;
                             }
 
                             await dBContext.SaveChangesAsync(stoppingToken);
@@ -69,26 +91,19 @@ namespace PetCenterServices.Workers
                             await tx.RollbackAsync(stoppingToken);
                             throw;
                         }
-                    }                    
+                    }
                 }
-                
             }
             catch (OperationCanceledException)
             {
-                if (environment.IsDevelopment())
-                {
-                    Console.WriteLine("Cleanup aborted due to host shutdown.");
-                }
+                logger.LogInformation("Supply update aborted due to host shutdown.");
             }
             catch (Exception ex)
             {
-                if (environment.IsDevelopment())
-                {
-                    Console.WriteLine($"[ERROR] {ex.GetType().Name}: {ex.Message}");
-                } 
+                logger.LogError(ex, "Supply worker exception.");
             }
-
         }
+
     }
 
 

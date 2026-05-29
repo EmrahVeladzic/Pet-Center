@@ -60,7 +60,7 @@ namespace PetCenterModels.DataTransferObjects
 
         public bool Consumable { get; set; } = false;
 
-        public List<UsageSubDTO?>? UsageSpecifics {get; set;} = null;
+        public List<UsageSubDTO>? UsageSpecifics {get; set;} = null;
 
         public static CategoryDTO? FromEntity(Category? entity)
         {
@@ -71,13 +71,14 @@ namespace PetCenterModels.DataTransferObjects
                 CurrentVersion= entity.CurrentVersion,
                 Title = entity.Title,
                 Consumable = entity.Consumable,
-                UsageSpecifics = entity.UsageSpecifics.Select(u=>UsageSubDTO.FromEntity(u)).ToList()
+                UsageSpecifics = entity.UsageSpecifics.Select(u=>UsageSubDTO.FromEntity(u)!).ToList()
             };
         }
 
         public Category? ToEntity()
         {
             Category category = new();
+            
             category.CurrentVersion=CurrentVersion;
             category.Title=Title;
             category.Consumable=Consumable;

@@ -17,12 +17,12 @@ namespace PetCenterModels.DataTransferObjects
         public Guid? Id { get; set; }
 
         public byte[] CurrentVersion { get; set; } = Array.Empty<byte>();
-        public string? FranchiseName { get; set; }
-        public string? Contact { get; set; }
-    
-        public Guid AlbumId {get; set;}
+        public string FranchiseName { get; set; } = string.Empty;
+        public string Contact { get; set; }   =string.Empty;
 
-        public List<ImageDTO?>? Images { get; set; }
+        public List<FacilityDTO> Facilities {get; set;} = new List<FacilityDTO>();
+
+        public List<IndividualResponseDTO> ShelteredAnimals {get; set;} = new List<IndividualResponseDTO>();
 
         public List<NoteSubDTO>? Notes {get; set;}
 
@@ -38,7 +38,11 @@ namespace PetCenterModels.DataTransferObjects
                 CurrentVersion=model.CurrentVersion,
                 FranchiseName = model.FranchiseName,
                 Contact = model.Contact,
+                Facilities = model.Facilities.Select(e=>FacilityDTO.FromEntity(e)!).ToList(),
+                ShelteredAnimals = model.ShelteredAnimals.Select(e=>IndividualResponseDTO.FromEntity(e)!).ToList()
             };
+
+            
         }
 
 
@@ -46,16 +50,23 @@ namespace PetCenterModels.DataTransferObjects
         {
             if(model==null){return null;}
 
-            return new FranchiseResponseDTO
+            FranchiseResponseDTO output = new FranchiseResponseDTO
             {
                 Id = model.Id,
                 CurrentVersion=model.CurrentVersion,
                 FranchiseName = model.FranchiseName,
                 Contact = model.Contact,  
-                Owned = owned             
+                Owned = owned,
+                ShelteredAnimals = model.ShelteredAnimals.Select(e=>IndividualResponseDTO.FromEntity(e)!).ToList()
+                         
             };
 
-          
+            if (output.Owned==true)
+            {
+                output.Facilities = model.Facilities.Select(e=>FacilityDTO.FromEntity(e)!).ToList();
+            }
+
+            return output;
         }
     }
 

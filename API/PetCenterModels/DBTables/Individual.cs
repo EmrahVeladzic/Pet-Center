@@ -40,13 +40,13 @@ namespace PetCenterModels.DBTables
         public Guid? OwnerId {get;set;}
 
         [ForeignKey(nameof(OwnerId))]
-        public User Owner {get; set;} = null!;
+        public User? Owner {get; set;} = null;
 
         [Column("ShelterID")]
         public Guid? ShelterId {get;set;}
 
         [ForeignKey(nameof(ShelterId))]
-        public Franchise Shelter {get; set;} = null!;
+        public Franchise? Shelter {get; set;} = null;
 
         [InverseProperty(nameof(MedicalRecordEntry.Animal))]
         public List<MedicalRecordEntry> MedicalRecord {get; set;} = new();

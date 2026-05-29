@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using PetCenterModels.DBTables;
+using Microsoft.Extensions.Logging;
 
 namespace PetCenterServices.Workers
 {
@@ -14,9 +15,11 @@ namespace PetCenterServices.Workers
     {
         
         private readonly IServiceScopeFactory scope_factory;
-        public CleanupService(IServiceScopeFactory factory)
+        private readonly ILogger<CleanupService> logger; 
+        public CleanupService(IServiceScopeFactory factory, ILogger<CleanupService> _logger)
         {
             scope_factory = factory;
+            logger=_logger;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -25,11 +28,14 @@ namespace PetCenterServices.Workers
 
             while (!stoppingToken.IsCancellationRequested)
             {
+                
+
                 await using(AsyncServiceScope scope = scope_factory.CreateAsyncScope())
                 {
                     PetCenterDBContext dBContext = scope.ServiceProvider.GetRequiredService<PetCenterDBContext>();
-                    IHostEnvironment environment = scope.ServiceProvider.GetRequiredService<IHostEnvironment>();
-                    await RunCleanup(dBContext,environment,stoppingToken);
+                    
+                   
+                    await RunCleanup(dBContext,logger,stoppingToken);
                 }
 
                 
@@ -38,8 +44,42 @@ namespace PetCenterServices.Workers
 
         }
 
-        private async Task CleanupEntity<TEntity>(PetCenterDBContext dBContext,DbSet<TEntity> set,CancellationToken stoppingToken) where TEntity : ExpirableTableEntity
+
+        private async Task<bool> CleanupBLOB<TBLOB,TEntity,TMeta>(PetCenterDBContext dBContext,DbSet<TEntity> metaSet, DbSet<TBLOB> blobSet,CancellationToken stoppingToken) where TEntity : BLOBReferencingEntity<TMeta> where TBLOB :BaseBLOBEntity<TMeta> where TMeta : IMetadataOutput , new()
         {
+            bool had_work = false;
+            bool proceed = true;
+            while(proceed && !stoppingToken.IsCancellationRequested)
+            {
+                await using (IDbContextTransaction tx = await dBContext.Database.BeginTransactionAsync(stoppingToken))
+                {
+                    try
+                    {
+                        TBLOB[] orphaned = await blobSet.Where(b => !metaSet.Select(e => e.BLOBId).Contains(b.Id)).OrderBy(e=>e.Id).Take(50).ToArrayAsync(stoppingToken);
+                        proceed = orphaned.Length>0;
+                        if (orphaned.Length > 0)
+                        {
+                            had_work = true;
+                        }
+                        blobSet.RemoveRange(orphaned);
+                        
+                        await dBContext.SaveChangesAsync(stoppingToken);
+                        await tx.CommitAsync(stoppingToken);
+                    }
+                    catch
+                    {
+                        await tx.RollbackAsync(stoppingToken);
+                        throw;
+                    }
+                }                    
+            }
+            return had_work;
+        }
+
+
+        private async Task<bool> CleanupEntity<TEntity>(PetCenterDBContext dBContext,DbSet<TEntity> set,CancellationToken stoppingToken) where TEntity : ExpirableTableEntity
+        {
+            bool had_work = false;
             bool proceed = true;
             while(proceed && !stoppingToken.IsCancellationRequested)
             {
@@ -49,6 +89,10 @@ namespace PetCenterServices.Workers
                     {
                         List<TEntity> expired = await set.Where(e=>e.Expiry<DateTime.UtcNow).OrderBy(e=>e.Id).Take(50).ToListAsync(stoppingToken);
                         proceed = expired.Count>0;
+                        if (expired.Count > 0)
+                        {
+                            had_work = true;
+                        }
                         foreach(TEntity exp in expired)
                         {
                             await exp.StageDeletion<TEntity>(dBContext,set,stoppingToken);
@@ -63,10 +107,10 @@ namespace PetCenterServices.Workers
                     }
                 }                    
             }
-            
+            return had_work;
         }
 
-        private async Task RunCleanup(PetCenterDBContext dBContext,IHostEnvironment environment, CancellationToken stoppingToken)
+        private async Task RunCleanup(PetCenterDBContext dBContext,ILogger logger, CancellationToken stoppingToken)
         {
             
             try
@@ -79,21 +123,21 @@ namespace PetCenterServices.Workers
                 await CleanupEntity<SingleTimeEntry>(dBContext,dBContext.SingleTimeEntries,stoppingToken);
                 await CleanupEntity<InvalidatedToken>(dBContext,dBContext.InvalidatedTokens,stoppingToken);
                 await CleanupEntity<ContactTransfer>(dBContext,dBContext.ContactTransfers,stoppingToken);
-                
+
+                await CleanupBLOB<ImageBLOB,Image,ImageMetadata>(dBContext,dBContext.Images,dBContext.ImageBLOBs,stoppingToken); 
             }
             catch (OperationCanceledException)
             {
-                if (environment.IsDevelopment())
-                {
-                    Console.WriteLine("Cleanup aborted due to host shutdown.");
-                }
+                
+                logger.LogInformation("Cleanup aborted due to host shutdown.");
+                
+                
             }
             catch (Exception ex)
             {
-                if (environment.IsDevelopment())
-                {
-                    Console.WriteLine($"[ERROR] {ex.GetType().Name}: {ex.Message}");
-                } 
+                
+                logger.LogError(ex,"Cleanup exception.");
+                 
             }
 
         }

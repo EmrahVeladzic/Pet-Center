@@ -10,8 +10,7 @@ namespace PetCenterModels.SearchObjects
 {
     public class LivingConditionSearchObject : BaseSearchObject
     {
-        [JsonIgnore]
-        public override int PageSize {get;} = int.MaxValue;
+        
 
     }
 }

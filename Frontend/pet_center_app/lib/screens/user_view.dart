@@ -5,13 +5,15 @@ import 'package:pet_center_app/screens/components/confirmation_dialog.dart';
 import 'package:pet_center_app/screens/components/dual_text_entry_dialog.dart';
 import 'package:pet_center_app/screens/components/text_entry_dialog.dart';
 import 'package:pet_center_app/screens/login_register.dart';
+import 'package:pet_center_app/screens/templates/screen_scaffold.dart';
 import 'package:pet_center_app/services/account_service.dart';
-import 'package:pet_center_app/services/static_data_service.dart';
+import 'package:pet_center_app/services/static_user_data_service.dart';
 import 'package:pet_center_app/services/user_service.dart';
 
 import 'package:pet_center_app/utils/app_style.dart';
 import 'package:pet_center_app/utils/hive_cache.dart';
 import 'package:pet_center_app/utils/jwt_parser.dart';
+import 'package:pet_center_app/utils/validators.dart';
 
 class UserViewScreen extends StatefulWidget {
   const UserViewScreen({super.key});
@@ -23,7 +25,7 @@ class _UserViewScreenState extends State<UserViewScreen> {
   void logOut() async {
     await AccountService.logOut();
     clearToken();
-    clearStaticData();
+    StaticAndUserDataService.clearObtainedData();
     if (mounted) {
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(builder: (context) => CredentialsScreen()),
@@ -38,6 +40,51 @@ class _UserViewScreenState extends State<UserViewScreen> {
       setState(() {
         self?.userName = response.userName;
       });
+    }
+  }
+
+  void transferAccount(String oldCode, String newCode) async {
+    int? oldC = int.tryParse(oldCode);
+    int? newC = int.tryParse(newCode);
+
+    if (oldC == null || newC == null) {
+      showSnackbar("Please make sure both codes are valid.");
+      return;
+    }
+    final response = await AccountService.transferAccount(oldC, newC);
+    if (response != null) {
+      showSnackbar(response);
+    }
+  }
+
+  void requestNewCodes() async {
+    final response = await AccountService.requestTransfer();
+    if (response != null) {
+      showSnackbar(response);
+    }
+  }
+
+  void setupAccountTransfer(String contact) async {
+    final response = await AccountService.update(
+      AccountRequestDTO(contact: contact),
+    );
+    if (response != null) {
+      if (mounted) {
+        showDialog(
+          context: context,
+          builder: (_) => DualTextEntryDialog(
+            callback: (oldCode, newCode) {
+              transferAccount(oldCode, newCode);
+            },
+            dialogName: "Enter your transfer codes:",
+            linkCallback: requestNewCodes,
+            linkName: "Send new codes.",
+            firstDecor: "First code...",
+            secondDecor: "Second code...",
+            sharedValidation: (value) => validateNumeric(value),
+          ),
+        );
+      }
     }
   }
 
@@ -56,6 +103,11 @@ class _UserViewScreenState extends State<UserViewScreen> {
 
   void clearCache() async {
     await CacheManager.clear();
+
+    visitedAnnouncementIndices.clear();
+    visitedReportIndices.clear();
+    visitedNotifIndices.clear();
+    visitedListingIndices.clear();
   }
 
   void resetUser() async {
@@ -71,11 +123,10 @@ class _UserViewScreenState extends State<UserViewScreen> {
 
     if (id == null) return;
 
-    await AccountService.delete(id);
-
-    if (!mounted) return;
-
-    logOut();
+    final success = await AccountService.delete(id);
+    if (success) {
+      logOut();
+    }
   }
 
   @override
@@ -84,176 +135,177 @@ class _UserViewScreenState extends State<UserViewScreen> {
       context,
     ).extension<ReactiveDesignSystem>()!;
 
-    return Scaffold(
-      backgroundColor: mainTone,
+    return BasicScreenScaffold(
+      center: true,
       appBar: AppBar(
         title: SizedBox(
           width: design.screenWidth * marqueeTitleWMult,
           height: design.marqueeSize,
           child: design.textMarquee(
             "${(self?.userName != null) ? self?.userName : 'User details'}",
+            design.screenWidth * marqueeTitleWMult,
           ),
         ),
       ),
-      body: Center(
-        child: FractionallySizedBox(
-          widthFactor: design.bodyWMult,
-          heightFactor: 1.0,
-          child: Container(
-            padding: EdgeInsets.all(design.spacing),
-            decoration: design.panelDecoration(),
-            child: LayoutBuilder(
-              builder: (context, boxConstraints) {
-                return SingleChildScrollView(
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(
-                      minHeight: boxConstraints.maxHeight,
-                    ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        design.textMarquee(
-                          "Account details:",
-                          design.bodyWMult * design.screenWidth,
-                          1.0,
-                          1.5,
-                        ),
-                        FractionallySizedBox(
-                          widthFactor: 0.5,
-                          alignment: Alignment.center,
-                          child: ElevatedButton(
-                            onPressed: () {
-                              showDialog(
-                                context: context,
-                                builder: (_) => TextEntryDialog(
-                                  callback: (value) {
-                                    changeUsername(value);
-                                  },
-                                  dialogName: "Enter new username:",
-                                ),
-                              );
-                            },
-                            child: design.fittedText('Change username'),
-                          ),
-                        ),
-                        SizedBox(height: design.spacing),
-                        FractionallySizedBox(
-                          widthFactor: 0.5,
-                          alignment: Alignment.center,
-                          child: ElevatedButton(
-                            onPressed: () {
-                              showDialog(
-                                context: context,
-                                builder: (_) => DualTextEntryDialog(
-                                  callback: (value, confirm) {
-                                    changePassword(value, confirm);
-                                  },
-                                  hideText: true,
-                                  dialogName: "Enter your new password twice:",
-                                ),
-                              );
-                            },
-                            child: design.fittedText('Change password'),
-                          ),
-                        ),
-                        SizedBox(height: design.spacing),
-                        design.textMarquee(
-                          "Session and cache:",
-                          design.bodyWMult * design.screenWidth,
-                          1.0,
-                          1.5,
-                        ),
-                        FractionallySizedBox(
-                          widthFactor: 0.5,
-                          alignment: Alignment.center,
-                          child: ElevatedButton(
-                            onPressed: () {
-                              showDialog(
-                                context: context,
-                                builder: (_) => ConfirmationDialog(
-                                  confirmAction: logOut,
-                                  title: "Log out",
-                                  body: "Are you sure you wish to log out?",
-                                ),
-                              );
-                            },
-                            child: design.fittedText('Log out'),
-                          ),
-                        ),
-                        SizedBox(height: design.spacing),
-                        FractionallySizedBox(
-                          widthFactor: 0.5,
-                          alignment: Alignment.center,
-                          child: ElevatedButton(
-                            onPressed: () {
-                              showDialog(
-                                context: context,
-                                builder: (_) => ConfirmationDialog(
-                                  confirmAction: clearCache,
-                                  title: "Clear user cache",
-                                  body:
-                                      "Are you sure you wish to clear your cache?",
-                                ),
-                              );
-                            },
-                            child: design.fittedText('Clear cache'),
-                          ),
-                        ),
-                        SizedBox(height: design.spacing),
-                        design.textMarquee(
-                          "Advanced:",
-                          design.bodyWMult * design.screenWidth,
-                          1.0,
-                          1.5,
-                        ),
-                        FractionallySizedBox(
-                          widthFactor: 0.5,
-                          alignment: Alignment.center,
-                          child: ElevatedButton(
-                            onPressed: () {
-                              showDialog(
-                                context: context,
-                                builder: (_) => ConfirmationDialog(
-                                  confirmAction: resetUser,
-                                  title: "Reset",
-                                  body:
-                                      "Are you sure you wish to reset your profile?",
-                                ),
-                              );
-                            },
-                            child: design.fittedText('Wipe user data'),
-                          ),
-                        ),
-                        SizedBox(height: design.spacing),
-                        FractionallySizedBox(
-                          widthFactor: 0.5,
-                          alignment: Alignment.center,
-                          child: ElevatedButton(
-                            onPressed: () {
-                              showDialog(
-                                context: context,
-                                builder: (_) => ConfirmationDialog(
-                                  confirmAction: deleteAccount,
-                                  title: "Deactivate account",
-                                  body:
-                                      "Are you sure you wish to deactivate your account?",
-                                ),
-                              );
-                            },
-                            child: design.fittedText('Delete account'),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              },
-            ),
+      body: [
+        design.textMarquee(
+          "Account details:",
+          design.bodyWMult * design.screenWidth,
+          1.0,
+          1.5,
+        ),
+        design.verticalGap(design.spacing),
+        FractionallySizedBox(
+          widthFactor: 0.5,
+          alignment: Alignment.center,
+          child: ElevatedButton(
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (_) => TextEntryDialog(
+                  callback: (value) {
+                    changeUsername(value);
+                  },
+                  dialogName: "Enter new username:",
+                  inputDecoration: "Username...",
+                  validation: (value) => validateGeneric(value),
+                ),
+              );
+            },
+            child: design.fittedText('Change username'),
           ),
         ),
-      ),
-      bottomNavigationBar: BottomAppBar(),
+        design.verticalGap(design.spacing),
+        FractionallySizedBox(
+          widthFactor: 0.5,
+          alignment: Alignment.center,
+          child: ElevatedButton(
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (_) => DualTextEntryDialog(
+                  callback: (value, confirm) {
+                    changePassword(value, confirm);
+                  },
+                  hideText: true,
+                  dialogName: "Enter your new password twice:",
+                  firstDecor: "Password...",
+                  secondDecor: "Confirm...",
+                  sharedValidation: (value) => validatePassword(value),
+                ),
+              );
+            },
+            child: design.fittedText('Change password'),
+          ),
+        ),
+        design.verticalGap(design.spacing),
+        FractionallySizedBox(
+          widthFactor: 0.5,
+          alignment: Alignment.center,
+          child: ElevatedButton(
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (_) => TextEntryDialog(
+                  callback: (value) {
+                    setupAccountTransfer(value);
+                  },
+                  dialogName: "Enter new contact:",
+                  inputDecoration: "Contact...",
+                  validation: (value) => validateContact(value),
+                ),
+              );
+            },
+            child: design.fittedText('Transfer account'),
+          ),
+        ),
+        design.verticalGap(design.spacing),
+        design.textMarquee(
+          "Session and cache:",
+          design.bodyWMult * design.screenWidth,
+          1.0,
+          1.5,
+        ),
+        design.verticalGap(design.spacing),
+        FractionallySizedBox(
+          widthFactor: 0.5,
+          alignment: Alignment.center,
+          child: ElevatedButton(
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (_) => ConfirmationDialog(
+                  confirmAction: logOut,
+                  title: "Log out",
+                  body: "Are you sure you wish to log out?",
+                ),
+              );
+            },
+            child: design.fittedText('Log out'),
+          ),
+        ),
+        design.verticalGap(design.spacing),
+        FractionallySizedBox(
+          widthFactor: 0.5,
+          alignment: Alignment.center,
+          child: ElevatedButton(
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (_) => ConfirmationDialog(
+                  confirmAction: clearCache,
+                  title: "Clear user cache",
+                  body: "Are you sure you wish to clear your cache?",
+                ),
+              );
+            },
+            child: design.fittedText('Clear cache'),
+          ),
+        ),
+        design.verticalGap(design.spacing),
+        design.textMarquee(
+          "Advanced:",
+          design.bodyWMult * design.screenWidth,
+          1.0,
+          1.5,
+        ),
+        design.verticalGap(design.spacing),
+        FractionallySizedBox(
+          widthFactor: 0.5,
+          alignment: Alignment.center,
+          child: ElevatedButton(
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (_) => ConfirmationDialog(
+                  confirmAction: resetUser,
+                  title: "Reset",
+                  body: "Are you sure you wish to reset your profile?",
+                ),
+              );
+            },
+            child: design.fittedText('Wipe user data'),
+          ),
+        ),
+        design.verticalGap(design.spacing),
+        FractionallySizedBox(
+          widthFactor: 0.5,
+          alignment: Alignment.center,
+          child: ElevatedButton(
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (_) => ConfirmationDialog(
+                  confirmAction: deleteAccount,
+                  title: "Deactivate account",
+                  body: "Are you sure you wish to deactivate your account?",
+                ),
+              );
+            },
+            child: design.fittedText('Delete account'),
+          ),
+        ),
+      ],
     );
   }
 }

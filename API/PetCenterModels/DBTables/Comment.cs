@@ -16,8 +16,7 @@ namespace PetCenterModels.DBTables
     {
         [Column("PosterID")]
         public Guid PosterId { get; set; }
-
-        [JsonIgnore]
+        
         [ForeignKey(nameof(PosterId))]
         public User Poster {  get; set; } = null!;
 

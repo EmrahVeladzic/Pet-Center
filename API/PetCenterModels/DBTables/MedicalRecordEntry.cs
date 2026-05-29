@@ -27,7 +27,7 @@ namespace PetCenterModels.DBTables
         public Individual Animal {get; set;} = null!;
 
         [Column("DatePerformed")]
-        public DateTime DatePerformed {get; set;}
+        public DateTime DatePerformed {get; set;} = DateTime.UtcNow;
 
     }
 }

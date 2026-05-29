@@ -13,17 +13,20 @@ BreedDTO _$BreedDTOFromJson(Map<String, dynamic> json) => BreedDTO(
   scale:
       $enumDecodeNullable(_$AnimalScaleEnumMap, json['scale']) ??
       AnimalScale.medium,
-  investment: (json['investment'] as num?)?.toDouble() ?? 0.0,
-  territory: (json['territory'] as num?)?.toDouble() ?? 0.0,
-  pricing: (json['pricing'] as num?)?.toDouble() ?? 0.0,
-  longevity: (json['longevity'] as num?)?.toDouble() ?? 0.0,
-  cohabitation: (json['cohabitation'] as num?)?.toDouble() ?? 0.0,
+  investment: (json['investment'] as num?)?.toDouble() ?? 0.5,
+  territory: (json['territory'] as num?)?.toDouble() ?? 0.5,
+  pricing: (json['pricing'] as num?)?.toDouble() ?? 0.5,
+  longevity: (json['longevity'] as num?)?.toDouble() ?? 0.5,
+  cohabitation: (json['cohabitation'] as num?)?.toDouble() ?? 0.5,
   notes: (json['notes'] as List<dynamic>?)
       ?.map((e) => NoteSubDTO.fromJson(e as Map<String, dynamic>))
       .toList(),
   title: json['title'] as String? ?? '',
-  albumId: json['albumId'] as String? ?? '',
-  images: (json['images'] as List<dynamic>?)
+  albumId: json['albumId'] as String?,
+  locked: json['locked'] as bool? ?? true,
+  full: json['full'] as bool? ?? true,
+  mediaCreationToken: json['mediaCreationToken'] as String?,
+  media: (json['media'] as List<dynamic>?)
       ?.map((e) => ImageDTO.fromJson(e as Map<String, dynamic>))
       .toList(),
 );
@@ -41,7 +44,10 @@ Map<String, dynamic> _$BreedDTOToJson(BreedDTO instance) => <String, dynamic>{
   'notes': instance.notes?.map((e) => e.toJson()).toList(),
   'title': instance.title,
   'albumId': instance.albumId,
-  'images': instance.images.map((e) => e.toJson()).toList(),
+  'media': instance.media.map((e) => e.toJson()).toList(),
+  'locked': instance.locked,
+  'full': instance.full,
+  'mediaCreationToken': instance.mediaCreationToken,
 };
 
 const _$AnimalScaleEnumMap = {

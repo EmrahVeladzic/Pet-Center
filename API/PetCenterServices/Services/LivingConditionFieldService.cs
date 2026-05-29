@@ -11,6 +11,8 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Caching.Memory;
 
 
 namespace PetCenterServices.Services
@@ -18,11 +20,27 @@ namespace PetCenterServices.Services
     public class LivingconditionFieldService : BaseCRUDService<LivingConditionField,LivingConditionSearchObject,LivingConditionFieldDTO,LivingConditionFieldDTO>, ILivingConditionFieldService    
     {
 
-        public LivingconditionFieldService(PetCenterDBContext ctx) : base(ctx)
+       private readonly IMemoryCache _cache;
+
+        public LivingconditionFieldService(PetCenterDBContext ctx, ILoggerFactory _logger, IMemoryCache cache) : base(ctx, _logger)
         {
             dbSet = ctx.LivingConditionFields;
+            _cache = cache;
         }
 
+        public override async Task<ServiceOutput<int>> Count(Guid token_holder, LivingConditionSearchObject search)
+        {
+            string key = $"livingcondition_count_{StaticDataVersionHolder.LivingConditionVersion}";
+            if (!_cache.TryGetValue(key, out int cached))
+            {
+                ServiceOutput<int> result = await base.Count(token_holder, search);
+                _cache.Set(key, result.Body, TimeSpan.FromHours(6));
+                return result;
+            }
+            return ServiceOutput<int>.Success(cached);
+        }
+
+      
         protected override void Touch()
         {
             StaticDataVersionHolder.LivingConditionVersion=Guid.NewGuid();
@@ -107,34 +125,36 @@ namespace PetCenterServices.Services
             }
             catch(Exception ex)
             {
-                return ServiceOutput<LivingConditionEntrySubDTO>.FromException(ex);
+                return ServiceOutput<LivingConditionEntrySubDTO>.FromException(ex,logger);
             }
 
 
         }
 
-        public async Task<ServiceOutput<object>> RemoveEntry(Guid user_id, Guid entry_id)
+        public async Task<ServiceOutput<object>> RemoveEntry(Guid user_id, Guid field_id)
         {
-            LivingConditionEntry? entry = await dbContext.LivingConditionEntries.FindAsync(entry_id);
+            LivingConditionEntry? entry = await dbContext.LivingConditionEntries.FirstOrDefaultAsync(e=>e.UserId==user_id&&e.LivingConditionFieldID==field_id);
 
             if (entry != null)
             {
-                if (entry.UserId != user_id)
-                {
-                    return ServiceOutput<object>.Error(HttpCode.Forbidden,"You do not own this entry.");
-                }
-
-                try
-                {
-                    await entry.StageDeletion<LivingConditionEntry>(dbContext,dbContext.LivingConditionEntries);
-                    await dbContext.SaveChangesAsync();
-                }
-                catch(Exception ex)
-                {
-                    return ServiceOutput<object>.FromException(ex);
-                }
-
                 
+
+                await using(IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync())
+                {
+
+                    try
+                    {
+                        await entry.StageDeletion<LivingConditionEntry>(dbContext,dbContext.LivingConditionEntries);
+                        await dbContext.SaveChangesAsync();
+                        await tx.CommitAsync();
+                    }
+                    catch(Exception ex)
+                    {
+                        await tx.RollbackAsync();
+                        return ServiceOutput<object>.FromException(ex,logger);
+                    }
+
+                }
             }
             Touch();
             return ServiceOutput<object>.Success(null,HttpCode.NoContent);

@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:pet_center_app/models/data_transfer/listing/listing_response_dto.dart';
 import 'package:pet_center_app/models/data_transfer/user/user_response_dto.dart';
+import 'package:pet_center_app/models/enums.dart';
+import 'package:pet_center_app/screens/components/listing/listing_card.dart';
 import 'package:pet_center_app/screens/listing_view.dart';
 import 'package:pet_center_app/services/listing_service.dart';
+import 'package:pet_center_app/services/static_user_data_service.dart';
 import 'package:pet_center_app/utils/app_style.dart';
 import 'package:pet_center_app/utils/helpers.dart';
+import 'package:pet_center_app/utils/hive_cache.dart';
 
 class NotificationViewScreen extends StatefulWidget {
   final NotificationSubDTO notification;
@@ -14,25 +19,48 @@ class NotificationViewScreen extends StatefulWidget {
 }
 
 class _NotificationViewScreenState extends State<NotificationViewScreen> {
+  ListingResponseDTO? relevant;
+
   void getRelevant() async {
     if (validGuid(widget.notification.listingId)) {
       final listing = await ListingService.getById(
         widget.notification.listingId!,
       );
-
+      if (!mounted) {
+        return;
+      }
       if (listing != null) {
-        if (!mounted) {
-          return;
-        }
-
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => ListingViewScreen(listing: listing),
-          ),
-        );
+        setState(() {
+          relevant = listing;
+        });
       }
     }
+  }
+
+  void switchTo() async {
+    final shouldRefresh = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ListingViewScreen(
+          listing: relevant!,
+          onModify: (hard) {
+            if (mounted) {
+              setState(() {});
+            }
+          },
+        ),
+      ),
+    );
+
+    if (shouldRefresh == true && mounted) {
+      Navigator.pop(context, true);
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    getRelevant();
   }
 
   @override
@@ -43,14 +71,25 @@ class _NotificationViewScreenState extends State<NotificationViewScreen> {
 
     final notif = widget.notification;
 
+    void addIndex(String i) async {
+      await CacheManager.write(i, CacheEntityType.listing);
+      setState(() {
+        if (!visitedListingIndices.contains(i)) {
+          visitedListingIndices.add(i);
+        }
+      });
+    }
+
     return Scaffold(
       backgroundColor: mainTone,
       appBar: AppBar(
-        leading: BackButton(),
         title: SizedBox(
           width: design.screenWidth * marqueeTitleWMult,
           height: design.marqueeSize,
-          child: design.textMarquee(notif.title),
+          child: design.textMarquee(
+            "${widget.notification.title} - ${formatDate(widget.notification.datePosted)}",
+            design.screenWidth * marqueeTitleWMult,
+          ),
         ),
       ),
       body: Center(
@@ -60,25 +99,35 @@ class _NotificationViewScreenState extends State<NotificationViewScreen> {
           child: ColoredBox(
             color: panelTone,
             child: Padding(
-              padding: EdgeInsetsGeometry.all(design.spacing),
-              child: Text(notif.body),
+              padding: EdgeInsets.all(design.spacing),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    flex: 2,
+                    child: SingleChildScrollView(child: Text(notif.body)),
+                  ),
+                  if (relevant != null)
+                    Expanded(
+                      flex: 1,
+                      child: ListingCard(
+                        listing: relevant!,
+                        visited: visitedListingIndices.contains(relevant?.id),
+                        onTap: () {
+                          final listingId = relevant?.id;
+                          if (listingId == null) return;
+                          addIndex(listingId);
+                          switchTo();
+                        },
+                      ),
+                    ),
+                ],
+              ),
             ),
           ),
         ),
       ),
-      bottomNavigationBar: BottomAppBar(
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            if (validGuid(notif.listingId)) ...[
-              ElevatedButton(
-                onPressed: getRelevant,
-                child: design.fittedText("Go"),
-              ),
-            ],
-          ],
-        ),
-      ),
+      bottomNavigationBar: BottomAppBar(),
     );
   }
 }

@@ -64,7 +64,7 @@ namespace PetCenterModels.DataTransferObjects
         {
             Contact=Contact?.ToLowerInvariant();
             
-            return(ModelValidationUtils.ValidateContact(Contact)&&!string.IsNullOrWhiteSpace(City)&&!string.IsNullOrWhiteSpace(Street)&&!(OwningFranchise==Guid.Empty));
+            return((Contact==null ||ModelValidationUtils.ValidateContact(Contact))&&!string.IsNullOrWhiteSpace(City)&&!string.IsNullOrWhiteSpace(Street)&&!(OwningFranchise==Guid.Empty));
         }
 
 

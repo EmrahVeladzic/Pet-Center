@@ -26,6 +26,9 @@ namespace PetCenterModels.DBTables
         [Column("Reason")]
         public string Reason { get; set; } = string.Empty;
 
+        [Column("DatePosted")]
+        public DateTime DatePosted {get; set;} = DateTime.UtcNow;
+
 
     }
 }

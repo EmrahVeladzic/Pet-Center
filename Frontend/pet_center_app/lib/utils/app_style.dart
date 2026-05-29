@@ -9,21 +9,25 @@ import 'package:pet_center_app/utils/globals.dart';
 Color mainTone = Color.fromARGB(255, 60, 50, 75);
 Color secondaryTone = Color.fromARGB(255, 50, 40, 55);
 Color panelTone = Color.fromARGB(255, 225, 225, 225);
+Color filterTone = Color.fromARGB(255, 205, 195, 205);
 Color visitedPanelTone = Color.fromARGB(255, 185, 185, 185);
 Color listTone = Color.fromARGB(255, 200, 200, 200);
 Color shadowTone = Color.fromARGB(100, 10, 10, 10);
 Color tabTone = Color.fromARGB(255, 90, 80, 105);
-double marqueeTitleWMult = 0.75;
+double marqueeTitleWMult = 0.7;
+double textRowMult = 1.5;
 double marqueeNoteWMult = 0.95;
 double marqueeSpeed = 15.0;
 double marqueeBlank = 125.0;
 double imgWMult = 0.75;
 int dialogMinLines = 3;
 
-void showSnackbar(String message) {
+void showSnackbar(String message, [bool overwrite = true]) {
   final messenger = rootScaffoldKey.currentState;
   if (messenger != null) {
-    messenger.clearSnackBars();
+    if (overwrite) {
+      messenger.clearSnackBars();
+    }
     messenger.showSnackBar(SnackBar(content: Text(message)));
   }
 }
@@ -45,6 +49,8 @@ void showError(Object ex) {
 
 class ReactiveDesignSystem extends ThemeExtension<ReactiveDesignSystem> {
   final double spacing;
+  final double boundedIconSize;
+  final double boundedImageSize;
   final double fontSize;
   final double marqueeSize;
   final Axis layoutDirection;
@@ -52,9 +58,12 @@ class ReactiveDesignSystem extends ThemeExtension<ReactiveDesignSystem> {
   final double screenWidth;
   final double screenHeight;
   final double dialogWidth;
+  final double dropdownW;
 
   ReactiveDesignSystem({
     required this.spacing,
+    required this.boundedIconSize,
+    required this.boundedImageSize,
     required this.fontSize,
     required this.layoutDirection,
     required this.bodyWMult,
@@ -62,6 +71,7 @@ class ReactiveDesignSystem extends ThemeExtension<ReactiveDesignSystem> {
     required this.screenWidth,
     required this.screenHeight,
     required this.dialogWidth,
+    required this.dropdownW,
   });
 
   factory ReactiveDesignSystem.fromMediaQuery(MediaQueryData data) {
@@ -73,6 +83,10 @@ class ReactiveDesignSystem extends ThemeExtension<ReactiveDesignSystem> {
 
     return ReactiveDesignSystem(
       spacing: isLandscape ? width * 0.015 : width * 0.04,
+
+      boundedIconSize: isLandscape ? width * 0.02 : width * 0.05,
+
+      boundedImageSize: isLandscape ? width * 0.075 : width * 0.2,
 
       fontSize: isLandscape ? shortSide * 0.02 : shortSide * 0.04,
 
@@ -87,11 +101,20 @@ class ReactiveDesignSystem extends ThemeExtension<ReactiveDesignSystem> {
       screenWidth: width,
 
       screenHeight: height,
+
+      dropdownW: width * ((isLandscape) ? 0.25 : 0.5),
     );
   }
 
-  Widget fittedText(String text, [BoxFit fit = BoxFit.scaleDown]) {
-    return FittedBox(fit: fit, child: Text(text));
+  Widget fittedText(
+    String text, [
+    double mult = 1.0,
+    BoxFit fit = BoxFit.scaleDown,
+  ]) {
+    return FittedBox(
+      fit: fit,
+      child: Text(text, textScaler: TextScaler.linear(mult)),
+    );
   }
 
   Widget textMarquee(
@@ -138,16 +161,28 @@ class ReactiveDesignSystem extends ThemeExtension<ReactiveDesignSystem> {
     return SizedBox(height: height ?? spacing);
   }
 
+  SizedBox horizontalGap([double? width]) {
+    return SizedBox(height: width ?? spacing);
+  }
+
   BoxDecoration panelDecoration([bool visited = false]) {
     return BoxDecoration(
       color: visited ? visitedPanelTone : panelTone,
-      boxShadow: [BoxShadow(blurRadius: spacing, color: shadowTone)],
+      boxShadow: visited
+          ? []
+          : [BoxShadow(blurRadius: spacing / 2, color: shadowTone)],
     );
+  }
+
+  double getToolbarHeight([int textRows = 1, double fontSize = 1.0]) {
+    return textRows * fontSize * textRowMult * kToolbarHeight;
   }
 
   @override
   ReactiveDesignSystem copyWith({
     double? spacing,
+    double? boundedIconSize,
+    double? boundedImageSize,
     double? fontSize,
     double? marqueeSize,
     Axis? layoutDirection,
@@ -156,9 +191,12 @@ class ReactiveDesignSystem extends ThemeExtension<ReactiveDesignSystem> {
     double? screenHeight,
     double? bodyWMult,
     double? dialogWidth,
+    double? dropdownW,
   }) {
     return ReactiveDesignSystem(
       spacing: spacing ?? this.spacing,
+      boundedIconSize: boundedIconSize ?? this.boundedIconSize,
+      boundedImageSize: boundedImageSize ?? this.boundedImageSize,
       fontSize: fontSize ?? this.fontSize,
       layoutDirection: layoutDirection ?? this.layoutDirection,
       marqueeSize: marqueeSize ?? this.marqueeSize,
@@ -166,6 +204,7 @@ class ReactiveDesignSystem extends ThemeExtension<ReactiveDesignSystem> {
       screenHeight: screenHeight ?? this.screenHeight,
       bodyWMult: bodyWMult ?? this.bodyWMult,
       dialogWidth: dialogWidth ?? this.dialogWidth,
+      dropdownW: dropdownW ?? this.dropdownW,
     );
   }
 
@@ -177,6 +216,12 @@ class ReactiveDesignSystem extends ThemeExtension<ReactiveDesignSystem> {
     if (other is! ReactiveDesignSystem) return this;
     return ReactiveDesignSystem(
       spacing: lerpDouble(spacing, other.spacing, t) ?? spacing,
+      boundedIconSize:
+          lerpDouble(boundedIconSize, other.boundedIconSize, t) ??
+          boundedIconSize,
+      boundedImageSize:
+          lerpDouble(boundedImageSize, other.boundedImageSize, t) ??
+          boundedImageSize,
       fontSize: lerpDouble(fontSize, other.fontSize, t) ?? fontSize,
       marqueeSize: lerpDouble(marqueeSize, other.marqueeSize, t) ?? marqueeSize,
       screenWidth: lerpDouble(screenWidth, other.screenWidth, t) ?? screenWidth,
@@ -185,6 +230,8 @@ class ReactiveDesignSystem extends ThemeExtension<ReactiveDesignSystem> {
       layoutDirection: t < 0.5 ? layoutDirection : other.layoutDirection,
       bodyWMult: lerpDouble(bodyWMult, other.bodyWMult, t) ?? bodyWMult,
       dialogWidth: lerpDouble(dialogWidth, other.dialogWidth, t) ?? dialogWidth,
+
+      dropdownW: lerpDouble(dropdownW, other.dropdownW, t) ?? dropdownW,
     );
   }
 }

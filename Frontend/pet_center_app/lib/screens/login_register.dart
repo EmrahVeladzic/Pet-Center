@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:pet_center_app/models/data_transfer/account/account_request_dto.dart';
+import 'package:pet_center_app/models/enums.dart';
 import 'package:pet_center_app/screens/dashboard.dart';
 import 'package:pet_center_app/services/account_service.dart';
-import 'package:pet_center_app/services/static_data_service.dart';
+import 'package:pet_center_app/services/static_user_data_service.dart';
 
 import 'package:pet_center_app/utils/app_style.dart';
+
+import 'package:pet_center_app/utils/hive_cache.dart';
 import 'package:pet_center_app/utils/jwt_parser.dart';
+import 'package:pet_center_app/utils/validators.dart';
 
 class CredentialsScreen extends StatefulWidget {
   const CredentialsScreen({super.key});
@@ -14,6 +18,7 @@ class CredentialsScreen extends StatefulWidget {
 }
 
 class _CredentialsScreenState extends State<CredentialsScreen> {
+  final _formKey = GlobalKey<FormState>();
   String contact = '';
   String password = '';
   bool businessPurposes = false;
@@ -55,11 +60,21 @@ class _CredentialsScreenState extends State<CredentialsScreen> {
   }
 
   void onLogin() async {
-    await StaticDataService.updateStaticData();
+    bool valid = await StaticAndUserDataService.updateData();
 
-    if (self == null) {
+    if (!valid) {
       return;
     }
+
+    visitedAnnouncementIndices = await CacheManager.getAll(
+      CacheEntityType.announcement,
+    );
+    visitedNotifIndices = await CacheManager.getAll(
+      CacheEntityType.notification,
+    );
+    visitedReportIndices = await CacheManager.getAll(CacheEntityType.report);
+
+    visitedListingIndices = await CacheManager.getAll(CacheEntityType.listing);
 
     if (!mounted) {
       return;
@@ -147,101 +162,119 @@ class _CredentialsScreenState extends State<CredentialsScreen> {
                       minHeight: boxConstraints.maxHeight,
                     ),
                     child: IntrinsicHeight(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.max,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            unverified
-                                ? "Account verification"
-                                : registerMode
-                                ? 'Register'
-                                : 'Login',
-                            style: TextStyle(fontSize: design.fontSize * 2),
-                          ),
-
-                          const Spacer(flex: 1),
-
-                          SizedBox(height: design.spacing),
-
-                          if (!unverified) ...[
-                            TextField(
-                              key: const ValueKey('contact'),
-                              decoration: InputDecoration(labelText: 'Contact'),
-
-                              onChanged: (v) => contact = v,
-                            ),
-                            SizedBox(height: design.spacing),
-                            TextField(
-                              key: const ValueKey('pwd'),
-                              decoration: InputDecoration(
-                                labelText: 'Password',
-                              ),
-
-                              obscureText: true,
-                              onChanged: (v) => password = v,
-                            ),
-
-                            if (registerMode) ...[
-                              SizedBox(height: design.spacing),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.start,
-                                children: [
-                                  Checkbox(
-                                    value: businessPurposes,
-                                    onChanged: (_) => _toggleBusiness(),
-                                  ),
-                                  Text('Business account'),
-                                ],
-                              ),
-                            ] else ...[
-                              const Spacer(flex: 1),
-                              TextButton(
-                                onPressed: _linkForgotPassword,
-                                child: Text('Forgot password?'),
-                              ),
-                            ],
-                          ] else ...[
-                            TextField(
-                              key: const ValueKey('code'),
-                              decoration: InputDecoration(
-                                labelText: 'Verification Code',
-                              ),
-
-                              keyboardType: TextInputType.number,
-                              onChanged: (v) =>
-                                  verificationCode = int.tryParse(v) ?? 0,
-                            ),
-                          ],
-
-                          const Spacer(flex: 2),
-
-                          SizedBox(height: design.spacing),
-
-                          ElevatedButton(
-                            onPressed: _sendRequest,
-                            child: design.fittedText(
-                              unverified
-                                  ? "Verify"
+                      child: Form(
+                        key: _formKey,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.max,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            design.textMarquee(
+                              (unverified
+                                  ? "Account verification"
                                   : registerMode
                                   ? 'Register'
-                                  : 'Login',
+                                  : 'Login'),
+                              null,
+                              1.0,
+                              2.0,
                             ),
-                          ),
 
-                          SizedBox(height: design.spacing),
+                            const Spacer(flex: 1),
 
-                          TextButton(
-                            onPressed: _linkAction,
-                            child: Text(
-                              unverified
-                                  ? "Send a new code."
-                                  : registerMode
-                                  ? 'Already have an account? Login'
-                                  : 'No account? Register',
+                            SizedBox(height: design.spacing),
+
+                            if (!unverified) ...[
+                              TextFormField(
+                                key: const ValueKey('contact'),
+                                decoration: InputDecoration(
+                                  labelText: 'Contact',
+                                ),
+                                validator: (value) {
+                                  return validateContact(value);
+                                },
+                                onChanged: (v) => contact = v,
+                              ),
+                              SizedBox(height: design.spacing),
+                              TextFormField(
+                                key: const ValueKey('pwd'),
+                                decoration: InputDecoration(
+                                  labelText: 'Password',
+                                ),
+                                validator: (value) {
+                                  return validatePassword(value);
+                                },
+                                obscureText: true,
+                                onChanged: (v) => password = v,
+                              ),
+
+                              if (registerMode) ...[
+                                SizedBox(height: design.spacing),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  children: [
+                                    Checkbox(
+                                      value: businessPurposes,
+                                      onChanged: (_) => _toggleBusiness(),
+                                    ),
+                                    design.fittedText('Business account'),
+                                  ],
+                                ),
+                              ] else ...[
+                                const Spacer(flex: 1),
+                                TextButton(
+                                  onPressed: _linkForgotPassword,
+                                  child: design.fittedText('Forgot password?'),
+                                ),
+                              ],
+                            ] else ...[
+                              TextFormField(
+                                key: const ValueKey('code'),
+                                decoration: InputDecoration(
+                                  labelText: 'Verification Code',
+                                ),
+
+                                keyboardType: TextInputType.number,
+                                onChanged: (v) =>
+                                    verificationCode = int.tryParse(v) ?? 0,
+
+                                validator: (value) => validateNumeric(value),
+                              ),
+                            ],
+
+                            const Spacer(flex: 2),
+
+                            SizedBox(height: design.spacing),
+
+                            ElevatedButton(
+                              onPressed: () {
+                                if (_formKey.currentState != null &&
+                                    _formKey.currentState!.validate()) {
+                                  _sendRequest();
+                                }
+                              },
+                              child: design.fittedText(
+                                unverified
+                                    ? "Verify"
+                                    : registerMode
+                                    ? 'Register'
+                                    : 'Login',
+                              ),
                             ),
-                          ),
-                        ],
+
+                            SizedBox(height: design.spacing),
+
+                            TextButton(
+                              onPressed: _linkAction,
+                              child: design.fittedText(
+                                unverified
+                                    ? "Send a new code."
+                                    : registerMode
+                                    ? 'Already have an account? Login'
+                                    : 'No account? Register',
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),

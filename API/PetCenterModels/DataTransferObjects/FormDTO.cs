@@ -19,13 +19,14 @@ namespace PetCenterModels.DataTransferObjects
 
         public byte[] CurrentVersion { get; set; } = Array.Empty<byte>();
 
-        public Guid FormId {get; set;} = Guid.Empty;
+        public Guid? FormId {get; set;} = null;
 
         public Guid FormTemplateFieldId {get; set;} = Guid.Empty;
 
         [MaxLength(255)]
         public string Serialized {get; set;} = string.Empty;
         public List<NoteSubDTO>? Notes {get; set;} = null;
+        
 
         public static FormEntrySubDTO? FromEntity(FormFieldEntry? entity)
         {
@@ -44,7 +45,9 @@ namespace PetCenterModels.DataTransferObjects
         {
             FormFieldEntry field = new();
             field.CurrentVersion=CurrentVersion;
-            field.FormId=FormId;
+            if(FormId!=null){
+            field.FormId=FormId.Value;
+            }
             field.FormTemplateFieldId=FormTemplateFieldId;
             field.Serialized=Serialized;          
             
@@ -58,7 +61,7 @@ namespace PetCenterModels.DataTransferObjects
 
     }
 
-    public class FormDTO : ISerializableRequestDTO<Form>, IAlbumCarryingDTO<Form,FormDTO>
+    public class FormDTO : ISerializableRequestDTO<Form>, IAlbumCarryingDTO<Form,FormDTO,ImageDTO,Image,ImageMetadata>
     {
        
         public Guid? Id {get; set;} = null;
@@ -79,15 +82,18 @@ namespace PetCenterModels.DataTransferObjects
 
         public Guid FormTemplateId {get; set;} = Guid.Empty;
 
-        public Guid AlbumId {get; set;} = Guid.Empty;
+        public Guid? AlbumId {get; set;} = null;
+        public bool Locked {get; set;} = true;
 
-        public List<ImageDTO> Images {get; set;} = new();
+        public List<ImageDTO> Media {get; set;} = new();
 
+        public string? MediaCreationToken {get; set;} = string.Empty;
 
+        public bool Full {get; set;} = true;
         public static FormDTO? FromEntity(Form? entity)
         {
             if(entity==null){return null;}
-            return new FormDTO
+            FormDTO output = new FormDTO
             {
                 Id = entity.Id,
                 CurrentVersion = entity.CurrentVersion,
@@ -95,10 +101,31 @@ namespace PetCenterModels.DataTransferObjects
                 FranchiseName=entity.FranchiseName,
                 UserId=entity.UserId,
                 FormTemplateId=entity.FormTemplateId,
-                AlbumId=entity.AlbumId,
-                Images = entity.Album.Images.Select(i=>ImageDTO.FromEntity(i)!).ToList(),
+                AlbumId=entity.AlbumId,                
                 Entries = entity.Entries.Select(f=>FormEntrySubDTO.FromEntity(f)!).ToList()
             };
+
+            if (entity.Album != null)
+            {
+                output.Media = entity.Album.Images.Select(i=>ImageDTO.FromEntity(i)!).ToList();
+                output.Locked=entity.Album.Locked;
+                output.Full=entity.Album.Reserved>=entity.Album.Capacity;
+            }
+
+            return output;
+        }
+
+        public static FormDTO? FromEntity(Form? entity, string token)
+        {
+            FormDTO? output = FromEntity(entity);
+
+            if (output != null)
+            {
+                output.MediaCreationToken=token;
+            }
+
+
+            return output;
         }
 
         public Form? ToEntity()
@@ -106,7 +133,9 @@ namespace PetCenterModels.DataTransferObjects
             Form form = new();
             form.CurrentVersion=CurrentVersion;
             form.UserId=UserId;
-            form.AlbumId=AlbumId;
+            if(AlbumId!=null){
+                form.AlbumId=AlbumId.Value;
+            }
             form.DefaultContact=DefaultContact;
             form.FranchiseName=FranchiseName;
             form.FormTemplateId=FormTemplateId;          

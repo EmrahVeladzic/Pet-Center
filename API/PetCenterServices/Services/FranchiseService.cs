@@ -11,6 +11,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 
 
 namespace PetCenterServices.Services
@@ -18,7 +19,7 @@ namespace PetCenterServices.Services
     public class FranchiseService : BaseCRUDService<Franchise,FranchiseSearchObject,FranchiseRequestDTO,FranchiseResponseDTO>, IFranchiseService    
     {
 
-        public FranchiseService(PetCenterDBContext ctx) : base(ctx)
+        public FranchiseService(PetCenterDBContext ctx,ILoggerFactory _logger) : base(ctx,_logger)
         {
             dbSet = ctx.Franchises;
         }
@@ -49,7 +50,7 @@ namespace PetCenterServices.Services
             return ServiceOutput<List<FranchiseResponseDTO>>.Success(entities.Select(e=>FranchiseResponseDTO.FromEntity(e, search.RelatedUser != null && e.OwnerId == search.RelatedUser)!).ToList());
         }
 
-        public override async Task<ServiceOutput<FranchiseResponseDTO>> Post(Guid token_holder, FranchiseRequestDTO req)
+        public override async Task<ServiceOutput<FranchiseResponseDTO>> Post(Guid session,Guid token_holder, FranchiseRequestDTO req)
         {
             Form? frm = await dbContext.Forms.FindAsync(req.CreationFormId);
             if (frm == null)
@@ -64,6 +65,7 @@ namespace PetCenterServices.Services
 
             Franchise franch = new();
 
+            franch.OwnerId=frm.UserId;
             franch.Contact=frm.DefaultContact;
             franch.FranchiseName = frm.FranchiseName;
 
@@ -76,10 +78,19 @@ namespace PetCenterServices.Services
             };
 
 
-            using (IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync())
+            await using(IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync())
+            
             {
                 try
                 {                 
+
+                    User? usr = await dbContext.Users.FindAsync(frm.UserId);
+                    if (usr != null)
+                    {
+                        usr.UserState=Guid.NewGuid();
+                    }
+
+
                     await dbContext.Notifications.AddAsync(notif);
                     await dbSet.AddAsync(franch);
                     await frm.StageDeletion<Form>(dbContext,dbContext.Forms);
@@ -89,24 +100,24 @@ namespace PetCenterServices.Services
                 catch(Exception ex)
                 {
                     await tx.RollbackAsync();
-                    return ServiceOutput<FranchiseResponseDTO>.FromException(ex);
+                    return ServiceOutput<FranchiseResponseDTO>.FromException(ex,logger);
                 }
             }
 
             
 
-            return ServiceOutput<FranchiseResponseDTO>.Success(FranchiseResponseDTO.FromEntity(franch),HttpCode.Created);
+            return ServiceOutput<FranchiseResponseDTO>.Success(FranchiseResponseDTO.FromEntity(franch,token_holder==franch.OwnerId),HttpCode.Created);
 
         }
 
-        public override async Task<ServiceOutput<FranchiseResponseDTO>> Put(Guid token_holder, FranchiseRequestDTO req)
+        public override async Task<ServiceOutput<FranchiseResponseDTO>> Put(Guid session,Guid token_holder, FranchiseRequestDTO req)
         {
-            Franchise? franch = await dbSet.FindAsync(req.Id);
+            Franchise? franch = await dbSet.Include(f=>f.Facilities).Include(f=>f.ShelteredAnimals).FirstOrDefaultAsync(f=>f.Id==req.Id);
             if(franch==null){return ServiceOutput<FranchiseResponseDTO>.Error(HttpCode.NotFound,"Franchise does not exist.");}
             franch.Contact = req.Contact;
             franch.FranchiseName = req.FranchiseName;
 
-            using (IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync())
+            await using(IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync())
             {
                 try
                 {
@@ -117,11 +128,11 @@ namespace PetCenterServices.Services
                 catch(Exception ex)
                 {
                     await tx.RollbackAsync();
-                    return ServiceOutput<FranchiseResponseDTO>.FromException(ex);
+                    return ServiceOutput<FranchiseResponseDTO>.FromException(ex,logger);
                 }
             }
 
-            return ServiceOutput<FranchiseResponseDTO>.Success(FranchiseResponseDTO.FromEntity(franch),HttpCode.OK);
+            return ServiceOutput<FranchiseResponseDTO>.Success(FranchiseResponseDTO.FromEntity(franch,token_holder==franch.OwnerId),HttpCode.OK);
 
         }
 

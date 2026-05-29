@@ -18,12 +18,7 @@ namespace PetCenterAPI.Controllers
 
         public LivingConditionFieldController(ILivingConditionFieldService s):base(s) { }
 
-        [HttpGet("Count")]
-        [NonAction]
-        public override Task<IActionResult> Count([FromQuery] LivingConditionSearchObject search)
-        {
-            throw new NotImplementedException();
-        }
+      
        
 
         [Authorize(Roles = "Admin,Owner")]
@@ -49,7 +44,7 @@ namespace PetCenterAPI.Controllers
 
         [Authorize(Roles ="User")]
         [HttpPut("Entry/{field_id}")]
-        public async Task<IActionResult> TrackSupplies([FromRoute]Guid field_id, [FromQuery] bool answer)
+        public async Task<IActionResult> AddEntry([FromRoute]Guid field_id, [FromQuery] bool answer)
         {
             if(TryGetUserId(out Guid user_id))
             {
@@ -60,7 +55,7 @@ namespace PetCenterAPI.Controllers
 
         [Authorize(Roles ="User")]
         [HttpDelete("Entry/{entry_id}")]
-        public async Task<IActionResult> TrackSupplies([FromRoute]Guid entry_id)
+        public async Task<IActionResult> RemoveEntry([FromRoute]Guid entry_id)
         {
             if(TryGetUserId(out Guid user_id))
             {

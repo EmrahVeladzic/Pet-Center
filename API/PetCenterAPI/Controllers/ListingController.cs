@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using PetCenterModels.DataTransferObjects;
 using PetCenterModels.DBTables;
+using PetCenterModels.ModelUtils;
 using PetCenterModels.SearchObjects;
 using PetCenterServices.Interfaces;
 using PetCenterServices.Utils;
@@ -17,13 +18,13 @@ namespace PetCenterAPI.Controllers
     {
         public ListingController(IListingService s):base(s) { }
        
-        [Authorize]
+        
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById([FromRoute] Guid id)
         {
-            if(TryGetUserId(out Guid user_id))
+            if(TryGetUserId(out Guid user_id) && TryGetJTI(out Guid session))
             {
-                return ResultConverter.Convert<ListingResponseDTO>(await service.GetById(user_id,id,SpecifySearchAuthority()));
+                return ResultConverter.Convert<ListingResponseDTO>(await service.GetById(session,user_id,id,SpecifySearchAuthority(),FileScope.Invalid));
             }
             return StatusCode(401,"Invalid token.");
         }
@@ -57,7 +58,7 @@ namespace PetCenterAPI.Controllers
             return ResultConverter.Convert<object>(await service.Evaluate(id,approve,note));
         }
 
-        [Authorize(Roles ="Owner,Admin")]
+        [Authorize(Roles ="Employee")]
         [HttpPost("Discount/{id}")]
         public async Task<IActionResult> Discount([FromRoute]Guid id,[FromQuery] byte percentage, [FromQuery] byte days_valid)
         {
@@ -79,6 +80,8 @@ namespace PetCenterAPI.Controllers
             return StatusCode(401,"Invalid token.");
         }
 
+      
+
         [Authorize(Roles ="Employee")]
         [HttpPut("Available/{listing_id}/{facility_id}")]
         public async Task<IActionResult> SetAvailability([FromRoute] Guid listing_id,[FromRoute] Guid facility_id, [FromQuery] bool add_remove)
@@ -91,7 +94,7 @@ namespace PetCenterAPI.Controllers
         }
 
         [Authorize(Roles ="Employee,User")]
-        [HttpPut("Report/{listing_id}")]
+        [HttpPost("Report/{listing_id}")]
         public async Task<IActionResult> ReportMisuse([FromRoute] Guid listing_id,[FromQuery] Guid? comment_id, [FromQuery] string Reason)
         {
             if(TryGetUserId(out Guid user_id))

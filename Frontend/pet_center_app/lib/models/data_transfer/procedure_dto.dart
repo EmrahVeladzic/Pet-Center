@@ -24,13 +24,27 @@ class ProcedureSpecificationSubDTO {
     this.breedId,
     this.optional = true,
     this.sexSpecific,
-    this.approximateAge,
-    this.interval,
+    this.approximateAge = 31,
+    this.interval = 7,
   });
 
   factory ProcedureSpecificationSubDTO.fromJson(Map<String, dynamic> json) =>
       _$ProcedureSpecificationSubDTOFromJson(json);
+
   Map<String, dynamic> toJson() => _$ProcedureSpecificationSubDTOToJson(this);
+
+  ProcedureSpecificationSubDTO copy() => ProcedureSpecificationSubDTO(
+    id: id,
+    currentVersion: currentVersion,
+    notes: notes?.map((n) => n.copy()).toList(),
+    procedureID: procedureID,
+    kindId: kindId,
+    breedId: breedId,
+    optional: optional,
+    sexSpecific: sexSpecific,
+    approximateAge: approximateAge,
+    interval: interval,
+  );
 }
 
 @JsonSerializable(explicitToJson: true)
@@ -51,5 +65,14 @@ class ProcedureDTO {
 
   factory ProcedureDTO.fromJson(Map<String, dynamic> json) =>
       _$ProcedureDTOFromJson(json);
+
   Map<String, dynamic> toJson() => _$ProcedureDTOToJson(this);
+
+  ProcedureDTO copy() => ProcedureDTO(
+    id: id,
+    currentVersion: currentVersion,
+    notes: notes?.map((n) => n.copy()).toList(),
+    description: description,
+    specifications: specifications.map((s) => s.copy()).toList(),
+  );
 }
