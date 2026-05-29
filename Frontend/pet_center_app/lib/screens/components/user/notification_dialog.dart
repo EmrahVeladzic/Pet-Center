@@ -43,7 +43,7 @@ class _NotificationDialogState extends State<NotificationDialog> {
       days,
     );
 
-    if (output != null && mounted) {
+    if (output != null) {
       widget.callback(output);
     }
   }

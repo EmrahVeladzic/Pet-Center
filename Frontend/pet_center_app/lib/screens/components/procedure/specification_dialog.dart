@@ -195,7 +195,7 @@ class _SpecificationCreationDialogState
                           labelText: "Approximate age (days)...",
                         ),
                         validator: (value) =>
-                            validateNumericInRange(value, 0, 36500),
+                            validateNumericInRange(value, 0, 3650),
                       ),
                     ),
                   ],
@@ -278,7 +278,7 @@ class _SpecificationCreationDialogState
                           labelText: "Interval (days)...",
                         ),
                         validator: (value) =>
-                            validateNumericInRange(value, 1, 36500),
+                            validateNumericInRange(value, 1, 3650),
                       ),
                     ),
                   ],
