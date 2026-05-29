@@ -331,4 +331,34 @@ class AccountService {
       return null;
     }
   }
+
+  static Future<List<AccountResponseDTO>?> getAll(
+    Access role,
+    String contact,
+  ) async {
+    final pageCount = await count(role, contact);
+
+    if (pageCount == null) {
+      return null;
+    }
+
+    List<AccountResponseDTO> output = [];
+    final seen = <String?>{};
+
+    for (int i = 0; i < pageCount; i++) {
+      final newEntries = await get(i, role, contact);
+
+      if (newEntries == null) {
+        return null;
+      }
+
+      for (final ent in newEntries) {
+        if (seen.add(ent.id)) {
+          output.add(ent);
+        }
+      }
+    }
+
+    return output;
+  }
 }

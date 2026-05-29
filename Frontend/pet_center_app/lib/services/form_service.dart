@@ -96,6 +96,31 @@ class FormService {
     }
   }
 
+  static Future<FormDTO?> getById(String id) async {
+    apiServiceBusy.value = true;
+    try {
+      final response = await http.get(
+        Uri.parse("${AppConfig.apiBaseUrl}/api/Form/$id"),
+        headers: {
+          'Authorization': 'Bearer $rawToken',
+          'Accept': 'application/json',
+        },
+      );
+
+      final result = await ServiceOutput.fromResponse<FormDTO>(
+        response,
+        (json) => FormDTO.fromJson(json as Map<String, dynamic>),
+      );
+
+      apiServiceBusy.value = false;
+      return result;
+    } catch (ex) {
+      showError(ex);
+      apiServiceBusy.value = false;
+      return null;
+    }
+  }
+
   static Future<bool> delete(String id) async {
     apiServiceBusy.value = true;
     try {

@@ -18,7 +18,7 @@ namespace PetCenterAPI.Controllers
     {
         public ListingController(IListingService s):base(s) { }
        
-        [Authorize]
+        
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById([FromRoute] Guid id)
         {

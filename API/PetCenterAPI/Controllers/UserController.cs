@@ -106,23 +106,42 @@ namespace PetCenterAPI.Controllers
         }
 
         [HttpPut("Notification/{usr_id}")]
-        [Authorize(Roles = "Owner,Admin")]
+        [Authorize(Roles = "Owner,Admin,Employee")]
         public async Task<IActionResult> AddNotification([FromRoute] Guid usr_id, [FromQuery] string title, [FromQuery] string body, [FromQuery] Guid? franchise_id, [FromQuery] Guid? listing_id, [FromQuery] int days_valid = 7)
         {
-            if (title.Length>75)
+            if(TryGetUserId(out Guid caller_id))
             {
+
+                Access role = SpecifySearchAuthority();
+
+                if (title.Length>75)
+                {
+                    if (body.Length > 255)
+                    {
+                        return StatusCode(400,"The title and body are too long");
+                    }
+                    return StatusCode(400,"The title is too long.");
+                }
                 if (body.Length > 255)
                 {
-                    return StatusCode(400,"The title and body are too long");
+                    return StatusCode(400,"The body is too long.");
                 }
-                return StatusCode(400,"The title is too long.");
-            }
-            if (body.Length > 255)
-            {
-                return StatusCode(400,"The body is too long.");
-            }
+                if (days_valid < 1||days_valid>7)
+                {
+                    return StatusCode(400,"The notification needs to last between 1 and 7 days.");
+                }
+
+                if (role == Access.BusinessAccount)
+                {
+                    usr_id=caller_id;
+                    listing_id=null;
+                }
             
-            return ResultConverter.Convert<NotificationSubDTO>(await service.AddNotification(title,body,usr_id,franchise_id,listing_id,days_valid));
+                
+                return ResultConverter.Convert<NotificationSubDTO>(await service.AddNotification(caller_id,role, title,body,usr_id,franchise_id,listing_id,days_valid));
+        
+            }
+            return StatusCode(401,"Invalid token.");  
         }
 
         
