@@ -15,6 +15,7 @@ import 'package:pet_center_app/services/franchise_service.dart';
 import 'package:pet_center_app/services/static_user_data_service.dart';
 import 'package:pet_center_app/utils/app_style.dart';
 import 'package:pet_center_app/utils/jwt_parser.dart';
+import 'package:pet_center_app/utils/pdf_utils.dart';
 import 'package:pet_center_app/utils/validators.dart';
 
 class FormViewScreen extends StatefulWidget {
@@ -93,6 +94,13 @@ class _FormViewScreenState extends State<FormViewScreen> {
     );
   }
 
+  void toPdf() async {
+    if (widget.form.id == null) {
+      return;
+    }
+    await formToPdf(widget.form.id!);
+  }
+
   @override
   Widget build(BuildContext context) {
     final ReactiveDesignSystem design = Theme.of(
@@ -112,6 +120,7 @@ class _FormViewScreenState extends State<FormViewScreen> {
         actions: [
           if (role == Access.business) ...[
             IconButton(icon: const Icon(Icons.edit), onPressed: navigateToEdit),
+            IconButton(icon: Icon(Icons.picture_as_pdf), onPressed: toPdf),
           ],
           IconButton(
             onPressed: () {
