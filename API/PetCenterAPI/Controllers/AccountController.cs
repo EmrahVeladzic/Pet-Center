@@ -21,36 +21,6 @@ namespace PetCenterAPI.Controllers
         public AccountController(IAccountService s):base(s) { }
 
 
-        protected bool TryGetJTI(out Guid token_id){
-
-            token_id = default;
-
-            return Guid.TryParse(User.FindFirst(JwtRegisteredClaimNames.Jti)?.Value,out token_id);
-
-        }
-
-        protected bool TryGetJWTExpiry(out DateTime exp){
-
-            exp = default;
-
-            string? value = User.FindFirst(JwtRegisteredClaimNames.Exp)?.Value;
-
-            if (value == null || !long.TryParse(value, out long seconds)){
-                return false;
-            }
-
-            exp = DateTimeOffset.FromUnixTimeSeconds(seconds).UtcDateTime;
-
-            return true;
-        }
-
-        [HttpGet("Count")]
-        [NonAction]
-        public override Task<IActionResult> Count([FromQuery] AccountSearchObject search)
-        {
-            throw new NotImplementedException();
-        }
-
         [HttpGet("Transfer/{old_code}/{new_code}")]
         public async Task<IActionResult> Transfer([FromRoute] int old_code, [FromRoute] int new_code)
         {
@@ -75,6 +45,7 @@ namespace PetCenterAPI.Controllers
         [Authorize(Roles ="Owner,Admin")]
         public override async Task<IActionResult>Get([FromQuery] AccountSearchObject search)
         {           
+            search.Contact=search.Contact.ToLowerInvariant();
             return await base.Get(search);
         }
        
@@ -91,7 +62,7 @@ namespace PetCenterAPI.Controllers
                 return ResultConverter.Convert<object>(cleared);
             }
 
-            return ResultConverter.Convert<AccountResponseDTO>(await service.Post(Guid.Empty,req));
+            return ResultConverter.Convert<AccountResponseDTO>(await service.Post(Guid.Empty,Guid.Empty,req));
             
         }
 
@@ -101,6 +72,7 @@ namespace PetCenterAPI.Controllers
         public async Task<IActionResult> LogIn([FromBody] AccountRequestDTO req)
         {
             req.Contact=req.Contact.ToLowerInvariant();
+            
             return ResultConverter.Convert<string>(await service.LogIn(req));
         }
 
@@ -149,9 +121,9 @@ namespace PetCenterAPI.Controllers
         [AllowUnverified]
         public async Task<IActionResult> Verify([FromRoute] int code)
         {
-            if (TryGetUserId(out Guid id))
+            if (TryGetUserId(out Guid id) && TryGetJTI(out Guid session))
             {           
-                return ResultConverter.Convert<string>(await service.VerifyAccount(id,code));
+                return ResultConverter.Convert<string>(await service.VerifyAccount(id,code,session));
             }
             return StatusCode(400,"Invalid token.");
         }

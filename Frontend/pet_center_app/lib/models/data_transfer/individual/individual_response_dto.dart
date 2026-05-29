@@ -22,7 +22,17 @@ class MedicalEntrySubDTO {
 
   factory MedicalEntrySubDTO.fromJson(Map<String, dynamic> json) =>
       _$MedicalEntrySubDTOFromJson(json);
+
   Map<String, dynamic> toJson() => _$MedicalEntrySubDTOToJson(this);
+
+  MedicalEntrySubDTO copy() => MedicalEntrySubDTO(
+    id: id,
+    notes: notes?.map((n) => n.copy()).toList(),
+    currentVersion: currentVersion,
+    datePerformed: datePerformed,
+    procedureId: procedureId,
+    animalId: animalId,
+  );
 }
 
 @JsonSerializable(explicitToJson: true)
@@ -52,5 +62,18 @@ class IndividualResponseDTO {
 
   factory IndividualResponseDTO.fromJson(Map<String, dynamic> json) =>
       _$IndividualResponseDTOFromJson(json);
+
   Map<String, dynamic> toJson() => _$IndividualResponseDTOToJson(this);
+
+  IndividualResponseDTO copy() => IndividualResponseDTO(
+    id: id,
+    currentVersion: currentVersion,
+    identity: identity,
+    name: name,
+    breedId: breedId,
+    sex: sex,
+    birthDate: birthDate,
+    notes: notes?.map((n) => n.copy()).toList(),
+    medicalRecord: medicalRecord.map((m) => m.copy()).toList(),
+  );
 }

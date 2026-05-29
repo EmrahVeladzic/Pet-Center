@@ -18,19 +18,14 @@ namespace PetCenterAPI.Controllers
 
         public FranchiseController(IFranchiseService s):base(s) { }
 
-        [HttpGet("Count")]
-        [NonAction]
-        public override Task<IActionResult> Count([FromQuery] FranchiseSearchObject search)
-        {
-            throw new NotImplementedException();
-        }
+     
 
         [HttpPost]
         [Authorize(Roles = "Owner,Admin")]
         public override async Task<IActionResult> Post([FromBody] FranchiseRequestDTO ent)
         {
             ent.Contact = ent.Contact.ToLowerInvariant();
-            return ResultConverter.Convert<FranchiseResponseDTO>(await service.Post(Guid.Empty,ent));
+            return ResultConverter.Convert<FranchiseResponseDTO>(await service.Post(Guid.Empty,Guid.Empty,ent));
         }
 
         [HttpPut("{id}")]
@@ -41,7 +36,7 @@ namespace PetCenterAPI.Controllers
             return await base.Put(id, ent);
         }
 
-        [HttpDelete]
+        [HttpDelete("{id}")]
         [Authorize(Roles ="Employee")]
         public override Task<IActionResult> Delete([FromRoute] Guid id)
         {

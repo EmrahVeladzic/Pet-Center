@@ -18,12 +18,7 @@ namespace PetCenterAPI.Controllers
 
         public CategoryController(ICategoryService s):base(s) { }
 
-        [HttpGet("Count")]
-        [NonAction]
-        public override Task<IActionResult> Count([FromQuery] CategorySearchObject search)
-        {
-            throw new NotImplementedException();
-        }
+       
 
         [Authorize(Roles = "Admin,Owner")]
         [HttpPut("{id}")]
@@ -48,7 +43,7 @@ namespace PetCenterAPI.Controllers
 
         [Authorize(Roles ="Admin,Owner")]
         [HttpPut("Usage/{consumable_id}/{kind_id}")]
-        public async Task<IActionResult> TrackSupplies([FromRoute]Guid consumable_id, [FromRoute]Guid kind_id,[FromQuery] AnimalScale? scale,[FromQuery]int mass_grams=0)
+        public async Task<IActionResult> SetUsageEstimate([FromRoute]Guid consumable_id, [FromRoute]Guid kind_id,[FromQuery] AnimalScale? scale,[FromQuery]int mass_grams=0)
         {
             return ResultConverter.Convert<UsageSubDTO>(await service.SetUsageEstimate(consumable_id,kind_id,scale,mass_grams));   
         }

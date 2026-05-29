@@ -19,12 +19,7 @@ namespace PetCenterAPI.Controllers
         public KindController(IKindService s):base(s) { }
 
 
-        [HttpGet("Count")]
-        [NonAction]
-        public override Task<IActionResult> Count([FromQuery] KindSearchObject search)
-        {
-            throw new NotImplementedException();
-        }
+       
 
         [Authorize(Roles = "Admin,Owner")]
         [HttpPut("{id}")]

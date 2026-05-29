@@ -1,7 +1,6 @@
 import 'package:json_annotation/json_annotation.dart';
 import 'package:pet_center_app/models/data_transfer/listing/sub_dtos.dart';
 import 'package:pet_center_app/models/enums.dart';
-
 part 'listing_request_dto.g.dart';
 
 @JsonSerializable(explicitToJson: true)
@@ -32,5 +31,19 @@ class ListingRequestDTO {
 
   factory ListingRequestDTO.fromJson(Map<String, dynamic> json) =>
       _$ListingRequestDTOFromJson(json);
+
   Map<String, dynamic> toJson() => _$ListingRequestDTOToJson(this);
+
+  ListingRequestDTO copy() => ListingRequestDTO(
+    id: id,
+    currentVersion: currentVersion,
+    name: name,
+    description: description,
+    franchiseId: franchiseId,
+    priceMinor: priceMinor,
+    type: type,
+    productListingExtension: productListingExtension?.copy(),
+    medicalListingExtension: medicalListingExtension?.copy(),
+    animalListingExtension: animalListingExtension?.copy(),
+  );
 }

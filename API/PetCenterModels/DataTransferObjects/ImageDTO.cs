@@ -12,16 +12,9 @@ using PetCenterModels.ModelUtils;
 
 namespace PetCenterModels.DataTransferObjects
 {
-    public class ImageDTO : ISerializableRequestDTO<Image>, IBaseResponseDTO<Image,ImageDTO>
+    public class ImageDTO : IBLOBReferencingDTO<Image,ImageDTO,ImageMetadata>
     {
-        [JsonIgnore]
-        public const short MaxDimension = 512;
-        [JsonIgnore]
-        public const short MinDimension = 32;
-
-        [JsonIgnore]
-        public const int MaxSize = 204800;
-        
+               
         public Guid? Id {get; set;} = null;
 
         public byte[] CurrentVersion { get; set; } = Array.Empty<byte>();
@@ -32,8 +25,13 @@ namespace PetCenterModels.DataTransferObjects
         public short Width { get; set; } = 0;
         [Required]
         public short Height { get; set; } = 0;
-        [Required]
-        public string? Data { get; set; } = null;
+
+        public string? Token {get; set;} = null;
+
+        public string Hash {get; set;} = string.Empty;   
+
+        public bool CanWrite {get; set;} = false;
+  
 
         public List<NoteSubDTO>? Notes {get; set;} = null;
 
@@ -47,55 +45,20 @@ namespace PetCenterModels.DataTransferObjects
                 AlbumInsertId=img.AlbumId,
                 Width = img.Width,
                 Height = img.Height,
-                Data = img.Data
+                Hash = img.BLOBId
             };
         }
 
-        public bool Validate()
+        public static ImageDTO? FromEntity(Image? img, string token)
         {
-            if(string.IsNullOrWhiteSpace(Data)||Width < MinDimension || Width > MaxDimension || Height < MinDimension || Height > MaxDimension || AlbumInsertId == Guid.Empty)
+            ImageDTO? output = ImageDTO.FromEntity(img);
+
+            if (output != null)
             {
-                return false;
-            }        
-        
-            byte[] bytes;
-            try
-            {
-                bytes = Convert.FromBase64String(Data);
-            }
-            catch
-            {
-                return false;
+                output.Token=token;
             }
 
-            if (bytes.Length > MaxSize)
-            {                
-                return false;
-            }
-
-         
-            if (!ModelValidationUtils.IsWebp(bytes,Width,Height))
-            {
-                return false;
-            }
-              
-        
-            return true;
-        
-        }
-
-        public Image? ToEntity()
-        {
-            Image img = new();
-
-            img.CurrentVersion=CurrentVersion;
-            img.Width=Width;
-            img.Height=Height;
-            img.AlbumId = AlbumInsertId;
-            img.Data = Data;
-        
-
-            return img;
+            return output;
         }
 
     }

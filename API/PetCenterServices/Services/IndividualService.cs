@@ -12,6 +12,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using PetCenterServices.Recommender;
+using Microsoft.Extensions.Logging;
 
 
 namespace PetCenterServices.Services
@@ -21,7 +22,7 @@ namespace PetCenterServices.Services
        
         private readonly IRecommenderSystem recommender;
 
-        public IndividualService(PetCenterDBContext ctx,IRecommenderSystem rec) : base(ctx)
+        public IndividualService(PetCenterDBContext ctx,ILoggerFactory _logger,IRecommenderSystem rec) : base(ctx,_logger)
         {
             dbSet = ctx.IndividualAnimals;
             recommender=rec;   
@@ -30,11 +31,11 @@ namespace PetCenterServices.Services
         protected override async Task<IQueryable<Individual>> Filter(Guid token_holder, IndividualSearchObject search)
         {
             
-            IQueryable<Individual> query = dbSet.Include(i=>i.MedicalRecord).OrderBy(f=>f.Id);
+            IQueryable<Individual> query = dbSet.Include(i=>i.AnimalBreed).ThenInclude(b=>b.AnimalKind).Include(i=>i.MedicalRecord).OrderBy(f=>f.Id);
 
-            if (search.AuthoritySpecifier == Access.BusinessAccount && search.from_franchise!=null && await FranchiseService.IsEmployeeOfFranchise(dbContext,token_holder,search.from_franchise.Value))
+            if (search.AuthoritySpecifier == Access.BusinessAccount && search.FromFranchise!=null && await FranchiseService.IsEmployeeOfFranchise(dbContext,token_holder,search.FromFranchise.Value))
             {
-                query = query.Where(i=>i.ShelterId!=search.from_franchise);
+                query = query.Where(i=>i.ShelterId!=search.FromFranchise);
                 
             }
 
@@ -53,17 +54,18 @@ namespace PetCenterServices.Services
             IQueryable<Individual> query = await Filter(token_holder,search);
             List<Individual> entities = await query.Skip(search.Page*search.PageSize).Take(search.PageSize).ToListAsync();
             List<IndividualResponseDTO> output = entities.Select(e=>IndividualResponseDTO.FromEntity(e)!).ToList();
+            List<MedicalProcedureSpecification> specifications = await dbContext.MedicalProcedureSpecifications.Include(m=>m.MedicalProcedure).ToListAsync();
             if (search.AuthoritySpecifier == Access.User && entities.Count==output.Count)
             {
                 for(int i= 0; i<entities.Count; i++)
                 {
-                    output[i].Notes=await recommender.AddNotesToPet(dbContext,entities[i]);
+                    output[i].Notes=await recommender.AddNotesToPet(dbContext,entities[i],specifications);
                 }
             }
             return ServiceOutput<List<IndividualResponseDTO>>.Success(output);
         }
 
-        public override async Task<ServiceOutput<IndividualResponseDTO>> Put(Guid token_holder, IndividualRequestDTO req)
+        public override async Task<ServiceOutput<IndividualResponseDTO>> Put(Guid session,Guid token_holder, IndividualRequestDTO req)
         {
             Individual? current = await dbSet.FindAsync(req.Id);
             if(current==null)
@@ -71,7 +73,7 @@ namespace PetCenterServices.Services
                 return ServiceOutput<IndividualResponseDTO>.Error(HttpCode.NotFound,"The specified animal does not exist.");
             }
 
-            using (IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync())
+            await using(IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync())
             {
 
                 try
@@ -88,7 +90,7 @@ namespace PetCenterServices.Services
                 catch(Exception ex)
                 {
                     await tx.RollbackAsync();   
-                    return ServiceOutput<IndividualResponseDTO>.FromException(ex);
+                    return ServiceOutput<IndividualResponseDTO>.FromException(ex,logger);
                 }
 
 
@@ -125,6 +127,10 @@ namespace PetCenterServices.Services
                 return ServiceOutput<object>.Error(HttpCode.NotFound,"The specified animal breed does not exist.");
             }
             
+            if((resource.OwnerId!=null && await dbSet.CountAsync(i=>i.OwnerId==token_holder)>50)||(resource.ShelterId!=null && await dbSet.CountAsync(i => i.ShelterId == resource.ShelterId) > 50))
+            {
+                return ServiceOutput<object>.Error(HttpCode.Conflict,"You may not track more than 50 animals at any given time.");
+            }
         
             return ServiceOutput<object>.Success(null);
         }
@@ -181,14 +187,9 @@ namespace PetCenterServices.Services
                     }
                 }
                 else
-                {
-                    if (ind.ShelterId == null)
-                    {
-                        return ServiceOutput<object>.Error(HttpCode.InternalError,"Internal server error.");
-                    }
+                {                   
 
-
-                    if (!await FranchiseService.IsEmployeeOfFranchise(dbContext,token_holder,ind.ShelterId.Value))
+                    if (!await FranchiseService.IsEmployeeOfFranchise(dbContext,token_holder,ind.ShelterId!.Value))
                     {
                         return ServiceOutput<object>.Error(HttpCode.Forbidden,"You are not authorized to perform this action.");
                     } 
@@ -221,10 +222,7 @@ namespace PetCenterServices.Services
             }
             if (individual.Owned)
             {
-                if (individual.OwnerId == null)
-                {
-                    return ServiceOutput<MedicalEntrySubDTO>.Error(HttpCode.InternalError,"Internal server error.");
-                }
+               
                 if (individual.OwnerId != token_holder)
                 {
                     return ServiceOutput<MedicalEntrySubDTO>.Error(HttpCode.Forbidden,"You lack the permission to perform this action.");
@@ -232,15 +230,20 @@ namespace PetCenterServices.Services
             }
             else
             {
-                if (individual.ShelterId == null)
-                {
-                    return ServiceOutput<MedicalEntrySubDTO>.Error(HttpCode.InternalError,"Internal server error.");
-                }
-                if(!await FranchiseService.IsEmployeeOfFranchise(dbContext, token_holder, individual.ShelterId.Value))
+               
+                if(!await FranchiseService.IsEmployeeOfFranchise(dbContext, token_holder, individual.ShelterId!.Value))
                 {
                     return ServiceOutput<MedicalEntrySubDTO>.Error(HttpCode.Forbidden,"You lack the permission to perform this action.");
                 }
             }
+
+            if (days_since_procedure!=null && days_since_procedure > (DateTime.UtcNow - individual.BirthDate).Days)
+            {
+                return ServiceOutput<MedicalEntrySubDTO>.Error(HttpCode.BadRequest,"Prenatal procedures must be dated as the birth date.");
+            }
+
+          
+
             MedicalRecordEntry? medical = await dbContext.MedicalRecordEntries.FirstOrDefaultAsync(m=>m.AnimalId==animal_id && m.ProcedureId == procedure_id);
             if (medical == null)
             {
@@ -250,7 +253,8 @@ namespace PetCenterServices.Services
                 }
                 else
                 {
-                    days_since_procedure=Math.Max((int)days_since_procedure,0);
+                  
+                    days_since_procedure=Math.Max((int)days_since_procedure,(int)-days_since_procedure);
                     days_since_procedure*=-1;
                     MedicalRecordEntry new_entry = new MedicalRecordEntry
                     {
@@ -273,7 +277,7 @@ namespace PetCenterServices.Services
                 }
                 else
                 {
-                    days_since_procedure=Math.Max((int)days_since_procedure,0);
+                    days_since_procedure=Math.Max((int)days_since_procedure,(int)-days_since_procedure);
                     days_since_procedure*=-1;
                     medical.DatePerformed=DateTime.UtcNow.AddDays((int)days_since_procedure);
                     await dbContext.SaveChangesAsync();
@@ -317,7 +321,7 @@ namespace PetCenterServices.Services
                 }
             } 
 
-            using (IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync())
+        await using(IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync())
             {
                 try
                 {
@@ -345,7 +349,7 @@ namespace PetCenterServices.Services
                 catch(Exception ex)
                 {
                     await tx.RollbackAsync();
-                    return ServiceOutput<IndividualResponseDTO>.FromException(ex);
+                    return ServiceOutput<IndividualResponseDTO>.FromException(ex,logger);
                 }
 
             }

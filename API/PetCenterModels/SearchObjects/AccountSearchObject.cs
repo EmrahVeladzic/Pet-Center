@@ -12,10 +12,9 @@ namespace PetCenterModels.SearchObjects
     public class AccountSearchObject : BaseSearchObject
     {
         
-        public Access? Role {get; set;} = null;
+        public Access Role {get; set;} = Access.User;
 
-        [JsonIgnore]
-        public override int PageSize => int.MaxValue;
+        public string Contact {get; set;} = string.Empty;
 
         
 

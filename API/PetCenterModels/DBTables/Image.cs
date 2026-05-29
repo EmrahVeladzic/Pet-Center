@@ -11,20 +11,19 @@ using System.Threading.Tasks;
 namespace PetCenterModels.DBTables
 {
     [Table("Image", Schema = "File")]
-    public class Image : BaseTableEntity
+    public class Image : BLOBReferencingEntity<ImageMetadata>
     {
         [Column("Width")]
         public short Width { get; set; }
         [Column("Height")]
-        public short Height { get; set; }
-        [Column("ImageData")]
-        public string? Data { get; set; }
-        [Column("OwningAlbumID")]
-        [JsonIgnore]
-        public Guid AlbumId { get; set; }
+        public short Height { get; set; }            
 
-        [ForeignKey(nameof(AlbumId))]
-        public Album OwningAlbum {get; set;} = null!;
+
+        public override void LoadMetadata(ImageMetadata metadata)
+        {
+            Width=metadata.Width;
+            Height=metadata.Height;
+        }
        
     }
 }

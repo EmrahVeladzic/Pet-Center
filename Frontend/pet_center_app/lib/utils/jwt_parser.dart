@@ -24,6 +24,7 @@ class JwtData {
 
 JwtData? userToken;
 String? rawToken;
+Access role = Access.user;
 
 void clearToken() {
   rawToken = null;
@@ -51,7 +52,10 @@ void parseJwt(String? token) {
     final decoded = utf8.decode(base64Url.decode(normalized));
 
     rawToken = token;
+
     userToken = JwtData.fromJson(jsonDecode(decoded));
+
+    role = userToken?.role ?? Access.user;
   } catch (e) {
     showSnackbar("Token parsing failure.");
     userToken = null;

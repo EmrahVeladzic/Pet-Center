@@ -19,19 +19,14 @@ namespace PetCenterAPI.Controllers
         public FacilityController(IFacilityService s):base(s) { }
 
 
-        [HttpGet("Count")]
-        [NonAction]
-        public override Task<IActionResult> Count([FromQuery] FacilitySearchObject search)
-        {
-            throw new NotImplementedException();
-        }
+        
 
         [HttpPost]
         [Authorize(Roles = "Employee")]
         public override async Task<IActionResult> Post([FromBody] FacilityDTO ent)
         {
             ent.Contact = ent.Contact?.ToLowerInvariant();
-            return ResultConverter.Convert<FacilityDTO>(await service.Post(Guid.Empty,ent));
+            return await base.Post(ent);
         }
 
         [HttpPut("{id}")]

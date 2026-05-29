@@ -12,6 +12,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using PetCenterServices.Recommender;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.Extensions.Logging;
+using PetCenterModels.ModelUtils;
 
 namespace PetCenterServices.Services
 {
@@ -20,7 +23,7 @@ namespace PetCenterServices.Services
 
         private readonly IRecommenderSystem recommender;
 
-        public UserService(PetCenterDBContext ctx, IRecommenderSystem rec) : base(ctx)
+        public UserService(PetCenterDBContext ctx,ILoggerFactory _ilogger, IRecommenderSystem rec) : base(ctx,_ilogger)
         {
             dbSet = ctx.Users;
             recommender = rec;
@@ -33,7 +36,7 @@ namespace PetCenterServices.Services
 
             if (search.AuthoritySpecifier == Access.BusinessAccount)
             {
-                output = output.Where(u=>u.UserAccount.AccessLevel==Access.BusinessAccount);
+                output = output.Where(u=>u.UserAccount.AccessLevel==Access.BusinessAccount && u.Id!=token_holder);
             }
 
             if (!string.IsNullOrWhiteSpace(search.UserName))
@@ -43,12 +46,19 @@ namespace PetCenterServices.Services
 
             if (search.EmployedBy != null)
             {
-                output = output.Where(u=> dbContext.EmployeeRecords.Any(e=>e.UserId==u.Id && e.FranchiseId==search.EmployedBy));
+                if (search.IncludeExclude)
+                {
+                    output = output.Where(u=> dbContext.EmployeeRecords.Any(e=>e.UserId==u.Id && e.FranchiseId==search.EmployedBy));
+                }            
+                else
+                {
+                    output = output.Where(u=> !dbContext.EmployeeRecords.Any(e=>e.UserId==u.Id && e.FranchiseId==search.EmployedBy));
+                }
             }
             return Task.FromResult(output);
         }
 
-        public override async Task<ServiceOutput<UserResponseDTO>> GetById(Guid token_holder, Guid id, Access authorization_level)
+        public override async Task<ServiceOutput<UserResponseDTO>> GetById(Guid session,Guid token_holder, Guid id, Access authorization_level, FileScope fileScope = FileScope.Invalid)
         {
             UserResponseDTO? output = UserResponseDTO.FromEntity(await dbSet.Include(u=>u.UserAccount).FirstOrDefaultAsync(u=>u.Id==id));
 
@@ -57,36 +67,82 @@ namespace PetCenterServices.Services
                 return ServiceOutput<UserResponseDTO>.Error(HttpCode.NotFound, "No user with this ID exists.");                 
             }
 
-            if (authorization_level == Access.Admin)
+         
+            if (authorization_level == Access.BusinessAccount)
             {
-                output.Announcements=await dbContext.Announcements.OrderBy(a=>(((a.BusinessVisible)?1:0)+((a.UserVisible)?1:0))).Select(a=>AnnouncementSubDTO.FromEntity(a)!).ToListAsync(); 
-                output.Reports = await dbContext.Reports.Select(r=>ReportResponseSubDTO.FromEntity(r)!).ToListAsync();  
+                IQueryable<Guid> records = dbContext.EmployeeRecords.Where(e=>e.UserId==token_holder).Select(e=>e.FranchiseId);
+                List<Franchise> workplaces =  await dbContext.Franchises.Include(f=>f.Facilities).Include(f=>f.ShelteredAnimals).Where(f=>records.Contains(f.Id)||f.OwnerId==token_holder).OrderBy(w=>w.Id).ToListAsync();
+                output.Workplaces=workplaces.Select(w=>FranchiseResponseDTO.FromEntity(w,w.OwnerId==token_holder)!).ToList();
+              
+                List<Guid> workplace_ids = workplaces.Select(w=>w.Id).ToList();
+                output.Notifications = await dbContext.Notifications.Where(n=>n.UserId==token_holder || (n.FranchiseId!=null && workplace_ids.Contains(n.FranchiseId.Value!))).Select(n=>NotificationSubDTO.FromEntity(n)!).ToListAsync();
+                
             }
-            else if (authorization_level == Access.BusinessAccount)
+            else if(authorization_level==Access.User)
             {
-                List<Guid> workplaces = await dbContext.EmployeeRecords.Where(e=>e.UserId==token_holder).Select(e=>e.FranchiseId).ToListAsync();
-                output.Notifications = await dbContext.Notifications.Where(n=>n.UserId==token_holder || (n.FranchiseId!=null && workplaces.Contains(n.FranchiseId.Value!))).Select(n=>NotificationSubDTO.FromEntity(n)!).ToListAsync();
-                output.Announcements=await dbContext.Announcements.Where(a=>a.BusinessVisible).Select(a=>AnnouncementSubDTO.FromEntity(a)!).ToListAsync();
-            }
-            else
-            {
+                List<Individual>individuals = await dbContext.IndividualAnimals.Include(i=>i.AnimalBreed).ThenInclude(b=>b.AnimalKind).Include(i=>i.MedicalRecord).Where(i=>i.Owned && i.OwnerId==token_holder).ToListAsync();
+                List<MedicalProcedureSpecification> specifications = await dbContext.MedicalProcedureSpecifications.Include(m=>m.MedicalProcedure).ToListAsync();
+
+
                 output.Notes=new();
-                output.Notes?.Add(await recommender.ShoppingList(dbContext,token_holder));
+                output.Notes.Add(await recommender.ShoppingList(dbContext,token_holder));
+                foreach(Individual ind in individuals)
+                {
+                    output.Notes.AddRange(await recommender.AddNotesToPet(dbContext,ind,specifications));
+                }
                 output.Notifications = await dbContext.Notifications.Include(n=>n.RelevantListing).Where(n=>n.UserId==token_holder && (n.ListingId==null||(n.RelevantListing.Approved && n.RelevantListing.Visible))).Select(n=>NotificationSubDTO.FromEntity(n)!).ToListAsync();
-                output.Announcements=await dbContext.Announcements.Where(a=>a.UserVisible).Select(a=>AnnouncementSubDTO.FromEntity(a)!).ToListAsync();
+                output.UserWishlist = await dbContext.Wishlists.Where(w=>w.UserId==output.Id).Select(w=>w.Term).ToListAsync();
+                output.UserSupplies= await dbContext.SupplyRecords.Where(s=>s.UserId==token_holder).Select(s=>SuppliesSubDTO.FromEntity(s)!).ToListAsync();
+                output.OwnedAnimals= individuals.Select(i=>IndividualResponseDTO.FromEntity(i)!).ToList();
             }           
             
             return ServiceOutput<UserResponseDTO>.Success(output);
         }
 
-        public override async Task<ServiceOutput<UserResponseDTO>> Put(Guid token_holder,UserRequestDTO ent)
+        public async Task<ServiceOutput<Guid>> GetUserState(Guid token_holder)
+        {
+            User? usr = await dbSet.FindAsync(token_holder);
+            if(usr==null){return ServiceOutput<Guid>.Error(HttpCode.NotFound,"No user with this ID exists.");}
+            return ServiceOutput<Guid>.Success(usr.UserState);
+        }
+
+        public async Task<ServiceOutput<List<AnnouncementSubDTO>>> GetAnnouncements(Access role)
+        {
+            IQueryable<Announcement> query = dbContext.Announcements;
+
+            if (role == Access.User)
+            {
+                query=query.Where(a=>a.UserVisible);
+            }
+            else if (role == Access.BusinessAccount)
+            {
+                query=query.Where(a=>a.BusinessVisible);
+            }
+
+            List<Announcement> list = await query.ToListAsync();
+
+            return ServiceOutput<List<AnnouncementSubDTO>>.Success(list.Select(e=> AnnouncementSubDTO.FromEntity(e)!).ToList());
+            
+        }
+
+        public async Task<ServiceOutput<List<ReportResponseSubDTO>>> GetReports()
+        {
+            
+            List<Report> list = await dbContext.Reports.ToListAsync();
+
+            return ServiceOutput<List<ReportResponseSubDTO>>.Success(list.Select(e=> ReportResponseSubDTO.FromEntity(e)!).ToList());
+            
+        }
+
+
+        public override async Task<ServiceOutput<UserResponseDTO>> Put(Guid session,Guid token_holder,UserRequestDTO ent)
         {
 
             User? current = await dbContext.Users.FindAsync(ent.Id);
 
             if (current != null)
             {
-                using (IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync())
+            await using(IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync())
                 {
                     try
                     {
@@ -101,7 +157,7 @@ namespace PetCenterServices.Services
                     catch(Exception ex)
                     {
                         await tx.RollbackAsync();
-                        return ServiceOutput<UserResponseDTO>.FromException(ex);
+                        return ServiceOutput<UserResponseDTO>.FromException(ex,logger);
                     }
                 }
 
@@ -113,7 +169,7 @@ namespace PetCenterServices.Services
 
         }
 
-        public override Task<ServiceOutput<UserResponseDTO>> Post(Guid token_holder,UserRequestDTO ent)
+        public override Task<ServiceOutput<UserResponseDTO>> Post(Guid session,Guid token_holder,UserRequestDTO ent)
         {
             return Task.FromResult(ServiceOutput<UserResponseDTO>.Error(HttpCode.NotImplemented,"Illegal endpoint."));
         }
@@ -121,7 +177,7 @@ namespace PetCenterServices.Services
         public async Task<ServiceOutput<string>> SetEmployee(Guid caller_id, Guid usr_id, Guid franchise_id, bool add_remove)
         {
 
-            using (IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync(IsolationLevel.Serializable))
+            await using(IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync(IsolationLevel.Serializable))
             {
 
                 try
@@ -133,7 +189,7 @@ namespace PetCenterServices.Services
 
                     if(usr==null || owner==null || franchise==null || usr.UserAccount==null)
                     {
-                        await tx.RollbackAsync();
+                        
                         return ServiceOutput<string>.Error(HttpCode.NotFound,"One or more resources needed for this operation are missing.");
                     }
 
@@ -141,19 +197,19 @@ namespace PetCenterServices.Services
                     {
                         if (franchise.OwnerId != owner.Id)
                         {
-                            await tx.RollbackAsync();
+                            
                             return ServiceOutput<string>.Error(HttpCode.Forbidden,"The token holder does not own the specified franchise.");
                         }
 
                         if (usr.UserAccount.AccessLevel != Access.BusinessAccount)
                         {
-                            await tx.RollbackAsync();
+                            
                             return ServiceOutput<string>.Error(HttpCode.BadRequest,"The specified user is not eligible to be an employee.");
                         }
 
                         if(caller_id == usr_id)
                         {
-                            await tx.RollbackAsync();
+                         
                             return ServiceOutput<string>.Error(HttpCode.BadRequest,"The owner of a franchise is already considered an employee.");
                         }
 
@@ -164,6 +220,8 @@ namespace PetCenterServices.Services
                                 UserId = usr_id,
                                 FranchiseId = franchise_id,                       
                             };
+
+                            usr.UserState=Guid.NewGuid();
 
                             await dbContext.EmployeeRecords.AddAsync(newRecord);
                             await dbContext.SaveChangesAsync();
@@ -177,19 +235,22 @@ namespace PetCenterServices.Services
 
                         if (franchise.OwnerId == usr_id)
                         {
-                            await tx.RollbackAsync();
+                           
                             return ServiceOutput<string>.Error(HttpCode.BadRequest,"The owner of a franchise cannot remove themselves from the employee list.");
                         }
 
                         if (franchise.OwnerId != owner.Id && owner.Id!=usr_id)
                         {
-                            await tx.RollbackAsync();
+                           
                             return ServiceOutput<string>.Error(HttpCode.Forbidden,"You are not allowed to perform this operation.");
                         }
 
                         if(record!=null)
                         {
-                            dbContext.EmployeeRecords.Remove(record);                            
+                            dbContext.EmployeeRecords.Remove(record);     
+
+                            usr.UserState=Guid.NewGuid();
+                       
                             await dbContext.SaveChangesAsync();
                             await tx.CommitAsync();
                         }
@@ -203,7 +264,7 @@ namespace PetCenterServices.Services
                 {
                     
                     await tx.RollbackAsync();
-                    return ServiceOutput<string>.FromException(ex);
+                    return ServiceOutput<string>.FromException(ex,logger);
                 }
 
 
@@ -271,8 +332,15 @@ namespace PetCenterServices.Services
             {
                 if (existing != null)
                 {
-                    await existing.StageDeletion<Wishlist>(dbContext,dbContext.Wishlists);
-                    await dbContext.SaveChangesAsync();
+                await using(IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync())
+                    {
+                        try{
+                            await existing.StageDeletion<Wishlist>(dbContext,dbContext.Wishlists);
+                            await dbContext.SaveChangesAsync();
+                            await tx.CommitAsync();
+                        }
+                        catch(Exception ex){await tx.RollbackAsync(); return ServiceOutput<string>.FromException(ex,logger);}
+                    }
                 }
                 return ServiceOutput<string>.Success("Term removed from wishlist.");
             }
@@ -312,7 +380,7 @@ namespace PetCenterServices.Services
             }
             catch(Exception ex)
             {
-                return ServiceOutput<AnnouncementSubDTO>.FromException(ex);
+                return ServiceOutput<AnnouncementSubDTO>.FromException(ex,logger);
             }
 
             StaticDataVersionHolder.AnnouncementVersion=Guid.NewGuid();
@@ -326,15 +394,22 @@ namespace PetCenterServices.Services
 
             if (existing != null)
             {
-                try
+            await using(IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync())
                 {
-                    await existing.StageDeletion<Announcement>(dbContext,dbContext.Announcements);
-                    await dbContext.SaveChangesAsync();
-                    StaticDataVersionHolder.AnnouncementVersion=Guid.NewGuid();
-                }
-                catch(Exception ex)
-                {
-                    return ServiceOutput<string>.FromException(ex);
+
+                    try
+                    {
+                        await existing.StageDeletion<Announcement>(dbContext,dbContext.Announcements);
+                        await dbContext.SaveChangesAsync();
+                        StaticDataVersionHolder.AnnouncementVersion=Guid.NewGuid();
+                        await tx.CommitAsync();
+                    }
+                    catch(Exception ex)
+                    {
+                        await tx.RollbackAsync();
+                        return ServiceOutput<string>.FromException(ex,logger);
+                    }
+
                 }
                 
             }
@@ -342,44 +417,110 @@ namespace PetCenterServices.Services
             return ServiceOutput<string>.Success("Announcement removed successfully.");
         }
 
-        public async Task<ServiceOutput<NotificationSubDTO>> AddNotification(string title, string body, Guid user_id, Guid? franchise_id, Guid? listing_id, int expiry)
+        public async Task<ServiceOutput<NotificationSubDTO>> AddNotification(Guid token_holder,Access auth, string title,string body,Guid userId,Guid? franchiseId,Guid? listingId,int expiry)
         {
-            if (string.IsNullOrWhiteSpace(body)||string.IsNullOrWhiteSpace(title))
+            if (string.IsNullOrWhiteSpace(title) || string.IsNullOrWhiteSpace(body))
             {
                 return ServiceOutput<NotificationSubDTO>.Error(HttpCode.BadRequest,"Notification title and body cannot be empty.");
             }
 
-            Notification? existing = await dbContext.Notifications.FirstOrDefaultAsync(a=>a.Body.ToLower()==body.ToLower() && a.Title.ToLower()==title.ToLower() && a.UserId==user_id && a.ListingId == listing_id && a.FranchiseId==franchise_id);
-            if (existing != null)
+            User? usr = await dbSet.FindAsync(userId);
+            if (usr == null)
             {
-                existing.Expiry = DateTime.UtcNow.AddDays(expiry);             
-                await dbContext.SaveChangesAsync();
-                return ServiceOutput<NotificationSubDTO>.Success(NotificationSubDTO.FromEntity(existing));
+                return ServiceOutput<NotificationSubDTO>.Error(HttpCode.NotFound,"The specified user does not exist.");
             }
-           
-            Notification newNotification = new Notification
-            {
-                Body = body,
-                Title = title,
-                UserId=user_id,
-                ListingId=listing_id,
-                FranchiseId=franchise_id,
-                Expiry = DateTime.UtcNow.AddDays(expiry)
-            };
+            
 
-            try
+            Franchise? franch = null;
+
+            if (franchiseId != null)
             {
-                await dbContext.Notifications.AddAsync(newNotification);
-                await dbContext.SaveChangesAsync();
-            }
-            catch(Exception ex)
-            {
-                return ServiceOutput<NotificationSubDTO>.FromException(ex);
+                franch = await dbContext.Franchises.FindAsync(franchiseId);
+
+                if (franch == null)
+                {
+                    return ServiceOutput<NotificationSubDTO>.Error(HttpCode.NotFound,"Could not find specified franchise.");
+                }
             }
 
-            return ServiceOutput<NotificationSubDTO>.Success(NotificationSubDTO.FromEntity(newNotification),HttpCode.Created);
+
+            if(auth==Access.BusinessAccount && (franch == null||franch.OwnerId!=token_holder))
+            {
+                return ServiceOutput<NotificationSubDTO>.Error(HttpCode.NotFound,"You do not own a franchise with the provided ID.");
+            }
+            
+
+
+            await using (IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync()){
+
+                try
+                {
+                    Notification notif = new();
+
+                    Notification? existing = await dbContext.Notifications
+                        .FirstOrDefaultAsync(n =>
+                            n.UserId == userId &&
+                            n.ListingId == listingId &&
+                            n.FranchiseId == franchiseId &&
+                            n.Title.ToLower() == title.ToLower() &&
+                            n.Body.ToLower() == body.ToLower()
+                        );
+
+                    if (existing != null)
+                    {
+                        existing.Expiry = DateTime.UtcNow.AddDays(expiry);
+
+                        notif = existing;
+                        
+                    }
+                    else{
+
+                        Notification newNotification = new()
+                        {
+                            Title = title,
+                            Body = body,
+                            UserId = userId,
+                            ListingId = listingId,
+                            FranchiseId = franchiseId,
+                            Expiry = DateTime.UtcNow.AddDays(expiry)
+                        };
+
+                        await dbContext.Notifications.AddAsync(newNotification);
+
+                        notif= newNotification;
+                    }
+
+                    usr.UserState= Guid.NewGuid();
+
+                    if (franch != null)
+                    {
+                        
+                        List<User> users = await dbSet
+                        .Where(u => dbContext.EmployeeRecords
+                        .Any(e => e.FranchiseId == franchiseId && e.UserId == u.Id))
+                        .ToListAsync();
+
+                        foreach(User u in users)
+                        {
+                            u.UserState=Guid.NewGuid();
+                        }
+                    }
+
+                    await dbContext.SaveChangesAsync();
+                    await tx.CommitAsync();
+
+                    HttpCode code = (existing!=null)? HttpCode.OK:HttpCode.Created;
+
+                    return ServiceOutput<NotificationSubDTO>.Success(NotificationSubDTO.FromEntity(notif),code);
+                }
+                catch (Exception ex)
+                {
+                    await tx.RollbackAsync();
+                    return ServiceOutput<NotificationSubDTO>.FromException(ex,logger);
+                }
+
+            }
         }
-
 
         public async Task<ServiceOutput<string>> RemoveNotification(Guid notification_id)
         {
@@ -387,14 +528,20 @@ namespace PetCenterServices.Services
 
             if (existing != null)
             {
-                try
+
+            await using(IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync())
                 {
-                    await existing.StageDeletion<Notification>(dbContext,dbContext.Notifications);
-                    await dbContext.SaveChangesAsync();
-                }
-                catch(Exception ex)
-                {
-                    return ServiceOutput<string>.FromException(ex);
+                    try
+                    {
+                        await existing.StageDeletion<Notification>(dbContext,dbContext.Notifications);
+                        await dbContext.SaveChangesAsync();
+                        await tx.CommitAsync();
+                    }
+                    catch(Exception ex)
+                    {
+                        await tx.RollbackAsync();
+                        return ServiceOutput<string>.FromException(ex,logger);
+                    }
                 }
                 
             }

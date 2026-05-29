@@ -18,13 +18,7 @@ namespace PetCenterAPI.Controllers
 
         public FormTemplateController(IFormTemplateService s):base(s) { }
 
-        [HttpGet("Count")]
-        [NonAction]
-        public override Task<IActionResult> Count([FromQuery] FormTemplateSearchObject search)
-        {
-            throw new NotImplementedException();
-        }
-
+      
         [Authorize(Roles = "Admin,Owner")]
         [HttpPut("{id}")]
         public override Task<IActionResult> Put([FromRoute] Guid id, [FromBody] FormTemplateDTO ent)

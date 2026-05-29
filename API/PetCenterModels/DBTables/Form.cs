@@ -18,7 +18,6 @@ namespace PetCenterModels.DBTables
         [Column("FormTemplateID")]
         public Guid FormTemplateId { get; set; }
 
-        [JsonIgnore]
         [Column("UserID")]
         public Guid UserId { get; set; }
 

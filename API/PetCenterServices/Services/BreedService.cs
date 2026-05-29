@@ -12,15 +12,17 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using PetCenterServices.Recommender;
+using Microsoft.Extensions.Logging;
+using PetCenterModels.ModelUtils;
 
 
 namespace PetCenterServices.Services
 {
-    public class BreedService : AlbumIncludingService<Breed,BreedSearchObject,BreedDTO,BreedDTO>, IBreedService    
+    public class BreedService : AlbumIncludingService<Breed,BreedSearchObject,BreedDTO,BreedDTO,ImageDTO,Image,ImageMetadata>, IBreedService    
     {
         private readonly IRecommenderSystem recommender;
 
-        public BreedService(PetCenterDBContext ctx, IRecommenderSystem rec) : base(ctx)
+        public BreedService(PetCenterDBContext ctx,ILoggerFactory _logger, IRecommenderSystem rec) : base(ctx,_logger)
         {
             dbSet = ctx.AnimalBreeds;
             recommender = rec;
@@ -29,33 +31,45 @@ namespace PetCenterServices.Services
         protected override void Touch()
         {
             StaticDataVersionHolder.BreedVersion = Guid.NewGuid();
+            StaticDataVersionHolder.KindVersion=Guid.NewGuid();
         }
 
         protected override async Task<IQueryable<Breed>> Filter(Guid token_holder, BreedSearchObject search)
         {
             
-            IQueryable<Breed> query = dbSet.OrderBy(b=>b.Id);
+            IQueryable<Breed> query = WithAlbum();
             User? usr = await dbContext.Users.FindAsync(token_holder);
+
+            if (search.KindId != null)
+            {
+                query=query.Where(b=>b.KindId==search.KindId);
+            }
 
             if(search.AuthoritySpecifier == Access.Admin && search.Incomplete)
             {
                 query = query.Where(b=>b.Album.Reserved==0);
             }
 
-            if(search.AuthoritySpecifier == Access.User && search.AdoptionPurposes && usr!=null)
+            if(search.AuthoritySpecifier == Access.User && usr!=null)
             {
                 
-                query = WithAlbum();
-                query = query.Where(b=> b.Album.Reserved>0);               
-                query = query.Where(b =>
-                dbContext.AnimalListings.Any(al =>
-                al.Animal.AnimalBreed.Id == b.Id && b.KindId==search.KindId &&
-                al.Base.Approved &&
-                al.Base.Visible &&
-                al.Base.Type == ListingType.Pet));
+               
+                query = query.Where(b=> b.Album.Reserved>0);
+
+                if (search.AdoptionPurposes)
+                {
+                    query = query.Where(i=>dbContext.Listings.Any(l=>l.Visible&&l.Approved&&l.AnimalExtension!=null&&l.AnimalExtension.Animal.BreedId==i.Id));
+                }
+
+                
                 query=await recommender.GetMostCompatibleBreeds(dbContext,query,usr);
 
 
+            }
+
+            else
+            {
+                query=query.OrderBy(q=>q.Id);
             }
 
             return query;
@@ -65,17 +79,16 @@ namespace PetCenterServices.Services
 
         public override async Task<ServiceOutput<List<BreedDTO>>> Get(Guid token_holder, BreedSearchObject search)
         {
-            if(search.AdoptionPurposes && search.AuthoritySpecifier == Access.User)
+            if(search.AuthoritySpecifier == Access.Admin)
             {
-                return await base.Get(token_holder, search);
+                search.FileRW = FileScope.Write;
             }
             else
             {
-                IQueryable<Breed> breeds = await Filter(token_holder,search);
-                List<Breed> output = await breeds.ToListAsync();
-
-                return ServiceOutput<List<BreedDTO>>.Success(output.Select(b=>BreedDTO.FromEntity(b)!).ToList());
+                search.FileRW=FileScope.ReadOnly;
             }
+
+            return await base.Get(token_holder, search);
             
         }
 

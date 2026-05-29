@@ -12,15 +12,17 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using PetCenterServices.Recommender;
+using Microsoft.Extensions.Logging;
+using PetCenterModels.ModelUtils;
 
 
 namespace PetCenterServices.Services
 {
-    public class FormService : AlbumIncludingService<Form,FormSearchObject,FormDTO,FormDTO>, IFormService    
+    public class FormService : AlbumIncludingService<Form,FormSearchObject,FormDTO,FormDTO,ImageDTO,Image,ImageMetadata>, IFormService    
     {
        
 
-        public FormService(PetCenterDBContext ctx) : base(ctx)
+        public FormService(PetCenterDBContext ctx,ILoggerFactory _logger) : base(ctx,_logger)
         {
             dbSet = ctx.Forms;
             
@@ -31,54 +33,142 @@ namespace PetCenterServices.Services
             
             IQueryable<Form> query = WithAlbum().Include(f=>f.Entries).OrderBy(f=>f.Id);
 
+            if (search.TemplateId != null)
+            {
+                query=query.Where(f=>f.FormTemplateId==search.TemplateId);
+            }
+
             if (search.AuthoritySpecifier == Access.Admin)
             {
                 query=query.Where(f=>f.Album.Reserved>0);
+                search.FileRW=FileScope.ReadOnly;
             }
 
             else
             {
                 query=query.Where(f=>f.UserId==token_holder);
+                search.FileRW=FileScope.Write;
             }
 
 
             return Task.FromResult<IQueryable<Form>>(query);
              
-        }       
+        }      
 
-        public override async Task<ServiceOutput<FormDTO>> Post(Guid token_holder, FormDTO resource)
+        public override async Task<ServiceOutput<FormDTO>> GetById(Guid session,Guid token_holder, Guid id, Access authorization_level, FileScope fileScope = FileScope.ReadOnly)
+        {
+            fileScope=FileScope.ReadOnly;
+
+            Form? frm = await dbSet.Include(f=>f.Entries).Include(f=>f.Album).ThenInclude(a=>a.Images).FirstOrDefaultAsync(f=>f.Id==id);
+
+            if(frm==null)
+            {
+                return ServiceOutput<FormDTO>.Error(HttpCode.NotFound,"No form with this ID exists.");
+            }
+
+            if(authorization_level == Access.BusinessAccount)
+            {
+
+                if (frm.UserId != token_holder)
+                {
+                    return ServiceOutput<FormDTO>.Error(HttpCode.Forbidden,"You do not own this form.");
+                }
+
+                fileScope= FileScope.Write;
+            }
+
+            else if(authorization_level == Access.Admin && frm.Album.Reserved == 0)
+            {
+               return ServiceOutput<FormDTO>.Error(HttpCode.Forbidden,"You may not evaluate forms with no images.");
+            }
+
+            FormDTO? output = FormDTO.FromEntity(frm);
+
+            if (output != null)
+            {
+                AttachTokensIfNeeded(output,fileScope,session);
+            }
+
+            return ServiceOutput<FormDTO>.Success(output);
+            
+
+        }
+
+        public override async Task<ServiceOutput<FormDTO>> Post(Guid session,Guid token_holder, FormDTO resource)
         {
             Form? ent = resource.ToEntity();
 
             if(ent!=null){
 
-                using (IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync())
+                await using(IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync())
                 {
                     try
                     {
-                        ent.AlbumId = await ImageService.CreateAlbum(token_holder,dbContext,ent.AlbumCapacity);
+                        ent.AlbumId = await CreateAlbum(token_holder,dbContext,ent.AlbumCapacity);
                         await dbSet.AddAsync(ent);
                         await dbContext.SaveChangesAsync();
                         foreach(FormEntrySubDTO entry in resource.Entries)
                         {
-                            entry.FormId=ent.Id;
-                            await dbContext.AddAsync(entry.ToEntity()!);
+                            FormFieldEntry fieldEntry = entry.ToEntity()!;
+                            fieldEntry.FormId = ent.Id;
+                            await dbContext.FormFieldEntries.AddAsync(fieldEntry);
                         }
+
                         await dbContext.SaveChangesAsync();
                         await tx.CommitAsync();
-                        return ServiceOutput<FormDTO>.Success(FormDTO.FromEntity(ent),HttpCode.Created);
+                        return ServiceOutput<FormDTO>.Success(FormDTO.FromEntity(ent,Crypto.GenerateFileToken("",Purpose,FileScope.Write,ent.AlbumId,session)),HttpCode.Created);
                     }
                     catch(Exception ex)
                     {
                         await tx.RollbackAsync();
-                        return ServiceOutput<FormDTO>.FromException(ex);
+                        return ServiceOutput<FormDTO>.FromException(ex,logger);
                     }
                 }
 
                    
             }   
 
-            return ServiceOutput<FormDTO>.Error(HttpCode.InternalError,"Internal server error."); 
+            return ServiceOutput<FormDTO>.Error(HttpCode.BadRequest,"DTO corruption."); 
+        }
+
+        public override async Task<ServiceOutput<FormDTO>> Put(Guid session,Guid token_holder, FormDTO resource)
+        {
+            Form? ent = await dbSet.FirstOrDefaultAsync(f=>f.Id==resource.Id && f.UserId==token_holder);
+
+            if(ent!=null){
+
+                ent.DefaultContact=resource.DefaultContact;
+                ent.FranchiseName=resource.FranchiseName;
+
+                await dbContext.SaveChangesAsync();
+
+                FormDTO? output = FormDTO.FromEntity(ent);
+
+                if (output != null)
+                {
+                    AttachTokensIfNeeded(output,FileScope.Write,session);
+                }
+
+                return ServiceOutput<FormDTO>.Success(output);
+                   
+            }   
+
+            return ServiceOutput<FormDTO>.Error(HttpCode.NotFound,"This form does not exist."); 
+        }
+
+        public override async Task<ServiceOutput<object>> IsClearedToUpdate(Guid token_holder, FormDTO resource)
+        {
+            if (!ModelValidationUtils.ValidateContact(resource.DefaultContact) || string.IsNullOrWhiteSpace(resource.FranchiseName))
+            {
+                return ServiceOutput<object>.Error(HttpCode.BadRequest,"You need to provide a valid contact and the name of your franchise.");
+            }
+
+            Form? frm = await dbSet.FirstOrDefaultAsync(f=>f.Id==resource.Id&&f.UserId==token_holder);
+            if (frm == null)
+            {
+                return ServiceOutput<object>.Error(HttpCode.NotFound,"Could not find the specified form.");
+            }
+            return ServiceOutput<object>.Success(null);
         }
 
         public override async Task<ServiceOutput<object>> IsClearedToCreate(Guid token_holder, FormDTO resource)
@@ -144,7 +234,7 @@ namespace PetCenterServices.Services
                 {
                     return ServiceOutput<object>.Error(HttpCode.BadRequest,"The reason for denying the application needs to be specified.");
                 }
-                using (IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync())
+            await using(IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync())
                 {
                     try
                     {
@@ -153,6 +243,13 @@ namespace PetCenterServices.Services
                         notif.Title = $"Form denial for franchise \"{frm.FranchiseName}\".";
                         notif.Body = $"Reason for denial: \"{reason}\".";
                         notif.UserId=frm.UserId;
+
+                        User? usr = await dbContext.Users.FindAsync(frm.UserId);
+                        if (usr != null)
+                        {
+                            usr.UserState=Guid.NewGuid();
+                        }
+
                         await dbContext.Notifications.AddAsync(notif);
                         await dbContext.SaveChangesAsync();
                         await tx.CommitAsync();
@@ -160,7 +257,7 @@ namespace PetCenterServices.Services
                     catch(Exception ex)
                     {
                         await tx.RollbackAsync();
-                        return ServiceOutput<object>.FromException(ex);
+                        return ServiceOutput<object>.FromException(ex,logger);
                     }
 
                 }

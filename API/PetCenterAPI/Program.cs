@@ -20,21 +20,44 @@ using System.IdentityModel.Tokens.Jwt;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+
+
+string[] allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
+
+allowedOrigins = builder.Configuration["CORS_ALLOWED_ORIGINS"]?.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)?? allowedOrigins;
+
 
 builder.Services.AddCors(options =>
 {
     options.AddPolicy(name: "DEFAULT", policy =>
     {
 
-        policy.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod();
-
+        if (allowedOrigins.Contains("*"))
+        {
+            policy.AllowAnyOrigin();
+        }
+        else
+        {
+            policy.WithOrigins(allowedOrigins);
+        }
+        policy.WithHeaders("Authorization","Content-Type","Accept","X-File-Token");
+        policy.WithMethods("GET", "POST", "PUT", "DELETE", "OPTIONS");
     });
     
 
 });
 
-builder.Services.AddControllers();
+builder.Services.AddMemoryCache();
+
+builder.Services.AddControllers(options =>
+{
+    
+    options.ModelMetadataDetailsProviders.Add(
+        new Microsoft.AspNetCore.Mvc.ModelBinding.Metadata.ExcludeBindingMetadataProvider(
+            typeof(System.ComponentModel.ReadOnlyAttribute) 
+        )
+    );
+});
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 
@@ -42,14 +65,23 @@ builder.Services.AddSwaggerGen(cfg =>
 {
     cfg.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo { Title = "PetCenter API", Version = "v1" });
 
-    // Add JWT Authentication
+    // Main JWT
     cfg.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
     {
         Name = "Authorization",
         Type = Microsoft.OpenApi.Models.SecuritySchemeType.Http,
         Scheme = "Bearer",
         BearerFormat = "JWT",
-        In = Microsoft.OpenApi.Models.ParameterLocation.Header,       
+        In = Microsoft.OpenApi.Models.ParameterLocation.Header,
+    });
+
+    
+    cfg.AddSecurityDefinition("FileToken", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+    {
+        Name = "X-File-Token",
+        Type = Microsoft.OpenApi.Models.SecuritySchemeType.ApiKey,
+        In = Microsoft.OpenApi.Models.ParameterLocation.Header,
+        Description = "File context token for BLOB operations"
     });
 
     cfg.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
@@ -64,11 +96,23 @@ builder.Services.AddSwaggerGen(cfg =>
                 }
             },
             new string[] {}
+        },
+        {
+            new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+            {
+                Reference = new Microsoft.OpenApi.Models.OpenApiReference
+                {
+                    Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
+                    Id = "FileToken"
+                }
+            },
+            new string[] {}
         }
     });
 
     cfg.SchemaFilter<CurrentVersionSchemaFilter>();
 });
+
 
 builder.Services.AddSingleton<IRecommenderSystem,RecommenderSystem>();
 builder.Services.AddSingleton<ISeeder,TestSeeder>();
@@ -95,19 +139,33 @@ builder.Services.AddScoped<IListingService,ListingService>();
 
 builder.Services.AddScoped<IMessageBusClient, MessageBusClient>();
 
+string? dbConnection = builder.Configuration.GetConnectionString("DefaultConnection");
+dbConnection= Environment.GetEnvironmentVariable("DB_CONNECTION_STRING")??dbConnection;
+
 builder.Services.AddDbContext<PetCenterDBContext>(options =>
 {
 
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
+    options.UseSqlServer(dbConnection);
 
-    if (builder.Environment.IsDevelopment())
-    {
-        options.EnableDetailedErrors().LogTo(Console.WriteLine,LogLevel.Warning);
-    }
+    
+    options.EnableDetailedErrors();
+    
 
     options.ConfigureWarnings(w =>  w.Ignore(RelationalEventId.MultipleCollectionIncludeWarning));
 
 });
+
+string? jwtValidIssuer = builder.Configuration["Jwt:Issuer"];
+string? jwtValidAudience = builder.Configuration["Jwt:Audience"];
+string? jwtKey = builder.Configuration["Jwt:Key"];
+
+jwtValidIssuer=Environment.GetEnvironmentVariable("JWT_ISSUER")??jwtValidIssuer;
+jwtValidAudience=Environment.GetEnvironmentVariable("JWT_AUDIENCE")??jwtValidAudience;
+jwtKey=Environment.GetEnvironmentVariable("JWT_KEY")??jwtKey;
+
+builder.Configuration["Jwt:Key"]=jwtKey;
+builder.Configuration["Jwt:Issuer"]=jwtValidIssuer;
+builder.Configuration["Jwt:Audience"]=jwtValidAudience;
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -118,16 +176,16 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateAudience = false,
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
-            ValidIssuer = builder.Configuration["Jwt:Issuer"],
-            ValidAudience = builder.Configuration["Jwt:Audience"],
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!))
+            ValidIssuer = jwtValidIssuer,
+            ValidAudience = jwtValidAudience,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey!))
         };
 
         options.Events = new JwtBearerEvents
         {
             OnTokenValidated = async context =>
             {
-                var jti = context.Principal?
+                string? jti = context.Principal?
                     .FindFirst(JwtRegisteredClaimNames.Jti)?.Value;
 
               
@@ -137,10 +195,10 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                     return;
                 }
 
-                var db = context.HttpContext.RequestServices
+                PetCenterDBContext db = context.HttpContext.RequestServices
                     .GetRequiredService<PetCenterDBContext>();
 
-                var isInvalidated = await db.InvalidatedTokens
+                bool isInvalidated = await db.InvalidatedTokens
                     .AnyAsync(t => t.Id == parsedJti
                                 && t.Expiry > DateTime.UtcNow);
 
@@ -169,34 +227,20 @@ PetCenterServices.Utils.Crypto.Configuration = builder.Configuration;
 
 var app = builder.Build();
 
+ILogger<Program> logger = app.Services.GetRequiredService<ILogger<Program>>();
+
+
+
 app.UseExceptionHandler(errorApp =>
 {
     errorApp.Run(async context =>
     {
-        Exception? ex = context.Features
-        .Get<IExceptionHandlerFeature>()?
-        .Error;
-
-        if (ex != null)
-        {
-            if (app.Environment.IsDevelopment())
-            {
-                Console.WriteLine($"[ERROR] {ex.GetType().Name}: {ex.Message}");
-            }
-
-            if(ex is NotImplementedException)
-            {
-                context.Response.StatusCode = 501;
-                await context.Response.WriteAsync(JsonSerializer.Serialize(new { error = "Invalid action." }));
-                return;
-            }
-
-        }
-
-        context.Response.StatusCode = 500;
-        await context.Response.WriteAsync(JsonSerializer.Serialize(new { error = "Internal server error." }));
+        Exception? ex = context.Features.Get<IExceptionHandlerFeature>()?.Error;
+        ServiceOutput<object> output = ServiceOutput<object>.FromException(ex, logger);
+        await PetCenterAPI.Controllers.ResultConverter.WriteAsync(context, output);
     });
 });
+
 
 
 app.UseRouting();
@@ -219,6 +263,12 @@ app.UseCors("DEFAULT");
 app.UseAuthentication();
 
 app.UseAuthorization();
+
+
+string? contact = Environment.GetEnvironmentVariable("INSTANCE_OWNER_CONTACT");
+string? password = Environment.GetEnvironmentVariable("INSTANCE_OWNER_PASSWORD");
+bool seeder_static =bool.TryParse(Environment.GetEnvironmentVariable("SEEDER_STATIC"), out bool result)&& result;
+bool hasSeed = int.TryParse(Environment.GetEnvironmentVariable("SEEDER_SEED"),out int seed);
 
 
 bool retry = true;
@@ -244,9 +294,7 @@ while (retry)
                         Password = instance_owner["Password"]??"Null",
                     };
 
-                    string? contact = Environment.GetEnvironmentVariable("INSTANCE_OWNER_CONTACT");
-                    string? password = Environment.GetEnvironmentVariable("INSTANCE_OWNER_PASSWORD");
-
+                  
                     if (!string.IsNullOrWhiteSpace(contact) && !string.IsNullOrWhiteSpace(password)){
 
                         owner_req.Contact = contact;
@@ -255,18 +303,30 @@ while (retry)
                     }
 
 
-                    await svc.Post(Guid.Empty,owner_req);
+                    await svc.Post(Guid.Empty,Guid.Empty,owner_req);
 
-                    await seeder.SeedDatabase(ctx,true);
-                  
+                   
+
+                    if(hasSeed)
+                    {
+                        await seeder.SeedDatabase(ctx,!seeder_static,seed);
+                    
+                    }
+                    else
+                    {
+                        await seeder.SeedDatabase(ctx,!seeder_static);
+                    }
+
+                   
                 }
 
                 await Task.Delay(2500);
 
             }
     }
-    catch
+    catch( Exception ex)
     {
+        logger.LogTrace(ex,"Startup error.");
         retry = true;
         await Task.Delay(2500);
     }

@@ -37,7 +37,8 @@ namespace PetCenterModels.DBTables
         [ForeignKey(nameof(ListingId))]
         public Listing RelevantListing {get; set;}= null!;
 
-      
+        [Column("DatePosted")]
+        public DateTime DatePosted {get; set;} = DateTime.UtcNow;
 
     }
 }

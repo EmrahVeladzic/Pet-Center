@@ -11,6 +11,8 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+using PetCenterModels.ModelUtils;
 
 
 namespace PetCenterServices.Services
@@ -20,9 +22,12 @@ namespace PetCenterServices.Services
         protected PetCenterDBContext dbContext;
         protected DbSet<TEntity> dbSet;
 
-        public BaseCRUDService(PetCenterDBContext ctx)
+        protected ILogger logger;
+
+        public BaseCRUDService(PetCenterDBContext ctx,ILoggerFactory _logger)
         {
             dbContext = ctx;
+            logger=_logger.CreateLogger(GetType());
             dbSet = dbContext.Set<TEntity>();
         }
 
@@ -55,7 +60,7 @@ namespace PetCenterServices.Services
             return  ServiceOutput<List<TResponse>>.Success(entities.Select(e=>TResponse.FromEntity(e)!).ToList());
         }
 
-        public virtual async Task<ServiceOutput<TResponse>> GetById(Guid token_holder,Guid id, Access authorization_level)
+        public virtual async Task<ServiceOutput<TResponse>> GetById(Guid session,Guid token_holder,Guid id, Access authorization_level, FileScope fileScope = FileScope.Invalid)
         {
             TEntity? entity = await dbSet.FindAsync(id);
 
@@ -68,7 +73,7 @@ namespace PetCenterServices.Services
             
         }
 
-        public virtual async Task<ServiceOutput<TResponse>> Post(Guid token_holder,TRequest req)
+        public virtual async Task<ServiceOutput<TResponse>> Post(Guid session,Guid token_holder,TRequest req)
         {
             bool valid = req.Validate();
             if (!valid)
@@ -82,7 +87,7 @@ namespace PetCenterServices.Services
 
                 if(ent!=null){
 
-                    using (IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync())
+                await using(IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync())
                     {
                         try
                         {
@@ -95,7 +100,7 @@ namespace PetCenterServices.Services
                         catch(Exception ex)
                         {
                             await tx.RollbackAsync();
-                            return ServiceOutput<TResponse>.FromException(ex);
+                            return ServiceOutput<TResponse>.FromException(ex,logger);
                         }
                     }
 
@@ -104,11 +109,10 @@ namespace PetCenterServices.Services
 
             }
            
-            return ServiceOutput<TResponse>.Error(HttpCode.InternalError, "Internal server error.");
-
+            return ServiceOutput<TResponse>.Error(HttpCode.BadRequest, "DTO format not valid.");
         }
 
-        public virtual async Task<ServiceOutput<TResponse>> Put(Guid token_holder,TRequest req)
+        public virtual async Task<ServiceOutput<TResponse>> Put(Guid session,Guid token_holder,TRequest req)
         {      
 
             TEntity? ent = await dbSet.FindAsync(req.Id);
@@ -124,34 +128,34 @@ namespace PetCenterServices.Services
                     {
                         
 
-                        using (IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync())
+                    await using(IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync())
+                       
+                       
+                        try
                         {
-                            try
-                            {
+                            
+                            overwrite.Id = ent.Id;
 
-                                
-                                overwrite.Id = ent.Id;
+                            
+                            dbSet.Entry(ent).Property(e => e.CurrentVersion).OriginalValue = overwrite.CurrentVersion;
 
-                                
-                                dbSet.Entry(ent).Property(e => e.CurrentVersion).OriginalValue = overwrite.CurrentVersion;
+                            
+                            byte[] originalVersion = overwrite.CurrentVersion;
+                            overwrite.CurrentVersion = ent.CurrentVersion; 
+                            dbSet.Entry(ent).CurrentValues.SetValues(overwrite);
 
-                                
-                                var originalVersion = overwrite.CurrentVersion;
-                                overwrite.CurrentVersion = ent.CurrentVersion; 
-                                dbSet.Entry(ent).CurrentValues.SetValues(overwrite);
-
-                                await dbContext.SaveChangesAsync();
-                                await tx.CommitAsync();
-                                Touch();
-                                return ServiceOutput<TResponse>.Success(TResponse.FromEntity(ent));
+                            await dbContext.SaveChangesAsync();
+                            await tx.CommitAsync();
+                            Touch();
+                            return ServiceOutput<TResponse>.Success(TResponse.FromEntity(ent));
                                
-                            }
-                            catch(Exception ex)
-                            {
-                                await tx.RollbackAsync();
-                                return ServiceOutput<TResponse>.FromException(ex);
-                            }
                         }
+                        catch(Exception ex)
+                        {
+                            await tx.RollbackAsync();
+                            return ServiceOutput<TResponse>.FromException(ex,logger);
+                        }
+                        
 
 
 
@@ -160,7 +164,7 @@ namespace PetCenterServices.Services
 
                 }
                
-                return ServiceOutput<TResponse>.Error(HttpCode.InternalError, "Internal server error.");
+               
 
             }
 
@@ -173,10 +177,11 @@ namespace PetCenterServices.Services
             if (current != null)
             {
 
-                using (IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync())
+            await using(IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync())
                 {
                     try
                     {
+                       
                         await current.StageDeletion<TEntity>(dbContext,dbSet);
                         await dbContext.SaveChangesAsync();                
                         await tx.CommitAsync();
@@ -185,7 +190,7 @@ namespace PetCenterServices.Services
                     catch(Exception ex)
                     {
                         await tx.RollbackAsync();
-                        return ServiceOutput<object>.FromException(ex);
+                        return ServiceOutput<object>.FromException(ex,logger);
 
                     }
                 }

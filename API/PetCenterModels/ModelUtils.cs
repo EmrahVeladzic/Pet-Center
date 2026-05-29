@@ -9,10 +9,24 @@ using System.Threading.Tasks;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats.Webp;
 using PetCenterServices;
+using System.Buffers.Text;
+using System.Runtime.Intrinsics.Arm;
+using System.Security.Cryptography;
 
 
 namespace PetCenterModels.ModelUtils
 {
+
+    public enum FilePurpose : byte
+    {
+       Image = 0,
+    }
+    public enum FileScope : byte
+    {
+        Invalid = 0,
+        ReadOnly = 1,
+        Write = 2,
+    }
 
     public sealed class MissingTransactionException : Exception
     {
@@ -31,6 +45,15 @@ namespace PetCenterModels.ModelUtils
         }
     }
 
+    public static class BLOBHandler
+    {
+        public static string CreateHash(byte[] input)
+        {
+            return Convert.ToBase64String(SHA256.HashData(input));
+        }
+
+    }
+
     public static class ModelValidationUtils
     {
         public static bool ValidateContact(string? contact)
@@ -47,44 +70,6 @@ namespace PetCenterModels.ModelUtils
             return acc.RegistrationDate.AddDays(7) <= DateTime.UtcNow;
         }
 
-        public static bool IsWebp(byte[] bytes,short width, short height)
-        {
-            if (bytes.Length < 12)
-                return false;
-
-            
-            bool riff =
-                bytes[0] == 0x52 &&
-                bytes[1] == 0x49 &&
-                bytes[2] == 0x46 &&
-                bytes[3] == 0x46;
-
-           
-            bool webp =
-                bytes[8] == 0x57 &&
-                bytes[9] == 0x45 &&
-                bytes[10] == 0x42 &&
-                bytes[11] == 0x50;
-
-
-            if (!(riff && webp))
-            {
-                return false;
-            }
-           
-            try
-            {
-                using SixLabors.ImageSharp.Image image = SixLabors.ImageSharp.Image.Load(bytes);
-
-                return(width==image.Width&&height==image.Height);
-
-            }
-            catch
-            {
-                return false;
-            }
-
-
-        }
+        
     }
 }

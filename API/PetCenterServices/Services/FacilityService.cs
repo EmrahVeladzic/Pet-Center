@@ -11,6 +11,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 
 
 namespace PetCenterServices.Services
@@ -18,7 +19,7 @@ namespace PetCenterServices.Services
     public class FacilityService : BaseCRUDService<Facility,FacilitySearchObject,FacilityDTO,FacilityDTO>, IFacilityService    
     {
 
-        public FacilityService(PetCenterDBContext ctx) : base(ctx)
+        public FacilityService(PetCenterDBContext ctx,ILoggerFactory _logger) : base(ctx,_logger)
         {
             dbSet = ctx.Facilities;
         }
@@ -26,11 +27,7 @@ namespace PetCenterServices.Services
         protected override Task<IQueryable<Facility>> Filter(Guid token_holder, FacilitySearchObject search)
         {
             IQueryable<Facility> output = dbSet.Where(f=>f.FranchiseId==search.FranchiseId);
-            if (search.ServesListing != null)
-            {
-                output = output.Where(f=>dbContext.ListingAvailable.Any(a=>a.ListingId == search.ServesListing && a.FacilityId == f.Id));
-            }
-            
+          
             return Task.FromResult<IQueryable<Facility>>(output);
         }
 
@@ -97,10 +94,7 @@ namespace PetCenterServices.Services
             Facility? fac = await dbSet.Include(f=>f.OwningFranchise).FirstOrDefaultAsync(f=>f.Id==resourceId);
             if (fac != null)
             {
-                if (fac.OwningFranchise == null)
-                {
-                    return ServiceOutput<object>.Error(HttpCode.InternalError,"Internal server error.");
-                }
+               
                 if(fac.OwningFranchise.OwnerId != token_holder)
                 {
                     return ServiceOutput<object>.Error(HttpCode.Forbidden,"You lack the permission to delete this facility.");

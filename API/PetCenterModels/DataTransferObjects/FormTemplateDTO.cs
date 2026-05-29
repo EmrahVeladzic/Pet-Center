@@ -80,7 +80,7 @@ namespace PetCenterModels.DataTransferObjects
                 Id = entity.Id,
                 CurrentVersion=entity.CurrentVersion,
                 Description = entity.Description,
-                Fields = entity.Entries.Select(f=>FormTemplateFieldDTO.FromEntity(f)!).ToList()
+                Fields = entity.Fields.Select(f=>FormTemplateFieldDTO.FromEntity(f)!).ToList()
             };
         }
 

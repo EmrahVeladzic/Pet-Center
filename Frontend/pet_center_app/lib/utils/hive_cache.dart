@@ -1,6 +1,6 @@
 import 'package:hive/hive.dart';
 import 'package:pet_center_app/models/enums.dart';
-import 'package:pet_center_app/services/static_data_service.dart';
+import 'package:pet_center_app/services/static_user_data_service.dart';
 
 class CacheManager {
   static const String cacheName = 'cache';
@@ -24,6 +24,11 @@ class CacheManager {
     if (!await CacheManager.read(entityId, type)) {
       await box.put(key, true);
     }
+  }
+
+  static Future<void> delete(String entityId, CacheEntityType type) async {
+    final box = await _box();
+    await box.delete(_key(entityId, type));
   }
 
   static Future<void> clear() async {

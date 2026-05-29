@@ -7,7 +7,7 @@ part 'form_dto.g.dart';
 class FormEntrySubDTO {
   String? id;
   String currentVersion;
-  String formId;
+  String? formId;
   String formTemplateFieldId;
   String serialized;
   List<NoteSubDTO>? notes;
@@ -15,11 +15,20 @@ class FormEntrySubDTO {
   FormEntrySubDTO({
     this.id,
     this.currentVersion = '',
-    this.formId = '',
+    this.formId,
     this.formTemplateFieldId = '',
     this.serialized = '',
     this.notes,
   });
+
+  FormEntrySubDTO copy() => FormEntrySubDTO(
+    id: id,
+    currentVersion: currentVersion,
+    formId: formId,
+    formTemplateFieldId: formTemplateFieldId,
+    serialized: serialized,
+    notes: notes?.map((n) => n.copy()).toList(),
+  );
 
   factory FormEntrySubDTO.fromJson(Map<String, dynamic> json) =>
       _$FormEntrySubDTOFromJson(json);
@@ -36,8 +45,11 @@ class FormDTO {
   List<FormEntrySubDTO> entries;
   String userId;
   String formTemplateId;
-  String albumId;
-  List<ImageDTO> images;
+  String? albumId;
+  List<ImageDTO> media;
+  bool locked;
+  bool full;
+  String? mediaCreationToken;
 
   FormDTO({
     this.id,
@@ -48,10 +60,29 @@ class FormDTO {
     List<FormEntrySubDTO>? entries,
     this.userId = '',
     this.formTemplateId = '',
-    this.albumId = '',
-    List<ImageDTO>? images,
+    this.albumId,
+    this.mediaCreationToken,
+    this.locked = true,
+    this.full = true,
+    List<ImageDTO>? media,
   }) : entries = entries ?? [],
-       images = images ?? [];
+       media = media ?? [];
+
+  FormDTO copy() => FormDTO(
+    id: id,
+    currentVersion: currentVersion,
+    notes: notes?.map((n) => n.copy()).toList(),
+    franchiseName: franchiseName,
+    defaultContact: defaultContact,
+    entries: entries.map((e) => e.copy()).toList(),
+    userId: userId,
+    formTemplateId: formTemplateId,
+    albumId: albumId,
+    mediaCreationToken: mediaCreationToken,
+    locked: locked,
+    full: full,
+    media: media.map((m) => m.copy()).toList(),
+  );
 
   factory FormDTO.fromJson(Map<String, dynamic> json) =>
       _$FormDTOFromJson(json);
