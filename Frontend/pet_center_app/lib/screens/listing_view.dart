@@ -611,7 +611,9 @@ class _ListingViewScreenState extends State<ListingViewScreen> {
                                   .listing
                                   .productListingExtension!
                                   .productId &&
-                          categories.any((c) => c.id == i.categoryId),
+                          categories.any(
+                            (c) => c.id == i.categoryId && c.consumable,
+                          ),
                     )) ...[
                   ElevatedButton(
                     onPressed: () {
