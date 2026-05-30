@@ -392,6 +392,15 @@ namespace PetCenterServices.Services
 
                 await dbContext.Notifications.AddAsync(notification);
 
+                List<User> emp = await dbContext.Users.Where(u=> (dbContext.Franchises.Any(f=>f.Id==listing.FranchiseId && f.OwnerId==u.Id)||dbContext.EmployeeRecords.Any(e=>e.UserId==u.Id&&e.FranchiseId==listing.FranchiseId))).ToListAsync();
+
+                foreach(User usr in emp)
+                {
+                    usr.UserState=Guid.NewGuid();
+                }
+
+
+
                 await dbContext.SaveChangesAsync();
 
                 
