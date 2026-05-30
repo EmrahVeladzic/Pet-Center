@@ -143,6 +143,11 @@ namespace PetCenterServices.Recommender
                         notif.Body=$"A new listing including the term \"{w.Term}\"{(multiple? ", among others":"")} that you may be interested in has just been made visible.";
                     }
 
+                    if (w.RelevantUser != null)
+                    {
+                        w.RelevantUser.UserState = Guid.NewGuid();
+                    }
+
                     await ctx.Notifications.AddAsync(notif);
                     progress++;
                     if (progress >= 100)

@@ -24,8 +24,6 @@ namespace UserContactConsumer.Services
         public string? user {  get; set; }
         public string? server { get; set; }
         public int? port { get; set; }
-
-
     }
 
     public class EmailService
@@ -43,7 +41,6 @@ namespace UserContactConsumer.Services
             IConfigurationSection email_cfg = cfg.GetSection("Email");
             int.TryParse(email_cfg["SmtpPort"], out int p);
 
-
             smtp = new()
             {
                 email = email_cfg["ApplicationEmail"],
@@ -52,40 +49,6 @@ namespace UserContactConsumer.Services
                 password = email_cfg["SmtpPassword"],
                 server = email_cfg["SmtpServer"]
             };
-
-            string? e = Environment.GetEnvironmentVariable("APP_EMAIL");
-
-            if (!string.IsNullOrWhiteSpace(e))
-            {
-                smtp.email = e;
-            }
-
-            string? usr = Environment.GetEnvironmentVariable("SMTP_USERNAME");
-
-            if (!string.IsNullOrWhiteSpace(usr))
-            {
-                smtp.user = usr;
-            }
-
-            string? s = Environment.GetEnvironmentVariable("SMTP_SERVER");
-
-            if (!string.IsNullOrWhiteSpace(s))
-            {
-                smtp.server = s;
-            }
-
-            string? pwd = Environment.GetEnvironmentVariable("SMTP_PASSWORD");
-
-            if (!string.IsNullOrWhiteSpace(pwd))
-            {
-                smtp.password = pwd;
-            }
-
-            if (int.TryParse(Environment.GetEnvironmentVariable("SMTP_PORT"), out int pt))
-            {
-                smtp.port = pt;
-            }
-            
         }
 
         public async Task SendEmail(string email,string message, string? subject, string? name)
@@ -127,7 +90,6 @@ namespace UserContactConsumer.Services
              
                     if (!string.IsNullOrWhiteSpace(smtp.user) && !string.IsNullOrWhiteSpace(smtp.password))
                     {
-                    
                         await client.AuthenticateAsync(smtp.user, smtp.password);
                         await client.SendAsync(msg);
                     }
@@ -155,9 +117,6 @@ namespace UserContactConsumer.Services
                     client.Dispose();                 
                 }
             }
-
-
         }
-
     }
 }

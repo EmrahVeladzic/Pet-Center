@@ -40,40 +40,7 @@ public class ContactConsumer
             queue = rabbitmq_cfg["QueueName"],
             user = rabbitmq_cfg["UserName"],
             password = rabbitmq_cfg["Password"]
-
         };
-        
-
-        string? host = Environment.GetEnvironmentVariable("RABBITMQ_HOSTNAME");
-
-        if (!string.IsNullOrWhiteSpace(host))
-        {
-            rabbitmq.hostname = host;
-        }
-
-        string? queue = Environment.GetEnvironmentVariable("RABBITMQ_QUEUENAME");
-
-        if (!string.IsNullOrWhiteSpace(queue))
-        {
-            rabbitmq.queue = queue;
-        }
-
-
-        string? user = Environment.GetEnvironmentVariable("RABBITMQ_USERNAME");
-
-        if (!string.IsNullOrWhiteSpace(user))
-        {
-            rabbitmq.user = user;
-        }
-
-        string? pwd = Environment.GetEnvironmentVariable("RABBITMQ_PASSWORD");
-
-        if (!string.IsNullOrWhiteSpace(pwd))
-        {
-            rabbitmq.password = pwd;
-        }
-
-      
     }
 
     public static async Task<ContactConsumer> CreateAsync(IConfiguration c, EmailService e, ILogger _logger)

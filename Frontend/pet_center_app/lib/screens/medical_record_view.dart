@@ -5,6 +5,7 @@ import 'package:pet_center_app/models/data_transfer/individual/individual_respon
 import 'package:pet_center_app/models/data_transfer/procedure_dto.dart';
 import 'package:pet_center_app/models/enums.dart';
 import 'package:pet_center_app/screens/components/confirmation_dialog.dart';
+import 'package:pet_center_app/screens/components/individual/medical_record_dialog.dart';
 
 import 'package:pet_center_app/screens/components/individual/medical_record_entry_card.dart';
 import 'package:pet_center_app/screens/components/text_entry_dialog.dart';
@@ -58,6 +59,7 @@ class _MedicalRecordViewScreenState extends State<MedicalRecordViewScreen> {
       widget.src.medicalRecord.removeWhere(
         (element) => element.procedureId == procId,
       );
+      widget.src.medicalRecord.removeWhere((m) => m.id == output.id);
       widget.src.medicalRecord.add(output);
 
       setState(() {});
@@ -138,7 +140,28 @@ class _MedicalRecordViewScreenState extends State<MedicalRecordViewScreen> {
         ),
         actions: [
           IconButton(
-            onPressed: () {},
+            onPressed: () {
+              if (procedures.isEmpty || widget.src.id == null) {
+                return;
+              }
+              showDialog(
+                context: context,
+                builder: (_) => MedicalRecordDialog(
+                  callback: (value) {
+                    if (!mounted) {
+                      return;
+                    }
+                    setState(() {
+                      widget.src.medicalRecord.removeWhere(
+                        (m) => m.id == value.id,
+                      );
+                      widget.src.medicalRecord.add(value);
+                    });
+                  },
+                  petId: widget.src.id!,
+                ),
+              );
+            },
             icon: Icon(Icons.add, color: panelTone),
           ),
         ],

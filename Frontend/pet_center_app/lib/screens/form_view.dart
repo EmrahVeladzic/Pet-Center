@@ -120,8 +120,8 @@ class _FormViewScreenState extends State<FormViewScreen> {
         actions: [
           if (role == Access.business) ...[
             IconButton(icon: const Icon(Icons.edit), onPressed: navigateToEdit),
-            IconButton(icon: Icon(Icons.picture_as_pdf), onPressed: toPdf),
           ],
+          IconButton(icon: Icon(Icons.picture_as_pdf), onPressed: toPdf),
           IconButton(
             onPressed: () {
               if (role == Access.business) {
