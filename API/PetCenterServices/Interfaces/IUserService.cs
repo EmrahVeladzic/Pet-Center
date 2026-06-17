@@ -28,6 +28,9 @@ namespace PetCenterServices.Interfaces
 
         public Task<ServiceOutput<List<AnnouncementSubDTO>>> GetAnnouncements(Access role);
 
-        public Task<ServiceOutput<List<ReportResponseSubDTO>>> GetReports();
+        public Task<ServiceOutput<List<ReportResponseSubDTO>>> GetReports(int page);
+
+        public Task<ServiceOutput<bool>> SetSeen(Guid token_holder, Guid notif_id, Access auth);
+        public Task<ServiceOutput<int>> CountReports();
     }
 }

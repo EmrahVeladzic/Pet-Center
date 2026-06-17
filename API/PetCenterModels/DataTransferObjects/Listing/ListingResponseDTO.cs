@@ -61,6 +61,12 @@ namespace PetCenterModels.DataTransferObjects
 
         public string? MediaCreationToken {get; set;} = string.Empty;
 
+
+        public string? EvalContact {get; set;} = null;
+        public DateTime? EvalDate {get; set;} = null;
+
+        public string? EvalReason {get; set;} = null;
+
         public static ListingResponseDTO? FromEntity(Listing? entity)
         {
             if(entity==null){return null;}
@@ -84,7 +90,10 @@ namespace PetCenterModels.DataTransferObjects
                 ListingDiscount=DiscountResponseSubDTO.FromEntity(entity.ListingDiscount),
                 Availability=entity.AvailabilityRecords.Select(a=>AvailabilityResponseSubDTO.FromEntity(a)!).ToList(),
                 Comments=entity.Comments.Select(c=>CommentResponseSubDTO.FromEntity(c)!).ToList(),
-                Posted=entity.Posted
+                Posted=entity.Posted,
+                EvalDate=entity.EvaluationDate,
+                EvalReason=entity.Reason,
+                EvalContact = entity.Evaluator?.Contact??entity.EvaluatorContact
             };
 
             if (entity.Business != null)
@@ -116,6 +125,22 @@ namespace PetCenterModels.DataTransferObjects
 
             return output;
         }
+
+        
+        public static ListingResponseDTO? FromEntity(Listing? entity, bool wipeContact)
+        {
+            ListingResponseDTO? output = FromEntity(entity);
+
+            if (output != null && wipeContact)
+            {
+              
+                output.EvalContact=null;
+            }
+
+
+            return output;
+        }
+
 
 
     }

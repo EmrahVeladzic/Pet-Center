@@ -87,7 +87,7 @@ namespace PetCenterServices.Workers
                 {
                     try
                     {
-                        List<TEntity> expired = await set.Where(e=>e.Expiry<DateTime.UtcNow).OrderBy(e=>e.Id).Take(50).ToListAsync(stoppingToken);
+                        List<TEntity> expired = await set.Where(e=>e.Expiry<=DateTime.UtcNow).OrderBy(e=>e.Id).Take(50).ToListAsync(stoppingToken);
                         proceed = expired.Count>0;
                         if (expired.Count > 0)
                         {

@@ -22,7 +22,7 @@ namespace PetCenterServices.Services
     {
         private readonly IRecommenderSystem recommender;
 
-        public BreedService(PetCenterDBContext ctx,ILoggerFactory _logger, IRecommenderSystem rec) : base(ctx,_logger)
+        public BreedService(PetCenterDBContext ctx,ILoggerFactory _logger, IRecommenderSystem rec) : base(ctx,_logger,"BREED")
         {
             dbSet = ctx.AnimalBreeds;
             recommender = rec;

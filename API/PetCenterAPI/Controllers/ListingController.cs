@@ -53,9 +53,21 @@ namespace PetCenterAPI.Controllers
 
         [Authorize(Roles ="Owner,Admin")]
         [HttpPost("Evaluate/{id}")]
-        public async Task<IActionResult> Evaluate([FromRoute]Guid id,[FromQuery]bool approve,[FromQuery]string note="Evaluated")
+        public async Task<IActionResult> Evaluate([FromRoute]Guid id,[FromQuery]bool approve,[FromBody]TextPayloadDTO note)
         {
-            return ResultConverter.Convert<object>(await service.Evaluate(id,approve,note));
+
+            if(!approve && (string.IsNullOrWhiteSpace(note.Text)||note.Text.Length>150))
+            {
+                return StatusCode(400,"The reason is needed when denying listings and needs to be under 150 characters.");
+            }
+
+            if(TryGetUserId(out Guid user_id) && TryGetJTI(out Guid session))
+            {
+               return ResultConverter.Convert<object>(await service.Evaluate(user_id,id,approve,note.Text));
+            }
+            return StatusCode(401,"Invalid token.");
+
+            
         }
 
         [Authorize(Roles ="Employee")]
@@ -95,26 +107,34 @@ namespace PetCenterAPI.Controllers
 
         [Authorize(Roles ="Employee,User")]
         [HttpPost("Report/{listing_id}")]
-        public async Task<IActionResult> ReportMisuse([FromRoute] Guid listing_id,[FromQuery] Guid? comment_id, [FromQuery] string Reason)
+        public async Task<IActionResult> ReportMisuse([FromRoute] Guid listing_id,[FromQuery] Guid? comment_id, [FromBody] TextPayloadDTO Reason)
         {
             if(TryGetUserId(out Guid user_id))
             {
-                if (Reason.Length > 255)
+                if (string.IsNullOrWhiteSpace(Reason.Text))
+                {
+                    return StatusCode(400,"You need to provide a reason.");
+                }
+                if (Reason.Text.Length > 255)
                 {
                     return StatusCode(400,"The stated reason is too long.");
                 }
-                return ResultConverter.Convert<ReportResponseSubDTO>(await service.ReportMisuse(user_id,listing_id,comment_id,Reason));
+                return ResultConverter.Convert<ReportResponseSubDTO>(await service.ReportMisuse(user_id,listing_id,comment_id,Reason.Text,SpecifySearchAuthority()));
             }
             return StatusCode(401,"Invalid token.");
         }
 
         [Authorize(Roles ="User")]
         [HttpPut("Review/{listing_id}")]
-        public async Task<IActionResult> AddReview([FromRoute] Guid listing_id,[FromQuery] string comment)
+        public async Task<IActionResult> AddReview([FromRoute] Guid listing_id,[FromBody] TextPayloadDTO comment)
         {
             if(TryGetUserId(out Guid user_id))
             {
-                return ResultConverter.Convert<CommentResponseSubDTO>(await service.SendReview(user_id,listing_id,comment));
+                if (string.IsNullOrWhiteSpace(comment.Text) || comment.Text.Length > 150)
+                {
+                    return StatusCode(400,"The text is required and needs to be under 150 characters.");
+                }
+                return ResultConverter.Convert<CommentResponseSubDTO>(await service.SendReview(user_id,listing_id,comment.Text));
             }
             return StatusCode(401,"Invalid token.");
         }

@@ -36,7 +36,7 @@ namespace PetCenterServices.Services
             dbSetBLOB = dbContext.Set<TBLOB>();
         }
 
-        public virtual async Task<ServiceOutput<TDTO>> Upload(Guid session, Guid token_holder, Guid insert_album, byte[] data)
+        public virtual async Task<ServiceOutput<TDTO>> Upload(Guid session, Guid token_holder, Guid insert_album, byte[] data, string origin)
         {
             Album? album = await dbContext.Albums.FindAsync(insert_album);
 
@@ -83,7 +83,7 @@ namespace PetCenterServices.Services
                         await dbContext.SaveChangesAsync();
                         await tx.CommitAsync();
 
-                        return ServiceOutput<TDTO>.Success(TDTO.FromEntity(entity,Crypto.GenerateFileToken(entity.BLOBId,Purpose,FileScope.Write,insert_album,session)));
+                        return ServiceOutput<TDTO>.Success(TDTO.FromEntity(entity,Crypto.GenerateFileToken(entity.BLOBId,Purpose,FileScope.Write,insert_album,session,token_holder,origin)));
 
                     }
                     catch(Exception ex)
@@ -146,6 +146,12 @@ namespace PetCenterServices.Services
             }
 
             return ServiceOutput<object>.Success(null,HttpCode.NoContent);
+        }
+
+        public virtual async Task<ServiceOutput<object>> CheckScope(Guid token_holder, Guid album_id, FileScope expected, string origin)
+        {
+            await Task.CompletedTask;
+            return ServiceOutput<object>.Error(HttpCode.Unauthorized,"You lack the authorization to interact with this resource.");
         }
 
      

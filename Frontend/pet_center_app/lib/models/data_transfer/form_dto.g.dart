@@ -48,6 +48,12 @@ FormDTO _$FormDTOFromJson(Map<String, dynamic> json) => FormDTO(
   media: (json['media'] as List<dynamic>?)
       ?.map((e) => ImageDTO.fromJson(e as Map<String, dynamic>))
       .toList(),
+  evalContact: json['evalContact'] as String?,
+  evalDate: json['evalDate'] == null
+      ? null
+      : DateTime.parse(json['evalDate'] as String),
+  evalReason: json['evalReason'] as String?,
+  approved: json['approved'] as bool? ?? false,
 );
 
 Map<String, dynamic> _$FormDTOToJson(FormDTO instance) => <String, dynamic>{
@@ -64,4 +70,8 @@ Map<String, dynamic> _$FormDTOToJson(FormDTO instance) => <String, dynamic>{
   'locked': instance.locked,
   'full': instance.full,
   'mediaCreationToken': instance.mediaCreationToken,
+  'evalContact': instance.evalContact,
+  'evalDate': instance.evalDate?.toIso8601String(),
+  'evalReason': instance.evalReason,
+  'approved': instance.approved,
 };

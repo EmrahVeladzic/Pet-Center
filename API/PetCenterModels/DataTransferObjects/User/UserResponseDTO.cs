@@ -51,6 +51,8 @@ namespace PetCenterModels.DataTransferObjects
 
         public string Body {get; set;} = string.Empty;
 
+        public bool Seen {get; set;} = false;
+
         public static NotificationSubDTO? FromEntity(Notification? notification)
         {
             if(notification==null){return null;}
@@ -63,6 +65,14 @@ namespace PetCenterModels.DataTransferObjects
                 ListingId=notification.ListingId,
                 DatePosted=notification.DatePosted
             };
+        }
+
+        public static NotificationSubDTO? FromEntity(Notification? notification, bool seen)
+        {
+            if(notification==null){return null;}
+            NotificationSubDTO notif = FromEntity(notification)!;
+            notif.Seen=seen;
+            return notif;
         }
     }
 

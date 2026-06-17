@@ -34,7 +34,7 @@ namespace PetCenterModels.DBTables
             {
                 using SixLabors.ImageSharp.Image image = SixLabors.ImageSharp.Image.Load(input);
 
-                if (image.Width < MinDimension || image.Width > MaxDimension)
+                if (image.Width < MinDimension || image.Width > MaxDimension || image.Height<MinDimension||image.Height>MaxDimension)
                 {
                     return null;
                 }

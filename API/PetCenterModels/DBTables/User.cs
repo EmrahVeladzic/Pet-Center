@@ -37,6 +37,7 @@ namespace PetCenterModels.DBTables
         public override async Task StageDeletion<T>(PetCenterDBContext ctx, DbSet<T> set,CancellationToken cancel = default)
         {
             DBUtils.EnsureInTransaction(ctx);
+            if(await ctx.NotificationSeenRecords.Where(n=>n.UserId==Id).ToArrayAsync(cancel) is NotificationSeen[] n){ctx.NotificationSeenRecords.RemoveRange(n);}
             if(await ctx.Franchises.Where(f=>f.OwnerId==Id).ToListAsync(cancel) is List<Franchise> fr){foreach(Franchise fran in fr){await fran.StageDeletion<Franchise>(ctx,ctx.Franchises,cancel);}}
             if(await ctx.IndividualAnimals.Where(a=>a.OwnerId==Id && a.Owned==true).ToListAsync(cancel) is List<Individual> a){foreach(Individual ind in a){await ind.StageDeletion<Individual>(ctx,ctx.IndividualAnimals,cancel);}}
             if(await ctx.Forms.Where(f=>f.UserId==Id).ToListAsync(cancel) is List<Form>f){foreach(Form frm in f){await frm.StageDeletion<Form>(ctx,ctx.Forms,cancel);}}

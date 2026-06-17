@@ -38,6 +38,7 @@ class ImageDisplayState extends State<ImageDisplay> {
   void initState() {
     super.initState();
     dataSrc = widget.dataSource;
+
     _decode();
   }
 
@@ -235,7 +236,7 @@ class ImageDisplayState extends State<ImageDisplay> {
   Future<void> _onCreate() async {
     final result = await FilePicker.pickFiles(
       type: FileType.custom,
-      allowedExtensions: ['webp', 'png', 'jpg', 'jpeg', 'bmp', 'gif'],
+      allowedExtensions: ['webp', 'png', 'jpg', 'jpeg', 'bmp'],
       withData: true,
     );
 
@@ -259,8 +260,18 @@ class ImageDisplayState extends State<ImageDisplay> {
       image.dispose();
       codec.dispose();
 
-      if (realWidth > 4096 || realHeight > 4096) {
-        showSnackbar("Image resolution is too high (max 4096x4096).");
+      if (bytes.length > (5 * 1024 * 1024)) {
+        showSnackbar("Images may not be larger than 5MB.");
+        return;
+      }
+
+      if (realWidth > 2048 || realHeight > 2048) {
+        showSnackbar("Image resolution is too high (max 2048x2048).");
+        return;
+      }
+
+      if (realWidth < 32 || realHeight < 32) {
+        showSnackbar("Image resolution is too low (min 32x32).");
         return;
       }
 

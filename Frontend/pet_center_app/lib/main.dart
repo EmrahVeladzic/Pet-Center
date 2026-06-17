@@ -1,14 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:pet_center_app/providers/app_state.dart';
+
 import 'package:pet_center_app/screens/login_register.dart';
 import 'package:pet_center_app/utils/app_config.dart';
 import 'package:pet_center_app/utils/app_lock.dart';
 import 'package:pet_center_app/utils/app_style.dart';
 import 'package:pet_center_app/utils/globals.dart';
-
-import 'package:provider/provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -16,9 +14,7 @@ void main() async {
   final dir = await getApplicationDocumentsDirectory();
   Hive.init(dir.path);
 
-  runApp(
-    ChangeNotifierProvider(create: (_) => AppState(), child: PetCenterApp()),
-  );
+  runApp(PetCenterApp());
 }
 
 class PetCenterApp extends StatelessWidget {

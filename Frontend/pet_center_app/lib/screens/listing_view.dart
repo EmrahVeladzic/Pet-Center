@@ -463,6 +463,18 @@ class _ListingViewScreenState extends State<ListingViewScreen> {
       ),
       body: [
         design.verticalGap(),
+        if (widget.listing.evalContact != null &&
+            widget.listing.evalDate != null &&
+            (role == Access.owner || role == Access.admin)) ...[
+          Padding(
+            padding: EdgeInsetsGeometry.symmetric(horizontal: design.spacing),
+            child: Text(
+              'Evaluation note: This listing was ${widget.listing.approved ? 'approved' : 'denied'} by ${widget.listing.evalContact} on ${formatDate(widget.listing.evalDate!)}.${(widget.listing.evalReason?.isNotEmpty ?? false) ? '' : ' The specified reason was: "${widget.listing.evalReason}".'}',
+              style: TextStyle(fontSize: design.fontSize * 1.5),
+            ),
+          ),
+          design.verticalGap(design.spacing),
+        ],
         if (widget.listing.media.isNotEmpty) ...[
           ...widget.listing.media.map(
             (img) => ImageDisplay(

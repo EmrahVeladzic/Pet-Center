@@ -19,6 +19,13 @@ namespace PetCenterAPI.Controllers
 
         public FormController(IFormService s):base(s) { }
 
+        [HttpGet]
+        [Authorize(Roles ="Employee,Owner,Admin")]
+        public override Task<IActionResult> Get([FromQuery] FormSearchObject search)
+        {
+            return base.Get(search);
+        }
+
         [HttpPost]
         [Authorize(Roles ="Employee")]
         public override async Task<IActionResult> Post([FromBody] FormDTO ent)
@@ -29,6 +36,7 @@ namespace PetCenterAPI.Controllers
         
      
         [HttpGet("{id}")]
+        [Authorize(Roles ="Employee,Owner,Admin")]
         public async Task<IActionResult> GetById([FromRoute] Guid id)
         {
             if(TryGetUserId(out Guid user_id) && TryGetJTI(out Guid session))
@@ -48,7 +56,7 @@ namespace PetCenterAPI.Controllers
             return await base.Put(id, ent);
         }
         
-        [Authorize(Roles = "Employee")]
+        [Authorize(Roles = "Employee,Owner")]
         [HttpDelete("{id}")]
         public override Task<IActionResult> Delete(Guid id)
         {
@@ -57,10 +65,21 @@ namespace PetCenterAPI.Controllers
 
 
         [Authorize(Roles = "Admin,Owner")]
-        [HttpDelete("Deny/{id}")]
-        public async Task<IActionResult> DenyForm ([FromRoute] Guid id, [FromQuery] string reason)
+        [HttpPut("Deny/{id}")]
+        public async Task<IActionResult> DenyForm ([FromRoute] Guid id, [FromBody] TextPayloadDTO reason)
         {
-            return ResultConverter.Convert<object>(await service.DenyForm(id,reason));
+            if (string.IsNullOrWhiteSpace(reason.Text) || reason.Text.Length > 150)
+            {
+                return StatusCode(400,"You need to provide a reason, which is no longer than 150 characters.");
+            }
+
+            if(TryGetUserId(out Guid user_id) && TryGetJTI(out Guid session))
+            {
+                  return ResultConverter.Convert<object>(await service.DenyForm(user_id,id,reason.Text));
+            }
+            return StatusCode(401,"Invalid token.");
+
+         
         }
     }
 

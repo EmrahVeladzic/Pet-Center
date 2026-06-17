@@ -52,12 +52,15 @@ class UserService {
         Uri.parse(
           "${AppConfig.apiBaseUrl}/api/User/SetEmployee/$userId/$franchiseId",
         ).replace(queryParameters: query),
-        headers: {'Authorization': 'Bearer $rawToken', 'Accept': 'text/plain'},
+        headers: {
+          'Authorization': 'Bearer $rawToken',
+          'Accept': 'application/json',
+        },
       );
 
       final result = await ServiceOutput.fromResponse<String>(
         response,
-        (json) => json as String,
+        (json) => (json as Map<String, dynamic>)['value'] as String,
       );
 
       apiServiceBusy.value = false;
@@ -74,12 +77,15 @@ class UserService {
     try {
       final response = await http.get(
         Uri.parse("${AppConfig.apiBaseUrl}/api/User/Status"),
-        headers: {'Authorization': 'Bearer $rawToken', 'Accept': 'text/plain'},
+        headers: {
+          'Authorization': 'Bearer $rawToken',
+          'Accept': 'application/json',
+        },
       );
 
       final result = await ServiceOutput.fromResponse<String>(
         response,
-        (json) => json as String,
+        (json) => (json as Map<String, dynamic>)['value'] as String,
       );
 
       apiServiceBusy.value = false;
@@ -145,11 +151,41 @@ class UserService {
     }
   }
 
-  static Future<List<ReportResponseSubDTO>?> getReports() async {
+  static Future<int?> countReports() async {
     apiServiceBusy.value = true;
     try {
       final response = await http.get(
-        Uri.parse("${AppConfig.apiBaseUrl}/api/User/Report"),
+        Uri.parse("${AppConfig.apiBaseUrl}/api/User/Report/Count"),
+        headers: {
+          'Authorization': 'Bearer $rawToken',
+          'Accept': 'application/json',
+        },
+      );
+
+      final result = await ServiceOutput.fromResponse<int>(
+        response,
+        (json) => (json as Map<String, dynamic>)['value'] as int,
+      );
+
+      apiServiceBusy.value = false;
+      return result;
+    } catch (ex) {
+      showError(ex);
+      apiServiceBusy.value = false;
+      return null;
+    }
+  }
+
+  static Future<List<ReportResponseSubDTO>?> getReports(int page) async {
+    apiServiceBusy.value = true;
+    try {
+      final query = <String, String>{};
+      query['page'] = page.toString();
+
+      final response = await http.get(
+        Uri.parse(
+          "${AppConfig.apiBaseUrl}/api/User/Report",
+        ).replace(queryParameters: query),
         headers: {
           'Authorization': 'Bearer $rawToken',
           'Accept': 'application/json',
@@ -176,6 +212,33 @@ class UserService {
     }
   }
 
+  static Future<List<ReportResponseSubDTO>?> getAllReports() async {
+    final pageCount = await countReports();
+
+    if (pageCount == null) {
+      return null;
+    }
+
+    List<ReportResponseSubDTO> output = [];
+    final seen = <String?>{};
+
+    for (int i = 0; i < pageCount; i++) {
+      final newEntries = await getReports(i);
+
+      if (newEntries == null) {
+        return null;
+      }
+
+      for (final ent in newEntries) {
+        if (seen.add(ent.id)) {
+          output.add(ent);
+        }
+      }
+    }
+
+    return output;
+  }
+
   static Future<int?> count(
     bool includeExclude,
     String? userName,
@@ -198,12 +261,15 @@ class UserService {
         Uri.parse(
           "${AppConfig.apiBaseUrl}/api/User/Count",
         ).replace(queryParameters: query),
-        headers: {'Authorization': 'Bearer $rawToken', 'Accept': 'text/plain'},
+        headers: {
+          'Authorization': 'Bearer $rawToken',
+          'Accept': 'application/json',
+        },
       );
 
       final result = await ServiceOutput.fromResponse<int>(
         response,
-        (json) => json as int,
+        (json) => (json as Map<String, dynamic>)['value'] as int,
       );
 
       apiServiceBusy.value = false;
@@ -285,12 +351,15 @@ class UserService {
         Uri.parse(
           "${AppConfig.apiBaseUrl}/api/User/SetTerm/$term",
         ).replace(queryParameters: query),
-        headers: {'Authorization': 'Bearer $rawToken', 'Accept': 'text/plain'},
+        headers: {
+          'Authorization': 'Bearer $rawToken',
+          'Accept': 'application/json',
+        },
       );
 
       final result = await ServiceOutput.fromResponse<String>(
         response,
-        (json) => json as String,
+        (json) => (json as Map<String, dynamic>)['value'] as String,
       );
 
       apiServiceBusy.value = false;
@@ -311,7 +380,10 @@ class UserService {
         Uri.parse(
           "${AppConfig.apiBaseUrl}/api/User/SetTerm/$term",
         ).replace(queryParameters: query),
-        headers: {'Authorization': 'Bearer $rawToken', 'Accept': 'text/plain'},
+        headers: {
+          'Authorization': 'Bearer $rawToken',
+          'Accept': 'application/json',
+        },
       );
 
       apiServiceBusy.value = false;
@@ -332,7 +404,6 @@ class UserService {
     apiServiceBusy.value = true;
     try {
       final query = <String, String>{
-        'announcement': announcement,
         'user_visible': userVisible.toString(),
         'business_visible': businessVisible.toString(),
         'days_valid': daysValid.toString(),
@@ -344,8 +415,10 @@ class UserService {
         ).replace(queryParameters: query),
         headers: {
           'Authorization': 'Bearer $rawToken',
+          'Content-Type': 'application/json',
           'Accept': 'application/json',
         },
+        body: jsonEncode({'text': announcement}),
       );
 
       final result = await ServiceOutput.fromResponse<AnnouncementSubDTO>(
@@ -369,12 +442,15 @@ class UserService {
         Uri.parse(
           "${AppConfig.apiBaseUrl}/api/User/Announcement/$announcementId",
         ),
-        headers: {'Authorization': 'Bearer $rawToken', 'Accept': 'text/plain'},
+        headers: {
+          'Authorization': 'Bearer $rawToken',
+          'Accept': 'application/json',
+        },
       );
 
       final result = await ServiceOutput.fromResponse<String>(
         response,
-        (json) => json as String,
+        (json) => (json as Map<String, dynamic>)['value'] as String,
       );
 
       apiServiceBusy.value = false;
@@ -396,11 +472,7 @@ class UserService {
   ) async {
     apiServiceBusy.value = true;
     try {
-      final query = <String, String>{
-        'title': title,
-        'body': body,
-        'days_valid': daysValid.toString(),
-      };
+      final query = <String, String>{'days_valid': daysValid.toString()};
       if (franchiseId != null) query['franchise_id'] = franchiseId;
       if (listingId != null) query['listing_id'] = listingId;
 
@@ -411,7 +483,9 @@ class UserService {
         headers: {
           'Authorization': 'Bearer $rawToken',
           'Accept': 'application/json',
+          'Content-Type': 'application/json',
         },
+        body: jsonEncode({'title': title, 'body': body}),
       );
 
       final result = await ServiceOutput.fromResponse<NotificationSubDTO>(
@@ -435,12 +509,42 @@ class UserService {
         Uri.parse(
           "${AppConfig.apiBaseUrl}/api/User/Notification/$notificationId",
         ),
-        headers: {'Authorization': 'Bearer $rawToken', 'Accept': 'text/plain'},
+        headers: {
+          'Authorization': 'Bearer $rawToken',
+          'Accept': 'application/json',
+        },
       );
 
       final result = await ServiceOutput.fromResponse<String>(
         response,
-        (json) => json as String,
+        (json) => (json as Map<String, dynamic>)['value'] as String,
+      );
+
+      apiServiceBusy.value = false;
+      return result;
+    } catch (ex) {
+      showError(ex);
+      apiServiceBusy.value = false;
+      return null;
+    }
+  }
+
+  static Future<bool?> setSeen(String notifId) async {
+    apiServiceBusy.value = true;
+    try {
+      final response = await http.put(
+        Uri.parse(
+          "${AppConfig.apiBaseUrl}/api/User/Notification/Seen/$notifId",
+        ),
+        headers: {
+          'Authorization': 'Bearer $rawToken',
+          'Accept': 'application/json',
+        },
+      );
+
+      final result = await ServiceOutput.fromResponse<bool>(
+        response,
+        (json) => (json as Map<String, dynamic>)['value'] as bool,
       );
 
       apiServiceBusy.value = false;

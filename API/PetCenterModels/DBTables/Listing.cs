@@ -9,10 +9,8 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using PetCenterModels.ModelUtils;
 using PetCenterServices;
-
 namespace PetCenterModels.DBTables
-{
-
+    {
     public enum ListingType : byte
     {
         Generic = 0,
@@ -20,7 +18,7 @@ namespace PetCenterModels.DBTables
         Pet = 2,
         Medical = 3
     }
-
+        
     [Table("Listing", Schema = "Offer")]
     public class Listing : AlbumIncludingTableEntity
     {
@@ -28,50 +26,45 @@ namespace PetCenterModels.DBTables
         public string ListingName { get; set; } = string.Empty;
         [Column("ListingDescription")]
         public string ListingDescription { get; set; } = string.Empty;
-
         [Column("ListingType")]
         public ListingType Type { get; set; } = ListingType.Generic;
-        
         [Column("PriceMinor")]
         public long PriceMinor {get; set;} = 0;
-
-
         [Column("FranchiseID")]
         public Guid FranchiseId { get; set; }
-
         [Column("Visible")]
         public bool Visible { get; set; } = false;
-
         [Column("Approved")]
         public bool Approved { get; set; } = false;
-
         [Column("Posted")]
         public DateTime Posted {get; set;} = DateTime.UtcNow;
-
         [Column("Updated")]
         public bool Updated {get; set;} = true;
-
+        [Column("EvaluatorID")]
+        public Guid? EvaluatorId { get; set; } = null;
+        [Column("EvaluatorContact")]
+        public string? EvaluatorContact { get; set; } = null;
+        [Column("EvaluationDate")]
+        public DateTime? EvaluationDate { get; set; } = null;
+        [Column("Reason")]
+        public string? Reason { get; set; } = null;
+        [ForeignKey(nameof(EvaluatorId))]
+        public Account? Evaluator { get; set; } = null;
         [ForeignKey(nameof(FranchiseId))]
         public Franchise Business {  get; set; } = null!;
-
         [InverseProperty(nameof(Discount.RelevantListing))]
         public Discount? ListingDiscount {get; set;} = null;
-
         [InverseProperty(nameof(Comment.RelevantListing))]
         public List<Comment> Comments { get; set; } = new();
-
         [InverseProperty(nameof(Available.RelevantListing))]
         public List<Available> AvailabilityRecords {get; set;} = new();
-
         [InverseProperty(nameof(AnimalListing.Base))]
         public AnimalListing? AnimalExtension {get; set;} = null;
-
         [InverseProperty(nameof(ProductListing.Base))]
         public ProductListing? ProductExtension {get; set;} = null;
-
         [InverseProperty(nameof(MedicalListing.Base))]
         public MedicalListing? MedicalExtension {get; set;} = null;
-
+        
         public override async Task StageDeletion<T>(PetCenterDBContext ctx, DbSet<T> set,CancellationToken cancel = default)
         {
             DBUtils.EnsureInTransaction(ctx);
@@ -84,6 +77,5 @@ namespace PetCenterModels.DBTables
             if(await ctx.Notifications.Where(n=>n.ListingId==Id).ToArrayAsync(cancel) is Notification[] n){ctx.Notifications.RemoveRange(n);}
             await base.StageDeletion(ctx, set,cancel);
         }
-
     }
 }

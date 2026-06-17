@@ -23,6 +23,8 @@ namespace PetCenterServices.Services
 
         private readonly IRecommenderSystem recommender;
 
+        private const int ReportPageSize = 20;
+
         public UserService(PetCenterDBContext ctx,ILoggerFactory _ilogger, IRecommenderSystem rec) : base(ctx,_ilogger)
         {
             dbSet = ctx.Users;
@@ -57,46 +59,58 @@ namespace PetCenterServices.Services
             }
             return Task.FromResult(output);
         }
-
         public override async Task<ServiceOutput<UserResponseDTO>> GetById(Guid session,Guid token_holder, Guid id, Access authorization_level, FileScope fileScope = FileScope.Invalid)
         {
             UserResponseDTO? output = UserResponseDTO.FromEntity(await dbSet.Include(u=>u.UserAccount).FirstOrDefaultAsync(u=>u.Id==id));
-
             if (output == null) 
             {      
                 return ServiceOutput<UserResponseDTO>.Error(HttpCode.NotFound, "No user with this ID exists.");                 
             }
-
-         
             if (authorization_level == Access.BusinessAccount)
             {
                 IQueryable<Guid> records = dbContext.EmployeeRecords.Where(e=>e.UserId==token_holder).Select(e=>e.FranchiseId);
-                List<Franchise> workplaces =  await dbContext.Franchises.Include(f=>f.Facilities).Include(f=>f.ShelteredAnimals).Where(f=>records.Contains(f.Id)||f.OwnerId==token_holder).OrderBy(w=>w.Id).ToListAsync();
+                List<Franchise> workplaces = await dbContext.Franchises.Include(f=>f.Facilities).Include(f=>f.ShelteredAnimals).Where(f=>records.Contains(f.Id)||f.OwnerId==token_holder).OrderBy(w=>w.Id).ToListAsync();
                 output.Workplaces=workplaces.Select(w=>FranchiseResponseDTO.FromEntity(w,w.OwnerId==token_holder)!).ToList();
-              
                 List<Guid> workplace_ids = workplaces.Select(w=>w.Id).ToList();
-                output.Notifications = await dbContext.Notifications.Where(n=>n.UserId==token_holder || (n.FranchiseId!=null && workplace_ids.Contains(n.FranchiseId.Value!))).Select(n=>NotificationSubDTO.FromEntity(n)!).ToListAsync();
-                
+                List<Notification> businessNotifs = await dbContext.Notifications.Where(n=>n.UserId==token_holder || (n.FranchiseId!=null && workplace_ids.Contains(n.FranchiseId.Value!))).ToListAsync();
+                HashSet<Guid> businessSeenIds = (await dbContext.NotificationSeenRecords.Where(s=>s.UserId==token_holder && businessNotifs.Select(n=>n.Id).Contains(s.NotificationId)).Select(s=>s.NotificationId).ToListAsync()).ToHashSet();
+                output.Notifications = businessNotifs.Select(n=>NotificationSubDTO.FromEntity(n,businessSeenIds.Contains(n.Id))!).ToList();
             }
             else if(authorization_level==Access.User)
             {
-                List<Individual>individuals = await dbContext.IndividualAnimals.Include(i=>i.AnimalBreed).ThenInclude(b=>b.AnimalKind).Include(i=>i.MedicalRecord).Where(i=>i.Owned && i.OwnerId==token_holder).ToListAsync();
+                List<Individual> individuals = await dbContext.IndividualAnimals.Include(i=>i.AnimalBreed).ThenInclude(b=>b.AnimalKind).Include(i=>i.MedicalRecord).Where(i=>i.Owned && i.OwnerId==token_holder).ToListAsync();
                 List<MedicalProcedureSpecification> specifications = await dbContext.MedicalProcedureSpecifications.Include(m=>m.MedicalProcedure).ToListAsync();
-
-
                 output.Notes=new();
                 output.Notes.Add(await recommender.ShoppingList(dbContext,token_holder));
                 foreach(Individual ind in individuals)
                 {
                     output.Notes.AddRange(await recommender.AddNotesToPet(dbContext,ind,specifications));
                 }
-                output.Notifications = await dbContext.Notifications.Include(n=>n.RelevantListing).Where(n=>n.UserId==token_holder && (n.ListingId==null||(n.RelevantListing.Approved && n.RelevantListing.Visible))).Select(n=>NotificationSubDTO.FromEntity(n)!).ToListAsync();
+                List<Notification> userNotifs = await dbContext.Notifications.Include(n=>n.RelevantListing).Where(n=>n.UserId==token_holder && (n.ListingId==null||(n.RelevantListing.Approved && n.RelevantListing.Visible))).ToListAsync();
+                HashSet<Guid> userSeenIds = (await dbContext.NotificationSeenRecords.Where(s=>s.UserId==token_holder && userNotifs.Select(n=>n.Id).Contains(s.NotificationId)).Select(s=>s.NotificationId).ToListAsync()).ToHashSet();
+                output.Notifications = userNotifs.Select(n=>NotificationSubDTO.FromEntity(n,userSeenIds.Contains(n.Id))!).ToList();
                 output.UserWishlist = await dbContext.Wishlists.Where(w=>w.UserId==output.Id).Select(w=>w.Term).ToListAsync();
                 output.UserSupplies= await dbContext.SupplyRecords.Where(s=>s.UserId==token_holder).Select(s=>SuppliesSubDTO.FromEntity(s)!).ToListAsync();
                 output.OwnedAnimals= individuals.Select(i=>IndividualResponseDTO.FromEntity(i)!).ToList();
             }           
-            
             return ServiceOutput<UserResponseDTO>.Success(output);
+        }
+        public async Task<ServiceOutput<List<ReportResponseSubDTO>>> GetReports(int page)
+        {
+            List<Report> list = await dbContext.Reports
+                .OrderBy(r => r.Id)
+                .Skip(page * ReportPageSize)
+                .Take(ReportPageSize)
+                .ToListAsync();
+
+            return ServiceOutput<List<ReportResponseSubDTO>>.Success(list.Select(e => ReportResponseSubDTO.FromEntity(e)!).ToList());
+        }
+
+        public async Task<ServiceOutput<int>> CountReports()
+        {
+            int count = await dbContext.Reports.CountAsync();
+
+            return ServiceOutput<int>.Success(GetPageCount(count,ReportPageSize));
         }
 
         public async Task<ServiceOutput<Guid>> GetUserState(Guid token_holder)
@@ -134,6 +148,34 @@ namespace PetCenterServices.Services
             
         }
 
+        public async Task<ServiceOutput<bool>>SetSeen(Guid token_holder, Guid notif_id, Access auth)
+        {
+            Notification? notif = await dbContext.Notifications.FindAsync(notif_id);
+            if (notif == null)
+            {
+                return ServiceOutput<bool>.Error(HttpCode.NotFound,"The requested notification could not be found");
+
+            }
+            if(notif.UserId!=token_holder&&!(auth ==Access.BusinessAccount && notif.FranchiseId!=null && await FranchiseService.IsEmployeeOfFranchise(dbContext, token_holder, notif.FranchiseId.Value)))
+            {
+                return ServiceOutput<bool>.Error(HttpCode.Forbidden,"The requested notification is not meant to be seen by you.");
+            }
+            NotificationSeen? seen = await dbContext.NotificationSeenRecords.FirstOrDefaultAsync(s=>s.UserId==token_holder && s.NotificationId == notif_id);
+            if (seen != null)
+            {
+                dbContext.NotificationSeenRecords.Remove(seen);
+                await dbContext.SaveChangesAsync();
+                return ServiceOutput<bool>.Success(false);
+            }
+            else
+            {
+                NotificationSeen newSeen = new NotificationSeen{UserId=token_holder,NotificationId=notif_id};
+                await dbContext.NotificationSeenRecords.AddAsync(newSeen);
+                await dbContext.SaveChangesAsync();
+                return ServiceOutput<bool>.Success(true);
+            }
+
+        }
 
         public override async Task<ServiceOutput<UserResponseDTO>> Put(Guid session,Guid token_holder,UserRequestDTO ent)
         {

@@ -22,7 +22,7 @@ namespace PetCenterServices.Services
     {
         private readonly IRecommenderSystem recommender;
 
-        public ListingService(PetCenterDBContext ctx,ILoggerFactory _logger, IRecommenderSystem rec) : base(ctx,_logger)
+        public ListingService(PetCenterDBContext ctx,ILoggerFactory _logger, IRecommenderSystem rec) : base(ctx,_logger,"LISTING")
         {
             dbSet = ctx.Listings;
             recommender = rec;
@@ -81,11 +81,12 @@ namespace PetCenterServices.Services
             }
 
 
+
             switch (search.OrderBy)
             {
                 
-                case OrderingMethod.PriceAscending : {query=query.OrderBy(q=>(q.ListingDiscount!=null)?((q.PriceMinor*100)-(q.PriceMinor*(long)q.ListingDiscount.PercentDiscount)):q.PriceMinor);break;}
-                case OrderingMethod.PriceDescending : {query=query.OrderByDescending(q=>(q.ListingDiscount!=null)?((q.PriceMinor*100)-(q.PriceMinor*(long)q.ListingDiscount.PercentDiscount)):q.PriceMinor);break;}
+                case OrderingMethod.PriceAscending : { query = query.OrderBy(q =>(q.PriceMinor * (100 - (q.ListingDiscount == null ? 0 : q.ListingDiscount.PercentDiscount))) / 100);break;}
+                case OrderingMethod.PriceDescending : { query = query.OrderByDescending(q =>(q.PriceMinor * (100 - (q.ListingDiscount == null ? 0 : q.ListingDiscount.PercentDiscount))) / 100);break;}
                 case OrderingMethod.PostedDescending : {query=query.OrderByDescending(q=>q.Posted);break;}
                 case OrderingMethod.PostedAscending : {query=query.OrderBy(q=>q.Posted);break;}
                 default: {query=query.OrderBy(q=>q.Id);break;}
@@ -157,9 +158,12 @@ namespace PetCenterServices.Services
 
             foreach(ListingResponseDTO response in output)
             {
-                
+                if (search.AuthoritySpecifier != Access.Admin)
+                {
+                    response.EvalContact=null;
+                }
 
-                AttachTokensIfNeeded(response,search.FileRW,search.Session);
+                AttachTokensIfNeeded(response,search.FileRW,search.Session,token_holder,Origin);
             }
 
             return ServiceOutput<List<ListingResponseDTO>>.Success(output);
@@ -172,7 +176,7 @@ namespace PetCenterServices.Services
             Listing? output = await WithAlbum().Include(l=>l.Business).Include(l=>l.Comments).ThenInclude(c=>c.Poster).Include(l=>l.AvailabilityRecords).ThenInclude(a=>a.RelevantFacility).Include(l=>l.ListingDiscount)
             .Include(l=>l.AnimalExtension).ThenInclude(a=>a!.Animal).Include(l=>l.MedicalExtension).ThenInclude(m=>m!.Procedure).ThenInclude(mp=>mp.Specifications).Include(l=>l.ProductExtension).ThenInclude(p=>p!.Product).ThenInclude(pr=>pr.ItemCategory).FirstOrDefaultAsync(l=>l.Id==id);
 
-            ListingResponseDTO? dto = ListingResponseDTO.FromEntity(output);
+            ListingResponseDTO? dto = ListingResponseDTO.FromEntity(output,authorization_level==Access.Admin);
 
             if (output == null || dto==null)
             {
@@ -250,7 +254,7 @@ namespace PetCenterServices.Services
                 }
             }
 
-            AttachTokensIfNeeded(dto,fileScope,session);
+            AttachTokensIfNeeded(dto,fileScope,session,token_holder,Origin);
           
             return ServiceOutput<ListingResponseDTO>.Success(dto);
         }
@@ -262,6 +266,19 @@ namespace PetCenterServices.Services
             {
                 return ServiceOutput<CommentResponseSubDTO>.Error(HttpCode.BadRequest,"You cannot send an empty review.");
             }
+
+
+            Listing? listing = await dbSet.Include(l=>l.Album).FirstOrDefaultAsync(l=>l.Id==ListingId);
+            if (listing == null||listing.Album==null)
+            {
+                return ServiceOutput<CommentResponseSubDTO>.Error(HttpCode.NotFound,"The selected listing does not exist.");
+            }
+
+            if (!(listing.Approved && listing.Visible &&listing.Album.Reserved>0))
+            {
+                return ServiceOutput<CommentResponseSubDTO>.Error(HttpCode.Forbidden,"The selected listing is not available for reviews.");   
+            }
+
 
             Comment? comment = await dbContext.Comments.FirstOrDefaultAsync(c=>c.PosterId==token_holder && c.ListingId==ListingId);
             User? self = await dbContext.Users.Include(u=>u.UserAccount).FirstOrDefaultAsync(u=>u.Id==token_holder);
@@ -294,11 +311,7 @@ namespace PetCenterServices.Services
             }
             else
             {
-                Listing? listing = await dbSet.FindAsync(ListingId);
-                if (listing == null)
-                {
-                    return ServiceOutput<CommentResponseSubDTO>.Error(HttpCode.NotFound,"The selected listing does not exist.");
-                }
+               
 
                 Comment new_comment = new();
                 new_comment.ListingId=ListingId;
@@ -323,10 +336,27 @@ namespace PetCenterServices.Services
 
         public async Task<ServiceOutput<object>> RemoveReview(Guid token_holder, Guid comment_id, Access authorization_level)
         {
+            
             Comment? comment = await dbContext.Comments.FindAsync(comment_id);
 
             if (comment != null)
             {
+
+                Listing? listing = await dbSet.FirstOrDefaultAsync(l=>l.Id==comment.ListingId);
+                if (listing == null||listing.Album==null||listing.Album.Reserved==0)
+                {
+                    return ServiceOutput<object>.Error(HttpCode.NotFound,"The selected listing does not exist.");
+                }
+
+                if(authorization_level==Access.User){
+
+                    if (!(listing.Approved && listing.Visible))
+                    {
+                        return ServiceOutput<object>.Error(HttpCode.Forbidden,"The selected listing is not available.");   
+                    }
+
+                }
+
                 
                 if(authorization_level==Access.Admin || comment.PosterId == token_holder)
                 {
@@ -359,7 +389,7 @@ namespace PetCenterServices.Services
             return ServiceOutput<object>.Success(null,HttpCode.NoContent);
         }
 
-        public async Task <ServiceOutput<object>> Evaluate (Guid ListingId,bool approve,string note)
+        public async Task <ServiceOutput<object>> Evaluate (Guid token_holder, Guid ListingId,bool approve,string note)
         {
             Listing? listing = await dbSet.Include(l=>l.Album).Include(l=>l.Business).FirstOrDefaultAsync(l=>l.Id==ListingId);
 
@@ -375,10 +405,24 @@ namespace PetCenterServices.Services
                     return ServiceOutput<object>.Error(HttpCode.Conflict,"This listing has already been evaluated.");
                 }
 
+                if (listing.Approved)
+                {
+                    return ServiceOutput<object>.Error(HttpCode.Conflict,"This listing has already been approved. You may not revoke the approval.");
+                }
+
+
                 listing.Approved=approve;
-                listing.Visible=true;
                 listing.Album.Locked=true;
                 listing.Updated=false;
+
+                listing.EvaluationDate=DateTime.UtcNow;
+                listing.EvaluatorId=token_holder;
+
+                listing.Reason=approve? null: note;
+
+                Account? acc = await dbContext.Accounts.FindAsync(token_holder);
+
+                listing.EvaluatorContact=acc?.Contact;
 
                 Notification notification = new Notification
                 {
@@ -403,9 +447,17 @@ namespace PetCenterServices.Services
 
                 await dbContext.SaveChangesAsync();
 
+                if(approve && listing.Visible){
                 
-                await recommender.RecommendListingToUsers(dbContext,listing);
+                    await recommender.RecommendListingToUsers(dbContext,listing);
+
+                }
                 
+                logger.LogInformation(
+                    "Listing {ListingId} evaluated by {EvaluatorId} ({EvaluatorContact}). Approved: {Approved}. Reason: {Reason}.",
+                    ListingId, token_holder, acc?.Contact??"[NULL]", approve, note
+                );
+
 
                 return ServiceOutput<object>.Success(null,HttpCode.NoContent);
             }
@@ -454,18 +506,33 @@ namespace PetCenterServices.Services
 
         }
 
-        public async Task <ServiceOutput<ReportResponseSubDTO>> ReportMisuse(Guid token_holder, Guid ListingId, Guid? CommentId, string Reason)
+        public async Task <ServiceOutput<ReportResponseSubDTO>> ReportMisuse(Guid token_holder, Guid ListingId, Guid? CommentId, string Reason, Access authorization_level)
         {
             if (string.IsNullOrEmpty(Reason))
             {
                 return ServiceOutput<ReportResponseSubDTO>.Error(HttpCode.BadRequest,"You need to provide a reason behind your report.");
             }
 
-            Listing? listing = await dbSet.FindAsync(ListingId);
+            Listing? listing = await dbSet.Include(l=>l.Album).FirstOrDefaultAsync(l=>l.Id==ListingId);
 
-            if (listing == null)
+            if (listing == null||listing.Album==null)
             {
                 return ServiceOutput<ReportResponseSubDTO>.Error(HttpCode.NotFound,"The selected listing does not exist.");
+            }
+
+            if (authorization_level == Access.User)
+            {
+                if (!(listing.Visible && listing.Approved && listing.Album.Reserved > 0))
+                {
+                    return ServiceOutput<ReportResponseSubDTO>.Error(HttpCode.Forbidden,"This listing is currently not available.");
+                }
+            }
+            else
+            {
+                if(!await FranchiseService.IsEmployeeOfFranchise(dbContext, token_holder, listing.FranchiseId))
+                {
+                    return ServiceOutput<ReportResponseSubDTO>.Error(HttpCode.Forbidden,"You cannot make reports on listings made by a franchise you are not employed by.");
+                }
             }
 
             if (CommentId != null)
@@ -654,7 +721,7 @@ namespace PetCenterServices.Services
                         }
 
                         
-                        return ServiceOutput<ListingResponseDTO>.Success(ListingResponseDTO.FromEntity(lst,Crypto.GenerateFileToken("",Purpose,FileScope.Write,lst.AlbumId,session)),HttpCode.Created);
+                        return ServiceOutput<ListingResponseDTO>.Success(ListingResponseDTO.FromEntity(lst,Crypto.GenerateFileToken("",Purpose,FileScope.Write,lst.AlbumId,session,token_holder,Origin)),HttpCode.Created);
                     }
                     catch(Exception ex)
                     {
@@ -727,7 +794,7 @@ namespace PetCenterServices.Services
 
                         if (response != null)
                         {
-                            AttachTokensIfNeeded(response,FileScope.Write,session);
+                            AttachTokensIfNeeded(response,FileScope.Write,session,token_holder,Origin);
                         }
 
                         return ServiceOutput<ListingResponseDTO>.Success(response);
@@ -824,7 +891,7 @@ namespace PetCenterServices.Services
                     return ServiceOutput<object>.Error(HttpCode.Unauthorized,"Invalid token.");
                 }
 
-                if(!(account.AccessLevel==Access.Admin) && !(account.AccessLevel==Access.BusinessAccount && await FranchiseService.IsEmployeeOfFranchise(dbContext, token_holder, listing.FranchiseId)))
+                if(!(account.AccessLevel==Access.Admin||account.AccessLevel==Access.Owner) && !(account.AccessLevel==Access.BusinessAccount && await FranchiseService.IsEmployeeOfFranchise(dbContext, token_holder, listing.FranchiseId)))
                 {
                     return ServiceOutput<object>.Error(HttpCode.Forbidden,"You lack the permission to delete this listing.");   
                 }
