@@ -21,12 +21,12 @@ namespace PetCenterAPI.Controllers
         public AccountController(IAccountService s):base(s) { }
 
 
-        [HttpGet("Transfer/{old_code}/{new_code}")]
-        public async Task<IActionResult> Transfer([FromRoute] int old_code, [FromRoute] int new_code)
+        [HttpPost("Transfer")]
+        public async Task<IActionResult> Transfer([FromBody] TransferCodeDTO transfer)
         {
             if (TryGetUserId(out Guid id))
             {
-                return ResultConverter.Convert<string>(await service.TransferAccount(id,old_code,new_code));
+                return ResultConverter.Convert<string>(await service.TransferAccount(id,transfer.OldCode,transfer.NewCode));
             }
             return StatusCode(401,"Invalid token.");
         }
@@ -97,12 +97,12 @@ namespace PetCenterAPI.Controllers
         }
 
          
-        [HttpGet ("ForgotPassword/{contact}")]
+        [HttpPost ("ForgotPassword")]
         [AllowAnonymous]
-        public async Task<IActionResult> ForgotPassword([FromRoute]string contact)
+        public async Task<IActionResult> ForgotPassword([FromBody]TextPayloadDTO contact)
         {
             
-            return ResultConverter.Convert<string>(await service.RequestSingleTimeEntryCode(contact.ToLowerInvariant()));
+            return ResultConverter.Convert<string>(await service.RequestSingleTimeEntryCode(contact.Text.ToLowerInvariant()));
             
         }
 
@@ -117,13 +117,13 @@ namespace PetCenterAPI.Controllers
             return StatusCode(401,"Invalid token.");
         }
         
-        [HttpPost("Verify/{code}")]
+        [HttpPost("Verify")]
         [AllowUnverified]
-        public async Task<IActionResult> Verify([FromRoute] int code)
+        public async Task<IActionResult> Verify([FromBody] VerificationCodeDTO code)
         {
             if (TryGetUserId(out Guid id) && TryGetJTI(out Guid session))
             {           
-                return ResultConverter.Convert<string>(await service.VerifyAccount(id,code,session));
+                return ResultConverter.Convert<string>(await service.VerifyAccount(id,code.Code,session));
             }
             return StatusCode(400,"Invalid token.");
         }

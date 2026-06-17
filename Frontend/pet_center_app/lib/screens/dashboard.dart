@@ -101,13 +101,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   void viewForms() async {
-    final output = await FormService.count(null);
+    final output = await FormService.count(null, false);
     if (output != null && mounted) {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (_) =>
-              FormSelectionScreen(maxPage: output, templateId: null),
+          builder: (_) => FormSelectionScreen(
+            maxPage: output,
+            templateId: null,
+            eval: false,
+          ),
         ),
       );
     }

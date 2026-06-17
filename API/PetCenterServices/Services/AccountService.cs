@@ -47,6 +47,10 @@ namespace PetCenterServices.Services
             {
                 return ServiceOutput<AccountResponseDTO>.Error(HttpCode.BadRequest,"Please provide a valid contact and password.");
             }
+            if (req.Role == Access.Owner)
+            {
+                return ServiceOutput<AccountResponseDTO>.Error(HttpCode.Forbidden,"You may not directly register as an owner.");
+            }
 
             Account acc = new();
             acc.PasswordSalt = Utils.Crypto.GenerateSalt();
@@ -55,7 +59,7 @@ namespace PetCenterServices.Services
 
             if (await dbContext.Accounts.CountAsync() > 0)
             {
-                acc.AccessLevel = (req.Business)?Access.BusinessAccount:Access.User;
+                acc.AccessLevel = req.Role;
                 acc.Verified = false;
 
             }
@@ -65,7 +69,7 @@ namespace PetCenterServices.Services
                 acc.Verified = true;
             }
 
-        await using(IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync())
+            await using(IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync())
             {
                 try
                 {
@@ -99,9 +103,22 @@ namespace PetCenterServices.Services
 
                     Registration? reg = await dbContext.Registrations.FindAsync(acc.Id);
                     if(!acc.Verified && reg!=null){
-                                               
-                        await message_bus_client.SendEmailMessage(new ConsumerMessage(){Contact=acc.Contact,Message=$"Your verification code is {code}.",Subject="Welcome!",Name=usr.UserName});
 
+                        if(req.Role!=Access.Admin){
+
+                            await message_bus_client.SendEmailMessage(new ConsumerMessage(){Contact=acc.Contact,Message=$"Your verification code is {code}.",Subject="Welcome!",Name=usr.UserName});
+
+                        }
+                        else
+                        {
+                            List<Account> owners = await dbContext.Accounts.Where(a=>a.AccessLevel==Access.Owner).ToListAsync();
+
+                            foreach(Account o in owners)
+                            {
+                                await message_bus_client.SendEmailMessage(new ConsumerMessage(){Contact=o.Contact,Message=$"An attempt to register as an administrator was made from the contact \"{acc.Contact}\". Their verification code is {code}. If this is fraudulent, please ignore this message.",Subject="Administrator registration attempt.",Name=usr.UserName});
+
+                            }
+                        }
                     }
 
                     acc.AccountUser=usr;
@@ -127,6 +144,10 @@ namespace PetCenterServices.Services
             if (ct.RelevantAccount == null)
             {
                 return ServiceOutput<string>.Error(HttpCode.NotFound,"No account with this ID exists.");
+            }
+            if (ct.Expiry <= DateTime.UtcNow)
+            {
+                return ServiceOutput<string>.Error(HttpCode.Forbidden,"The transfer period has expired.");
             }
 
         await using(IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync())
@@ -257,8 +278,19 @@ namespace PetCenterServices.Services
 
                 if (!string.IsNullOrWhiteSpace(req.Password))
                 {
+                    if(string.IsNullOrWhiteSpace(req.NewPassword)||req.NewPassword.Length < 4)
+                    {
+                        return ServiceOutput<AccountResponseDTO>.Error(HttpCode.BadRequest,"You need to provide a new password if you intend to change it.");
+                    }
+
+                    if (acc.PasswordHash != Crypto.GenerateHash(req.Password, acc.PasswordSalt))
+                    {
+                        return ServiceOutput<AccountResponseDTO>.Error(HttpCode.Forbidden,"Wrong password.");
+                    }
+
+
                     acc.PasswordSalt=Utils.Crypto.GenerateSalt();
-                    acc.PasswordHash = Utils.Crypto.GenerateHash(req.Password!, acc.PasswordSalt!);
+                    acc.PasswordHash = Utils.Crypto.GenerateHash(req.NewPassword!, acc.PasswordSalt!);
                     updated_password = true;
                 }
                 else
@@ -325,8 +357,28 @@ namespace PetCenterServices.Services
                     single_time_pwd = Crypto.GenerateHash(req.Password,entry.CodeSalt);
                 }
 
+
                 if (login_pwd == acc.PasswordHash || single_time_pwd==entry?.CodeHash)
                 {
+                    if(entry!=null && single_time_pwd==entry.CodeHash )
+                    {
+                        if(entry.Expiry <= DateTime.UtcNow){
+                            return ServiceOutput<string>.Error(HttpCode.Forbidden,"The one-time entry code has expired.");
+                        }
+
+                        if (string.IsNullOrEmpty(req.NewPassword) || req.NewPassword.Length < 4)
+                        {
+                            return ServiceOutput<string>.Error(HttpCode.BadRequest,"You need to provide a new password");
+                            
+                        }
+
+                        string salt =Crypto.GenerateSalt();
+                        acc.PasswordSalt=salt;
+                        acc.PasswordHash=Crypto.GenerateHash(req.NewPassword,salt);
+
+
+                    }
+
                     User? usr = await dbContext.Users.Include(u=>u.UserAccount).FirstOrDefaultAsync(u=>u.Id == acc.Id);
 
                     if (usr != null)
@@ -354,6 +406,11 @@ namespace PetCenterServices.Services
 
             if (reg != null)
             {                
+                if (reg.RelevantAccount.AccessLevel == Access.Admin)
+                {
+                    return ServiceOutput<string>.Error(HttpCode.Forbidden,"As an administrator, your code was sent to the instance owners. Please make sure they have received the message sent to them.");
+                }
+
 
                 int code = Utils.Crypto.GenerateCode();
                 reg.CodeSalt=Crypto.GenerateSalt();
@@ -380,7 +437,7 @@ namespace PetCenterServices.Services
 
             if (acc == null)
             {
-                return ServiceOutput<string>.Error(HttpCode.NotFound,"The account with the provided contact does not exist.");
+                return  ServiceOutput<string>.Success($"Your one-time entry code will be sent shortly.");
             }            
 
             SingleTimeEntry? temp = await dbContext.SingleTimeEntries.FindAsync(acc.Id);
@@ -422,12 +479,17 @@ namespace PetCenterServices.Services
                 return ServiceOutput<string>.Error(HttpCode.InternalError,"Found NULL while looking for account.");
             }
 
+            if (reg.Expiry <= DateTime.UtcNow)
+            {
+                return ServiceOutput<string>.Error(HttpCode.Forbidden,"The verification period has expired.");
+            }
+
             if (reg.NextAttempt > DateTime.UtcNow)
             {
                 return ServiceOutput<string>.Error(HttpCode.TooManyRequests,"Too early for next attempt.");
             }
 
-        await using(IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync())
+            await using(IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync())
             {
                 try
                 {
@@ -507,8 +569,9 @@ namespace PetCenterServices.Services
     
         public async Task<ServiceOutput<string>> SetRole(Guid owner_id, Guid id, Access role)
         {
+            if(role!=Access.Owner){return ServiceOutput<string>.Error(HttpCode.BadRequest,"You may only set the role of an existing administrator to \"Owner\".");}
 
-        await using(IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync(IsolationLevel.Serializable))
+            await using(IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync(IsolationLevel.Serializable))
             {
                 try
                 {
@@ -516,16 +579,15 @@ namespace PetCenterServices.Services
                     Account? acc = await dbContext.Accounts.Include(a=>a.AccountUser).FirstOrDefaultAsync(a=>a.Id==id);
                     if (acc != null)
                     {
-                    
+                        if (acc.AccessLevel != Access.Admin)
+                        {
+                            return ServiceOutput<string>.Error(HttpCode.Forbidden,"You may only promote administrators to co-owners.");
+                        }
 
                         if (role!=Access.Owner && (await CheckIsLastOwner(acc)|| (owner_id!=id && acc.AccessLevel==Access.Owner)))
                         {
                             return ServiceOutput<string>.Error(HttpCode.Forbidden,"This action is not allowed.");
                         }
-
-                        User usr = acc.AccountUser;
-
-                        await usr.StageDeletion<User>(dbContext,dbContext.Users);
 
                         acc.AccessLevel = role;
                         await dbContext.SaveChangesAsync();

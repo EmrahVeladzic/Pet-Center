@@ -13,7 +13,7 @@ namespace PetCenterServices.Interfaces
 {
     public interface IFormService : IBaseCRUDService<Form,FormSearchObject,FormDTO,FormDTO>
     {
-        public Task<ServiceOutput<object>> DenyForm(Guid id,string reason);
+        public Task<ServiceOutput<object>> DenyForm(Guid token_holder, Guid id,string reason);
         
     }
 }

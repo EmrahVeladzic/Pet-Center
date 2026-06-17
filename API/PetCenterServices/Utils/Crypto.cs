@@ -94,7 +94,7 @@ namespace PetCenterServices.Utils
             };
         }
 
-        public static string GenerateFileToken(String file_hash,PetCenterModels.ModelUtils.FilePurpose purpose, PetCenterModels.ModelUtils.FileScope scope, Guid album_id,Guid session)
+        public static string GenerateFileToken(String file_hash,PetCenterModels.ModelUtils.FilePurpose purpose, PetCenterModels.ModelUtils.FileScope scope, Guid album_id,Guid session, Guid user_id, string origin)
         {
             SymmetricSecurityKey key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration["Jwt:Key"]!));
             SigningCredentials creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
@@ -104,13 +104,16 @@ namespace PetCenterServices.Utils
                 new Claim("album_id",album_id.ToString()),
                 new Claim("purpose",GetFilePurpose(purpose)),
                 new Claim("scope", GetFileScope(scope)),
-                new Claim("session",session.ToString())
+                new Claim("session",session.ToString()),
+                new Claim("user_id",user_id.ToString()),
+                new Claim("origin",origin)
             };
 
             JwtSecurityToken token = new JwtSecurityToken(
                 Configuration["Jwt:Issuer"],
                 Configuration["Jwt:Audience"],
                 claims,
+                expires: DateTime.UtcNow.AddHours(8),
                 signingCredentials: creds);
 
             return new JwtSecurityTokenHandler().WriteToken(token);

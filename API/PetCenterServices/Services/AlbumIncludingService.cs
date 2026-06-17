@@ -21,9 +21,11 @@ namespace PetCenterServices.Services
     {
         protected FilePurpose Purpose {get; set;}
 
-        public AlbumIncludingService(PetCenterDBContext ctx, ILoggerFactory _logger) : base(ctx,_logger)
+        protected string Origin {get; set;}
+
+        public AlbumIncludingService(PetCenterDBContext ctx, ILoggerFactory _logger, string org) : base(ctx,_logger)
         {
-            
+            Origin=org;
         }
       
         protected IQueryable<TEntity> WithAlbum()
@@ -41,6 +43,8 @@ namespace PetCenterServices.Services
             return alb.Id;
             
         }
+
+
        
 
         protected override Task<IQueryable<TEntity>> Filter(Guid token_holder, TSearch search)
@@ -48,7 +52,7 @@ namespace PetCenterServices.Services
             return Task.FromResult<IQueryable<TEntity>>(WithAlbum().OrderBy(o=>o.Id));
         }
 
-        public void AttachTokensIfNeeded(TResponse response, FileScope fileScope, Guid session)
+        public void AttachTokensIfNeeded(TResponse response, FileScope fileScope, Guid session, Guid token_holder, string origin)
         {
             FileScope scope = fileScope;
 
@@ -60,12 +64,12 @@ namespace PetCenterServices.Services
             if(response.AlbumId!=null){
 
                 if(scope==FileScope.Write){
-                    response.MediaCreationToken=Crypto.GenerateFileToken("",Purpose,scope,response.AlbumId.Value,session);
+                    response.MediaCreationToken=Crypto.GenerateFileToken("",Purpose,scope,response.AlbumId.Value,session,token_holder,origin);
                 }
                 foreach(TMedia media in response.Media)
                 {
                     media.CanWrite=(scope==FileScope.Write);
-                    media.Token=Crypto.GenerateFileToken(media.Hash,Purpose,scope,response.AlbumId.Value,session);
+                    media.Token=Crypto.GenerateFileToken(media.Hash,Purpose,scope,response.AlbumId.Value,session,token_holder,origin);
                 }
 
             }
@@ -80,7 +84,7 @@ namespace PetCenterServices.Services
             {
                 foreach(TResponse response in responses)
                 {
-                   AttachTokensIfNeeded(response,search.FileRW,search.Session);
+                   AttachTokensIfNeeded(response,search.FileRW,search.Session,token_holder,Origin);
                     
                 }
             }
@@ -99,7 +103,7 @@ namespace PetCenterServices.Services
 
                 if(output!=null && output.Media.Count > 0 && file_scope!=FileScope.Invalid)
                 {
-                    AttachTokensIfNeeded(output,file_scope,session);
+                    AttachTokensIfNeeded(output,file_scope,session,token_holder,Origin);
                 }
 
                 return  ServiceOutput<TResponse>.Success(output);                  
@@ -132,7 +136,7 @@ namespace PetCenterServices.Services
                             await dbContext.SaveChangesAsync();
                             await tx.CommitAsync();
                             Touch();
-                            return ServiceOutput<TResponse>.Success(TResponse.FromEntity(ent,Crypto.GenerateFileToken("",Purpose,FileScope.Write,ent.AlbumId,session)),HttpCode.Created);
+                            return ServiceOutput<TResponse>.Success(TResponse.FromEntity(ent,Crypto.GenerateFileToken("",Purpose,FileScope.Write,ent.AlbumId,session,token_holder,Origin)),HttpCode.Created);
                         }
                         catch(Exception ex)
                         {
@@ -192,7 +196,7 @@ namespace PetCenterServices.Services
 
                                 if (response != null)
                                 {
-                                    AttachTokensIfNeeded(response,FileScope.Write,session);
+                                    AttachTokensIfNeeded(response,FileScope.Write,session,token_holder,Origin);
                                 }
 
                             return ServiceOutput<TResponse>.Success(response);

@@ -1,21 +1,27 @@
 using System.Text;
 using System.Text.Json;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using PetCenterServices;
 using PetCenterShared;
 using RabbitMQ.Client;
+
+
 public class MessageBusClient : IMessageBusClient
 {
     private readonly RabbitMQSettings _settings;
-    private readonly IConnection _connection;
-    private class RabbitMQSettings
+    private readonly ILogger logger;
+    private IConnection? _connection;
+
+        private class RabbitMQSettings
     {
-        public string HostName { get; set; } = "localhost";
-        public string QueueName { get; set; } = "PetCenterContactQueue";
-        public string UserName { get; set; } = "guest";
-        public string Password { get; set; } = "guest";
+        public string HostName { get; set; } = string.Empty;
+        public string QueueName { get; set; } = string.Empty;
+        public string UserName { get; set; } = string.Empty;
+        public string Password { get; set; } = string.Empty;
     }
-    public MessageBusClient(IConfiguration config)
+
+    public MessageBusClient(IConfiguration config, ILoggerFactory loggerFactory)
     {
         IConfigurationSection section = config.GetSection("RabbitMQ");
         _settings = new RabbitMQSettings
@@ -25,24 +31,33 @@ public class MessageBusClient : IMessageBusClient
             UserName = section["UserName"] ?? "guest",
             Password = section["Password"] ?? "guest"
         };
+        logger = loggerFactory.CreateLogger(GetType());
+    }
+
+    private async Task<IConnection> GetConnectionAsync()
+    {
+        if (_connection != null) return _connection;
         ConnectionFactory factory = new ConnectionFactory()
         {
             HostName = _settings.HostName,
             UserName = _settings.UserName,
             Password = _settings.Password
         };
-        _connection = factory.CreateConnectionAsync().GetAwaiter().GetResult();
+        _connection = await factory.CreateConnectionAsync();
+        return _connection;
     }
+
     public async Task SendEmailMessage(ConsumerMessage message)
     {
-        bool repeat = true;
         int delay = 1000;
-        while (repeat)
+        const int maxRetries = 3;
+
+        for (int attempt = 0; attempt < maxRetries; attempt++)
         {
             try
             {
-                repeat = false;
-                using IChannel channel = await _connection.CreateChannelAsync();
+                IConnection connection = await GetConnectionAsync();
+                using IChannel channel = await connection.CreateChannelAsync();
                 await channel.QueueDeclareAsync(
                     queue: _settings.QueueName,
                     durable: false,
@@ -56,13 +71,21 @@ public class MessageBusClient : IMessageBusClient
                     routingKey: _settings.QueueName,
                     body: body
                 );
+                return;
             }
-            catch
+            catch (Exception ex)
             {
-                repeat = true;
-                await Task.Delay(delay);
-                delay *= 2;
-                delay = Math.Min(delay, 15000);
+                _connection = null;
+                logger.LogWarning(ex, "Failed to send message. Attempt {Attempt} of {Max}.", attempt + 1, maxRetries);
+                if (attempt < maxRetries - 1)
+                {
+                    await Task.Delay(delay);
+                    delay = Math.Min(delay * 2, 15000);
+                }
+                else
+                {
+                    logger.LogError(ex, "Exhausted all {Max} attempts.", maxRetries);
+                }
             }
         }
     }

@@ -35,7 +35,7 @@ namespace PetCenterServices.Services
 
             if (search.AuthoritySpecifier == Access.BusinessAccount && search.FromFranchise!=null && await FranchiseService.IsEmployeeOfFranchise(dbContext,token_holder,search.FromFranchise.Value))
             {
-                query = query.Where(i=>i.ShelterId!=search.FromFranchise);
+                query = query.Where(i=>i.ShelterId==search.FromFranchise);
                 
             }
 
@@ -139,13 +139,19 @@ namespace PetCenterServices.Services
         public override async Task<ServiceOutput<object>> IsClearedToUpdate(Guid token_holder, IndividualRequestDTO resource)
         {
 
-            if(!await dbSet.AnyAsync(i => i.Id == resource.Id))
+            Individual? current = await dbSet.FindAsync(resource.Id);
+            if(current==null)
             {
                 return ServiceOutput<object>.Error(HttpCode.NotFound,"The specified animal does not exist.");
             }
 
+
             if (resource.AuthoritySpecifier == Access.User)
             {
+                if (current.OwnerId != token_holder)
+                {
+                    return ServiceOutput<object>.Error(HttpCode.Forbidden,"You do not own this animal");
+                }
                 resource.OwnerId=token_holder;
             }
             else
@@ -153,6 +159,10 @@ namespace PetCenterServices.Services
                 if (resource.ShelterId == null)
                 {
                     return ServiceOutput<object>.Error(HttpCode.BadRequest, "Employees need to provide the franchise ID to add sheltered animals.");
+                }
+                if (current.ShelterId != resource.ShelterId)
+                {
+                    return ServiceOutput<object>.Error(HttpCode.Forbidden,"You may not change the shelter of an animal.");
                 }
                 if (! await FranchiseService.IsEmployeeOfFranchise(dbContext, token_holder, resource.ShelterId.Value))
                 {

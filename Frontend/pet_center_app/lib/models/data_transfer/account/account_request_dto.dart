@@ -1,4 +1,5 @@
 import 'package:json_annotation/json_annotation.dart';
+import 'package:pet_center_app/models/enums.dart';
 part 'account_request_dto.g.dart';
 
 @JsonSerializable(explicitToJson: true)
@@ -7,14 +8,16 @@ class AccountRequestDTO {
   String currentVersion;
   String contact;
   String password;
-  bool business;
+  String newPassword;
+  Access role;
 
   AccountRequestDTO({
     this.id,
     this.currentVersion = '',
     this.contact = '',
     this.password = '',
-    this.business = false,
+    this.newPassword = '',
+    this.role = Access.user,
   });
 
   factory AccountRequestDTO.fromJson(Map<String, dynamic> json) =>
@@ -27,6 +30,7 @@ class AccountRequestDTO {
     currentVersion: currentVersion,
     contact: contact,
     password: password,
-    business: business,
+    role: role,
+    newPassword: newPassword,
   );
 }

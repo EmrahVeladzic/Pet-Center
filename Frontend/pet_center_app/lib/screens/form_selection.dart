@@ -15,11 +15,13 @@ import 'package:pet_center_app/utils/jwt_parser.dart';
 class FormSelectionScreen extends StatefulWidget {
   final int maxPage;
   final String? templateId;
+  final bool eval;
 
   const FormSelectionScreen({
     super.key,
     required this.maxPage,
     required this.templateId,
+    required this.eval,
   });
 
   @override
@@ -31,16 +33,18 @@ class _FormSelectionScreenState extends State<FormSelectionScreen> {
   bool _initLoading = true;
   final _pageSelectorKey = GlobalKey<PageSelectorState>();
   late String? templateId;
+  late bool eval;
 
   @override
   void initState() {
     super.initState();
     templateId = widget.templateId;
+    eval = widget.eval;
     switchPage(0);
   }
 
   void switchPage(int page) async {
-    final newDataSrc = await FormService.get(templateId, page);
+    final newDataSrc = await FormService.get(templateId, page, eval);
     if (newDataSrc != null && mounted) {
       setState(() {
         _initLoading = false;
@@ -51,8 +55,8 @@ class _FormSelectionScreenState extends State<FormSelectionScreen> {
     }
   }
 
-  void resetPages(String? id) async {
-    final output = await FormService.count(id);
+  void resetPages(String? id, bool ev) async {
+    final output = await FormService.count(id, ev);
 
     if (output != null) {
       if (!mounted) {
@@ -61,6 +65,7 @@ class _FormSelectionScreenState extends State<FormSelectionScreen> {
 
       setState(() {
         templateId = id;
+        eval = ev;
       });
       _pageSelectorKey.currentState?.resetMax(output);
     }
@@ -80,13 +85,13 @@ class _FormSelectionScreenState extends State<FormSelectionScreen> {
           formTemplateId: templateId!,
           fromCurrent: null,
           callback: (value) {
-            resetPages(templateId);
+            resetPages(templateId, eval);
           },
         ),
       ),
     );
     if (shouldRefresh == true) {
-      resetPages(templateId);
+      resetPages(templateId, eval);
     }
   }
 
@@ -98,13 +103,13 @@ class _FormSelectionScreenState extends State<FormSelectionScreen> {
           form: current,
 
           onModify: () {
-            resetPages(templateId);
+            resetPages(templateId, eval);
           },
         ),
       ),
     );
     if (shouldRefresh == true) {
-      resetPages(templateId);
+      resetPages(templateId, eval);
     }
   }
 
@@ -125,7 +130,7 @@ class _FormSelectionScreenState extends State<FormSelectionScreen> {
           ((role == Access.owner || role == Access.admin) &&
           templates.isNotEmpty),
       dataSource: dataSource,
-      filter: FormFilters(callback: resetPages),
+      filter: FormFilters(callback: resetPages, initEval: false),
       itemBuilder: (p0, source) {
         return FormCard(
           form: source,

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:pet_center_app/models/data_transfer/account/account_response_dto.dart';
 import 'package:pet_center_app/models/enums.dart';
 import 'package:pet_center_app/screens/components/confirmation_dialog.dart';
-import 'package:pet_center_app/screens/components/dropdown_menus.dart';
 
 import 'package:pet_center_app/utils/app_style.dart';
 import 'package:pet_center_app/utils/jwt_parser.dart';
@@ -74,24 +73,22 @@ class _AccountCardState extends State<AccountCard> {
               ),
             ],
 
-            if (role == Access.owner) ...[
+            if (role == Access.owner &&
+                widget.acc.accessLevel == Access.admin) ...[
               Expanded(
                 flex: 4,
-                child: accessWidget(
-                  design.dropdownW,
-                  widget.acc.accessLevel,
-                  (Access? access) {
-                    if (access == null) return;
+                child: ElevatedButton(
+                  child: design.fittedText("Promote to co-owner"),
+                  onPressed: () {
                     showDialog(
                       context: context,
                       builder: (_) => ConfirmationDialog(
                         confirmAction: () {
-                          widget.onChangeRole(access);
+                          widget.onChangeRole(Access.owner);
                         },
-                        title: (access == Access.owner) ? "Warning" : "Confirm",
-                        body: (access == Access.owner)
-                            ? "Promoting this account to this role would make it your peer. Continue?"
-                            : "Are you sure you want to do this?",
+                        title: "Warning",
+                        body:
+                            "Promoting this account to this role would make it your peer. Continue?",
                       ),
                     ).then((confirmed) {
                       if (confirmed != true) {
@@ -99,8 +96,6 @@ class _AccountCardState extends State<AccountCard> {
                       }
                     });
                   },
-                  enable: widget.acc.accessLevel != Access.owner,
-                  key: ValueKey(_dropdownKey),
                 ),
               ),
             ],

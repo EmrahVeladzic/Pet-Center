@@ -25,7 +25,15 @@ namespace PetCenterAPI.Controllers
         public override async Task<IActionResult> Post([FromBody] FranchiseRequestDTO ent)
         {
             ent.Contact = ent.Contact.ToLowerInvariant();
-            return ResultConverter.Convert<FranchiseResponseDTO>(await service.Post(Guid.Empty,Guid.Empty,ent));
+
+            if(TryGetUserId(out Guid user_id) && TryGetJTI(out Guid session))
+            {
+                return ResultConverter.Convert<FranchiseResponseDTO>(await service.Post(Guid.Empty,user_id,ent));
+            }
+            return StatusCode(401,"Invalid token.");
+
+
+
         }
 
         [HttpPut("{id}")]

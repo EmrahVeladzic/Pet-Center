@@ -18,12 +18,13 @@ class TemplateSelectionScreen extends StatefulWidget {
 
 class _TemplateSelectionScreenState extends State<TemplateSelectionScreen> {
   void switchToSelection(String id) async {
-    final output = await FormService.count(id);
+    final output = await FormService.count(id, false);
     if (output != null && mounted) {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (_) => FormSelectionScreen(maxPage: output, templateId: id),
+          builder: (_) =>
+              FormSelectionScreen(maxPage: output, templateId: id, eval: false),
         ),
       );
     }

@@ -90,6 +90,17 @@ namespace PetCenterModels.DataTransferObjects
         public string? MediaCreationToken {get; set;} = string.Empty;
 
         public bool Full {get; set;} = true;
+
+
+        public string? EvalContact {get; set;} = null;
+        public DateTime? EvalDate {get; set;} = null;
+
+        public string? EvalReason {get; set;} = null;
+
+        public bool Approved {get; set;}
+
+
+
         public static FormDTO? FromEntity(Form? entity)
         {
             if(entity==null){return null;}
@@ -102,7 +113,12 @@ namespace PetCenterModels.DataTransferObjects
                 UserId=entity.UserId,
                 FormTemplateId=entity.FormTemplateId,
                 AlbumId=entity.AlbumId,                
-                Entries = entity.Entries.Select(f=>FormEntrySubDTO.FromEntity(f)!).ToList()
+                Entries = entity.Entries.Select(f=>FormEntrySubDTO.FromEntity(f)!).ToList(),
+                EvalContact = entity.Evaluator?.Contact??entity.EvaluatorContact,
+                EvalReason=entity.Reason,
+                EvalDate=entity.EvaluationDate,
+                Approved=entity.Approved
+                
             };
 
             if (entity.Album != null)
@@ -121,7 +137,23 @@ namespace PetCenterModels.DataTransferObjects
 
             if (output != null)
             {
+              
                 output.MediaCreationToken=token;
+            }
+
+
+            return output;
+        }
+
+
+        public static FormDTO? FromEntity(Form? entity, bool wipeContact)
+        {
+            FormDTO? output = FromEntity(entity);
+
+            if (output != null && wipeContact)
+            {
+              
+                output.EvalContact=null;
             }
 
 

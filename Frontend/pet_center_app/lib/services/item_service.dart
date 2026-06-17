@@ -15,12 +15,15 @@ class ItemService {
     try {
       final response = await http.get(
         Uri.parse("${AppConfig.apiBaseUrl}/api/Item/Count"),
-        headers: {'Authorization': 'Bearer $rawToken', 'Accept': 'text/plain'},
+        headers: {
+          'Authorization': 'Bearer $rawToken',
+          'Accept': 'application/json',
+        },
       );
 
       final result = await ServiceOutput.fromResponse<int>(
         response,
-        (json) => (json as int),
+        (json) => (json as Map<String, dynamic>)['value'] as int,
       );
 
       apiServiceBusy.value = false;

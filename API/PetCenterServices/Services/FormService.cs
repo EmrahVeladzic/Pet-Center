@@ -22,7 +22,7 @@ namespace PetCenterServices.Services
     {
        
 
-        public FormService(PetCenterDBContext ctx,ILoggerFactory _logger) : base(ctx,_logger)
+        public FormService(PetCenterDBContext ctx,ILoggerFactory _logger) : base(ctx,_logger,"FORM")
         {
             dbSet = ctx.Forms;
             
@@ -31,11 +31,16 @@ namespace PetCenterServices.Services
         protected override Task<IQueryable<Form>> Filter(Guid token_holder, FormSearchObject search)
         {
             
-            IQueryable<Form> query = WithAlbum().Include(f=>f.Entries).OrderBy(f=>f.Id);
+            IQueryable<Form> query = WithAlbum().Include(f=>f.Entries).Include(f=>f.Evaluator).OrderBy(f=>f.Id);
 
             if (search.TemplateId != null)
             {
                 query=query.Where(f=>f.FormTemplateId==search.TemplateId);
+            }
+
+            if (!search.ShowEvaluated)
+            {
+                query= query.Where(q=>q.EvaluatorContact==null);
             }
 
             if (search.AuthoritySpecifier == Access.Admin)
@@ -53,7 +58,21 @@ namespace PetCenterServices.Services
 
             return Task.FromResult<IQueryable<Form>>(query);
              
-        }      
+        }
+
+
+        public override async Task<ServiceOutput<List<FormDTO>>> Get(Guid token_holder, FormSearchObject search)
+        {
+            ServiceOutput<List<FormDTO>> output = await base.Get(token_holder, search);
+            if (search.AuthoritySpecifier == Access.BusinessAccount && output.Body!=null)
+            {
+                foreach (FormDTO f in output.Body)
+                {
+                    f.EvalContact=null;
+                }
+            }
+            return output;
+        }
 
         public override async Task<ServiceOutput<FormDTO>> GetById(Guid session,Guid token_holder, Guid id, Access authorization_level, FileScope fileScope = FileScope.ReadOnly)
         {
@@ -82,12 +101,15 @@ namespace PetCenterServices.Services
                return ServiceOutput<FormDTO>.Error(HttpCode.Forbidden,"You may not evaluate forms with no images.");
             }
 
-            FormDTO? output = FormDTO.FromEntity(frm);
+            FormDTO? output = FormDTO.FromEntity(frm, authorization_level==Access.BusinessAccount);
 
             if (output != null)
             {
-                AttachTokensIfNeeded(output,fileScope,session);
+                AttachTokensIfNeeded(output,fileScope,session,token_holder,Origin);
             }
+
+
+
 
             return ServiceOutput<FormDTO>.Success(output);
             
@@ -116,7 +138,7 @@ namespace PetCenterServices.Services
 
                         await dbContext.SaveChangesAsync();
                         await tx.CommitAsync();
-                        return ServiceOutput<FormDTO>.Success(FormDTO.FromEntity(ent,Crypto.GenerateFileToken("",Purpose,FileScope.Write,ent.AlbumId,session)),HttpCode.Created);
+                        return ServiceOutput<FormDTO>.Success(FormDTO.FromEntity(ent,Crypto.GenerateFileToken("",Purpose,FileScope.Write,ent.AlbumId,session,token_holder,Origin)),HttpCode.Created);
                     }
                     catch(Exception ex)
                     {
@@ -146,7 +168,7 @@ namespace PetCenterServices.Services
 
                 if (output != null)
                 {
-                    AttachTokensIfNeeded(output,FileScope.Write,session);
+                    AttachTokensIfNeeded(output,FileScope.Write,session,token_holder,Origin);
                 }
 
                 return ServiceOutput<FormDTO>.Success(output);
@@ -207,8 +229,13 @@ namespace PetCenterServices.Services
                 return ServiceOutput<object>.Error(HttpCode.BadRequest,"One or more mandatory fields are missing.");
             }
 
-            
-            resource.Entries.RemoveAll(e => !validFieldIds.Contains(e.FormTemplateFieldId));
+
+            if (resource.Entries.Any(e => !validFieldIds.Contains(e.FormTemplateFieldId)))
+            {
+                return ServiceOutput<object>.Error(HttpCode.BadRequest,"One or more fields are not related to the template.");
+            }
+
+
 
             return ServiceOutput<object>.Success(null);
         }
@@ -217,28 +244,44 @@ namespace PetCenterServices.Services
         public override async Task<ServiceOutput<object>> IsClearedToDelete(Guid token_holder, Guid resourceId)
         {
             Form? frm = await dbSet.FindAsync(resourceId);
-            if(frm!=null && frm.UserId != token_holder)
+            Account? acc = await dbContext.Accounts.FindAsync(token_holder);
+            if(frm!=null && frm.UserId != token_holder && acc?.AccessLevel!=Access.Owner)
             {
                 return ServiceOutput<object>.Error(HttpCode.Forbidden,"You do not own this form.");
             }
             return ServiceOutput<object>.Success(null);
         }
 
-        public async Task<ServiceOutput<object>> DenyForm(Guid form_id, string reason)
+        public async Task<ServiceOutput<object>> DenyForm(Guid token_holder, Guid form_id, string reason)
         {           
             Form? frm = await dbSet.FindAsync(form_id);
 
             if (frm != null)
             {
+                if (frm.EvaluatorContact!=null)
+                {
+                    return ServiceOutput<object>.Error(HttpCode.Conflict,"You may not evaluate a form twice.");
+                }
+
+
                 if (string.IsNullOrWhiteSpace(reason))
                 {
                     return ServiceOutput<object>.Error(HttpCode.BadRequest,"The reason for denying the application needs to be specified.");
                 }
-            await using(IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync())
+                await using(IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync())
                 {
                     try
                     {
-                        await frm.StageDeletion<Form>(dbContext,dbSet);
+                        
+                        frm.EvaluatorId=token_holder;
+                        frm.EvaluationDate=DateTime.UtcNow;
+                        frm.Reason=reason;
+                        frm.Approved=false;
+                        Account? acc = await dbContext.Accounts.FindAsync(token_holder);
+                        frm.EvaluatorContact=acc?.Contact;
+
+
+
                         Notification notif = new();
                         notif.Title = $"Form denial for franchise \"{frm.FranchiseName}\".";
                         notif.Body = $"Reason for denial: \"{reason}\".";
@@ -253,6 +296,12 @@ namespace PetCenterServices.Services
                         await dbContext.Notifications.AddAsync(notif);
                         await dbContext.SaveChangesAsync();
                         await tx.CommitAsync();
+
+                            logger.LogInformation(
+                            "Form {form_id} denied by {EvaluatorId} ({EvaluatorContact}). Reason: {Reason}.",
+                            form_id, token_holder, acc?.Contact??"[NULL]", reason
+                            );
+
                     }
                     catch(Exception ex)
                     {
