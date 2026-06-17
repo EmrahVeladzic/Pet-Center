@@ -16,6 +16,8 @@ namespace PetCenterModels.SearchObjects
         public override int PageSize {get;} = 10;
 
         public Guid? TemplateId {get; set;} = null;
+
+        public bool ShowEvaluated {get; set;} = false;
     
     }
 }

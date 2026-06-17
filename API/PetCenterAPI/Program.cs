@@ -129,7 +129,10 @@ builder.Services.AddScoped<IProcedureService,ProcedureService>();
 builder.Services.AddScoped<IFormService,FormService>();
 builder.Services.AddScoped<IListingService,ListingService>();
 
-builder.Services.AddScoped<IMessageBusClient, MessageBusClient>();
+
+
+builder.Services.AddSingleton<IMessageBusClient, MessageBusClient>();
+
 
 builder.Services.AddDbContext<PetCenterDBContext>(options =>
 {
@@ -147,8 +150,9 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     {
         options.TokenValidationParameters = new TokenValidationParameters
         {
+            ValidAlgorithms = new[] { SecurityAlgorithms.HmacSha256 },
             ValidateIssuer = true,
-            ValidateAudience = false,
+            ValidateAudience = true,
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
             ValidIssuer = jwtValidIssuer,
@@ -174,7 +178,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
                 bool isInvalidated = await db.InvalidatedTokens
                     .AnyAsync(t => t.Id == parsedJti
-                                && t.Expiry > DateTime.UtcNow);
+                                && t.Expiry <= DateTime.UtcNow);
 
                 if (isInvalidated)
                 {
@@ -253,8 +257,8 @@ while (retry)
             {
                 AccountRequestDTO owner_req = new AccountRequestDTO()
                 {
-                    Contact = contact ?? "Null@example.com",
-                    Password = password ?? "Null",
+                    Contact = contact!,
+                    Password = password!,
                 };
 
                 await svc.Post(Guid.Empty, Guid.Empty, owner_req);

@@ -10,6 +10,29 @@ using PetCenterModels.DBTables;
 
 namespace PetCenterModels.DataTransferObjects
 {
+    public class TextPayloadDTO
+    {
+        public string Text { get; set; } = string.Empty;
+    }
+
+    public class TitledPayloadDTO
+    {
+        public string Title { get; set; } = string.Empty;
+        public string Body { get; set; } = string.Empty;
+    }
+
+    public class VerificationCodeDTO
+    {
+        public int Code {get; set;}
+
+    }
+
+    public class TransferCodeDTO
+    {
+        public int OldCode {get; set;}
+        public int NewCode {get; set;}
+    }
+    
     public interface IGeneratedSubDTO
     {
         public string Title {get; set;}

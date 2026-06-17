@@ -52,12 +52,15 @@ class ListingService {
         Uri.parse(
           "${AppConfig.apiBaseUrl}/api/Listing/Count",
         ).replace(queryParameters: query),
-        headers: {'Authorization': 'Bearer $rawToken', 'Accept': 'text/plain'},
+        headers: {
+          'Authorization': 'Bearer $rawToken',
+          'Accept': 'application/json',
+        },
       );
 
       final result = await ServiceOutput.fromResponse<int>(
         response,
-        (json) => (json as int),
+        (json) => (json as Map<String, dynamic>)['value'] as int,
       );
 
       apiServiceBusy.value = false;
@@ -165,7 +168,6 @@ class ListingService {
     apiServiceBusy.value = true;
     try {
       final query = <String, String>{};
-      query['reason'] = reason;
       if (commentId != null) {
         query['comment_id'] = commentId;
       }
@@ -176,8 +178,10 @@ class ListingService {
         ).replace(queryParameters: query),
         headers: {
           'Authorization': 'Bearer $rawToken',
+          'Content-Type': 'application/json',
           'Accept': 'application/json',
         },
+        body: jsonEncode({'text': reason}),
       );
 
       final result = await ServiceOutput.fromResponse<ReportResponseSubDTO>(
@@ -200,17 +204,14 @@ class ListingService {
   ) async {
     apiServiceBusy.value = true;
     try {
-      final query = <String, String>{};
-      query['comment'] = text;
-
       final response = await http.put(
-        Uri.parse(
-          "${AppConfig.apiBaseUrl}/api/Listing/Review/$listingId",
-        ).replace(queryParameters: query),
+        Uri.parse("${AppConfig.apiBaseUrl}/api/Listing/Review/$listingId"),
         headers: {
           'Authorization': 'Bearer $rawToken',
+          'Content-Type': 'application/json',
           'Accept': 'application/json',
         },
+        body: jsonEncode({'text': text}),
       );
 
       final result = await ServiceOutput.fromResponse<CommentResponseSubDTO>(
@@ -321,16 +322,17 @@ class ListingService {
   static Future<bool> evaluate(String id, bool approve, String note) async {
     apiServiceBusy.value = true;
     try {
-      final query = <String, String>{
-        'approve': approve.toString(),
-        'note': note,
-      };
+      final query = <String, String>{'approve': approve.toString()};
 
       final response = await http.post(
         Uri.parse(
           "${AppConfig.apiBaseUrl}/api/Listing/Evaluate/$id",
         ).replace(queryParameters: query),
-        headers: {'Authorization': 'Bearer $rawToken'},
+        headers: {
+          'Authorization': 'Bearer $rawToken',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({'text': note}),
       );
 
       apiServiceBusy.value = false;

@@ -17,13 +17,16 @@ class AccountService {
     try {
       final response = await http.post(
         Uri.parse("${AppConfig.apiBaseUrl}/api/Account/LogIn"),
-        headers: {'Content-Type': 'application/json', 'Accept': 'text/plain'},
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
         body: jsonEncode(input.toJson()),
       );
 
       final result = await ServiceOutput.fromResponse<String>(
         response,
-        (json) => json as String,
+        (json) => (json as Map<String, dynamic>)['value'] as String,
       );
 
       apiServiceBusy.value = false;
@@ -91,16 +94,18 @@ class AccountService {
   static Future<String?> forgotPassword(String contact) async {
     apiServiceBusy.value = true;
     try {
-      final response = await http.get(
-        Uri.parse(
-          "${AppConfig.apiBaseUrl}/api/Account/ForgotPassword/$contact",
-        ),
-        headers: {'Accept': 'text/plain'},
+      final response = await http.post(
+        Uri.parse("${AppConfig.apiBaseUrl}/api/Account/ForgotPassword"),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: jsonEncode({'text': contact}),
       );
 
       final result = await ServiceOutput.fromResponse<String>(
         response,
-        (json) => json as String,
+        (json) => (json as Map<String, dynamic>)['value'] as String,
       );
 
       apiServiceBusy.value = false;
@@ -117,12 +122,15 @@ class AccountService {
     try {
       final response = await http.get(
         Uri.parse("${AppConfig.apiBaseUrl}/api/Account/RequestTransfer"),
-        headers: {'Authorization': 'Bearer $rawToken', 'Accept': 'text/plain'},
+        headers: {
+          'Authorization': 'Bearer $rawToken',
+          'Accept': 'application/json',
+        },
       );
 
       final result = await ServiceOutput.fromResponse<String>(
         response,
-        (json) => json as String,
+        (json) => (json as Map<String, dynamic>)['value'] as String,
       );
 
       apiServiceBusy.value = false;
@@ -137,16 +145,19 @@ class AccountService {
   static Future<String?> transferAccount(int oldCode, int newCode) async {
     apiServiceBusy.value = true;
     try {
-      final response = await http.get(
-        Uri.parse(
-          "${AppConfig.apiBaseUrl}/api/Account/Transfer/$oldCode/$newCode",
-        ),
-        headers: {'Authorization': 'Bearer $rawToken', 'Accept': 'text/plain'},
+      final response = await http.post(
+        Uri.parse("${AppConfig.apiBaseUrl}/api/Account/Transfer"),
+        headers: {
+          'Authorization': 'Bearer $rawToken',
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: jsonEncode({'oldCode': oldCode, 'newCode': newCode}),
       );
 
       final result = await ServiceOutput.fromResponse<String>(
         response,
-        (json) => json as String,
+        (json) => (json as Map<String, dynamic>)['value'] as String,
       );
 
       apiServiceBusy.value = false;
@@ -163,12 +174,15 @@ class AccountService {
     try {
       final response = await http.get(
         Uri.parse("${AppConfig.apiBaseUrl}/api/Account/RequestVerification"),
-        headers: {'Authorization': 'Bearer $rawToken', 'Accept': 'text/plain'},
+        headers: {
+          'Authorization': 'Bearer $rawToken',
+          'Accept': 'application/json',
+        },
       );
 
       final result = await ServiceOutput.fromResponse<String>(
         response,
-        (json) => json as String,
+        (json) => (json as Map<String, dynamic>)['value'] as String,
       );
 
       apiServiceBusy.value = false;
@@ -184,13 +198,18 @@ class AccountService {
     apiServiceBusy.value = true;
     try {
       final response = await http.post(
-        Uri.parse("${AppConfig.apiBaseUrl}/api/Account/Verify/$code"),
-        headers: {'Authorization': 'Bearer $rawToken', 'Accept': 'text/plain'},
+        Uri.parse("${AppConfig.apiBaseUrl}/api/Account/Verify"),
+        headers: {
+          'Authorization': 'Bearer $rawToken',
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: jsonEncode({'code': code}),
       );
 
       final result = await ServiceOutput.fromResponse<String>(
         response,
-        (json) => json as String,
+        (json) => (json as Map<String, dynamic>)['value'] as String,
       );
 
       apiServiceBusy.value = false;
@@ -209,12 +228,15 @@ class AccountService {
         Uri.parse(
           "${AppConfig.apiBaseUrl}/api/Account/SetRole/$id/${accRole.value}",
         ),
-        headers: {'Authorization': 'Bearer $rawToken', 'Accept': 'text/plain'},
+        headers: {
+          'Authorization': 'Bearer $rawToken',
+          'Accept': 'application/json',
+        },
       );
 
       final result = await ServiceOutput.fromResponse<String>(
         response,
-        (json) => json as String,
+        (json) => (json as Map<String, dynamic>)['value'] as String,
       );
 
       apiServiceBusy.value = false;
@@ -274,12 +296,15 @@ class AccountService {
         Uri.parse(
           "${AppConfig.apiBaseUrl}/api/Account/Count",
         ).replace(queryParameters: query),
-        headers: {'Authorization': 'Bearer $rawToken', 'Accept': 'text/plain'},
+        headers: {
+          'Authorization': 'Bearer $rawToken',
+          'Accept': 'application/json',
+        },
       );
 
       final result = await ServiceOutput.fromResponse<int>(
         response,
-        (json) => (json as int),
+        (json) => (json as Map<String, dynamic>)['value'] as int,
       );
 
       apiServiceBusy.value = false;

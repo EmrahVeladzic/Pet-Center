@@ -50,6 +50,10 @@ class FormDTO {
   bool locked;
   bool full;
   String? mediaCreationToken;
+  String? evalContact;
+  DateTime? evalDate;
+  String? evalReason;
+  bool approved;
 
   FormDTO({
     this.id,
@@ -65,6 +69,10 @@ class FormDTO {
     this.locked = true,
     this.full = true,
     List<ImageDTO>? media,
+    this.evalContact,
+    this.evalDate,
+    this.evalReason,
+    this.approved = false,
   }) : entries = entries ?? [],
        media = media ?? [];
 
@@ -82,6 +90,10 @@ class FormDTO {
     locked: locked,
     full: full,
     media: media.map((m) => m.copy()).toList(),
+    evalContact: evalContact,
+    evalDate: evalDate,
+    evalReason: evalReason,
+    approved: approved,
   );
 
   factory FormDTO.fromJson(Map<String, dynamic> json) =>

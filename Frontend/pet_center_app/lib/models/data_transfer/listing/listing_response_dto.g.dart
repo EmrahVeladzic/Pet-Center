@@ -65,6 +65,11 @@ ListingResponseDTO _$ListingResponseDTOFromJson(Map<String, dynamic> json) =>
             (e) => CommentResponseSubDTO.fromJson(e as Map<String, dynamic>),
           )
           .toList(),
+      evalContact: json['evalContact'] as String?,
+      evalDate: json['evalDate'] == null
+          ? null
+          : DateTime.parse(json['evalDate'] as String),
+      evalReason: json['evalReason'] as String?,
     );
 
 Map<String, dynamic> _$ListingResponseDTOToJson(ListingResponseDTO instance) =>
@@ -93,6 +98,9 @@ Map<String, dynamic> _$ListingResponseDTOToJson(ListingResponseDTO instance) =>
       'comments': instance.comments.map((e) => e.toJson()).toList(),
       'mediaCreationToken': instance.mediaCreationToken,
       'posted': instance.posted.toIso8601String(),
+      'evalContact': instance.evalContact,
+      'evalDate': instance.evalDate?.toIso8601String(),
+      'evalReason': instance.evalReason,
     };
 
 const _$ListingTypeEnumMap = {

@@ -10,10 +10,16 @@ class FormFilters extends StatefulWidget
     with FilterTemplate
     implements PreferredSizeWidget {
   final String? initTemplateId;
+  final bool initEval;
 
-  final void Function(String?) callback;
+  final void Function(String?, bool) callback;
 
-  const FormFilters({super.key, this.initTemplateId, required this.callback});
+  const FormFilters({
+    super.key,
+    this.initTemplateId,
+    required this.initEval,
+    required this.callback,
+  });
 
   @override
   Size get preferredSize => const Size.fromHeight(double.infinity);
@@ -24,23 +30,25 @@ class FormFilters extends StatefulWidget
 
 class _FormFiltersState extends State<FormFilters> {
   late String? templateId;
+  late bool eval;
   late bool isNull;
 
-  void change(String? id) {
+  void change(String? id, bool e) {
     if (!mounted) {
       return;
     }
     setState(() {
+      eval = e;
       templateId = id;
       isNull = id == null;
     });
-    widget.callback(id);
+    widget.callback(id, eval);
   }
 
   @override
   void initState() {
     super.initState();
-
+    eval = widget.initEval;
     templateId = widget.initTemplateId;
     isNull = templateId == null;
   }
@@ -78,7 +86,7 @@ class _FormFiltersState extends State<FormFilters> {
                                 setState(() {
                                   templateId = value.id;
                                 });
-                                widget.callback(templateId);
+                                widget.callback(templateId, eval);
                               }
                             }),
                           ),
@@ -107,7 +115,30 @@ class _FormFiltersState extends State<FormFilters> {
                                         ? null
                                         : templates.firstOrNull?.id;
                                   });
-                                  widget.callback(templateId);
+                                  widget.callback(templateId, eval);
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        Expanded(
+                          flex: 2,
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              design.fittedText("Show evaluated."),
+                              Checkbox(
+                                value: eval,
+                                onChanged: (value) {
+                                  if (value == null) {
+                                    return;
+                                  }
+                                  setState(() {
+                                    eval = value;
+                                  });
+                                  widget.callback(templateId, eval);
                                 },
                               ),
                             ],

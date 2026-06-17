@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:pet_center_app/models/data_transfer/user/user_response_dto.dart';
-import 'package:pet_center_app/models/enums.dart';
 import 'package:pet_center_app/screens/components/feed/notification_card.dart';
 import 'package:pet_center_app/screens/notification_view.dart';
 import 'package:pet_center_app/services/static_user_data_service.dart';
-import 'package:pet_center_app/utils/hive_cache.dart';
+import 'package:pet_center_app/services/user_service.dart';
 
 class NotificationPage extends StatefulWidget {
   const NotificationPage({super.key});
@@ -27,6 +26,15 @@ class _NotificationPageState extends State<NotificationPage>
     load();
   }
 
+  void setSeen(String itemId) async {
+    final newSeen = await UserService.setSeen(itemId);
+    if (newSeen != null) {
+      setState(() {
+        _items.where((n) => n.id == itemId).firstOrNull?.seen = newSeen;
+      });
+    }
+  }
+
   void load() async {
     final data = self?.notifications ?? [];
 
@@ -37,15 +45,6 @@ class _NotificationPageState extends State<NotificationPage>
         _loading = false;
       });
     }
-  }
-
-  void addIndex(String i) async {
-    await CacheManager.write(i, CacheEntityType.notification);
-    setState(() {
-      if (!visitedNotifIndices.contains(i)) {
-        visitedNotifIndices.add(i);
-      }
-    });
   }
 
   void switchTo(NotificationSubDTO notif) async {
@@ -70,12 +69,16 @@ class _NotificationPageState extends State<NotificationPage>
       itemCount: _items.length,
       itemBuilder: (context, i) => NotificationCard(
         notification: _items[i],
-        visited: visitedNotifIndices.contains(_items[i].id),
         onTap: () {
           final id = _items[i].id;
           if (id == null) return;
-          addIndex(id);
           switchTo(_items[i]);
+        },
+        onSeen: () {
+          final id = _items[i].id;
+
+          if (id == null) return;
+          setSeen(id);
         },
       ),
     );
