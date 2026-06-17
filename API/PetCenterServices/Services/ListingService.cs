@@ -884,11 +884,17 @@ namespace PetCenterServices.Services
 
             if (listing != null)
             {
+
                 Account? account = await dbContext.Accounts.FindAsync(token_holder);
 
                 if (account == null)
                 {
                     return ServiceOutput<object>.Error(HttpCode.Unauthorized,"Invalid token.");
+                }
+
+                if (listing.EvaluatorContact == null && account.AccessLevel==Access.Admin)
+                {
+                    return ServiceOutput<object>.Error(HttpCode.Forbidden,"As an administrator, you may not delete a listing without evaluating it first.");
                 }
 
                 if(!(account.AccessLevel==Access.Admin||account.AccessLevel==Access.Owner) && !(account.AccessLevel==Access.BusinessAccount && await FranchiseService.IsEmployeeOfFranchise(dbContext, token_holder, listing.FranchiseId)))

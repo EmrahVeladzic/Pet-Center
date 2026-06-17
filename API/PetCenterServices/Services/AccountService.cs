@@ -52,6 +52,12 @@ namespace PetCenterServices.Services
                 return ServiceOutput<AccountResponseDTO>.Error(HttpCode.Forbidden,"You may not directly register as an owner.");
             }
 
+            if (req.Password.Length < 4)
+            {
+                return ServiceOutput<AccountResponseDTO>.Error(HttpCode.BadRequest,"The password needs to be at least 4 characters long.");
+            }
+
+
             Account acc = new();
             acc.PasswordSalt = Utils.Crypto.GenerateSalt();
             acc.PasswordHash = Utils.Crypto.GenerateHash(req.Password!, acc.PasswordSalt);
@@ -168,6 +174,18 @@ namespace PetCenterServices.Services
                         return ServiceOutput<string>.Error(HttpCode.Conflict,"An account with this contact already exists.");
                     }
 
+  
+
+                    if (ct.RelevantAccount.AccessLevel == Access.Admin)
+                    {
+                        logger.LogInformation(
+                        "Administrator {id} account transfer - {old} > {new}.",
+                        token_holder, ct.RelevantAccount.Contact, ct.NewContact
+                        );
+                    }
+
+
+
                     ct.RelevantAccount.Contact=ct.NewContact;
                     await dbContext.SaveChangesAsync();
 
@@ -175,6 +193,8 @@ namespace PetCenterServices.Services
                     await dbContext.SaveChangesAsync();
 
                     await tx.CommitAsync();
+
+                    
                 }
                 catch(Exception ex)
                 {
