@@ -24,7 +24,6 @@ namespace PetCenterModels.DataTransferObjects
         [MaxLength(255)]
         public string Contact { get; set; } = string.Empty;
         
-        [MinLength(4)]
         [MaxLength(255)]
         public string Password { get; set; } = string.Empty;
 
