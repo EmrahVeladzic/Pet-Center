@@ -52,6 +52,12 @@ namespace PetCenterServices.Services
                 return ServiceOutput<AccountResponseDTO>.Error(HttpCode.Forbidden,"You may not directly register as an owner.");
             }
 
+            if (req.Password.Length < 4)
+            {
+                return ServiceOutput<AccountResponseDTO>.Error(HttpCode.BadRequest,"The password needs to be at least 4 characters long.");
+            }
+
+
             Account acc = new();
             acc.PasswordSalt = Utils.Crypto.GenerateSalt();
             acc.PasswordHash = Utils.Crypto.GenerateHash(req.Password!, acc.PasswordSalt);
