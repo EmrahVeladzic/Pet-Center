@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using PetCenterModels.ModelUtils;
 using PetCenterServices;
-
 namespace PetCenterModels.DBTables
 {
     [Table("Form", Schema = "Pending")]
@@ -26,14 +25,30 @@ namespace PetCenterModels.DBTables
         
         [Column("FranchiseName")]
         public string FranchiseName { get; set; } = string.Empty;
-
+        
         [Column("DefaultContact")]
         public string DefaultContact { get; set; } = string.Empty;
-
-
+        
+        [Column("EvaluatorID")]
+        public Guid? EvaluatorId { get; set; } = null;
+        
+        [Column("EvaluatorContact")]
+        public string? EvaluatorContact { get; set; } = null;
+        
+        [Column("EvaluationDate")]
+        public DateTime? EvaluationDate { get; set; } = null;
+        
+        [Column("Reason")]
+        public string? Reason { get; set; } = null;
+        
+        [Column("Approved")]
+        public bool Approved { get; set; } = false;
+        
+        [ForeignKey(nameof(EvaluatorId))]
+        public Account? Evaluator { get; set; } = null;
+        
         [InverseProperty(nameof(FormFieldEntry.RelevantForm))]
         public List<FormFieldEntry> Entries {get; set;} = new();
-
         public override async Task StageDeletion<T>(PetCenterDBContext ctx, DbSet<T> set,CancellationToken cancel = default)
         {
             DBUtils.EnsureInTransaction(ctx);

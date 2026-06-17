@@ -42,6 +42,7 @@ class NotificationSubDTO {
   String title;
   String body;
   DateTime datePosted;
+  bool seen;
 
   NotificationSubDTO({
     this.id,
@@ -50,6 +51,7 @@ class NotificationSubDTO {
     this.listingId,
     this.title = '',
     this.body = '',
+    this.seen = false,
     DateTime? datePosted,
   }) : datePosted = datePosted ?? DateTime.now().toUtc();
 
@@ -65,6 +67,7 @@ class NotificationSubDTO {
     listingId: listingId,
     title: title,
     body: body,
+    seen: seen,
   );
 }
 

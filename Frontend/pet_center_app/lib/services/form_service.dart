@@ -11,7 +11,7 @@ import 'package:pet_center_app/utils/jwt_parser.dart';
 import 'package:pet_center_app/utils/service_output.dart';
 
 class FormService {
-  static Future<int?> count(String? templateId) async {
+  static Future<int?> count(String? templateId, bool showEvaluated) async {
     apiServiceBusy.value = true;
     try {
       final query = <String, String>{};
@@ -20,16 +20,21 @@ class FormService {
         query['templateId'] = templateId;
       }
 
+      query['showEvaluated'] = showEvaluated.toString();
+
       final response = await http.get(
         Uri.parse(
           "${AppConfig.apiBaseUrl}/api/Form/Count",
         ).replace(queryParameters: query),
-        headers: {'Authorization': 'Bearer $rawToken', 'Accept': 'text/plain'},
+        headers: {
+          'Authorization': 'Bearer $rawToken',
+          'Accept': 'application/json',
+        },
       );
 
       final result = await ServiceOutput.fromResponse<int>(
         response,
-        (json) => (json as int),
+        (json) => (json as Map<String, dynamic>)['value'] as int,
       );
 
       apiServiceBusy.value = false;
@@ -141,14 +146,13 @@ class FormService {
   static Future<bool> deny(String id, String reason) async {
     apiServiceBusy.value = true;
     try {
-      final query = <String, String>{};
-      query['reason'] = reason;
-
-      final response = await http.delete(
-        Uri.parse(
-          "${AppConfig.apiBaseUrl}/api/Form/Deny/$id",
-        ).replace(queryParameters: query),
-        headers: {'Authorization': 'Bearer $rawToken'},
+      final response = await http.put(
+        Uri.parse("${AppConfig.apiBaseUrl}/api/Form/Deny/$id"),
+        headers: {
+          'Authorization': 'Bearer $rawToken',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({'text': reason}),
       );
 
       apiServiceBusy.value = false;
@@ -160,7 +164,11 @@ class FormService {
     }
   }
 
-  static Future<List<FormDTO>?> get(String? templateId, int page) async {
+  static Future<List<FormDTO>?> get(
+    String? templateId,
+    int page,
+    bool showEvaluated,
+  ) async {
     apiServiceBusy.value = true;
     try {
       final query = <String, String>{};
@@ -169,6 +177,8 @@ class FormService {
       if (templateId != null) {
         query['templateId'] = templateId;
       }
+      query['showEvaluated'] = showEvaluated.toString();
+
       final response = await http.get(
         Uri.parse(
           "${AppConfig.apiBaseUrl}/api/Form",

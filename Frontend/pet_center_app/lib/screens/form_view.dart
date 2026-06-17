@@ -7,13 +7,16 @@ import 'package:pet_center_app/models/enums.dart';
 import 'package:pet_center_app/screens/components/confirmation_dialog.dart';
 import 'package:pet_center_app/screens/components/form/entry_card.dart';
 import 'package:pet_center_app/screens/components/image_display.dart';
+import 'package:pet_center_app/screens/components/listing/deletion_dialog.dart';
 import 'package:pet_center_app/screens/components/text_entry_dialog.dart';
 import 'package:pet_center_app/screens/form_edit.dart';
 import 'package:pet_center_app/screens/templates/screen_scaffold.dart';
+import 'package:pet_center_app/services/account_service.dart';
 import 'package:pet_center_app/services/form_service.dart';
 import 'package:pet_center_app/services/franchise_service.dart';
 import 'package:pet_center_app/services/static_user_data_service.dart';
 import 'package:pet_center_app/utils/app_style.dart';
+import 'package:pet_center_app/utils/helpers.dart';
 import 'package:pet_center_app/utils/jwt_parser.dart';
 import 'package:pet_center_app/utils/pdf_utils.dart';
 import 'package:pet_center_app/utils/validators.dart';
@@ -94,6 +97,24 @@ class _FormViewScreenState extends State<FormViewScreen> {
     );
   }
 
+  void ownerDelete(bool ban) async {
+    bool output = false;
+    if (ban) {
+      output = await AccountService.delete(widget.form.userId);
+    } else {
+      if (widget.form.id == null) {
+        return;
+      }
+
+      output = await FormService.delete(widget.form.id!);
+    }
+
+    if (output && mounted) {
+      Navigator.pop(context);
+      widget.onModify();
+    }
+  }
+
   void toPdf() async {
     if (widget.form.id == null) {
       return;
@@ -132,7 +153,7 @@ class _FormViewScreenState extends State<FormViewScreen> {
                     title: "Withdraw form",
                   ),
                 );
-              } else {
+              } else if (widget.form.evalContact == null) {
                 showDialog(
                   context: context,
                   builder: (_) => TextEntryDialog(
@@ -141,6 +162,15 @@ class _FormViewScreenState extends State<FormViewScreen> {
                     validation: validateGeneric,
                     dialogName: "Deny form",
                     inputDecoration: "Reason...",
+                  ),
+                );
+              } else if (role == Access.owner) {
+                showDialog(
+                  context: context,
+                  builder: (_) => DeletionDialog(
+                    deletionAction: (ban) => ownerDelete(ban),
+                    bannable: true,
+                    itemName: 'form',
                   ),
                 );
               }
@@ -153,6 +183,18 @@ class _FormViewScreenState extends State<FormViewScreen> {
       ),
       body: [
         design.verticalGap(design.spacing),
+        if (widget.form.evalContact != null &&
+            widget.form.evalDate != null &&
+            (role == Access.owner || role == Access.admin)) ...[
+          Padding(
+            padding: EdgeInsetsGeometry.symmetric(horizontal: design.spacing),
+            child: Text(
+              'Evaluation note: This form was ${widget.form.approved ? 'approved' : 'denied'} by ${widget.form.evalContact} on ${formatDate(widget.form.evalDate!)}.${(widget.form.evalReason?.isNotEmpty ?? false) ? ' The specified reason was: "${widget.form.evalReason}".' : ''}',
+              style: TextStyle(fontSize: design.fontSize * 1.5),
+            ),
+          ),
+          design.verticalGap(design.spacing),
+        ],
         ImageDisplay(
           dataSource: widget.form.media.isNotEmpty
               ? widget.form.media[0]

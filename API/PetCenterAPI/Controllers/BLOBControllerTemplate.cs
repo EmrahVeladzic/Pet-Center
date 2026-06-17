@@ -10,6 +10,7 @@ using System.Security.Claims;
 using PetCenterModels.ModelUtils;
 using Microsoft.AspNetCore.Authentication;
 using System.IdentityModel.Tokens.Jwt;
+using PetCenterAPI.Filters;
 
 
 namespace PetCenterAPI.Controllers
@@ -37,7 +38,7 @@ namespace PetCenterAPI.Controllers
 
         }
 
-        protected bool TryParseFileToken(out Guid session, out Guid user_id, out Guid album_id, out string file_hash, out string purpose, out PetCenterModels.ModelUtils.FileScope scope)
+        protected bool TryParseFileToken(out Guid session, out Guid user_id, out Guid album_id, out string file_hash, out string purpose, out PetCenterModels.ModelUtils.FileScope scope, out string origin)
         {
             session=Guid.Empty;
             user_id = Guid.Empty;
@@ -45,6 +46,7 @@ namespace PetCenterAPI.Controllers
             file_hash = string.Empty;
             purpose = string.Empty;
             scope = default;
+            origin = string.Empty;
 
             try
             {
@@ -52,6 +54,7 @@ namespace PetCenterAPI.Controllers
                 {
                     return false;
                 }
+
 
 
 
@@ -64,12 +67,22 @@ namespace PetCenterAPI.Controllers
                 JwtSecurityTokenHandler handler = new();
                 JwtSecurityToken jwt = handler.ReadJwtToken(rawToken);
 
+                string? userClaim = User.FindFirst("user_id")?.Value;   
                 string? albumClaim = jwt.Claims.FirstOrDefault(c => c.Type == "album_id")?.Value;
                 string? hashClaim  = jwt.Claims.FirstOrDefault(c => c.Type == "file_hash")?.Value;
                 string? purposeClaim = jwt.Claims.FirstOrDefault(c => c.Type == "purpose")?.Value;
                 string? scopeClaim = jwt.Claims.FirstOrDefault(c => c.Type == "scope")?.Value;
                 string? sessionClaim = jwt.Claims.FirstOrDefault(c => c.Type == "session")?.Value;
+                string? originClaim = jwt.Claims.FirstOrDefault(c => c.Type == "origin")?.Value;
 
+                if (string.IsNullOrWhiteSpace(originClaim))
+                {
+                    return false;
+                }
+
+                origin = originClaim;
+
+                if(user_id.ToString()!=userClaim){return false;}
 
                 if (!Guid.TryParse(sessionClaim, out Guid claimGuid) || session != claimGuid)
                 {
@@ -123,13 +136,22 @@ namespace PetCenterAPI.Controllers
             service = s;
         }
 
+        [RequireFileToken]
         [HttpGet]
         public virtual async Task<IActionResult> Get()
         {
-            if(TryParseFileToken(out Guid session, out Guid user_id, out Guid album_id, out string file_hash, out string purpose, out FileScope scope))
+            if(TryParseFileToken(out Guid session, out Guid user_id, out Guid album_id, out string file_hash, out string purpose, out FileScope scope, out string origin))
             {
                 if (ControllerContext.ActionDescriptor.ControllerName.ToLowerInvariant() == purpose.ToLowerInvariant())
                 {
+
+                    ServiceOutput<object> cleared = await service.CheckScope(user_id,album_id,FileScope.ReadOnly,origin);
+
+                    if (!ServiceOutput<object>.IsSuccess(cleared))
+                    {
+                        return ResultConverter.Convert<TDTO>(ServiceOutput<TDTO>.Error(cleared.Code,cleared.ErrorMessage!));
+                    }
+
                     return ResultConverter.Convert<byte[]>(await service.Download(user_id,file_hash));
                 }
             }
@@ -137,13 +159,22 @@ namespace PetCenterAPI.Controllers
             return StatusCode(401,"Invalid token.");
         }
 
+        [RequireFileToken]
         [HttpPost]
         public virtual async Task<IActionResult> Post()
         {
-            if(TryParseFileToken(out Guid session,out Guid user_id, out Guid album_id, out string file_hash, out string purpose, out FileScope scope))
+            if(TryParseFileToken(out Guid session,out Guid user_id, out Guid album_id, out string file_hash, out string purpose, out FileScope scope, out string origin))
             {
                 if (ControllerContext.ActionDescriptor.ControllerName.ToLowerInvariant() == purpose.ToLowerInvariant() && scope == FileScope.Write)
                 {
+
+                    ServiceOutput<object> cleared = await service.CheckScope(user_id,album_id,FileScope.Write,origin);
+
+                    if (!ServiceOutput<object>.IsSuccess(cleared))
+                    {
+                        return ResultConverter.Convert<TDTO>(ServiceOutput<TDTO>.Error(cleared.Code,cleared.ErrorMessage!));
+                    }
+
 
                     using (MemoryStream ms = new MemoryStream()){
 
@@ -151,7 +182,7 @@ namespace PetCenterAPI.Controllers
 
                         byte[] data = ms.ToArray();
 
-                        return ResultConverter.Convert<TDTO>(await service.Upload(session,user_id,album_id,data));
+                        return ResultConverter.Convert<TDTO>(await service.Upload(session,user_id,album_id,data,origin));
                     
                     }
                 
@@ -162,14 +193,20 @@ namespace PetCenterAPI.Controllers
             return StatusCode(401,"Invalid token.");
         }
 
-
+        [RequireFileToken]
         [HttpDelete]
         public virtual async Task<IActionResult> Delete()
         {
-            if(TryParseFileToken(out Guid session,out Guid user_id, out Guid album_id, out string file_hash, out string purpose, out FileScope scope))
+            if(TryParseFileToken(out Guid session,out Guid user_id, out Guid album_id, out string file_hash, out string purpose, out FileScope scope, out string origin))
             {
                 if (ControllerContext.ActionDescriptor.ControllerName.ToLowerInvariant() == purpose.ToLowerInvariant() && scope == FileScope.Write)
                 {
+                    ServiceOutput<object> cleared = await service.CheckScope(user_id,album_id,FileScope.Write,origin);
+
+                    if (!ServiceOutput<object>.IsSuccess(cleared))
+                    {
+                        return ResultConverter.Convert<TDTO>(ServiceOutput<TDTO>.Error(cleared.Code,cleared.ErrorMessage!));
+                    }
 
                     return ResultConverter.Convert<object>(await service.Delete(user_id,file_hash,album_id));
                 

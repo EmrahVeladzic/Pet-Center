@@ -190,6 +190,12 @@ CREATE TABLE [Pending].[Form](
     FranchiseName NVARCHAR(75) NOT NULL,
     DefaultContact VARCHAR(255) NOT NULL,
 
+    EvaluatorID UNIQUEIDENTIFIER FOREIGN KEY REFERENCES [Person].[Account](ID) ON DELETE SET NULL,
+    EvaluatorContact VARCHAR(255),
+    EvaluationDate DATETIME2,
+    Reason NVARCHAR(255),
+    Approved BIT NOT NULL,
+
 	CONSTRAINT UQ_Form_Album UNIQUE (AlbumID),
     CONSTRAINT UQ_Form_User_FranchiseName UNIQUE(UserID,FranchiseName)
 );
@@ -359,10 +365,16 @@ CREATE TABLE [Offer].[Listing](
     AlbumID UNIQUEIDENTIFIER NOT NULL FOREIGN KEY REFERENCES [File].[Album](ID),
     PriceMinor BIGINT NOT NULL,
     ListingType TINYINT NOT NULL,
-    Approved BIT NOT NULL,
     Visible BIT NOT NULL,
     Posted DATETIME2 NOT NULL,
     Updated BIT NOT NULL,
+
+    EvaluatorID UNIQUEIDENTIFIER FOREIGN KEY REFERENCES [Person].[Account](ID) ON DELETE SET NULL,
+    EvaluatorContact VARCHAR(255),
+    EvaluationDate DATETIME2,
+    Reason NVARCHAR(255),
+    Approved BIT NOT NULL,
+
     
     CONSTRAINT CK_Listing_Pricing
     CHECK (
@@ -448,6 +460,16 @@ CREATE TABLE [Communication].[Notification](
     Expiry DATETIME2 NOT NULL,
 
     CONSTRAINT FK_Notification_User FOREIGN KEY (UserID) REFERENCES [Person].[User](ID) ON DELETE CASCADE
+);
+GO
+
+CREATE TABLE [Communication].[NotificationSeen](
+    ID UNIQUEIDENTIFIER NOT NULL DEFAULT NEWSEQUENTIALID() PRIMARY KEY,
+    CurrentVersion ROWVERSION NOT NULL,
+    UserID UNIQUEIDENTIFIER NOT NULL FOREIGN KEY REFERENCES [Person].[User](ID),
+    NotificationID UNIQUEIDENTIFIER NOT NULL,
+
+    CONSTRAINT FK_Notification_Seen FOREIGN KEY (NotificationID) REFERENCES [Communication].[Notification](ID) ON DELETE CASCADE
 );
 GO
 

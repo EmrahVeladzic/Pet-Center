@@ -3,6 +3,7 @@ import 'package:pet_center_app/models/data_transfer/account/account_request_dto.
 import 'package:pet_center_app/models/data_transfer/user/user_request_dto.dart';
 import 'package:pet_center_app/screens/components/confirmation_dialog.dart';
 import 'package:pet_center_app/screens/components/dual_text_entry_dialog.dart';
+import 'package:pet_center_app/screens/components/password_change_dialog.dart';
 import 'package:pet_center_app/screens/components/text_entry_dialog.dart';
 import 'package:pet_center_app/screens/login_register.dart';
 import 'package:pet_center_app/screens/templates/screen_scaffold.dart';
@@ -88,13 +89,9 @@ class _UserViewScreenState extends State<UserViewScreen> {
     }
   }
 
-  void changePassword(String pwd, String confirm) async {
-    if (pwd != confirm) {
-      showSnackbar("You did not enter the same password twice.");
-      return;
-    }
+  void changePassword(String pwd, String newPwd) async {
     final response = await AccountService.update(
-      AccountRequestDTO(password: pwd),
+      AccountRequestDTO(password: pwd, newPassword: newPwd),
     );
     if (response != null) {
       showSnackbar("Updated password.");
@@ -106,7 +103,6 @@ class _UserViewScreenState extends State<UserViewScreen> {
 
     visitedAnnouncementIndices.clear();
     visitedReportIndices.clear();
-    visitedNotifIndices.clear();
     visitedListingIndices.clear();
   }
 
@@ -183,15 +179,10 @@ class _UserViewScreenState extends State<UserViewScreen> {
             onPressed: () {
               showDialog(
                 context: context,
-                builder: (_) => DualTextEntryDialog(
+                builder: (_) => PasswordChangeDialog(
                   callback: (value, confirm) {
                     changePassword(value, confirm);
                   },
-                  hideText: true,
-                  dialogName: "Enter your new password twice:",
-                  firstDecor: "Password...",
-                  secondDecor: "Confirm...",
-                  sharedValidation: (value) => validatePassword(value),
                 ),
               );
             },

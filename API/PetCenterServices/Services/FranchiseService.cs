@@ -12,6 +12,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Microsoft.IdentityModel.Tokens;
 
 
 namespace PetCenterServices.Services
@@ -56,12 +57,19 @@ namespace PetCenterServices.Services
             if (frm == null)
             {
                 return ServiceOutput<FranchiseResponseDTO>.Error(HttpCode.NotFound,"No form to base franchise on.");
-            } 
+            }
+
+            if (frm.EvaluatorContact!=null)
+            {
+                return ServiceOutput<FranchiseResponseDTO>.Error(HttpCode.Conflict,"You may not evaluate a form twice.");
+            }
 
             if(await dbSet.AnyAsync(f=>f.OwnerId==frm.UserId && f.FranchiseName.ToLower() == frm.FranchiseName.ToLower()))
             {
                 return ServiceOutput<FranchiseResponseDTO>.Error(HttpCode.Conflict,"The user already owns a franchise with this name.");
             }
+
+
 
             Franchise franch = new();
 
@@ -93,9 +101,24 @@ namespace PetCenterServices.Services
 
                     await dbContext.Notifications.AddAsync(notif);
                     await dbSet.AddAsync(franch);
-                    await frm.StageDeletion<Form>(dbContext,dbContext.Forms);
+
+                    frm.Approved=true;
+                    frm.Reason=null;
+                    frm.EvaluationDate=DateTime.UtcNow;
+                    frm.EvaluatorId=token_holder;
+
+                    Account? acc = await dbContext.Accounts.FindAsync(token_holder);
+                    frm.EvaluatorContact=acc?.Contact;
+
+
                     await dbContext.SaveChangesAsync();
                     await tx.CommitAsync();
+
+                    logger.LogInformation(
+                    "Form {form_id} approved by {EvaluatorId} ({EvaluatorContact}). Franchise created: {Franch}.",
+                    frm.Id, token_holder, acc?.Contact??"[NULL]", frm.FranchiseName
+                    );
+
                 }
                 catch(Exception ex)
                 {

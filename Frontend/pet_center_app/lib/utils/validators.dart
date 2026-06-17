@@ -75,6 +75,23 @@ String? validatePassword(String? pwd) {
     return "Leading and trailing whitespace is not allowed.";
   }
 
+  if (pwd.trim().length < 4) {
+    return "The password needs to be at least 4 characters long.";
+  }
+
+  return null;
+}
+
+String? validatePasswordWithConfirm(String? pwd, String? conf) {
+  String? output = validatePassword(pwd);
+  if (output != null) {
+    return output;
+  }
+
+  if (pwd != conf) {
+    return "The password fields do not match.";
+  }
+
   return null;
 }
 

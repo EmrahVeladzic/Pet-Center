@@ -38,6 +38,7 @@ NotificationSubDTO _$NotificationSubDTOFromJson(Map<String, dynamic> json) =>
       listingId: json['listingId'] as String?,
       title: json['title'] as String? ?? '',
       body: json['body'] as String? ?? '',
+      seen: json['seen'] as bool? ?? false,
       datePosted: json['datePosted'] == null
           ? null
           : DateTime.parse(json['datePosted'] as String),
@@ -52,6 +53,7 @@ Map<String, dynamic> _$NotificationSubDTOToJson(NotificationSubDTO instance) =>
       'title': instance.title,
       'body': instance.body,
       'datePosted': instance.datePosted.toIso8601String(),
+      'seen': instance.seen,
     };
 
 SuppliesSubDTO _$SuppliesSubDTOFromJson(Map<String, dynamic> json) =>

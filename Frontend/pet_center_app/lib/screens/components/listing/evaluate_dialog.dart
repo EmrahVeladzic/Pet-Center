@@ -74,7 +74,7 @@ class _EvaluateDialogState extends State<EvaluateDialog> {
                     child: TextFormField(
                       controller: _controller,
                       maxLines: null,
-                      maxLength: 255,
+                      maxLength: 150,
                       minLines: dialogMinLines,
                       keyboardType: TextInputType.multiline,
                       decoration: InputDecoration(hintText: 'Note:'),

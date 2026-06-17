@@ -38,7 +38,6 @@ List<AnnouncementSubDTO> announcements = [];
 List<ReportResponseSubDTO> reports = [];
 
 Set<String> visitedAnnouncementIndices = {};
-Set<String> visitedNotifIndices = {};
 Set<String> visitedReportIndices = {};
 Set<String> visitedListingIndices = {};
 
@@ -61,7 +60,6 @@ class StaticAndUserDataService {
     self = null;
     userStatus = '';
     visitedAnnouncementIndices = {};
-    visitedNotifIndices = {};
     visitedReportIndices = {};
     visitedListingIndices = {};
   }
@@ -135,7 +133,7 @@ class StaticAndUserDataService {
 
         if (currentStaticDataVersion.reportVersion != result.reportVersion &&
             (role == Access.admin || role == Access.owner)) {
-          final newReports = await UserService.getReports();
+          final newReports = await UserService.getAllReports();
           if (newReports != null) {
             reports = newReports;
             currentStaticDataVersion.reportVersion = result.reportVersion;

@@ -31,6 +31,9 @@ class ListingResponseDTO {
   List<CommentResponseSubDTO> comments;
   String? mediaCreationToken;
   DateTime posted;
+  String? evalContact;
+  DateTime? evalDate;
+  String? evalReason;
 
   ListingResponseDTO({
     this.id,
@@ -57,6 +60,9 @@ class ListingResponseDTO {
     this.mediaCreationToken,
     List<AvailabilityResponseSubDTO>? availability,
     List<CommentResponseSubDTO>? comments,
+    this.evalContact,
+    this.evalDate,
+    this.evalReason,
   }) : media = media ?? [],
        availability = availability ?? [],
        comments = comments ?? [],
@@ -64,7 +70,6 @@ class ListingResponseDTO {
 
   factory ListingResponseDTO.fromJson(Map<String, dynamic> json) =>
       _$ListingResponseDTOFromJson(json);
-
   Map<String, dynamic> toJson() => _$ListingResponseDTOToJson(this);
 
   ListingResponseDTO copy() => ListingResponseDTO(
@@ -91,5 +96,9 @@ class ListingResponseDTO {
     mediaCreationToken: mediaCreationToken,
     availability: availability.map((a) => a.copy()).toList(),
     comments: comments.map((c) => c.copy()).toList(),
+    posted: posted,
+    evalContact: evalContact,
+    evalDate: evalDate,
+    evalReason: evalReason,
   );
 }

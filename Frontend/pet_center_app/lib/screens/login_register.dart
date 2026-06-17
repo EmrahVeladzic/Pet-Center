@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:pet_center_app/models/data_transfer/account/account_request_dto.dart';
 import 'package:pet_center_app/models/enums.dart';
+import 'package:pet_center_app/screens/components/radio_button_component.dart';
 import 'package:pet_center_app/screens/dashboard.dart';
 import 'package:pet_center_app/services/account_service.dart';
 import 'package:pet_center_app/services/static_user_data_service.dart';
@@ -21,16 +22,12 @@ class _CredentialsScreenState extends State<CredentialsScreen> {
   final _formKey = GlobalKey<FormState>();
   String contact = '';
   String password = '';
-  bool businessPurposes = false;
+  String newPwd = '';
+  Access regRole = Access.user;
   bool registerMode = false;
   bool unverified = false;
+  bool forgot = false;
   int verificationCode = 0;
-
-  void _toggleBusiness() {
-    setState(() {
-      businessPurposes = !businessPurposes;
-    });
-  }
 
   void _linkAction() async {
     if (unverified) {
@@ -44,12 +41,20 @@ class _CredentialsScreenState extends State<CredentialsScreen> {
     } else {
       setState(() {
         registerMode = !registerMode;
+        if (registerMode) {
+          forgot = false;
+          newPwd = '';
+        }
       });
     }
   }
 
   void _linkForgotPassword() async {
-    if (contact.isNotEmpty) {
+    setState(() {
+      forgot = !forgot;
+      newPwd = '';
+    });
+    if (contact.isNotEmpty && forgot) {
       final output = await AccountService.forgotPassword(contact);
       if (output != null && output.isNotEmpty) {
         showSnackbar(output);
@@ -69,9 +74,7 @@ class _CredentialsScreenState extends State<CredentialsScreen> {
     visitedAnnouncementIndices = await CacheManager.getAll(
       CacheEntityType.announcement,
     );
-    visitedNotifIndices = await CacheManager.getAll(
-      CacheEntityType.notification,
-    );
+
     visitedReportIndices = await CacheManager.getAll(CacheEntityType.report);
 
     visitedListingIndices = await CacheManager.getAll(CacheEntityType.listing);
@@ -92,7 +95,7 @@ class _CredentialsScreenState extends State<CredentialsScreen> {
           AccountRequestDTO(
             contact: contact,
             password: password,
-            business: businessPurposes,
+            role: regRole,
           ),
         );
         if (!mounted) {
@@ -106,7 +109,11 @@ class _CredentialsScreenState extends State<CredentialsScreen> {
         }
       } else {
         final output = await AccountService.logIn(
-          AccountRequestDTO(contact: contact.trim(), password: password.trim()),
+          AccountRequestDTO(
+            contact: contact.trim(),
+            password: password.trim(),
+            newPassword: newPwd,
+          ),
         );
         if (!mounted) {
           return;
@@ -201,29 +208,69 @@ class _CredentialsScreenState extends State<CredentialsScreen> {
                                   labelText: 'Password',
                                 ),
                                 validator: (value) {
-                                  return validatePassword(value);
+                                  return validateGeneric(value);
                                 },
                                 obscureText: true,
                                 onChanged: (v) => password = v,
                               ),
 
+                              if (forgot) ...[
+                                SizedBox(height: design.spacing),
+                                TextFormField(
+                                  key: const ValueKey('newPwd'),
+                                  decoration: InputDecoration(
+                                    labelText: 'New password',
+                                  ),
+                                  validator: (value) {
+                                    return validatePassword(value);
+                                  },
+                                  obscureText: true,
+                                  onChanged: (v) => newPwd = v,
+                                ),
+                              ],
+
                               if (registerMode) ...[
                                 SizedBox(height: design.spacing),
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.start,
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.center,
                                   children: [
-                                    Checkbox(
-                                      value: businessPurposes,
-                                      onChanged: (_) => _toggleBusiness(),
+                                    design.fittedText('Role:'),
+                                    RadioButtonComponent<Access>(
+                                      groupValue: regRole,
+                                      onChanged: (value) {
+                                        if (value == null) {
+                                          return;
+                                        }
+                                        setState(() {
+                                          regRole = value;
+                                        });
+                                      },
+                                      options: [
+                                        RadioOption<Access>(
+                                          value: Access.user,
+                                          label: "End user",
+                                        ),
+                                        RadioOption<Access>(
+                                          value: Access.business,
+                                          label: "Employee",
+                                        ),
+                                        RadioOption<Access>(
+                                          value: Access.admin,
+                                          label: "Administrator",
+                                        ),
+                                      ],
                                     ),
-                                    design.fittedText('Business account'),
                                   ],
                                 ),
                               ] else ...[
                                 const Spacer(flex: 1),
                                 TextButton(
                                   onPressed: _linkForgotPassword,
-                                  child: design.fittedText('Forgot password?'),
+                                  child: forgot
+                                      ? design.fittedText(
+                                          'Remembered password?',
+                                        )
+                                      : design.fittedText('Forgot password?'),
                                 ),
                               ],
                             ] else ...[
