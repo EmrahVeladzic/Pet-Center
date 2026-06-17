@@ -168,6 +168,18 @@ namespace PetCenterServices.Services
                         return ServiceOutput<string>.Error(HttpCode.Conflict,"An account with this contact already exists.");
                     }
 
+  
+
+                    if (ct.RelevantAccount.AccessLevel == Access.Admin)
+                    {
+                        logger.LogInformation(
+                        "Administrator {id} account transfer - {old} > {new}.",
+                        token_holder, ct.RelevantAccount.Contact, ct.NewContact
+                        );
+                    }
+
+
+
                     ct.RelevantAccount.Contact=ct.NewContact;
                     await dbContext.SaveChangesAsync();
 
@@ -175,6 +187,8 @@ namespace PetCenterServices.Services
                     await dbContext.SaveChangesAsync();
 
                     await tx.CommitAsync();
+
+                    
                 }
                 catch(Exception ex)
                 {
