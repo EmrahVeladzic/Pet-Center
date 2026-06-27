@@ -24,11 +24,9 @@ namespace PetCenterModels.DataTransferObjects
         [MaxLength(255)]
         public string Contact { get; set; } = string.Empty;
         
+        [MinLength(4)]
         [MaxLength(255)]
         public string Password { get; set; } = string.Empty;
-
-        [MaxLength(255)]
-        public string NewPassword { get; set; } = string.Empty;
 
 
         [Required]
@@ -38,7 +36,7 @@ namespace PetCenterModels.DataTransferObjects
         public bool Validate()
         {            
             Contact=Contact.ToLowerInvariant();
-            return (ModelValidationUtils.ValidateContact(Contact)&& !string.IsNullOrWhiteSpace(Password));
+            return ModelValidationUtils.ValidateContact(Contact);
         }
     }
 }

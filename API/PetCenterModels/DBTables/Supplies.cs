@@ -35,7 +35,7 @@ namespace PetCenterModels.DBTables
         public int MassGrams {get; set;} = 0;
 
         [Column("Evaluated")]
-        public DateTime Evaluated {get; set;} = DateTime.UtcNow;
+        public DateTime Evaluated {get; set;} = DateTime.Today;
 
     }
 }

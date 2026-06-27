@@ -148,7 +148,7 @@ namespace PetCenterServices.Services
             return ServiceOutput<object>.Success(null,HttpCode.NoContent);
         }
 
-        public virtual async Task<ServiceOutput<object>> CheckScope(Guid token_holder, Guid album_id, FileScope expected, string origin)
+        public virtual async Task<ServiceOutput<object>> CheckScope(Guid token_holder, Guid album_id, FileScope expected, string origin, string? hash)
         {
             await Task.CompletedTask;
             return ServiceOutput<object>.Error(HttpCode.Unauthorized,"You lack the authorization to interact with this resource.");

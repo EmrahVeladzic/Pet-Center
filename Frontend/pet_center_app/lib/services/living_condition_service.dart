@@ -6,7 +6,7 @@ import 'package:pet_center_app/models/data_transfer/living_condition_dto.dart';
 import 'package:pet_center_app/utils/app_config.dart';
 import 'package:pet_center_app/utils/app_style.dart';
 import 'package:pet_center_app/utils/globals.dart';
-import 'package:pet_center_app/utils/jwt_parser.dart';
+import 'package:pet_center_app/utils/jwt_utils.dart';
 import 'package:pet_center_app/utils/service_output.dart';
 
 class LivingConditionService {

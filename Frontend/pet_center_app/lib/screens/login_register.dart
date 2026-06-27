@@ -9,7 +9,7 @@ import 'package:pet_center_app/services/static_user_data_service.dart';
 import 'package:pet_center_app/utils/app_style.dart';
 
 import 'package:pet_center_app/utils/hive_cache.dart';
-import 'package:pet_center_app/utils/jwt_parser.dart';
+import 'package:pet_center_app/utils/jwt_utils.dart';
 import 'package:pet_center_app/utils/validators.dart';
 
 class CredentialsScreen extends StatefulWidget {
@@ -111,8 +111,7 @@ class _CredentialsScreenState extends State<CredentialsScreen> {
         final output = await AccountService.logIn(
           AccountRequestDTO(
             contact: contact.trim(),
-            password: password.trim(),
-            newPassword: newPwd,
+            password: forgot ? newPwd.trim() : password.trim(),
           ),
         );
         if (!mounted) {
@@ -136,8 +135,7 @@ class _CredentialsScreenState extends State<CredentialsScreen> {
         return;
       }
       if (output != null) {
-        rawToken = output;
-        parseJwt(rawToken);
+        appState.parseJwt(rawToken);
         onLogin();
       }
     }

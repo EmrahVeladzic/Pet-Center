@@ -58,7 +58,7 @@ namespace PetCenterServices.Services
 
                 if (search.AdoptionPurposes)
                 {
-                    query = query.Where(i=>dbContext.Listings.Any(l=>l.Visible&&l.Approved&&l.AnimalExtension!=null&&l.AnimalExtension.Animal.BreedId==i.Id));
+                    query = query.Where(i=>dbContext.Listings.Any(l=>l.Visible&&l.Status==EvaluationStatus.Approved&&l.AnimalExtension!=null&&l.AnimalExtension.Animal.BreedId==i.Id));
                 }
 
                 

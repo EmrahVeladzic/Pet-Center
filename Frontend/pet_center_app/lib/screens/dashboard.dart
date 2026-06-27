@@ -17,7 +17,7 @@ import 'package:pet_center_app/services/listing_service.dart';
 import 'package:pet_center_app/services/static_user_data_service.dart';
 import 'package:pet_center_app/utils/app_style.dart';
 
-import 'package:pet_center_app/utils/jwt_parser.dart';
+import 'package:pet_center_app/utils/jwt_utils.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -82,7 +82,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final count = await ListingService.count(
       ListingType.generic,
       OrderingMethod.id,
-      showApprovedAndPending: false,
+      showEvaluated: false,
     );
 
     if (count != null && mounted) {

@@ -21,12 +21,6 @@ namespace PetCenterAPI.Controllers
 
         public ImageController(IImageService s):base(s) { }
 
-        [RequireFileToken]
-        [RequestSizeLimit((5 * 1024 * 1024))]
-        public override Task<IActionResult> Post()
-        {
-            return base.Post();
-        }
       
 
     }

@@ -67,6 +67,15 @@ enum OrderingMethod {
   postedAscending,
 }
 
+enum EvaluationStatus {
+  @JsonValue(0)
+  pending,
+  @JsonValue(1)
+  approved,
+  @JsonValue(2)
+  denied,
+}
+
 extension AccessExtension on Access {
   int get value {
     switch (this) {
@@ -176,6 +185,30 @@ extension OrderingMethodExtension on OrderingMethod {
         return 'Newest First';
       case OrderingMethod.postedAscending:
         return 'Oldest First';
+    }
+  }
+}
+
+extension EvaluationStatusExtension on EvaluationStatus {
+  int get value {
+    switch (this) {
+      case EvaluationStatus.pending:
+        return 0;
+      case EvaluationStatus.approved:
+        return 1;
+      case EvaluationStatus.denied:
+        return 2;
+    }
+  }
+
+  String get displayName {
+    switch (this) {
+      case EvaluationStatus.pending:
+        return "Pending";
+      case EvaluationStatus.approved:
+        return "Approved";
+      case EvaluationStatus.denied:
+        return "Denied";
     }
   }
 }

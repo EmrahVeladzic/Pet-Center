@@ -28,9 +28,14 @@ namespace PetCenterServices.Services
         }
 
 
-        public override async Task<ServiceOutput<object>> CheckScope(Guid token_holder, Guid album_id, FileScope expected, string origin)
+        public override async Task<ServiceOutput<object>> CheckScope(Guid token_holder, Guid album_id, FileScope expected, string origin, string? hash)
         {
             Account? acc = await dbContext.Accounts.FindAsync(token_holder);
+
+            if(hash!=null && !await dbSetMeta.AnyAsync(m => m.AlbumId == album_id && m.BLOBId == hash))
+            {
+                return ServiceOutput<object>.Error(HttpCode.NotFound,"No image with the provided hash could be found in the album.");
+            }
 
             if (acc == null)
             {
@@ -111,7 +116,7 @@ namespace PetCenterServices.Services
                 }
                 else
                 {
-                    if(lst.Visible&& lst.Approved && lst.Album.Reserved>0 && expected!=FileScope.Write){
+                    if(lst.Visible&& lst.Status==EvaluationStatus.Approved && lst.Album.Reserved>0 && expected!=FileScope.Write){
 
                         return ServiceOutput<object>.Success(null,HttpCode.NoContent);
 

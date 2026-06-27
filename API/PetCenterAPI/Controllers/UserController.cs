@@ -39,7 +39,11 @@ namespace PetCenterAPI.Controllers
             return StatusCode(401,"Invalid token.");  
         }
 
-        
+        [NonAction]
+        public override Task<IActionResult> Post([FromBody] UserRequestDTO ent)
+        {
+            return base.Post(ent);
+        }
        
 
         [HttpPut("SetEmployee/{usr_id}/{franchise_id}")]
@@ -54,17 +58,22 @@ namespace PetCenterAPI.Controllers
         }
 
 
-        [HttpPut("SetTerm/{term}")]
+        [HttpPut("SetTerm")]
         [Authorize(Roles = "User")]
-        public async Task<IActionResult> SetWishlistTerm([FromRoute] string term, [FromQuery] bool add_remove)
+        public async Task<IActionResult> SetWishlistTerm([FromBody] TextPayloadDTO term, [FromQuery] bool add_remove)
         {
             if(TryGetUserId(out Guid caller_id))
             {
-                if (term.Length > 50)
+                if (string.IsNullOrWhiteSpace(term.Text))
+                {
+                    return StatusCode(400,"You cannot use an empty string as a term.");
+                }
+
+                if (term.Text.Length > 50)
                 {
                     return StatusCode(400,"The term is too long.");
                 }
-                return ResultConverter.Convert<string>(await service.SetWishlistTerm(caller_id,term,add_remove));
+                return ResultConverter.Convert<string>(await service.SetWishlistTerm(caller_id,term.Text,add_remove));
             }
             return StatusCode(401,"Invalid token.");  
         }

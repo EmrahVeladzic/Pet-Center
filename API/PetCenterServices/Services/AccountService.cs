@@ -275,83 +275,57 @@ namespace PetCenterServices.Services
             return ServiceOutput<string>.Success("Your account transfer code pair will be sent shortly.");
         }
 
-        public override async Task<ServiceOutput<AccountResponseDTO>> Put(Guid session,Guid token_holder,AccountRequestDTO req)
-        {      
-
-            Account? acc = await dbContext.Accounts.Include(a=>a.AccountUser).FirstOrDefaultAsync(a=>a.Id==req.Id);
-
-            if (acc != null)
-            {                
-
-                bool updated_contact = false;
-                bool updated_password = false;
-
-                if (!string.IsNullOrWhiteSpace(req.Contact))
-                {
-                    ServiceOutput<string> s_out = await RequestAccountTransfer(token_holder,req.Contact);
-                    
-                    updated_contact = ServiceOutput<string>.IsSuccess(s_out);
-
-                    if(!updated_contact){return ServiceOutput<AccountResponseDTO>.Error(s_out.Code,s_out.ErrorMessage!);}
-                }
-                
-
-                if (!string.IsNullOrWhiteSpace(req.Password))
-                {
-                    if(string.IsNullOrWhiteSpace(req.NewPassword)||req.NewPassword.Length < 4)
-                    {
-                        return ServiceOutput<AccountResponseDTO>.Error(HttpCode.BadRequest,"You need to provide a new password if you intend to change it.");
-                    }
-
-                    if (acc.PasswordHash != Crypto.GenerateHash(req.Password, acc.PasswordSalt))
-                    {
-                        return ServiceOutput<AccountResponseDTO>.Error(HttpCode.Forbidden,"Wrong password.");
-                    }
-
-
-                    acc.PasswordSalt=Utils.Crypto.GenerateSalt();
-                    acc.PasswordHash = Utils.Crypto.GenerateHash(req.NewPassword!, acc.PasswordSalt!);
-                    updated_password = true;
-                }
-                else
-                {
-                    if (string.IsNullOrEmpty(req.Contact))
-                    {
-                        if(string.IsNullOrWhiteSpace(req.Password)){return ServiceOutput<AccountResponseDTO>.Error(HttpCode.BadRequest,"You cannot have an empty password.");}
-                    }
-                } 
-
-                
-               
-                try
-                {
-                    acc.CurrentVersion=req.CurrentVersion;
-                    await dbContext.SaveChangesAsync();
-                       
-                }
-                catch(Exception ex)
-                {
-                        
-                    return ServiceOutput<AccountResponseDTO>.FromException(ex,logger);
-                }
-                
-                
-                AccountResponseDTO output = AccountResponseDTO.FromEntity(acc)!;
-
-                output.Notes = new();
-
-                const string pending = "pending.";
-                const string changed = "changed.";
-                const string unchanged = "unchanged.";
-
-                output.Notes.Add(new NoteSubDTO{Title="Updates",Body=$"Contact - {(updated_contact? pending:unchanged)} Password - {(updated_password? changed: unchanged)}"});
-                
-                return ServiceOutput<AccountResponseDTO>.Success(output);
-
+        public async Task<ServiceOutput<string>> ResetPassword(Guid? token_holder, PasswordChangeDTO change)
+        {
+            Account? acc = null;
+            if (token_holder == null)
+            {
+                acc = await dbSet.FirstOrDefaultAsync(a=>a.Contact==change.Contact);
+            }
+            else
+            {
+                acc = await dbSet.FindAsync(token_holder);
             }
 
-            return  ServiceOutput<AccountResponseDTO>.Error(HttpCode.NotFound,"No account with this ID exists.");
+
+            if (acc != null)
+            {
+                SingleTimeEntry? entry = await dbContext.SingleTimeEntries.FindAsync(acc.Id);
+               
+                string login_pwd = Crypto.GenerateHash(change.OldPW, acc.PasswordSalt);
+                string single_time_pwd = string.Empty;
+
+                if (entry != null)
+                {
+                    single_time_pwd = Crypto.GenerateHash(change.OldPW,entry.CodeSalt);
+                }
+
+
+                if (login_pwd == acc.PasswordHash || single_time_pwd==entry?.CodeHash)
+                {
+                    if(entry!=null && single_time_pwd==entry.CodeHash )
+                    {
+                        if(entry.Expiry <= DateTime.UtcNow){
+                            return ServiceOutput<string>.Error(HttpCode.Forbidden,"The one-time entry code has expired.");
+                        }
+
+                        string salt =Crypto.GenerateSalt();
+                        acc.PasswordSalt=salt;
+                        acc.PasswordHash=Crypto.GenerateHash(change.NewPW,salt);
+
+                        if (entry != null)
+                        {
+                            dbContext.SingleTimeEntries.Remove(entry);
+                        }
+
+                        await dbContext.SaveChangesAsync();
+                    }
+                }
+            }
+
+            return ServiceOutput<string>.Error(HttpCode.BadRequest,"Could not reset password. Make sure the details are correct.");
         }
+
 
         public async Task<ServiceOutput<string>> LogIn(AccountRequestDTO req)
         {
@@ -366,49 +340,19 @@ namespace PetCenterServices.Services
             
 
             if (acc != null)
-            {
-                SingleTimeEntry? entry = await dbContext.SingleTimeEntries.FindAsync(acc.Id);
+            {               
                
-                string login_pwd = Crypto.GenerateHash(req.Password!, acc.PasswordSalt);
-                string single_time_pwd = string.Empty;
-
-                if (entry != null)
-                {
-                    single_time_pwd = Crypto.GenerateHash(req.Password,entry.CodeSalt);
-                }
+                string login_pwd = Crypto.GenerateHash(req.Password, acc.PasswordSalt);               
 
 
-                if (login_pwd == acc.PasswordHash || single_time_pwd==entry?.CodeHash)
-                {
-                    if(entry!=null && single_time_pwd==entry.CodeHash )
-                    {
-                        if(entry.Expiry <= DateTime.UtcNow){
-                            return ServiceOutput<string>.Error(HttpCode.Forbidden,"The one-time entry code has expired.");
-                        }
-
-                        if (string.IsNullOrEmpty(req.NewPassword) || req.NewPassword.Length < 4)
-                        {
-                            return ServiceOutput<string>.Error(HttpCode.BadRequest,"You need to provide a new password");
-                            
-                        }
-
-                        string salt =Crypto.GenerateSalt();
-                        acc.PasswordSalt=salt;
-                        acc.PasswordHash=Crypto.GenerateHash(req.NewPassword,salt);
-
-
-                    }
+                if (login_pwd == acc.PasswordHash)
+                {                  
 
                     User? usr = await dbContext.Users.Include(u=>u.UserAccount).FirstOrDefaultAsync(u=>u.Id == acc.Id);
 
                     if (usr != null)
                     {
-                        if (entry != null)
-                        {
-                            dbContext.SingleTimeEntries.Remove(entry);
-                            await dbContext.SaveChangesAsync();
-                        }
-
+                       
                         return ServiceOutput<string>.Success(Utils.Crypto.GenerateJWT(usr,null));
 
                     }

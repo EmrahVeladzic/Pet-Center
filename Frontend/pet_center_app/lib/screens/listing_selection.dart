@@ -12,7 +12,7 @@ import 'package:pet_center_app/screens/templates/data_screen_scaffold.dart';
 import 'package:pet_center_app/services/listing_service.dart';
 import 'package:pet_center_app/services/static_user_data_service.dart';
 import 'package:pet_center_app/utils/hive_cache.dart';
-import 'package:pet_center_app/utils/jwt_parser.dart';
+import 'package:pet_center_app/utils/jwt_utils.dart';
 
 class ListingSelectionScreen extends StatefulWidget {
   final int maxPage;
@@ -94,7 +94,7 @@ class _ListingSelectionScreenState extends State<ListingSelectionScreen> {
       type,
       ordering,
       relevantId: relevant,
-      showApprovedAndPending: showApproved,
+      showEvaluated: showApproved,
       kindSpecific: kind,
       breedSpecific: breed,
       sexSpecific: sex,
@@ -124,7 +124,7 @@ class _ListingSelectionScreenState extends State<ListingSelectionScreen> {
       t,
       o,
       relevantId: r,
-      showApprovedAndPending: sh,
+      showEvaluated: sh,
       kindSpecific: k,
       breedSpecific: b,
       sexSpecific: s,

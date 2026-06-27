@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.Configuration;
 using MimeKit;
-using MailKit.Net.Smtp;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System.Text;
@@ -94,7 +93,7 @@ public class ContactConsumer
 
     }
 
-    public async Task StartListening()
+   public async Task StartListening()
     {
         if (channel != null)
         {
@@ -106,9 +105,9 @@ public class ContactConsumer
                 ConsumerMessage? msg = JsonSerializer.Deserialize<ConsumerMessage>(json);
 
                 int delay = 1000;
-                long attempt = 0;
+                const int maxRetries = 3;
 
-                while (true)
+                for (int attempt = 0; attempt < maxRetries; attempt++)
                 {
                     try
                     {
@@ -118,22 +117,28 @@ public class ContactConsumer
                         }
 
                         await channel.BasicAckAsync(input.DeliveryTag, false);
-                        logger.LogInformation("Message acked successfully on attempt {Attempt}.", ++attempt);
+                        logger.LogInformation("Message acked successfully on attempt {Attempt}.", attempt + 1);
                         break;
                     }
                     catch (PermanentDeliveryException ex)
                     {
-                    
                         logger.LogCritical(ex, "Permanent delivery failure, message will not be retried. Contact: {Contact}", msg?.Contact);
                         await channel.BasicAckAsync(input.DeliveryTag, false);
-                    
                         break;
                     }
                     catch (Exception ex)
                     {
-                        logger.LogError(ex, "Delivery failed on attempt {Attempt}. Retrying in {Delay}ms.", ++attempt, delay);
-                        await Task.Delay(delay);
-                        delay = Math.Min(delay * 2, 15000);
+                        logger.LogError(ex, "Delivery failed on attempt {Attempt} of {Max}. Retrying in {Delay}ms.", attempt + 1, maxRetries, delay);
+                        if (attempt < maxRetries - 1)
+                        {
+                            await Task.Delay(delay);
+                            delay = Math.Min(delay * 2, 15000);
+                        }
+                        else
+                        {
+                            logger.LogError(ex, "Exhausted all {Max} attempts.", maxRetries);
+                            await channel.BasicNackAsync(input.DeliveryTag, false, false);
+                        }
                     }
                 }
             };

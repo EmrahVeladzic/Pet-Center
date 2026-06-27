@@ -113,7 +113,7 @@ namespace PetCenterServices.Utils
                 Configuration["Jwt:Issuer"],
                 Configuration["Jwt:Audience"],
                 claims,
-                expires: DateTime.UtcNow.AddHours(8),
+                expires: DateTime.UtcNow.AddMinutes(15),
                 signingCredentials: creds);
 
             return new JwtSecurityTokenHandler().WriteToken(token);

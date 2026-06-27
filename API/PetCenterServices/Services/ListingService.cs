@@ -38,8 +38,8 @@ namespace PetCenterServices.Services
 
             switch (search.AuthoritySpecifier)
             {
-                case Access.User: {query=query.Where(q=>q.Visible&&q.Approved&&q.Album!=null&&q.Album.Reserved>0);break;}
-                case Access.Admin: {query=query.Where(q=>q.Album!=null&&q.Album.Reserved>0&&((!q.Approved&&q.Updated)||search.ShowApprovedAndPending));break;}
+                case Access.User: {query=query.Where(q=>q.Visible&&q.Status==EvaluationStatus.Approved&&q.Album!=null&&q.Album.Reserved>0);break;}
+                case Access.Admin: {query=query.Where(q=>q.Album!=null&&q.Album.Reserved>0&&((q.Status==EvaluationStatus.Pending)||search.ShowEvaluated));break;}
                 case Access.BusinessAccount : {search.FileRW=FileScope.Write; query = query.Where(q => q.FranchiseId==search.RelevantId &&(
                 q.Business.OwnerId == token_holder ||
                 q.Business.EmployeeRecords.Any(e => e.UserId == token_holder)));
@@ -73,9 +73,9 @@ namespace PetCenterServices.Services
             else if (search.AuthoritySpecifier == Access.BusinessAccount)
             {
                 
-                if (!search.ShowApprovedAndPending)
+                if (!search.ShowEvaluated)
                 {
-                    query = query.Where(q=>!q.Approved||!q.Visible);
+                    query = query.Where(q=>q.Status==EvaluationStatus.Pending||!q.Visible);
                 }
                 
             }
@@ -199,7 +199,7 @@ namespace PetCenterServices.Services
             {
 
 
-                if (!output.Visible || !output.Approved || output.Album == null || output.Album.Reserved <= 0)
+                if (!output.Visible || output.Status!=EvaluationStatus.Approved || output.Album == null || output.Album.Reserved <= 0)
                 {
                     return ServiceOutput<ListingResponseDTO>.Error(HttpCode.Forbidden,"This listing is not currently present in the market.");   
                 }
@@ -274,7 +274,7 @@ namespace PetCenterServices.Services
                 return ServiceOutput<CommentResponseSubDTO>.Error(HttpCode.NotFound,"The selected listing does not exist.");
             }
 
-            if (!(listing.Approved && listing.Visible &&listing.Album.Reserved>0))
+            if (!(listing.Status==EvaluationStatus.Approved && listing.Visible &&listing.Album.Reserved>0))
             {
                 return ServiceOutput<CommentResponseSubDTO>.Error(HttpCode.Forbidden,"The selected listing is not available for reviews.");   
             }
@@ -350,7 +350,7 @@ namespace PetCenterServices.Services
 
                 if(authorization_level==Access.User){
 
-                    if (!(listing.Approved && listing.Visible))
+                    if (!(listing.Status==EvaluationStatus.Approved && listing.Visible))
                     {
                         return ServiceOutput<object>.Error(HttpCode.Forbidden,"The selected listing is not available.");   
                     }
@@ -400,20 +400,21 @@ namespace PetCenterServices.Services
                     return ServiceOutput<object>.Error(HttpCode.Forbidden,"You may not evaluate listings without images.");
                 }
 
-                if (!listing.Updated)
+                if (listing.Status!=EvaluationStatus.Pending)
                 {
                     return ServiceOutput<object>.Error(HttpCode.Conflict,"This listing has already been evaluated.");
                 }
 
-                if (listing.Approved)
+                if (listing.Status==EvaluationStatus.Approved)
                 {
                     return ServiceOutput<object>.Error(HttpCode.Conflict,"This listing has already been approved. You may not revoke the approval.");
                 }
 
 
-                listing.Approved=approve;
+                listing.Status=approve? EvaluationStatus.Approved: EvaluationStatus.Denied;
+                listing.Visible &=approve;
                 listing.Album.Locked=true;
-                listing.Updated=false;
+
 
                 listing.EvaluationDate=DateTime.UtcNow;
                 listing.EvaluatorId=token_holder;
@@ -522,7 +523,7 @@ namespace PetCenterServices.Services
 
             if (authorization_level == Access.User)
             {
-                if (!(listing.Visible && listing.Approved && listing.Album.Reserved > 0))
+                if (!(listing.Visible && listing.Status==EvaluationStatus.Approved && listing.Album.Reserved > 0))
                 {
                     return ServiceOutput<ReportResponseSubDTO>.Error(HttpCode.Forbidden,"This listing is currently not available.");
                 }
@@ -688,7 +689,7 @@ namespace PetCenterServices.Services
                         Guid? owner = franch?.OwnerId??null;
 
                         lst.AlbumId=await CreateAlbum(owner,dbContext,lst.AlbumCapacity);
-                        lst.Updated=true;
+                        lst.Status=EvaluationStatus.Pending;
 
                         await dbSet.AddAsync(lst);
                         await dbContext.SaveChangesAsync();
@@ -769,7 +770,7 @@ namespace PetCenterServices.Services
                         listing.ListingName=req.Name;
                         listing.ListingDescription=req.Description;
                         listing.PriceMinor=req.PriceMinor;
-                        listing.Updated=true;
+                        listing.Status=EvaluationStatus.Pending;
 
                         if (listing.Type == ListingType.Product && listing.ProductExtension != null && req.ProductListingExtension != null)
                         {
@@ -862,7 +863,7 @@ namespace PetCenterServices.Services
             {
                 return ServiceOutput<object>.Error(HttpCode.NotFound,"The selected listing does not exist.");
             }
-            if (listing.Approved)
+            if (listing.Status==EvaluationStatus.Approved)
             {
                 return ServiceOutput<object>.Error(HttpCode.Forbidden,"An approved listing cannot be altered.");
             }

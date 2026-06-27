@@ -194,7 +194,7 @@ CREATE TABLE [Pending].[Form](
     EvaluatorContact VARCHAR(255),
     EvaluationDate DATETIME2,
     Reason NVARCHAR(255),
-    Approved BIT NOT NULL,
+    EvaluationStatus TINYINT NOT NULL,
 
 	CONSTRAINT UQ_Form_Album UNIQUE (AlbumID),
     CONSTRAINT UQ_Form_User_FranchiseName UNIQUE(UserID,FranchiseName)
@@ -367,13 +367,13 @@ CREATE TABLE [Offer].[Listing](
     ListingType TINYINT NOT NULL,
     Visible BIT NOT NULL,
     Posted DATETIME2 NOT NULL,
-    Updated BIT NOT NULL,
+
 
     EvaluatorID UNIQUEIDENTIFIER FOREIGN KEY REFERENCES [Person].[Account](ID) ON DELETE SET NULL,
     EvaluatorContact VARCHAR(255),
     EvaluationDate DATETIME2,
     Reason NVARCHAR(255),
-    Approved BIT NOT NULL,
+    EvaluationStatus TINYINT NOT NULL,
 
     
     CONSTRAINT CK_Listing_Pricing

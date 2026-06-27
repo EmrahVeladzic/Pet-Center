@@ -4,7 +4,7 @@ import 'package:pet_center_app/models/data_transfer/user/user_response_dto.dart'
 import 'package:pet_center_app/models/enums.dart';
 import 'package:pet_center_app/utils/app_style.dart';
 import 'package:pet_center_app/utils/helpers.dart';
-import 'package:pet_center_app/utils/jwt_parser.dart';
+import 'package:pet_center_app/utils/jwt_utils.dart';
 
 class AnnouncementCard extends StatelessWidget {
   final AnnouncementSubDTO announcement;

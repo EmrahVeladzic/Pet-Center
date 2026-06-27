@@ -3,12 +3,11 @@ import 'package:http/http.dart' as http;
 import 'package:pet_center_app/models/data_transfer/account/account_request_dto.dart';
 import 'package:pet_center_app/models/data_transfer/account/account_response_dto.dart';
 import 'package:pet_center_app/models/enums.dart';
-import 'package:pet_center_app/services/static_user_data_service.dart';
 
 import 'package:pet_center_app/utils/app_config.dart';
 import 'package:pet_center_app/utils/app_style.dart';
 import 'package:pet_center_app/utils/globals.dart';
-import 'package:pet_center_app/utils/jwt_parser.dart';
+import 'package:pet_center_app/utils/jwt_utils.dart';
 import 'package:pet_center_app/utils/service_output.dart';
 
 class AccountService {
@@ -64,22 +63,79 @@ class AccountService {
     }
   }
 
-  static Future<AccountResponseDTO?> update(AccountRequestDTO input) async {
+  static Future<String?> initiateTransfer(String input) async {
     apiServiceBusy.value = true;
     try {
-      final response = await http.put(
-        Uri.parse("${AppConfig.apiBaseUrl}/api/Account/${self?.id}"),
+      final response = await http.post(
+        Uri.parse("${AppConfig.apiBaseUrl}/api/Account/InitiateTransfer"),
         headers: {
           'Authorization': 'Bearer $rawToken',
           'Content-Type': 'application/json',
           'Accept': 'application/json',
         },
-        body: jsonEncode(input.toJson()),
+        body: jsonEncode({'text': input}),
       );
 
-      final result = await ServiceOutput.fromResponse<AccountResponseDTO>(
+      final result = await ServiceOutput.fromResponse<String>(
         response,
-        (json) => AccountResponseDTO.fromJson(json as Map<String, dynamic>),
+        (json) => (json as Map<String, dynamic>)['value'] as String,
+      );
+
+      apiServiceBusy.value = false;
+      return result;
+    } catch (ex) {
+      showError(ex);
+      apiServiceBusy.value = false;
+      return null;
+    }
+  }
+
+  static Future<String?> changePassword(String oldPW, String newPW) async {
+    apiServiceBusy.value = true;
+    try {
+      final response = await http.post(
+        Uri.parse("${AppConfig.apiBaseUrl}/api/Account/ChangePassword"),
+        headers: {
+          'Authorization': 'Bearer $rawToken',
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: jsonEncode({'oldPW': oldPW, 'newPW': newPW}),
+      );
+
+      final result = await ServiceOutput.fromResponse<String>(
+        response,
+        (json) => (json as Map<String, dynamic>)['value'] as String,
+      );
+
+      apiServiceBusy.value = false;
+      return result;
+    } catch (ex) {
+      showError(ex);
+      apiServiceBusy.value = false;
+      return null;
+    }
+  }
+
+  static Future<String?> recoverAccount(
+    String contact,
+    String oldPW,
+    String newPW,
+  ) async {
+    apiServiceBusy.value = true;
+    try {
+      final response = await http.post(
+        Uri.parse("${AppConfig.apiBaseUrl}/api/Account/Recover"),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: jsonEncode({'contact': contact, 'oldPW': oldPW, 'newPW': newPW}),
+      );
+
+      final result = await ServiceOutput.fromResponse<String>(
+        response,
+        (json) => (json as Map<String, dynamic>)['value'] as String,
       );
 
       apiServiceBusy.value = false;
@@ -120,7 +176,7 @@ class AccountService {
   static Future<String?> requestTransfer() async {
     apiServiceBusy.value = true;
     try {
-      final response = await http.get(
+      final response = await http.post(
         Uri.parse("${AppConfig.apiBaseUrl}/api/Account/RequestTransfer"),
         headers: {
           'Authorization': 'Bearer $rawToken',
@@ -172,7 +228,7 @@ class AccountService {
   static Future<String?> requestVerification() async {
     apiServiceBusy.value = true;
     try {
-      final response = await http.get(
+      final response = await http.post(
         Uri.parse("${AppConfig.apiBaseUrl}/api/Account/RequestVerification"),
         headers: {
           'Authorization': 'Bearer $rawToken',
@@ -251,7 +307,7 @@ class AccountService {
   static Future<bool> logOut() async {
     apiServiceBusy.value = true;
     try {
-      final response = await http.get(
+      final response = await http.post(
         Uri.parse("${AppConfig.apiBaseUrl}/api/Account/LogOut"),
         headers: {'Authorization': 'Bearer $rawToken'},
       );

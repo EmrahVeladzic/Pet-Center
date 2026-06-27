@@ -11,7 +11,7 @@ import 'package:pet_center_app/screens/templates/data_screen_scaffold.dart';
 import 'package:pet_center_app/services/user_service.dart';
 
 import 'package:pet_center_app/utils/app_style.dart';
-import 'package:pet_center_app/utils/jwt_parser.dart';
+import 'package:pet_center_app/utils/jwt_utils.dart';
 
 class UserPageScreen extends StatefulWidget {
   final String? franchiseId;

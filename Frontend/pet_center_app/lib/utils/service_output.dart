@@ -1,8 +1,13 @@
 import 'dart:convert';
 import 'dart:typed_data';
+import 'package:pet_center_app/utils/jwt_utils.dart';
+
 import 'app_style.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:http/http.dart' as http;
+import 'package:flutter/material.dart';
+import 'package:pet_center_app/screens/login_register.dart';
+import 'package:pet_center_app/services/static_user_data_service.dart';
 
 enum HttpCode {
   @JsonValue(200)
@@ -75,10 +80,38 @@ class ServiceOutput<T> {
   }
 
   static void _handleError(int status, Object? parsedBody) {
+    if (status == 401 && rawToken != null) {
+      clearToken();
+      StaticAndUserDataService.clearObtainedData();
+      final state = navigatorKey.currentState;
+      final context = navigatorKey.currentContext;
+      if (state != null && context != null) {
+        state.pushAndRemoveUntil(
+          MaterialPageRoute(builder: (context) => CredentialsScreen()),
+          (route) => false,
+        );
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => AlertDialog(
+            title: const Text("Session expired."),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text("OK"),
+              ),
+            ],
+          ),
+        );
+      }
+      return;
+    }
+
     if (parsedBody is Map<String, dynamic> && parsedBody.containsKey('error')) {
       showSnackbar(parsedBody['error']?.toString() ?? "Unknown error.");
       return;
     }
+
     if (parsedBody is Map<String, dynamic> &&
         parsedBody.containsKey('errors')) {
       final message = (parsedBody['errors'] as Map<String, dynamic>).values
@@ -87,10 +120,12 @@ class ServiceOutput<T> {
       showSnackbar(message);
       return;
     }
+
     if (parsedBody is String && parsedBody.isNotEmpty) {
       showSnackbar(parsedBody);
       return;
     }
+
     showSnackbar("Unexpected error - $status.");
   }
 

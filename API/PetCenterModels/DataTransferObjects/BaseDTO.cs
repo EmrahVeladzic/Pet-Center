@@ -27,6 +27,13 @@ namespace PetCenterModels.DataTransferObjects
 
     }
 
+    public class PasswordChangeDTO
+    {
+        public string? Contact {get; set;} = null;
+        public string OldPW {get; set;} = string.Empty;
+        public string NewPW {get; set;} = string.Empty;
+    }
+
     public class TransferCodeDTO
     {
         public int OldCode {get; set;}

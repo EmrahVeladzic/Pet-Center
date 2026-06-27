@@ -19,7 +19,6 @@ class ListingResponseDTO {
   String franchiseId;
   String contact;
   String franchiseName;
-  bool approved;
   bool visible;
   int priceMinor;
   ListingType type;
@@ -34,6 +33,7 @@ class ListingResponseDTO {
   String? evalContact;
   DateTime? evalDate;
   String? evalReason;
+  EvaluationStatus status;
 
   ListingResponseDTO({
     this.id,
@@ -48,7 +48,7 @@ class ListingResponseDTO {
     this.franchiseName = '',
     this.locked = true,
     this.full = true,
-    this.approved = false,
+    this.status = EvaluationStatus.pending,
     this.visible = false,
     this.priceMinor = 0,
     DateTime? posted,
@@ -83,7 +83,7 @@ class ListingResponseDTO {
     franchiseId: franchiseId,
     contact: contact,
     visible: visible,
-    approved: approved,
+    status: status,
     franchiseName: franchiseName,
     locked: locked,
     full: full,

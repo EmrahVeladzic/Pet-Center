@@ -25,7 +25,7 @@ namespace PetCenterModels.SearchObjects
 
         public OrderingMethod OrderBy {get; set;} = OrderingMethod.ID;
 
-        public bool ShowApprovedAndPending {get; set;} = false;
+        public bool ShowEvaluated {get; set;} = false;
 
         public Guid RelevantId {get; set;} = Guid.Empty;
 

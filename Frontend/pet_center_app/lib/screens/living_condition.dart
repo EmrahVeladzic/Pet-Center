@@ -10,7 +10,7 @@ import 'package:pet_center_app/services/living_condition_service.dart';
 
 import 'package:pet_center_app/services/static_user_data_service.dart';
 import 'package:pet_center_app/utils/app_style.dart';
-import 'package:pet_center_app/utils/jwt_parser.dart';
+import 'package:pet_center_app/utils/jwt_utils.dart';
 
 class LivingConditionScreen extends StatefulWidget {
   const LivingConditionScreen({super.key});

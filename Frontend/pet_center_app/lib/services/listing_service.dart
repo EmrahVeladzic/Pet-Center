@@ -9,7 +9,7 @@ import 'package:pet_center_app/models/enums.dart';
 import 'package:pet_center_app/utils/app_config.dart';
 import 'package:pet_center_app/utils/app_style.dart';
 import 'package:pet_center_app/utils/globals.dart';
-import 'package:pet_center_app/utils/jwt_parser.dart';
+import 'package:pet_center_app/utils/jwt_utils.dart';
 import 'package:pet_center_app/utils/service_output.dart';
 
 class ListingService {
@@ -17,7 +17,7 @@ class ListingService {
     ListingType type,
     OrderingMethod orderBy, {
     String? relevantId,
-    bool? showApprovedAndPending,
+    bool? showEvaluated,
     String? kindSpecific,
     String? breedSpecific,
     bool? sexSpecific,
@@ -44,8 +44,8 @@ class ListingService {
       if (sexSpecific != null) {
         query['sexSpecific'] = sexSpecific.toString();
       }
-      if (showApprovedAndPending != null) {
-        query['showApprovedAndPending'] = showApprovedAndPending.toString();
+      if (showEvaluated != null) {
+        query['showEvaluated'] = showEvaluated.toString();
       }
 
       final response = await http.get(
@@ -77,7 +77,7 @@ class ListingService {
     ListingType type,
     OrderingMethod orderBy, {
     String? relevantId,
-    bool? showApprovedAndPending,
+    bool? showEvaluated,
     String? kindSpecific,
     String? breedSpecific,
     bool? sexSpecific,
@@ -105,8 +105,8 @@ class ListingService {
       if (sexSpecific != null) {
         query['sexSpecific'] = sexSpecific.toString();
       }
-      if (showApprovedAndPending != null) {
-        query['showApprovedAndPending'] = showApprovedAndPending.toString();
+      if (showEvaluated != null) {
+        query['showEvaluated'] = showEvaluated.toString();
       }
 
       final response = await http.get(

@@ -23,8 +23,6 @@ namespace PetCenterModels.DataTransferObjects
 
         public Guid? AlbumId {get; set;} = null;
 
-        public bool Approved {get; set;} = false;
-
         public bool Visible {get; set;} = false;
 
         public List<ImageDTO> Media {get; set;} = new();
@@ -67,6 +65,8 @@ namespace PetCenterModels.DataTransferObjects
 
         public string? EvalReason {get; set;} = null;
 
+        public EvaluationStatus Status {get; set;} = EvaluationStatus.Pending;
+
         public static ListingResponseDTO? FromEntity(Listing? entity)
         {
             if(entity==null){return null;}
@@ -81,7 +81,7 @@ namespace PetCenterModels.DataTransferObjects
                 FranchiseName="No provided name.",
                 PriceMinor=entity.PriceMinor,
                 Type=entity.Type,
-                Approved=entity.Approved,
+                Status=entity.Status,
                 Visible=entity.Visible,
                 AlbumId=entity.AlbumId,
                 ProductListingExtension=ProductListingSubDTO.FromEntity(entity.ProductExtension),

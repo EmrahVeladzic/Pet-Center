@@ -91,8 +91,9 @@ namespace UserContactConsumer.Services
                     if (!string.IsNullOrWhiteSpace(smtp.user) && !string.IsNullOrWhiteSpace(smtp.password))
                     {
                         await client.AuthenticateAsync(smtp.user, smtp.password);
-                        await client.SendAsync(msg);
+                       
                     }
+                    await client.SendAsync(msg);
                    
 
                 }
