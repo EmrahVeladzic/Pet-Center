@@ -86,7 +86,7 @@ namespace PetCenterServices.Services
                 {
                     output.Notes.AddRange(await recommender.AddNotesToPet(dbContext,ind,specifications));
                 }
-                List<Notification> userNotifs = await dbContext.Notifications.Include(n=>n.RelevantListing).Where(n=>n.UserId==token_holder && (n.ListingId==null||(n.RelevantListing.Approved && n.RelevantListing.Visible))).ToListAsync();
+                List<Notification> userNotifs = await dbContext.Notifications.Include(n=>n.RelevantListing).Where(n=>n.UserId==token_holder && (n.ListingId==null||(n.RelevantListing.Status==EvaluationStatus.Approved && n.RelevantListing.Visible))).ToListAsync();
                 HashSet<Guid> userSeenIds = (await dbContext.NotificationSeenRecords.Where(s=>s.UserId==token_holder && userNotifs.Select(n=>n.Id).Contains(s.NotificationId)).Select(s=>s.NotificationId).ToListAsync()).ToHashSet();
                 output.Notifications = userNotifs.Select(n=>NotificationSubDTO.FromEntity(n,userSeenIds.Contains(n.Id))!).ToList();
                 output.UserWishlist = await dbContext.Wishlists.Where(w=>w.UserId==output.Id).Select(w=>w.Term).ToListAsync();

@@ -97,7 +97,7 @@ namespace PetCenterModels.DataTransferObjects
 
         public string? EvalReason {get; set;} = null;
 
-        public bool Approved {get; set;}
+        public EvaluationStatus Status {get; set;} = EvaluationStatus.Pending;
 
 
 
@@ -117,7 +117,7 @@ namespace PetCenterModels.DataTransferObjects
                 EvalContact = entity.Evaluator?.Contact??entity.EvaluatorContact,
                 EvalReason=entity.Reason,
                 EvalDate=entity.EvaluationDate,
-                Approved=entity.Approved
+                Status=entity.Status
                 
             };
 

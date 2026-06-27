@@ -27,7 +27,7 @@ import 'package:pet_center_app/services/static_user_data_service.dart';
 import 'package:pet_center_app/utils/app_style.dart';
 import 'package:pet_center_app/utils/helpers.dart';
 import 'package:pet_center_app/utils/hive_cache.dart';
-import 'package:pet_center_app/utils/jwt_parser.dart';
+import 'package:pet_center_app/utils/jwt_utils.dart';
 import 'package:pet_center_app/utils/pricing.dart';
 import 'package:pet_center_app/utils/validators.dart';
 
@@ -63,13 +63,16 @@ class _ListingViewScreenState extends State<ListingViewScreen> {
       builder: (_) => EvaluateDialog(
         listingId: widget.listing.id!,
         evaluateCallback: (eval) {
-          if (eval != widget.listing.approved && widget.onModify != null) {
+          if (eval != (widget.listing.status == EvaluationStatus.approved) &&
+              widget.onModify != null) {
             widget.onModify!(true);
           }
 
           if (mounted) {
             setState(() {
-              widget.listing.approved = eval;
+              widget.listing.status = eval
+                  ? EvaluationStatus.approved
+                  : EvaluationStatus.denied;
             });
           }
         },
@@ -330,7 +333,7 @@ class _ListingViewScreenState extends State<ListingViewScreen> {
                     (w) => w.id == widget.listing.franchiseId,
                   ) ==
                   true)) ...[
-            if (!widget.listing.approved) ...[
+            if (widget.listing.status != EvaluationStatus.approved) ...[
               IconButton(
                 icon: const Icon(Icons.edit),
 
@@ -463,13 +466,14 @@ class _ListingViewScreenState extends State<ListingViewScreen> {
       ),
       body: [
         design.verticalGap(),
-        if (widget.listing.evalContact != null &&
+        if (widget.listing.status != EvaluationStatus.pending &&
+            widget.listing.evalContact != null &&
             widget.listing.evalDate != null &&
             (role == Access.owner || role == Access.admin)) ...[
           Padding(
             padding: EdgeInsetsGeometry.symmetric(horizontal: design.spacing),
             child: Text(
-              'Evaluation note: This listing was ${widget.listing.approved ? 'approved' : 'denied'} by ${widget.listing.evalContact} on ${formatDate(widget.listing.evalDate!)}.${(widget.listing.evalReason?.isNotEmpty ?? false) ? '' : ' The specified reason was: "${widget.listing.evalReason}".'}',
+              'Evaluation note: This listing was ${widget.listing.status == EvaluationStatus.approved ? 'approved' : 'denied'} by ${widget.listing.evalContact} on ${formatDate(widget.listing.evalDate!)}.${(widget.listing.evalReason?.isNotEmpty ?? false) ? '' : ' The specified reason was: "${widget.listing.evalReason}".'}',
               style: TextStyle(fontSize: design.fontSize * 1.5),
             ),
           ),
@@ -680,7 +684,7 @@ class _ListingViewScreenState extends State<ListingViewScreen> {
                   ),
                 ],
               ] else if ((role == Access.admin || role == Access.owner) &&
-                  !widget.listing.approved) ...[
+                  widget.listing.status == EvaluationStatus.pending) ...[
                 ElevatedButton(
                   onPressed: evaluate,
                   child: design.fittedText("Evaluate"),

@@ -9,7 +9,7 @@ import 'package:pet_center_app/services/static_user_data_service.dart';
 import 'package:pet_center_app/utils/app_config.dart';
 import 'package:pet_center_app/utils/app_style.dart';
 import 'package:pet_center_app/utils/globals.dart';
-import 'package:pet_center_app/utils/jwt_parser.dart';
+import 'package:pet_center_app/utils/jwt_utils.dart';
 import 'package:pet_center_app/utils/service_output.dart';
 
 class UserService {
@@ -349,12 +349,14 @@ class UserService {
 
       final response = await http.put(
         Uri.parse(
-          "${AppConfig.apiBaseUrl}/api/User/SetTerm/$term",
+          "${AppConfig.apiBaseUrl}/api/User/SetTerm",
         ).replace(queryParameters: query),
         headers: {
           'Authorization': 'Bearer $rawToken',
+          'Content-Type': 'application/json',
           'Accept': 'application/json',
         },
+        body: jsonEncode({'text': term}),
       );
 
       final result = await ServiceOutput.fromResponse<String>(

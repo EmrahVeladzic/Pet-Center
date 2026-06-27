@@ -194,14 +194,14 @@ namespace PetCenterServices.Services
                     new_record.KindId = KindId;
                     new_record.UserId = user_id;
                     new_record.MassGrams = InitialMass;
-                    new_record.Evaluated = DateTime.UtcNow;
+                    new_record.Evaluated = DateTime.Today;
                     await dbContext.SupplyRecords.AddAsync(new_record);
                     supply_record = new_record;
                 }
                 else
                 {                    
                     supply_record.MassGrams=InitialMass;
-                    supply_record.Evaluated = DateTime.UtcNow;
+                    supply_record.Evaluated = DateTime.Today;
                 }
 
                 await dbContext.SaveChangesAsync();

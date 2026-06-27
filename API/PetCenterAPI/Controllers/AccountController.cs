@@ -8,6 +8,8 @@ using PetCenterServices.Interfaces;
 using PetCenterServices.Utils;
 using System.Security.Claims;
 using Microsoft.IdentityModel.JsonWebTokens;
+using System.ComponentModel.DataAnnotations;
+using PetCenterModels.ModelUtils;
 
 
 namespace PetCenterAPI.Controllers
@@ -31,7 +33,22 @@ namespace PetCenterAPI.Controllers
             return StatusCode(401,"Invalid token.");
         }
 
-        [HttpGet("RequestTransfer")]
+        [HttpPost("InitiateTransfer")]
+        public async Task<IActionResult> RequestTransfer([FromBody] TextPayloadDTO new_contact)
+        {
+            if (TryGetUserId(out Guid id))
+            {
+                if (!ModelValidationUtils.ValidateContact(new_contact.Text))
+                {
+                    return StatusCode(400,"Invalid contact.");
+                }
+
+                return ResultConverter.Convert<string>(await service.RequestAccountTransfer(id,new_contact.Text));
+            }
+            return StatusCode(401,"Invalid token.");
+        }
+
+        [HttpPost("RequestTransfer")]
         public async Task<IActionResult> RequestTransfer()
         {
             if (TryGetUserId(out Guid id))
@@ -77,15 +94,14 @@ namespace PetCenterAPI.Controllers
         }
 
 
-        [HttpPut("{id}")]
+        [NonAction]
         public override async Task<IActionResult> Put([FromRoute] Guid id, [FromBody] AccountRequestDTO req)
         {
-            req.Contact = req.Contact.ToLowerInvariant();
             return await base.Put(id,req);
         }
 
        
-        [HttpGet ("RequestVerification")]
+        [HttpPost ("RequestVerification")]
         [AllowUnverified]
         public async Task<IActionResult> RequestVerification()
         {
@@ -101,13 +117,56 @@ namespace PetCenterAPI.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> ForgotPassword([FromBody]TextPayloadDTO contact)
         {
+            if (!ModelValidationUtils.ValidateContact(contact.Text))
+            {
+                return StatusCode(400,"Invalid contact.");
+            }
             
             return ResultConverter.Convert<string>(await service.RequestSingleTimeEntryCode(contact.Text.ToLowerInvariant()));
             
         }
 
+        [HttpPost("Recover")]
+        [AllowAnonymous]
+        public async Task<IActionResult> RecoverAccount([FromBody] PasswordChangeDTO change)
+        {
+          
+            if (string.IsNullOrWhiteSpace(change.NewPW)||change.NewPW.Length<4||change.NewPW.Length>255)
+            {
+                return StatusCode(400,"The new password should be between 4 and 255 characters long.");
+            }
 
-        [HttpGet("LogOut")]
+            change.Contact=change.Contact?.ToLowerInvariant();
+
+            if (!ModelValidationUtils.ValidateContact(change.Contact))
+            {
+                return StatusCode(400, "Please provide a valid contact.");
+            }
+
+            return ResultConverter.Convert<string>(await service.ResetPassword(null,change));
+         
+        }
+
+        [HttpPost("ChangePassword")]
+        public async Task<IActionResult> ChangePassword([FromBody] PasswordChangeDTO change)
+        {
+
+            if (TryGetUserId(out Guid id))
+            {
+                if (string.IsNullOrWhiteSpace(change.NewPW)||change.NewPW.Length<4||change.NewPW.Length>255)
+                {
+                    return StatusCode(400,"The new password should be between 4 and 255 characters long.");
+                }
+
+                return ResultConverter.Convert<string>(await service.ResetPassword(id,change));
+            }
+            return StatusCode(401,"Invalid token.");
+                   
+        }
+
+
+
+        [HttpPost("LogOut")]
         public async Task<IActionResult> LogOut()
         {
             if(TryGetJTI(out Guid jti) && TryGetJWTExpiry(out DateTime exp))

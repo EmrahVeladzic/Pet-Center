@@ -17,7 +17,7 @@ import 'package:pet_center_app/services/franchise_service.dart';
 import 'package:pet_center_app/services/static_user_data_service.dart';
 import 'package:pet_center_app/utils/app_style.dart';
 import 'package:pet_center_app/utils/helpers.dart';
-import 'package:pet_center_app/utils/jwt_parser.dart';
+import 'package:pet_center_app/utils/jwt_utils.dart';
 import 'package:pet_center_app/utils/pdf_utils.dart';
 import 'package:pet_center_app/utils/validators.dart';
 
@@ -183,13 +183,14 @@ class _FormViewScreenState extends State<FormViewScreen> {
       ),
       body: [
         design.verticalGap(design.spacing),
-        if (widget.form.evalContact != null &&
+        if (widget.form.status != EvaluationStatus.pending &&
+            widget.form.evalContact != null &&
             widget.form.evalDate != null &&
             (role == Access.owner || role == Access.admin)) ...[
           Padding(
             padding: EdgeInsetsGeometry.symmetric(horizontal: design.spacing),
             child: Text(
-              'Evaluation note: This form was ${widget.form.approved ? 'approved' : 'denied'} by ${widget.form.evalContact} on ${formatDate(widget.form.evalDate!)}.${(widget.form.evalReason?.isNotEmpty ?? false) ? ' The specified reason was: "${widget.form.evalReason}".' : ''}',
+              'Evaluation note: This form was ${widget.form.status.toString().toLowerCase()} by ${widget.form.evalContact} on ${formatDate(widget.form.evalDate!)}.${(widget.form.evalReason?.isNotEmpty ?? false) ? ' The specified reason was: "${widget.form.evalReason}".' : ''}',
               style: TextStyle(fontSize: design.fontSize * 1.5),
             ),
           ),

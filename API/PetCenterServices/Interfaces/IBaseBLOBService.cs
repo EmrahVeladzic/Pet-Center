@@ -20,7 +20,7 @@ namespace PetCenterServices.Interfaces
 
         public Task<ServiceOutput<object>> Delete(Guid token_holder,string hash, Guid album_id);
         
-        public Task<ServiceOutput<object>> CheckScope(Guid token_holder, Guid album_id, FileScope expected, string origin);
+        public Task<ServiceOutput<object>> CheckScope(Guid token_holder, Guid album_id, FileScope expected, string origin, string? hash);
 
     }
 }

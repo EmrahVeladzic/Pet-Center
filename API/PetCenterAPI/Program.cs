@@ -16,9 +16,13 @@ using PetCenterServices.Workers;
 using PetCenterServices.Seeder;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using System.IdentityModel.Tokens.Jwt;
+using PetCenterAPI;
+
+
 
 
 var builder = WebApplication.CreateBuilder(args);
+
 
 
 
@@ -186,6 +190,28 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 }
             }
         };
+    }).AddJwtBearer("FileToken", options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidAlgorithms = new[] { SecurityAlgorithms.HmacSha256 },
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = jwtValidIssuer,
+            ValidAudience = jwtValidAudience,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey!))
+        };
+
+        options.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = context =>
+            {
+                context.Token = context.Request.Headers["X-File-Token"].FirstOrDefault();
+                return Task.CompletedTask;
+            }
+        };
     });
 
 builder.Services.AddSingleton<IAuthorizationHandler, VerificationHandler>();
@@ -206,6 +232,16 @@ PetCenterServices.Utils.Crypto.Configuration = builder.Configuration;
 var app = builder.Build();
 
 ILogger<Program> logger = app.Services.GetRequiredService<ILogger<Program>>();
+
+APIConfigValidator validator = new APIConfigValidator();
+
+string? validation = validator.ValidateEachRun(builder.Configuration);
+
+if (validation!=null)
+{
+    logger.LogCritical(validation);
+    return;
+}
 
 app.UseExceptionHandler(errorApp =>
 {
@@ -255,6 +291,15 @@ while (retry)
 
             if (!await ctx.Accounts.AnyAsync())
             {
+
+                validation = validator.ValidateFirstRun(builder.Configuration);
+
+                if (validation!=null)
+                {
+                    logger.LogCritical(validation);
+                    return;
+                }
+
                 AccountRequestDTO owner_req = new AccountRequestDTO()
                 {
                     Contact = contact!,
