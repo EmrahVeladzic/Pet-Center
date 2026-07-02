@@ -140,6 +140,7 @@ class _MedicalRecordViewScreenState extends State<MedicalRecordViewScreen> {
         ),
         actions: [
           IconButton(
+            tooltip: "Set medical record",
             onPressed: () {
               if (procedures.isEmpty || widget.src.id == null) {
                 return;
@@ -193,6 +194,7 @@ class _MedicalRecordViewScreenState extends State<MedicalRecordViewScreen> {
                 showDialog(
                   context: context,
                   builder: (_) => ConfirmationDialog(
+                    title: "Remove medical record entry.",
                     confirmAction: () {
                       deleteEntry(e.procedureId);
                     },

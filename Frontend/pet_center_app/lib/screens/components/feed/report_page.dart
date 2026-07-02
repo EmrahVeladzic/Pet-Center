@@ -5,6 +5,7 @@ import 'package:pet_center_app/screens/components/feed/report_card.dart';
 import 'package:pet_center_app/screens/listing_view.dart';
 import 'package:pet_center_app/services/listing_service.dart';
 import 'package:pet_center_app/services/static_user_data_service.dart';
+import 'package:pet_center_app/utils/app_style.dart';
 import 'package:pet_center_app/utils/helpers.dart';
 import 'package:pet_center_app/utils/hive_cache.dart';
 
@@ -80,7 +81,12 @@ class _ReportPageState extends State<ReportPage>
   @override
   Widget build(BuildContext context) {
     super.build(context);
+    final ReactiveDesignSystem design = Theme.of(
+      context,
+    ).extension<ReactiveDesignSystem>()!;
+
     if (_loading) return const Center(child: CircularProgressIndicator());
+    if (_items.isEmpty) return Center(child: design.fittedText("No reports."));
 
     return ListView.builder(
       itemCount: _items.length,

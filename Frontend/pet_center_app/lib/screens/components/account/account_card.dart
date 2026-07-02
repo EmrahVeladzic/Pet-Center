@@ -36,39 +36,54 @@ class _AccountCardState extends State<AccountCard> {
         child: Row(
           children: [
             Expanded(
-              flex: 7,
-              child: design.fittedText(
-                "${widget.acc.contact} - ${widget.acc.accessLevel.displayName} - ${widget.acc.verified ? "Verified" : "Unverified"}",
+              flex: 1,
+              child: Tooltip(
+                message: widget.acc.accessLevel.displayName,
+                child: Icon(Icons.person),
+              ),
+            ),
+
+            if (widget.acc.verified) ...[
+              Expanded(
+                flex: 1,
+                child: Tooltip(message: "Verified", child: Icon(Icons.check)),
+              ),
+            ] else ...[
+              Expanded(
+                flex: 1,
+                child: Tooltip(message: "Unverified", child: Icon(Icons.close)),
+              ),
+            ],
+
+            Expanded(
+              flex: 4,
+              child: Text(
+                "Contact:\n${widget.acc.contact}",
+                textAlign: TextAlign.center,
               ),
             ),
 
             if (role.value > widget.acc.accessLevel.value) ...[
               Expanded(
                 flex: 1,
-                child: Align(
-                  alignment: Alignment.center,
-                  child: SizedBox(
-                    width: design.boundedIconSize,
-                    height: design.boundedIconSize,
-                    child: FittedBox(
-                      fit: BoxFit.contain,
-                      child: IconButton(
-                        onPressed: () {
-                          showDialog(
-                            context: context,
-                            builder: (_) => ConfirmationDialog(
-                              confirmAction: widget.onTap,
-                              title: "Ban account",
-                            ),
-                          );
-                        },
-                        icon: const Icon(Icons.gavel),
-                        padding: EdgeInsets.zero,
-                        visualDensity: VisualDensity.compact,
-                        constraints: const BoxConstraints(),
+
+                child: IconButton(
+                  tooltip: "Ban",
+                  onPressed: () {
+                    showDialog(
+                      context: context,
+                      builder: (_) => ConfirmationDialog(
+                        confirmAction: widget.onTap,
+                        title: "Ban account",
+                        body:
+                            "This will wipe all user data relating to the account. Continue?",
                       ),
-                    ),
-                  ),
+                    );
+                  },
+                  icon: const Icon(Icons.gavel),
+                  padding: EdgeInsets.zero,
+
+                  constraints: const BoxConstraints(),
                 ),
               ),
             ],
@@ -76,9 +91,11 @@ class _AccountCardState extends State<AccountCard> {
             if (role == Access.owner &&
                 widget.acc.accessLevel == Access.admin) ...[
               Expanded(
-                flex: 4,
-                child: ElevatedButton(
-                  child: design.fittedText("Promote to co-owner"),
+                flex: 1,
+                child: IconButton(
+                  padding: EdgeInsets.zero,
+                  icon: Icon(Icons.upgrade),
+                  tooltip: "Promote to co-owner",
                   onPressed: () {
                     showDialog(
                       context: context,

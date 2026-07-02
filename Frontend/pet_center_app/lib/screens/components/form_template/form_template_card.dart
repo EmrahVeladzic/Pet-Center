@@ -47,7 +47,10 @@ class FormTemplateCard extends StatelessWidget {
                   Expanded(
                     flex: 5,
 
-                    child: design.fittedText(template.description, 2.0),
+                    child: Text(
+                      "Template: ${template.description}",
+                      textScaler: TextScaler.linear(1.5),
+                    ),
                   ),
                   Expanded(
                     flex: 1,
@@ -59,6 +62,7 @@ class FormTemplateCard extends StatelessWidget {
                         child: FittedBox(
                           fit: BoxFit.contain,
                           child: IconButton(
+                            tooltip: "Add",
                             onPressed: () {
                               if (template.id == null) return;
                               showDialog(
@@ -77,7 +81,7 @@ class FormTemplateCard extends StatelessWidget {
                             },
                             icon: const Icon(Icons.note_add),
                             padding: EdgeInsets.zero,
-                            visualDensity: VisualDensity.compact,
+
                             constraints: const BoxConstraints(),
                           ),
                         ),
@@ -94,10 +98,11 @@ class FormTemplateCard extends StatelessWidget {
                         child: FittedBox(
                           fit: BoxFit.contain,
                           child: IconButton(
+                            tooltip: "Edit template",
                             onPressed: editAction,
                             icon: const Icon(Icons.edit),
                             padding: EdgeInsets.zero,
-                            visualDensity: VisualDensity.compact,
+
                             constraints: const BoxConstraints(),
                           ),
                         ),
@@ -114,10 +119,11 @@ class FormTemplateCard extends StatelessWidget {
                         child: FittedBox(
                           fit: BoxFit.contain,
                           child: IconButton(
+                            tooltip: "Delete",
                             onPressed: deleteAction,
                             icon: const Icon(Icons.delete),
                             padding: EdgeInsets.zero,
-                            visualDensity: VisualDensity.compact,
+
                             constraints: const BoxConstraints(),
                           ),
                         ),

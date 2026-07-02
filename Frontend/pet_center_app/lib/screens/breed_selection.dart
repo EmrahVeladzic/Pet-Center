@@ -153,7 +153,11 @@ class _BreedSelectionScreenState extends State<BreedSelectionScreen> {
     return DataScreenScaffold<BreedFilters, BreedDTO>(
       importActions: [
         if (role == Access.admin || role == Access.owner) ...[
-          IconButton(icon: Icon(Icons.add), onPressed: createBreed),
+          IconButton(
+            tooltip: "Define breed",
+            icon: Icon(Icons.add),
+            onPressed: createBreed,
+          ),
         ],
       ],
       maxPage: widget.maxPage,
@@ -190,7 +194,11 @@ class _BreedSelectionScreenState extends State<BreedSelectionScreen> {
           onDelete: () {
             showDialog(
               context: context,
+
               builder: (_) => ConfirmationDialog(
+                title: "Remove breed",
+                body:
+                    "Are you sure you want to remove this breed and any data referencing it?",
                 confirmAction: () {
                   final id = source.id;
 

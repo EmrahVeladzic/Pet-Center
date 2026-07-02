@@ -35,8 +35,8 @@ class SupplyRecordCard extends StatelessWidget {
               flex: 5,
               child: Padding(
                 padding: EdgeInsets.all(design.spacing),
-                child: design.fittedText(
-                  "${kind?.title ?? "Animal"} - ${cat?.title ?? "Category"} - ${supply.massGrams} grams",
+                child: Text(
+                  "Kind - ${kind?.title ?? "Animal"}\nCategory - ${cat?.title ?? "Category"}\nMass - ${supply.massGrams} grams",
                 ),
               ),
             ),
@@ -51,10 +51,11 @@ class SupplyRecordCard extends StatelessWidget {
                   child: FittedBox(
                     fit: BoxFit.contain,
                     child: IconButton(
+                      tooltip: "Remove",
                       onPressed: deleteAction,
                       icon: const Icon(Icons.delete),
                       padding: EdgeInsets.zero,
-                      visualDensity: VisualDensity.compact,
+
                       constraints: const BoxConstraints(),
                     ),
                   ),

@@ -33,8 +33,10 @@ namespace PetCenterModels.DataTransferObjects
                 Id=announcement.Id,
                 CurrentVersion=announcement.CurrentVersion,
                 Body=announcement.Body,
-                DatePosted=announcement.DatePosted
+                DatePosted=announcement.DatePosted,
+                Notes = new List<NoteSubDTO> { new NoteSubDTO { Title = "Visible by:", Body = (!announcement.UserVisible && !announcement.BusinessVisible) ? "Admins." : (announcement.UserVisible && !announcement.BusinessVisible) ? "Users." : (!announcement.UserVisible && announcement.BusinessVisible) ? "Employees." : "Everyone." } },
             };
+            
         }
     }
 

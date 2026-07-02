@@ -68,6 +68,7 @@ class _FeedScreenState extends State<FeedScreen> {
                     if (index == 0 &&
                         (role == Access.admin || role == Access.owner)) {
                       return IconButton(
+                        tooltip: "Create announcement",
                         icon: const Icon(Icons.add),
                         onPressed: () {
                           showDialog(

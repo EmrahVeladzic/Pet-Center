@@ -98,76 +98,68 @@ namespace PetCenterServices.Seeder
             return output;
         }
 
-        public async Task<PetCenterModels.DBTables.Image> CreateRandomImage(PetCenterDBContext ctx,  Guid album_id,Random rng, short w = 32, short h=32)
+        public async Task<PetCenterModels.DBTables.Image> CreateRandomImage(PetCenterDBContext ctx, Guid album_id, Random rng, short w = 32, short h = 32)
         {
             PetCenterModels.DBTables.Image output = new();
-            output.AlbumId=album_id;
-
-            short Width =(short) rng.Next(w/2,w);
-            short Height = (short) rng.Next(h/2,h);
-
+            output.AlbumId = album_id;
+            short Width = (short)rng.Next(w / 2, w);
+            short Height = (short)rng.Next(h / 2, h);
             string hash = "";
-
-            if(BLOBs.Count==0 || rng.Next(3)==0){
-
-
+            if (BLOBs.Count == 0 || rng.Next(3) == 0)
+            {
                 int MinR = rng.Next(200);
                 int MinG = rng.Next(200);
-                int MinB = rng.Next(200);       
-
-                using Image<Rgb24> img = new(Width,Height);
+                int MinB = rng.Next(200);
+                using Image<Rgb24> img = new(Width, Height);
                 img.ProcessPixelRows(accessor =>
                 {
-                    for(int y= 0; y<accessor.Height; y++)
+                    for (int y = 0; y < accessor.Height; y++)
                     {
                         Span<Rgb24> row = accessor.GetRowSpan(y);
-
-                        for(int x = 0; x < row.Length; x++)
+                        for (int x = 0; x < row.Length; x++)
                         {
-                            row[x]=new Rgb24
+                            bool isOutline = y == 0 || x == 0 || y == accessor.Height - 1 || x == accessor.Width - 1;
+                            bool isDiagonal1 = Math.Abs(x * accessor.Height - y * accessor.Width) < Math.Max(accessor.Width, accessor.Height);
+                            bool isDiagonal2 = Math.Abs((accessor.Width - 1 - x) * accessor.Height - y * accessor.Width) < Math.Max(accessor.Width, accessor.Height);
+                            if (isOutline || isDiagonal1 || isDiagonal2)
                             {
-                                R=(byte)rng.Next(MinR,256),
-                                G=(byte)rng.Next(MinG,256),
-                                B=(byte)rng.Next(MinB,256)
-                            };
+                                row[x] = new Rgb24 { R = 0, G = 0, B = 0 };
+                            }
+                            else
+                            {
+                                row[x] = new Rgb24
+                                {
+                                    R = (byte)rng.Next(MinR, 256),
+                                    G = (byte)rng.Next(MinG, 256),
+                                    B = (byte)rng.Next(MinB, 256)
+                                };
+                            }
                         }
-
                     }
                 });
-
                 using MemoryStream ms = new();
-
                 img.Save(ms, new WebpEncoder()
                 {
                     Quality = 50
                 });
-
                 ImageBLOB blob = new();
-                blob.Data=ms.ToArray();
-                blob.Id=BLOBHandler.CreateHash(blob.Data);
-
+                blob.Data = ms.ToArray();
+                blob.Id = BLOBHandler.CreateHash(blob.Data);
                 await ctx.ImageBLOBs.AddAsync(blob);
                 await ctx.SaveChangesAsync();
-
                 hash = blob.Id;
-
-                BLOBs.Add(new BLOBRef{W=Width,H=Height,Hash=hash});
+                BLOBs.Add(new BLOBRef { W = Width, H = Height, Hash = hash });
             }
             else
             {
                 BLOBRef reference = BLOBs[rng.Next(BLOBs.Count)];
-
                 Width = reference.W;
-                Height= reference.H;
-                hash=reference.Hash;
+                Height = reference.H;
+                hash = reference.Hash;
             }
-        
-
-            output.Width=Width;
-            output.Height=Height;     
-
-            output.BLOBId=hash;
-
+            output.Width = Width;
+            output.Height = Height;
+            output.BLOBId = hash;
             return output;
         }
 

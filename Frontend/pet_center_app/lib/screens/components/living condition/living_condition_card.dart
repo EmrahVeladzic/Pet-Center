@@ -75,10 +75,11 @@ class _LivingConditionCardState extends State<LivingConditionCard> {
                         child: FittedBox(
                           fit: BoxFit.contain,
                           child: IconButton(
+                            tooltip: "Edit question",
                             onPressed: widget.editAction,
                             icon: const Icon(Icons.edit),
                             padding: EdgeInsets.zero,
-                            visualDensity: VisualDensity.compact,
+
                             constraints: const BoxConstraints(),
                           ),
                         ),
@@ -94,10 +95,11 @@ class _LivingConditionCardState extends State<LivingConditionCard> {
                         child: FittedBox(
                           fit: BoxFit.contain,
                           child: IconButton(
+                            tooltip: "Remove question",
                             onPressed: widget.deleteAction,
                             icon: const Icon(Icons.delete),
                             padding: EdgeInsets.zero,
-                            visualDensity: VisualDensity.compact,
+
                             constraints: const BoxConstraints(),
                           ),
                         ),

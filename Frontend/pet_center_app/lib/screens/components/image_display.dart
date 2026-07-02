@@ -108,8 +108,14 @@ class ImageDisplayState extends State<ImageDisplay> {
   @override
   Widget build(BuildContext context) {
     final design = Theme.of(context).extension<ReactiveDesignSystem>()!;
-    final double w = design.screenWidth * design.bodyWMult * imgWMult;
-    final double h = w * ((dataSrc?.height ?? 64) / (dataSrc?.width ?? 64));
+    double w = design.screenWidth * design.bodyWMult * imgWMult;
+    double h = w * ((dataSrc?.height ?? 64) / (dataSrc?.width ?? 64));
+
+    double ratio = w / h;
+    if (ratio < 1.0) {
+      w *= (ratio * ratio);
+      h *= (ratio * ratio);
+    }
 
     final double nw = (dataSrc?.width ?? 64).toDouble();
     final double nh = (dataSrc?.height ?? 64).toDouble();

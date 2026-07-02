@@ -65,7 +65,13 @@ class AnnouncementPageState extends State<AnnouncementPage>
   @override
   Widget build(BuildContext context) {
     super.build(context);
+    final ReactiveDesignSystem design = Theme.of(
+      context,
+    ).extension<ReactiveDesignSystem>()!;
     if (_loading) return const Center(child: CircularProgressIndicator());
+    if (_items.isEmpty) {
+      return Center(child: design.fittedText("No new announcements."));
+    }
 
     return ListView.builder(
       itemCount: _items.length,
@@ -81,6 +87,7 @@ class AnnouncementPageState extends State<AnnouncementPage>
           showDialog(
             context: context,
             builder: (_) => ConfirmationDialog(
+              title: "Remove announcement?",
               confirmAction: () {
                 if (_items[i].id == null) {
                   return;

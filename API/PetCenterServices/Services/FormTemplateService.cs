@@ -159,10 +159,20 @@ namespace PetCenterServices.Services
             return ServiceOutput<FormTemplateDTO>.Error(HttpCode.NotFound,"No resource with this ID exists.");
         }
 
-        public override Task<ServiceOutput<object>> IsClearedToDelete(Guid token_holder, Guid resourceId)
+        public override async Task<ServiceOutput<object>> IsClearedToDelete(Guid token_holder, Guid resourceId)
         {           
-            
-            return Task.FromResult<ServiceOutput<object>>(ServiceOutput<object>.Success(null,HttpCode.OK));
+            if(await dbContext.Forms.AnyAsync(f=>f.FormTemplateId==resourceId))
+            {
+                Account? acc = await dbContext.Accounts.FindAsync(token_holder);
+
+                if (acc?.AccessLevel != Access.Owner)
+                {
+                    return ServiceOutput<object>.Error(HttpCode.Forbidden,"Only an owner may remove templates for which there are existing forms.");
+                }
+            }
+
+
+            return ServiceOutput<object>.Success(null,HttpCode.OK);
         }
 
         public async Task<ServiceOutput<FormTemplateFieldDTO>> SetField(FormTemplateFieldDTO field)

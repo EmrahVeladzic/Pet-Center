@@ -78,6 +78,7 @@ class _DualTextEntryDialogState extends State<DualTextEntryDialog> {
                 child: design.textMarquee('${widget.dialogName ?? 'Enter:'}:'),
               ),
               IconButton(
+                tooltip: "Close",
                 icon: const Icon(Icons.close),
                 onPressed: () => Navigator.of(context).pop(),
               ),

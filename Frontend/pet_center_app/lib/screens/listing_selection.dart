@@ -246,7 +246,11 @@ class _ListingSelectionScreenState extends State<ListingSelectionScreen> {
         if (role == Access.business &&
             relevant != null &&
             self?.workplaces?.any((w) => w.id == relevant) == true) ...[
-          IconButton(icon: const Icon(Icons.add), onPressed: createListing),
+          IconButton(
+            tooltip: "Create listing",
+            icon: const Icon(Icons.add),
+            onPressed: createListing,
+          ),
         ],
       ],
       maxPage: widget.maxPage,

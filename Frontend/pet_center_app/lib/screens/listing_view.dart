@@ -6,7 +6,6 @@ import 'package:pet_center_app/models/data_transfer/listing/sub_dtos.dart';
 import 'package:pet_center_app/models/data_transfer/user/user_response_dto.dart';
 import 'package:pet_center_app/models/enums.dart';
 import 'package:pet_center_app/screens/components/confirmation_dialog.dart';
-
 import 'package:pet_center_app/screens/components/listing/availability_card.dart';
 import 'package:pet_center_app/screens/components/listing/comment_card.dart';
 import 'package:pet_center_app/screens/components/listing/comment_creator.dart';
@@ -33,11 +32,11 @@ import 'package:pet_center_app/utils/validators.dart';
 
 class ListingViewScreen extends StatefulWidget {
   final ListingResponseDTO listing;
-
   final void Function(bool hard)? onModify;
   final VoidCallback? commentDeletionHook;
   final String? forAnimal;
   final VoidCallback? obtainHook;
+
   const ListingViewScreen({
     super.key,
     required this.listing,
@@ -46,6 +45,7 @@ class ListingViewScreen extends StatefulWidget {
     this.commentDeletionHook,
     this.obtainHook,
   });
+
   @override
   State<StatefulWidget> createState() => _ListingViewScreenState();
 }
@@ -335,8 +335,8 @@ class _ListingViewScreenState extends State<ListingViewScreen> {
                   true)) ...[
             if (widget.listing.status != EvaluationStatus.approved) ...[
               IconButton(
+                tooltip: "Edit listing",
                 icon: const Icon(Icons.edit),
-
                 onPressed: () {
                   if (!mounted) return;
                   Navigator.push(
@@ -379,7 +379,7 @@ class _ListingViewScreenState extends State<ListingViewScreen> {
                 widget.listing.id != null) ...[
               IconButton(
                 icon: const Icon(Icons.local_offer),
-
+                tooltip: "Set discount",
                 onPressed: () {
                   if (!mounted) {
                     return;
@@ -405,19 +405,18 @@ class _ListingViewScreenState extends State<ListingViewScreen> {
             ],
             if (!widget.listing.visible) ...[
               IconButton(
+                tooltip: "Make invisible",
                 icon: const Icon(Icons.visibility_off),
-
                 onPressed: toggleVisibility,
               ),
             ] else ...[
               IconButton(
+                tooltip: "Make visible",
                 icon: const Icon(Icons.visibility),
-
                 onPressed: toggleVisibility,
               ),
             ],
           ],
-
           if (role == Access.admin ||
               role == Access.owner ||
               (role == Access.business &&
@@ -427,7 +426,7 @@ class _ListingViewScreenState extends State<ListingViewScreen> {
                       true)) ...[
             IconButton(
               icon: const Icon(Icons.delete),
-
+              tooltip: "Delete listing",
               onPressed: () {
                 if (!mounted) {
                   return;
@@ -446,7 +445,7 @@ class _ListingViewScreenState extends State<ListingViewScreen> {
           ] else ...[
             IconButton(
               icon: const Icon(Icons.report),
-
+              tooltip: "Report",
               onPressed: () {
                 if (!mounted) {
                   return;
@@ -499,19 +498,32 @@ class _ListingViewScreenState extends State<ListingViewScreen> {
         design.verticalGap(),
         Padding(
           padding: EdgeInsetsGeometry.symmetric(horizontal: design.spacing),
-          child: Text(
-            "\"${widget.listing.description}\" - Posted on ${formatDate(widget.listing.posted)}.",
-          ),
+          child: design.textMarquee('Basic info:'),
         ),
-
-        design.verticalGap(),
         Padding(
           padding: EdgeInsetsGeometry.symmetric(horizontal: design.spacing),
-          child: design.textMarquee(
-            'Price: ${fromMinor(widget.listing.priceMinor, widget.listing.listingDiscount?.percentage)}',
+          child: Container(
+            decoration: design.panelDecoration(),
+            padding: EdgeInsets.all(design.spacing),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                design.textMarquee("Seller: ${widget.listing.franchiseName}"),
+                design.verticalGap(design.spacing),
+                design.textMarquee(
+                  'Price: ${fromMinor(widget.listing.priceMinor, widget.listing.listingDiscount?.percentage)}',
+                ),
+                design.verticalGap(design.spacing),
+                design.textMarquee(
+                  'Posted on: ${formatDate(widget.listing.posted)}',
+                ),
+                design.verticalGap(design.spacing),
+                design.textMarquee('Description:'),
+                Text('"${widget.listing.description}"'),
+              ],
+            ),
           ),
         ),
-
         if (widget.listing.type != ListingType.generic) ...[
           design.verticalGap(),
           ListingExtensionCard(listing: widget.listing),
@@ -582,7 +594,6 @@ class _ListingViewScreenState extends State<ListingViewScreen> {
             'For more information, you may${widget.listing.availability.isEmpty ? " " : " also "}contact ${widget.listing.franchiseName} at ${widget.listing.contact}.',
           ),
         ),
-
         if (widget.listing.comments.isNotEmpty ||
             (role == Access.user && widget.listing.id != null && mature)) ...[
           design.verticalGap(),
@@ -590,7 +601,6 @@ class _ListingViewScreenState extends State<ListingViewScreen> {
             padding: EdgeInsetsGeometry.symmetric(horizontal: design.spacing),
             child: design.textMarquee('User reviews:'),
           ),
-
           if (role == Access.user && widget.listing.id != null && mature) ...[
             CommentCreator(
               listingId: widget.listing.id!,
@@ -599,7 +609,6 @@ class _ListingViewScreenState extends State<ListingViewScreen> {
               },
             ),
           ],
-
           ...widget.listing.comments.map(
             (comment) => CommentCard(
               comment: comment,
@@ -610,7 +619,6 @@ class _ListingViewScreenState extends State<ListingViewScreen> {
           ),
         ],
       ],
-
       bottomNavigationBar: BottomAppBar(
         child: FittedBox(
           fit: BoxFit.scaleDown,
@@ -635,8 +643,10 @@ class _ListingViewScreenState extends State<ListingViewScreen> {
                     onPressed: () {
                       showDialog(
                         context: context,
-                        builder: (_) =>
-                            ConfirmationDialog(confirmAction: product),
+                        builder: (_) => ConfirmationDialog(
+                          confirmAction: product,
+                          title: "Add to supplies?",
+                        ),
                       );
                     },
                     child: design.fittedText("Get"),
@@ -653,8 +663,10 @@ class _ListingViewScreenState extends State<ListingViewScreen> {
                     onPressed: () {
                       showDialog(
                         context: context,
-                        builder: (_) =>
-                            ConfirmationDialog(confirmAction: adopt),
+                        builder: (_) => ConfirmationDialog(
+                          confirmAction: adopt,
+                          title: "Adopt pet?",
+                        ),
                       );
                     },
                     child: design.fittedText("Adopt"),

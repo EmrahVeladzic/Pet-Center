@@ -140,9 +140,17 @@ class _FormViewScreenState extends State<FormViewScreen> {
         ),
         actions: [
           if (role == Access.business) ...[
-            IconButton(icon: const Icon(Icons.edit), onPressed: navigateToEdit),
+            IconButton(
+              tooltip: "Edit",
+              icon: const Icon(Icons.edit),
+              onPressed: navigateToEdit,
+            ),
           ],
-          IconButton(icon: Icon(Icons.picture_as_pdf), onPressed: toPdf),
+          IconButton(
+            tooltip: "Export to PDF",
+            icon: Icon(Icons.picture_as_pdf),
+            onPressed: toPdf,
+          ),
           IconButton(
             onPressed: () {
               if (role == Access.business) {
@@ -151,6 +159,7 @@ class _FormViewScreenState extends State<FormViewScreen> {
                   builder: (_) => ConfirmationDialog(
                     confirmAction: removeForm,
                     title: "Withdraw form",
+                    body: "This will remove your form. Continue?",
                   ),
                 );
               } else if (widget.form.evalContact == null) {
@@ -175,7 +184,14 @@ class _FormViewScreenState extends State<FormViewScreen> {
                 );
               }
             },
-            icon: (role == Access.business)
+            tooltip: role == Access.business
+                ? "Withdraw form"
+                : widget.form.evalContact == null
+                ? "Deny form"
+                : role == Access.owner
+                ? "Delete form"
+                : null,
+            icon: role == Access.business
                 ? const Icon(Icons.delete)
                 : const Icon(Icons.block),
           ),

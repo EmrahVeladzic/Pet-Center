@@ -34,11 +34,26 @@ class AnnouncementCard extends StatelessWidget {
         child: Row(
           children: [
             Expanded(
-              flex: 5,
+              flex: 4,
+              child: Text("Announcement - ${announcement.body}"),
+            ),
+            Expanded(
+              flex: 2,
               child: Text(
-                "${announcement.body} - ${formatDate(announcement.datePosted)}",
+                "Posted on:\n${formatDate(announcement.datePosted)}",
+                textAlign: TextAlign.center,
               ),
             ),
+            if (announcement.notes?.firstOrNull != null) ...[
+              Expanded(
+                flex: 2,
+                child: Text(
+                  "${announcement.notes!.first.title}\n${announcement.notes!.first.body}",
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ],
+
             Expanded(
               flex: 1,
 
@@ -50,10 +65,11 @@ class AnnouncementCard extends StatelessWidget {
                   child: FittedBox(
                     fit: BoxFit.contain,
                     child: IconButton(
+                      tooltip: "Mark as read",
                       onPressed: onTap,
                       icon: const Icon(Icons.done_all),
                       padding: EdgeInsets.zero,
-                      visualDensity: VisualDensity.compact,
+
                       constraints: const BoxConstraints(),
                     ),
                   ),
@@ -72,10 +88,11 @@ class AnnouncementCard extends StatelessWidget {
                     child: FittedBox(
                       fit: BoxFit.contain,
                       child: IconButton(
+                        tooltip: "Delete",
                         onPressed: onDelete,
                         icon: const Icon(Icons.delete),
                         padding: EdgeInsets.zero,
-                        visualDensity: VisualDensity.compact,
+
                         constraints: const BoxConstraints(),
                       ),
                     ),

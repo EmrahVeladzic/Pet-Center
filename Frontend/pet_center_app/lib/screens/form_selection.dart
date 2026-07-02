@@ -118,7 +118,11 @@ class _FormSelectionScreenState extends State<FormSelectionScreen> {
     return DataScreenScaffold<FormFilters, FormDTO>(
       importActions: [
         if (role == Access.business && templateId != null) ...[
-          IconButton(icon: Icon(Icons.add), onPressed: createForm),
+          IconButton(
+            tooltip: "Create form",
+            icon: Icon(Icons.add),
+            onPressed: createForm,
+          ),
         ],
       ],
       maxPage: widget.maxPage,

@@ -56,6 +56,7 @@ class _ReportDialogState extends State<ReportDialog> {
                 ),
               ),
               IconButton(
+                tooltip: "Close",
                 icon: const Icon(Icons.close),
                 onPressed: () => Navigator.of(context).pop(),
               ),

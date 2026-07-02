@@ -48,7 +48,7 @@ class _SupplyRecordDialogState extends State<SupplyRecordDialog> {
         child: AlertDialog(
           title: Row(
             children: [
-              Expanded(child: design.textMarquee('Enter:')),
+              Expanded(child: design.textMarquee('Set supplies:')),
               IconButton(
                 icon: const Icon(Icons.close),
                 onPressed: () => Navigator.of(context).pop(),

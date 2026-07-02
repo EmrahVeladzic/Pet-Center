@@ -54,27 +54,35 @@ class _KindSelectionScreenState extends State<KindSelectionScreen> {
           ),
         ),
       ),
-      body: [
-        ...kinds.expand(
-          (e) => [
-            FractionallySizedBox(
-              widthFactor: 0.5,
-              alignment: Alignment.center,
-              child: ElevatedButton(
-                onPressed: () {
-                  final id = e.id;
-                  if (id == null) {
-                    return;
-                  }
-                  switchToSelection(id, role == Access.user);
-                },
-                child: design.fittedText(e.title),
+      body: kinds.isEmpty
+          ? [
+              Center(
+                child: design.fittedText(
+                  "No animal kinds are currently defined.",
+                ),
               ),
-            ),
-            design.verticalGap(),
-          ],
-        ),
-      ],
+            ]
+          : [
+              ...kinds.expand(
+                (e) => [
+                  FractionallySizedBox(
+                    widthFactor: 0.5,
+                    alignment: Alignment.center,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        final id = e.id;
+                        if (id == null) {
+                          return;
+                        }
+                        switchToSelection(id, role == Access.user);
+                      },
+                      child: design.fittedText(e.title),
+                    ),
+                  ),
+                  design.verticalGap(),
+                ],
+              ),
+            ],
 
       bottomNavigationBar: BottomAppBar(
         child: role == Access.user

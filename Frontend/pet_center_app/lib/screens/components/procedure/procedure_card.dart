@@ -60,6 +60,7 @@ class ProcedureCard extends StatelessWidget {
                         child: FittedBox(
                           fit: BoxFit.contain,
                           child: IconButton(
+                            tooltip: "Define procedure",
                             onPressed: () {
                               if (kinds.isEmpty || procedure.id == null) {
                                 return;
@@ -80,7 +81,7 @@ class ProcedureCard extends StatelessWidget {
                             },
                             icon: const Icon(Icons.note_add),
                             padding: EdgeInsets.zero,
-                            visualDensity: VisualDensity.compact,
+
                             constraints: const BoxConstraints(),
                           ),
                         ),
@@ -97,10 +98,11 @@ class ProcedureCard extends StatelessWidget {
                         child: FittedBox(
                           fit: BoxFit.contain,
                           child: IconButton(
+                            tooltip: "Edit procedure",
                             onPressed: editAction,
                             icon: const Icon(Icons.edit),
                             padding: EdgeInsets.zero,
-                            visualDensity: VisualDensity.compact,
+
                             constraints: const BoxConstraints(),
                           ),
                         ),
@@ -117,10 +119,11 @@ class ProcedureCard extends StatelessWidget {
                         child: FittedBox(
                           fit: BoxFit.contain,
                           child: IconButton(
+                            tooltip: "Remove procedure",
                             onPressed: deleteAction,
                             icon: const Icon(Icons.delete),
                             padding: EdgeInsets.zero,
-                            visualDensity: VisualDensity.compact,
+
                             constraints: const BoxConstraints(),
                           ),
                         ),
