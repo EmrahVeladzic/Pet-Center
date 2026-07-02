@@ -16,7 +16,6 @@ import 'package:pet_center_app/services/form_service.dart';
 import 'package:pet_center_app/services/listing_service.dart';
 import 'package:pet_center_app/services/static_user_data_service.dart';
 import 'package:pet_center_app/utils/app_style.dart';
-
 import 'package:pet_center_app/utils/jwt_utils.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -29,6 +28,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
   final knd = (kinds.isNotEmpty) ? kinds.first.id : null;
   final rlv = (categories.isNotEmpty) ? categories.first.id : null;
 
+  void _go(Widget screen) {
+    Navigator.push(context, MaterialPageRoute(builder: (_) => screen));
+  }
+
   void enterMarket() async {
     final count = await ListingService.count(
       ListingType.product,
@@ -39,18 +42,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
 
     if (count != null && mounted) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => ListingSelectionScreen(
-            maxPage: count,
-            initType: ListingType.product,
-            initOrdering: OrderingMethod.id,
-            initKind: knd,
-            initRelevant: rlv,
-          ),
-        ),
-      );
+      _go(ListingSelectionScreen(
+        maxPage: count,
+        initType: ListingType.product,
+        initOrdering: OrderingMethod.id,
+        initKind: knd,
+        initRelevant: rlv,
+      ));
     }
   }
 
@@ -58,24 +56,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final count = await AccountService.count(Access.user, "");
 
     if (count != null && mounted) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => AccountPageScreen(
-            maxPage: count,
-            initContact: "",
-            initRole: Access.user,
-          ),
-        ),
-      );
+      _go(AccountPageScreen(
+        maxPage: count,
+        initContact: "",
+        initRole: Access.user,
+      ));
     }
   }
 
   void staticDataEditor() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (_) => StaticDataEditorScreen()),
-    );
+    _go(StaticDataEditorScreen());
   }
 
   void evaluateListings() async {
@@ -86,44 +76,83 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
 
     if (count != null && mounted) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => ListingSelectionScreen(
-            maxPage: count,
-            initType: ListingType.generic,
-            initOrdering: OrderingMethod.id,
-            initShowApproved: false,
-          ),
-        ),
-      );
+      _go(ListingSelectionScreen(
+        maxPage: count,
+        initType: ListingType.generic,
+        initOrdering: OrderingMethod.id,
+        initShowApproved: false,
+      ));
     }
   }
 
   void viewForms() async {
     final output = await FormService.count(null, false);
     if (output != null && mounted) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => FormSelectionScreen(
-            maxPage: output,
-            templateId: null,
-            eval: false,
-          ),
-        ),
-      );
+      _go(FormSelectionScreen(
+        maxPage: output,
+        templateId: null,
+        eval: false,
+      ));
     }
+  }
+
+  List<Widget> _actionsFor(ReactiveDesignSystem design) {
+    final actions = <Widget>[];
+
+    if (role == Access.user) {
+      actions.addAll([
+        design.navAction('Adopt a pet',
+            () => _go(KindSelectionScreen()), icon: Icons.favorite),
+        design.navAction('Market',
+            enterMarket, icon: Icons.storefront),
+        design.navAction('Pets',
+            () => _go(IndividualViewScreen(src: self?.ownedAnimals)),
+            icon: Icons.pets),
+        design.navAction('Supplies and wishlist',
+            () => _go(SuppliesViewScreen()), icon: Icons.checklist),
+      ]);
+    } else if (role == Access.business) {
+      actions.add(
+        design.navAction('My workplaces',
+            () => _go(FranchiseViewScreen()), icon: Icons.store),
+      );
+    } else {
+      actions.addAll([
+        design.navAction('Evaluate listings',
+            evaluateListings, icon: Icons.fact_check),
+        design.navAction('Evaluate forms',
+            viewForms, icon: Icons.assignment),
+        design.navAction('Manage users',
+            accountPage, icon: Icons.manage_accounts),
+        design.navAction('Manage static data',
+            staticDataEditor, icon: Icons.dataset),
+      ]);
+    }
+
+  
+    actions.addAll([
+      design.navAction('Messages', () => _go(FeedScreen()), icon: Icons.mail),
+      design.navAction('User', () => _go(UserViewScreen()), icon: Icons.person),
+    ]);
+
+    return actions;
   }
 
   @override
   Widget build(BuildContext context) {
-    final ReactiveDesignSystem design = Theme.of(
-      context,
-    ).extension<ReactiveDesignSystem>()!;
+    final ReactiveDesignSystem design =
+        Theme.of(context).extension<ReactiveDesignSystem>()!;
+
+
+    final actions = _actionsFor(design);
+    final body = <Widget>[];
+    for (var i = 0; i < actions.length; i++) {
+      if (i > 0) body.add(design.verticalGap(design.spacing));
+      body.add(actions[i]);
+    }
 
     return BasicScreenScaffold(
-      center: true,
+      center: design.layoutDirection==Axis.horizontal,
       appBar: AppBar(
         title: SizedBox(
           width: design.screenWidth * marqueeTitleWMult,
@@ -134,141 +163,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
         ),
       ),
-      body: [
-        if (role == Access.user) ...[
-          FractionallySizedBox(
-            widthFactor: 0.5,
-            alignment: Alignment.center,
-            child: ElevatedButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => KindSelectionScreen()),
-                );
-              },
-              child: design.fittedText('Adopt a pet'),
-            ),
-          ),
-          design.verticalGap(design.spacing),
-          FractionallySizedBox(
-            widthFactor: 0.5,
-            alignment: Alignment.center,
-            child: ElevatedButton(
-              onPressed: enterMarket,
-              child: design.fittedText('Market'),
-            ),
-          ),
-          design.verticalGap(design.spacing),
-          FractionallySizedBox(
-            widthFactor: 0.5,
-            alignment: Alignment.center,
-            child: ElevatedButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) =>
-                        IndividualViewScreen(src: self?.ownedAnimals),
-                  ),
-                );
-              },
-              child: design.fittedText('Pets'),
-            ),
-          ),
-          design.verticalGap(design.spacing),
-          FractionallySizedBox(
-            widthFactor: 0.5,
-            alignment: Alignment.center,
-            child: ElevatedButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => SuppliesViewScreen()),
-                );
-              },
-              child: design.fittedText('Supplies and wishlist'),
-            ),
-          ),
-        ] else if (role == Access.business) ...[
-          FractionallySizedBox(
-            widthFactor: 0.5,
-            alignment: Alignment.center,
-            child: ElevatedButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => FranchiseViewScreen()),
-                );
-              },
-              child: design.fittedText('My workplaces'),
-            ),
-          ),
-        ] else ...[
-          FractionallySizedBox(
-            widthFactor: 0.5,
-            alignment: Alignment.center,
-            child: ElevatedButton(
-              onPressed: evaluateListings,
-              child: design.fittedText('Evaluate listings'),
-            ),
-          ),
-          design.verticalGap(design.spacing),
-          FractionallySizedBox(
-            widthFactor: 0.5,
-            alignment: Alignment.center,
-            child: ElevatedButton(
-              onPressed: viewForms,
-              child: design.fittedText('Evaluate forms'),
-            ),
-          ),
-          design.verticalGap(design.spacing),
-          FractionallySizedBox(
-            widthFactor: 0.5,
-            alignment: Alignment.center,
-            child: ElevatedButton(
-              onPressed: accountPage,
-              child: design.fittedText('Manage users'),
-            ),
-          ),
-          design.verticalGap(design.spacing),
-          FractionallySizedBox(
-            widthFactor: 0.5,
-            alignment: Alignment.center,
-            child: ElevatedButton(
-              onPressed: staticDataEditor,
-              child: design.fittedText('Manage static data'),
-            ),
-          ),
-        ],
-        design.verticalGap(design.spacing),
-        FractionallySizedBox(
-          widthFactor: 0.5,
-          alignment: Alignment.center,
-          child: ElevatedButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => FeedScreen()),
-              );
-            },
-            child: design.fittedText('Messages'),
-          ),
-        ),
-        design.verticalGap(design.spacing),
-        FractionallySizedBox(
-          widthFactor: 0.5,
-          alignment: Alignment.center,
-          child: ElevatedButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => UserViewScreen()),
-              );
-            },
-            child: design.fittedText('User'),
-          ),
-        ),
-      ],
+      body: body,
     );
   }
 }
