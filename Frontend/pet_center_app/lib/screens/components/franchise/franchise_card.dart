@@ -1,9 +1,7 @@
-// ignore_for_file: unused_import
-
 import 'package:flutter/material.dart';
 import 'package:pet_center_app/models/data_transfer/facility_dto.dart';
 import 'package:pet_center_app/models/data_transfer/franchise/franchise_response_dto.dart';
-import 'package:pet_center_app/models/data_transfer/user/user_response_dto.dart';
+
 import 'package:pet_center_app/models/enums.dart';
 import 'package:pet_center_app/screens/components/confirmation_dialog.dart';
 import 'package:pet_center_app/screens/components/franchise/facility_card.dart';
@@ -15,7 +13,7 @@ import 'package:pet_center_app/services/static_user_data_service.dart';
 import 'package:pet_center_app/services/user_service.dart';
 import 'package:pet_center_app/utils/app_style.dart';
 
-import 'package:pet_center_app/utils/jwt_parser.dart';
+import 'package:pet_center_app/utils/jwt_utils.dart';
 
 class FranchiseCard extends StatelessWidget {
   final FranchiseResponseDTO franchise;
@@ -94,21 +92,36 @@ class FranchiseCard extends StatelessWidget {
               child: Row(
                 children: [
                   Expanded(
-                    flex: 6,
+                    flex: 4,
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         Flexible(
                           fit: FlexFit.loose,
-                          child: design.fittedText(
-                            "${franchise.franchiseName}${(franchise.owned == true) ? " (Owner)" : ""}",
-                            2.0,
+                          child: Text(
+                            "Franchise:",
+                            textAlign: TextAlign.center,
                           ),
                         ),
                         Flexible(
                           fit: FlexFit.loose,
-                          child: design.fittedText(franchise.contact),
+                          child: Text(
+                            "${franchise.franchiseName}${(franchise.owned == true) ? " (Owner)" : ""}",
+                            textAlign: TextAlign.center,
+                            style: TextStyle(fontSize: 1.5 * design.fontSize),
+                          ),
+                        ),
+                        Flexible(
+                          fit: FlexFit.loose,
+                          child: Text("Contact:", textAlign: TextAlign.center),
+                        ),
+                        Flexible(
+                          fit: FlexFit.loose,
+                          child: Text(
+                            franchise.contact,
+                            textAlign: TextAlign.center,
+                          ),
                         ),
                       ],
                     ),
@@ -135,10 +148,11 @@ class FranchiseCard extends StatelessWidget {
                                     child: FittedBox(
                                       fit: BoxFit.contain,
                                       child: IconButton(
+                                        tooltip: "Listings",
                                         onPressed: listingAction,
                                         icon: const Icon(Icons.local_offer),
                                         padding: EdgeInsets.zero,
-                                        visualDensity: VisualDensity.compact,
+
                                         constraints: const BoxConstraints(),
                                       ),
                                     ),
@@ -155,10 +169,11 @@ class FranchiseCard extends StatelessWidget {
                                     child: FittedBox(
                                       fit: BoxFit.contain,
                                       child: IconButton(
+                                        tooltip: "Sheltered animals",
                                         onPressed: animalAction,
                                         icon: const Icon(Icons.pets),
                                         padding: EdgeInsets.zero,
-                                        visualDensity: VisualDensity.compact,
+
                                         constraints: const BoxConstraints(),
                                       ),
                                     ),
@@ -176,10 +191,11 @@ class FranchiseCard extends StatelessWidget {
                                     child: FittedBox(
                                       fit: BoxFit.contain,
                                       child: IconButton(
+                                        tooltip: "Employees",
                                         onPressed: employeeViewAction,
                                         icon: const Icon(Icons.person),
                                         padding: EdgeInsets.zero,
-                                        visualDensity: VisualDensity.compact,
+
                                         constraints: const BoxConstraints(),
                                       ),
                                     ),
@@ -196,6 +212,7 @@ class FranchiseCard extends StatelessWidget {
                                     child: FittedBox(
                                       fit: BoxFit.contain,
                                       child: IconButton(
+                                        tooltip: "Notify employees",
                                         onPressed: () {
                                           if (self?.id == null ||
                                               franchise.id == null) {
@@ -234,7 +251,7 @@ class FranchiseCard extends StatelessWidget {
                                         },
                                         icon: const Icon(Icons.note_add),
                                         padding: EdgeInsets.zero,
-                                        visualDensity: VisualDensity.compact,
+
                                         constraints: const BoxConstraints(),
                                       ),
                                     ),
@@ -258,10 +275,11 @@ class FranchiseCard extends StatelessWidget {
                                     child: FittedBox(
                                       fit: BoxFit.contain,
                                       child: IconButton(
+                                        tooltip: "Edit",
                                         onPressed: editAction,
                                         icon: const Icon(Icons.edit),
                                         padding: EdgeInsets.zero,
-                                        visualDensity: VisualDensity.compact,
+
                                         constraints: const BoxConstraints(),
                                       ),
                                     ),
@@ -278,6 +296,7 @@ class FranchiseCard extends StatelessWidget {
                                     child: FittedBox(
                                       fit: BoxFit.contain,
                                       child: IconButton(
+                                        tooltip: "Set facility",
                                         onPressed: () {
                                           showDialog(
                                             context: context,
@@ -292,7 +311,7 @@ class FranchiseCard extends StatelessWidget {
                                         },
                                         icon: const Icon(Icons.add),
                                         padding: EdgeInsets.zero,
-                                        visualDensity: VisualDensity.compact,
+
                                         constraints: const BoxConstraints(),
                                       ),
                                     ),
@@ -309,10 +328,11 @@ class FranchiseCard extends StatelessWidget {
                                     child: FittedBox(
                                       fit: BoxFit.contain,
                                       child: IconButton(
+                                        tooltip: "Remove franchise",
                                         onPressed: deleteAction,
                                         icon: const Icon(Icons.delete),
                                         padding: EdgeInsets.zero,
-                                        visualDensity: VisualDensity.compact,
+
                                         constraints: const BoxConstraints(),
                                       ),
                                     ),
@@ -336,10 +356,11 @@ class FranchiseCard extends StatelessWidget {
                           child: FittedBox(
                             fit: BoxFit.contain,
                             child: IconButton(
+                              tooltip: "Listings",
                               onPressed: listingAction,
                               icon: const Icon(Icons.local_offer),
                               padding: EdgeInsets.zero,
-                              visualDensity: VisualDensity.compact,
+
                               constraints: const BoxConstraints(),
                             ),
                           ),
@@ -356,10 +377,11 @@ class FranchiseCard extends StatelessWidget {
                           child: FittedBox(
                             fit: BoxFit.contain,
                             child: IconButton(
+                              tooltip: "Sheltered animals",
                               onPressed: animalAction,
                               icon: const Icon(Icons.pets),
                               padding: EdgeInsets.zero,
-                              visualDensity: VisualDensity.compact,
+
                               constraints: const BoxConstraints(),
                             ),
                           ),
@@ -376,6 +398,7 @@ class FranchiseCard extends StatelessWidget {
                           child: FittedBox(
                             fit: BoxFit.contain,
                             child: IconButton(
+                              tooltip: "Quit",
                               onPressed: () {
                                 showDialog(
                                   context: context,
@@ -389,7 +412,7 @@ class FranchiseCard extends StatelessWidget {
                               },
                               icon: const Icon(Icons.person_remove),
                               padding: EdgeInsets.zero,
-                              visualDensity: VisualDensity.compact,
+
                               constraints: const BoxConstraints(),
                             ),
                           ),

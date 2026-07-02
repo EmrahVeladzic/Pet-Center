@@ -85,6 +85,7 @@ class _CommentCreatorState extends State<CommentCreator> {
                     child: FittedBox(
                       fit: BoxFit.contain,
                       child: IconButton(
+                        tooltip: "Post review",
                         onPressed: () {
                           if (_formKey.currentState != null &&
                               _formKey.currentState!.validate()) {
@@ -93,7 +94,7 @@ class _CommentCreatorState extends State<CommentCreator> {
                         },
                         icon: const Icon(Icons.arrow_forward),
                         padding: EdgeInsets.zero,
-                        visualDensity: VisualDensity.compact,
+
                         constraints: const BoxConstraints(),
                       ),
                     ),

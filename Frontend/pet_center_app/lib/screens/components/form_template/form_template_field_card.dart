@@ -36,12 +36,21 @@ class FormTemplateFieldCard extends StatelessWidget {
                   children: [
                     Flexible(
                       fit: FlexFit.loose,
-                      child: design.fittedText(field.description, 2.0),
+                      child: Text(
+                        "Field: ${field.description}",
+                        textScaler: TextScaler.linear(1.5),
+                        textAlign: TextAlign.center,
+                      ),
                     ),
                     Flexible(
                       fit: FlexFit.loose,
-                      child: design.fittedText(
-                        field.optional ? "Optional" : "Required",
+                      child: Tooltip(
+                        message: field.optional ? "Optional" : "Required",
+                        child: Icon(
+                          field.optional
+                              ? Icons.question_mark
+                              : Icons.priority_high,
+                        ),
                       ),
                     ),
                   ],
@@ -58,10 +67,11 @@ class FormTemplateFieldCard extends StatelessWidget {
                   child: FittedBox(
                     fit: BoxFit.contain,
                     child: IconButton(
+                      tooltip: "Edit field",
                       onPressed: editAction,
                       icon: const Icon(Icons.edit),
                       padding: EdgeInsets.zero,
-                      visualDensity: VisualDensity.compact,
+
                       constraints: const BoxConstraints(),
                     ),
                   ),
@@ -78,10 +88,11 @@ class FormTemplateFieldCard extends StatelessWidget {
                   child: FittedBox(
                     fit: BoxFit.contain,
                     child: IconButton(
+                      tooltip: "Delete field",
                       onPressed: deleteAction,
                       icon: const Icon(Icons.delete),
                       padding: EdgeInsets.zero,
-                      visualDensity: VisualDensity.compact,
+
                       constraints: const BoxConstraints(),
                     ),
                   ),

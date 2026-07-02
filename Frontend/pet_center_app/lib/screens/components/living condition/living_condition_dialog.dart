@@ -62,6 +62,7 @@ class _LivingConditionDialogState extends State<LivingConditionDialog> {
                 ),
               ),
               IconButton(
+                tooltip: "Close",
                 icon: const Icon(Icons.close),
                 onPressed: () => Navigator.of(context).pop(),
               ),
@@ -145,7 +146,7 @@ class _LivingConditionDialogState extends State<LivingConditionDialog> {
                   invokeCallback();
                 }
               },
-              child: design.fittedText('Save'),
+              child: design.fittedText('Save question'),
             ),
           ],
         ),

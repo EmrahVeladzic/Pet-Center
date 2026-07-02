@@ -53,6 +53,7 @@ class _PasswordChangeDialogState extends State<PasswordChangeDialog> {
             children: [
               Expanded(child: design.textMarquee('${'Change password:'}:')),
               IconButton(
+                tooltip: "Close",
                 icon: const Icon(Icons.close),
                 onPressed: () => Navigator.of(context).pop(),
               ),
@@ -133,7 +134,7 @@ class _PasswordChangeDialogState extends State<PasswordChangeDialog> {
                   invokeCallback();
                 }
               },
-              child: design.fittedText('Save'),
+              child: design.fittedText('Proceed'),
             ),
           ],
         ),

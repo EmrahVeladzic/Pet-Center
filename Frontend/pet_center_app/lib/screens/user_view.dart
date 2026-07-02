@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:pet_center_app/models/data_transfer/account/account_request_dto.dart';
+
 import 'package:pet_center_app/models/data_transfer/user/user_request_dto.dart';
 import 'package:pet_center_app/screens/components/confirmation_dialog.dart';
 import 'package:pet_center_app/screens/components/dual_text_entry_dialog.dart';
@@ -13,7 +13,7 @@ import 'package:pet_center_app/services/user_service.dart';
 
 import 'package:pet_center_app/utils/app_style.dart';
 import 'package:pet_center_app/utils/hive_cache.dart';
-import 'package:pet_center_app/utils/jwt_parser.dart';
+import 'package:pet_center_app/utils/jwt_utils.dart';
 import 'package:pet_center_app/utils/validators.dart';
 
 class UserViewScreen extends StatefulWidget {
@@ -66,9 +66,7 @@ class _UserViewScreenState extends State<UserViewScreen> {
   }
 
   void setupAccountTransfer(String contact) async {
-    final response = await AccountService.update(
-      AccountRequestDTO(contact: contact),
-    );
+    final response = await AccountService.initiateTransfer(contact);
     if (response != null) {
       if (mounted) {
         showDialog(
@@ -90,9 +88,7 @@ class _UserViewScreenState extends State<UserViewScreen> {
   }
 
   void changePassword(String pwd, String newPwd) async {
-    final response = await AccountService.update(
-      AccountRequestDTO(password: pwd, newPassword: newPwd),
-    );
+    final response = await AccountService.changePassword(pwd, newPwd);
     if (response != null) {
       showSnackbar("Updated password.");
     }

@@ -53,6 +53,8 @@ class _TextEntryDialogState extends State<TextEntryDialog> {
       context,
     ).extension<ReactiveDesignSystem>()!;
 
+    bool singleRow = widget.hideText || widget.limit <= 75;
+
     return FittedBox(
       fit: BoxFit.scaleDown,
       child: Form(
@@ -66,6 +68,7 @@ class _TextEntryDialogState extends State<TextEntryDialog> {
                 ),
               ),
               IconButton(
+                tooltip: "Close",
                 icon: const Icon(Icons.close),
                 onPressed: () => Navigator.of(context).pop(),
               ),
@@ -82,10 +85,10 @@ class _TextEntryDialogState extends State<TextEntryDialog> {
                     color: listTone,
                     child: TextFormField(
                       controller: _controller,
-                      maxLines: (widget.hideText) ? 1 : null,
+                      maxLines: (singleRow) ? 1 : null,
                       maxLength: widget.limit,
-                      minLines: (widget.hideText) ? 1 : dialogMinLines,
-                      keyboardType: (widget.hideText)
+                      minLines: (singleRow) ? 1 : dialogMinLines,
+                      keyboardType: (singleRow)
                           ? TextInputType.text
                           : TextInputType.multiline,
                       obscureText: widget.hideText,

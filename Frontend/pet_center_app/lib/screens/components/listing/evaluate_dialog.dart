@@ -57,6 +57,7 @@ class _EvaluateDialogState extends State<EvaluateDialog> {
             children: [
               Expanded(child: design.textMarquee('Evaluate listing:')),
               IconButton(
+                tooltip: "Close",
                 icon: const Icon(Icons.close),
                 onPressed: () => Navigator.of(context).pop(),
               ),

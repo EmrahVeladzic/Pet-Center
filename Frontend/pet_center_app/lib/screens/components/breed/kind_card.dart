@@ -30,7 +30,13 @@ class KindCard extends StatelessWidget {
           padding: EdgeInsets.all(design.spacing),
           child: Row(
             children: [
-              Expanded(flex: 5, child: design.fittedText(kind.title, 2.0)),
+              Expanded(
+                flex: 5,
+                child: Text(
+                  "Kind: ${kind.title}",
+                  textScaler: TextScaler.linear(1.5),
+                ),
+              ),
               Expanded(
                 flex: 1,
                 child: Align(
@@ -44,7 +50,7 @@ class KindCard extends StatelessWidget {
                         onPressed: breedListAction,
                         icon: const Icon(Icons.pets),
                         padding: EdgeInsets.zero,
-                        visualDensity: VisualDensity.compact,
+
                         constraints: const BoxConstraints(),
                       ),
                     ),
@@ -61,10 +67,11 @@ class KindCard extends StatelessWidget {
                     child: FittedBox(
                       fit: BoxFit.contain,
                       child: IconButton(
+                        tooltip: "Edit",
                         onPressed: editAction,
                         icon: const Icon(Icons.edit),
                         padding: EdgeInsets.zero,
-                        visualDensity: VisualDensity.compact,
+
                         constraints: const BoxConstraints(),
                       ),
                     ),
@@ -81,10 +88,11 @@ class KindCard extends StatelessWidget {
                     child: FittedBox(
                       fit: BoxFit.contain,
                       child: IconButton(
+                        tooltip: "Delete",
                         onPressed: deleteAction,
                         icon: const Icon(Icons.delete),
                         padding: EdgeInsets.zero,
-                        visualDensity: VisualDensity.compact,
+
                         constraints: const BoxConstraints(),
                       ),
                     ),

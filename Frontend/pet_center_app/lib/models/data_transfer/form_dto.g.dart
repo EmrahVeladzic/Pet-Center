@@ -53,7 +53,9 @@ FormDTO _$FormDTOFromJson(Map<String, dynamic> json) => FormDTO(
       ? null
       : DateTime.parse(json['evalDate'] as String),
   evalReason: json['evalReason'] as String?,
-  approved: json['approved'] as bool? ?? false,
+  status:
+      $enumDecodeNullable(_$EvaluationStatusEnumMap, json['status']) ??
+      EvaluationStatus.pending,
 );
 
 Map<String, dynamic> _$FormDTOToJson(FormDTO instance) => <String, dynamic>{
@@ -73,5 +75,11 @@ Map<String, dynamic> _$FormDTOToJson(FormDTO instance) => <String, dynamic>{
   'evalContact': instance.evalContact,
   'evalDate': instance.evalDate?.toIso8601String(),
   'evalReason': instance.evalReason,
-  'approved': instance.approved,
+  'status': _$EvaluationStatusEnumMap[instance.status]!,
+};
+
+const _$EvaluationStatusEnumMap = {
+  EvaluationStatus.pending: 0,
+  EvaluationStatus.approved: 1,
+  EvaluationStatus.denied: 2,
 };

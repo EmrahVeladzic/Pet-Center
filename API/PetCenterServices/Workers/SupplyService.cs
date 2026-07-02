@@ -38,7 +38,7 @@ namespace PetCenterServices.Workers
                 }
 
                 
-                await Task.Delay(TimeSpan.FromMinutes(15),stoppingToken);
+                await Task.Delay(TimeSpan.FromHours(24),stoppingToken);
             }
 
         }
@@ -80,7 +80,7 @@ namespace PetCenterServices.Workers
                                     .Where(a => a.Owned && a.AnimalBreed?.KindId == sup.KindId)
                                     .ToList())*(DateTime.UtcNow-sup.Evaluated).Days,0);
                                 sup.MassGrams = Math.Max(sup.MassGrams, 0);
-                                sup.Evaluated = DateTime.UtcNow;
+                                sup.Evaluated = DateTime.Today;
                             }
 
                             await dBContext.SaveChangesAsync(stoppingToken);

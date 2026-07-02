@@ -16,7 +16,7 @@ import 'package:pet_center_app/services/listing_service.dart';
 import 'package:pet_center_app/services/static_user_data_service.dart';
 
 import 'package:pet_center_app/utils/app_style.dart';
-import 'package:pet_center_app/utils/jwt_parser.dart';
+import 'package:pet_center_app/utils/jwt_utils.dart';
 import 'package:pet_center_app/utils/validators.dart';
 
 class MedicalRecordViewScreen extends StatefulWidget {
@@ -140,6 +140,7 @@ class _MedicalRecordViewScreenState extends State<MedicalRecordViewScreen> {
         ),
         actions: [
           IconButton(
+            tooltip: "Set medical record",
             onPressed: () {
               if (procedures.isEmpty || widget.src.id == null) {
                 return;
@@ -193,6 +194,7 @@ class _MedicalRecordViewScreenState extends State<MedicalRecordViewScreen> {
                 showDialog(
                   context: context,
                   builder: (_) => ConfirmationDialog(
+                    title: "Remove medical record entry.",
                     confirmAction: () {
                       deleteEntry(e.procedureId);
                     },

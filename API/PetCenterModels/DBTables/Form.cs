@@ -41,8 +41,8 @@ namespace PetCenterModels.DBTables
         [Column("Reason")]
         public string? Reason { get; set; } = null;
         
-        [Column("Approved")]
-        public bool Approved { get; set; } = false;
+        [Column("EvaluationStatus")]
+        public EvaluationStatus Status {get; set;} = EvaluationStatus.Pending;
         
         [ForeignKey(nameof(EvaluatorId))]
         public Account? Evaluator { get; set; } = null;

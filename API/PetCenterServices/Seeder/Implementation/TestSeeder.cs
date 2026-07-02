@@ -98,76 +98,68 @@ namespace PetCenterServices.Seeder
             return output;
         }
 
-        public async Task<PetCenterModels.DBTables.Image> CreateRandomImage(PetCenterDBContext ctx,  Guid album_id,Random rng, short w = 32, short h=32)
+        public async Task<PetCenterModels.DBTables.Image> CreateRandomImage(PetCenterDBContext ctx, Guid album_id, Random rng, short w = 32, short h = 32)
         {
             PetCenterModels.DBTables.Image output = new();
-            output.AlbumId=album_id;
-
-            short Width =(short) rng.Next(w/2,w);
-            short Height = (short) rng.Next(h/2,h);
-
+            output.AlbumId = album_id;
+            short Width = (short)rng.Next(w / 2, w);
+            short Height = (short)rng.Next(h / 2, h);
             string hash = "";
-
-            if(BLOBs.Count==0 || rng.Next(3)==0){
-
-
+            if (BLOBs.Count == 0 || rng.Next(3) == 0)
+            {
                 int MinR = rng.Next(200);
                 int MinG = rng.Next(200);
-                int MinB = rng.Next(200);       
-
-                using Image<Rgb24> img = new(Width,Height);
+                int MinB = rng.Next(200);
+                using Image<Rgb24> img = new(Width, Height);
                 img.ProcessPixelRows(accessor =>
                 {
-                    for(int y= 0; y<accessor.Height; y++)
+                    for (int y = 0; y < accessor.Height; y++)
                     {
                         Span<Rgb24> row = accessor.GetRowSpan(y);
-
-                        for(int x = 0; x < row.Length; x++)
+                        for (int x = 0; x < row.Length; x++)
                         {
-                            row[x]=new Rgb24
+                            bool isOutline = y == 0 || x == 0 || y == accessor.Height - 1 || x == accessor.Width - 1;
+                            bool isDiagonal1 = Math.Abs(x * accessor.Height - y * accessor.Width) < Math.Max(accessor.Width, accessor.Height);
+                            bool isDiagonal2 = Math.Abs((accessor.Width - 1 - x) * accessor.Height - y * accessor.Width) < Math.Max(accessor.Width, accessor.Height);
+                            if (isOutline || isDiagonal1 || isDiagonal2)
                             {
-                                R=(byte)rng.Next(MinR,256),
-                                G=(byte)rng.Next(MinG,256),
-                                B=(byte)rng.Next(MinB,256)
-                            };
+                                row[x] = new Rgb24 { R = 0, G = 0, B = 0 };
+                            }
+                            else
+                            {
+                                row[x] = new Rgb24
+                                {
+                                    R = (byte)rng.Next(MinR, 256),
+                                    G = (byte)rng.Next(MinG, 256),
+                                    B = (byte)rng.Next(MinB, 256)
+                                };
+                            }
                         }
-
                     }
                 });
-
                 using MemoryStream ms = new();
-
                 img.Save(ms, new WebpEncoder()
                 {
                     Quality = 50
                 });
-
                 ImageBLOB blob = new();
-                blob.Data=ms.ToArray();
-                blob.Id=BLOBHandler.CreateHash(blob.Data);
-
+                blob.Data = ms.ToArray();
+                blob.Id = BLOBHandler.CreateHash(blob.Data);
                 await ctx.ImageBLOBs.AddAsync(blob);
                 await ctx.SaveChangesAsync();
-
                 hash = blob.Id;
-
-                BLOBs.Add(new BLOBRef{W=Width,H=Height,Hash=hash});
+                BLOBs.Add(new BLOBRef { W = Width, H = Height, Hash = hash });
             }
             else
             {
                 BLOBRef reference = BLOBs[rng.Next(BLOBs.Count)];
-
                 Width = reference.W;
-                Height= reference.H;
-                hash=reference.Hash;
+                Height = reference.H;
+                hash = reference.Hash;
             }
-        
-
-            output.Width=Width;
-            output.Height=Height;     
-
-            output.BLOBId=hash;
-
+            output.Width = Width;
+            output.Height = Height;
+            output.BLOBId = hash;
             return output;
         }
 
@@ -607,7 +599,7 @@ namespace PetCenterServices.Seeder
                             };
                         }
 
-                        await ctx.SupplyRecords.AddAsync(new Supplies{UserId=Users[0].Id, KindId = usage_kind.Id,CategoryId=usageCategory,MassGrams=1000,Evaluated= DateTime.UtcNow.AddHours(-36)});
+                        await ctx.SupplyRecords.AddAsync(new Supplies{UserId=Users[0].Id, KindId = usage_kind.Id,CategoryId=usageCategory,MassGrams=1000,Evaluated= DateTime.Today.AddDays(-1)});
 
                         await ctx.SaveChangesAsync();
 
@@ -650,7 +642,7 @@ namespace PetCenterServices.Seeder
 
                                     if (categories[j].Consumable&&(will_add||acc.Id==Users[0].Id))
                                     {
-                                        await ctx.SupplyRecords.AddAsync(new Supplies{UserId=acc.Id,CategoryId=categories[j].Id,KindId=kinds[i].Id,MassGrams=mass,Evaluated=DateTime.UtcNow.AddHours(-rng.Next(24))});
+                                        await ctx.SupplyRecords.AddAsync(new Supplies{UserId=acc.Id,CategoryId=categories[j].Id,KindId=kinds[i].Id,MassGrams=mass,Evaluated=DateTime.UtcNow.AddDays(-rng.Next(3))});
 
                                     }
                                     
@@ -717,7 +709,7 @@ namespace PetCenterServices.Seeder
                         };
 
 
-                        Listing visible_medical = new Listing{Type= ListingType.Medical, FranchiseId=franch.Id,PriceMinor=rng.Next(10000),AlbumId=generic_listing_album_ids[0],Approved=true,Updated=false,Visible=true,ListingName="Visible medical listing.",ListingDescription="Users should see this listing."};
+                        Listing visible_medical = new Listing{Type= ListingType.Medical, FranchiseId=franch.Id,PriceMinor=rng.Next(10000),AlbumId=generic_listing_album_ids[0],Status=EvaluationStatus.Approved,Visible=true,ListingName="Visible medical listing.",ListingDescription="Users should see this listing."};
 
                         await ctx.Listings.AddAsync(visible_medical);
 
@@ -730,13 +722,13 @@ namespace PetCenterServices.Seeder
                         await ctx.ListingAvailable.AddAsync(new Available{ListingId=visible_medical.Id,FacilityId=facility.Id});
 
 
-                        await ctx.Listings.AddAsync(new Listing{FranchiseId=franch.Id,PriceMinor=rng.Next(10000),AlbumId=generic_listing_album_ids[1],Approved=false,Updated=true,Visible=true,ListingName="Approval pending listing.",ListingDescription="Admins should see this listing."});
+                        await ctx.Listings.AddAsync(new Listing{FranchiseId=franch.Id,PriceMinor=rng.Next(10000),AlbumId=generic_listing_album_ids[1],Status=EvaluationStatus.Pending,Visible=true,ListingName="Approval pending listing.",ListingDescription="Admins should see this listing."});
 
-                        await ctx.Listings.AddAsync(new Listing{FranchiseId=franch.Id,PriceMinor=rng.Next(10000),AlbumId=generic_listing_album_ids[2],Approved=false,Updated=false,Visible=true,ListingName="Non-updated listing.",ListingDescription="Workers should see this listing."});
+                        await ctx.Listings.AddAsync(new Listing{FranchiseId=franch.Id,PriceMinor=rng.Next(10000),AlbumId=generic_listing_album_ids[2],Status=EvaluationStatus.Denied,Visible=true,ListingName="Non-updated listing.",ListingDescription="Workers should see this listing."});
 
-                        await ctx.Listings.AddAsync(new Listing{FranchiseId=franch.Id,PriceMinor=rng.Next(10000),AlbumId=generic_listing_album_ids[3],Approved=true,Updated=false,Visible=false,ListingName="Generic invisible listing.",ListingDescription="Workers should see this listing."});
+                        await ctx.Listings.AddAsync(new Listing{FranchiseId=franch.Id,PriceMinor=rng.Next(10000),AlbumId=generic_listing_album_ids[3],Status=EvaluationStatus.Approved,Visible=false,ListingName="Generic invisible listing.",ListingDescription="Workers should see this listing."});
 
-                        await ctx.Listings.AddAsync(new Listing{FranchiseId=franch.Id,PriceMinor=rng.Next(10000),AlbumId=generic_listing_album_ids[4],Approved=false,Updated=true,Visible=true,ListingName="Image-free listing.",ListingDescription="Workers should see this listing."});
+                        await ctx.Listings.AddAsync(new Listing{FranchiseId=franch.Id,PriceMinor=rng.Next(10000),AlbumId=generic_listing_album_ids[4],Status=EvaluationStatus.Pending,Visible=true,ListingName="Image-free listing.",ListingDescription="Workers should see this listing."});
 
                         await ctx.SaveChangesAsync();
 
@@ -780,7 +772,7 @@ namespace PetCenterServices.Seeder
 
 
 
-                                Listing new_listing = new Listing{Type=ListingType.Pet,FranchiseId=franch.Id,PriceMinor=rng.Next(10000),AlbumId=album_id,Approved=true,Updated=false,Visible=true,ListingName=$"{ind.Name}-{adoptables}",ListingDescription=GenerateLoremIpsum(rng.Next(500,1000),rng),Posted=creation};
+                                Listing new_listing = new Listing{Type=ListingType.Pet,FranchiseId=franch.Id,PriceMinor=rng.Next(10000),AlbumId=album_id,Status=EvaluationStatus.Approved,Visible=true,ListingName=$"{ind.Name}-{adoptables}",ListingDescription=GenerateLoremIpsum(rng.Next(500,1000),rng),Posted=creation};
                                 await ctx.Listings.AddAsync(new_listing);
 
                                 listings.Add(new_listing);
@@ -812,7 +804,7 @@ namespace PetCenterServices.Seeder
                             Guid album_id = await ListingService.CreateAlbum(franch.OwnerId,ctx,1);
                             await ctx.Images.AddAsync(await CreateRandomImage(ctx,album_id,rng));
 
-                            Listing new_listing = new Listing{Type=ListingType.Product,FranchiseId=franch.Id,PriceMinor=rng.Next(10000),AlbumId=album_id,Approved=true,Updated=false,Visible=true,ListingName=$"{itm.Title}-{marketables}",ListingDescription=$"A great choice of {itm.ItemCategory.Title} for yout pet.",Posted=creation};
+                            Listing new_listing = new Listing{Type=ListingType.Product,FranchiseId=franch.Id,PriceMinor=rng.Next(10000),AlbumId=album_id,Status=EvaluationStatus.Approved,Visible=true,ListingName=$"{itm.Title}-{marketables}",ListingDescription=$"A great choice of {itm.ItemCategory.Title} for yout pet.",Posted=creation};
                             await ctx.Listings.AddAsync(new_listing);
 
                             listings.Add(new_listing);
@@ -831,7 +823,7 @@ namespace PetCenterServices.Seeder
                         Guid usage_album_id = await ListingService.CreateAlbum(franch.OwnerId,ctx,1);
                         await ctx.Images.AddAsync(await CreateRandomImage(ctx,usage_album_id,rng));
 
-                        Listing usage_listing = new Listing{Type=ListingType.Product,FranchiseId=franch.Id,PriceMinor=rng.Next(10000),AlbumId=usage_album_id,Approved=true,Updated=false,Visible=true,ListingName=$"Hamster product for sale",ListingDescription=$"Why do people even get hamsters?",Posted=DateTime.UtcNow};
+                        Listing usage_listing = new Listing{Type=ListingType.Product,FranchiseId=franch.Id,PriceMinor=rng.Next(10000),AlbumId=usage_album_id,Status=EvaluationStatus.Approved,Visible=true,ListingName=$"Hamster product for sale",ListingDescription=$"Why do people even get hamsters?",Posted=DateTime.UtcNow};
                         await ctx.Listings.AddAsync(usage_listing);
 
                         
@@ -854,7 +846,7 @@ namespace PetCenterServices.Seeder
                             Guid album_id = await ListingService.CreateAlbum(franch.OwnerId,ctx,1);
                             await ctx.Images.AddAsync(await CreateRandomImage(ctx,album_id,rng));
 
-                            Listing new_listing = new Listing{Type=ListingType.Generic,FranchiseId=franch.Id,PriceMinor=price,AlbumId=album_id,Approved=true,Updated=false,Visible=true,ListingName=$"Generic listing no. {i}",ListingDescription=$"Test.",Posted=creation};
+                            Listing new_listing = new Listing{Type=ListingType.Generic,FranchiseId=franch.Id,PriceMinor=price,AlbumId=album_id,Status=EvaluationStatus.Approved,Visible=true,ListingName=$"Generic listing no. {i}",ListingDescription=$"Test.",Posted=creation};
                             await ctx.Listings.AddAsync(new_listing);
 
                             listings.Add(new_listing);                              
@@ -964,7 +956,7 @@ namespace PetCenterServices.Seeder
                         await ctx.SaveChangesAsync();
 
 
-                        List<Album> locked = await ctx.Albums.Where(a=> ctx.Listings.Any(l=>l.AlbumId==a.Id && l.Approved) && a.Reserved!=0).ToListAsync();
+                        List<Album> locked = await ctx.Albums.Where(a=> ctx.Listings.Any(l=>l.AlbumId==a.Id && l.Status==EvaluationStatus.Approved) && a.Reserved!=0).ToListAsync();
 
                         foreach(Album lockedAlbum in locked)
                         {

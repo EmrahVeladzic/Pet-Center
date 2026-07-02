@@ -54,12 +54,12 @@ class UserCard extends StatelessWidget {
                 child: Align(
                   alignment: Alignment.center,
                   child: IconButton(
+                    tooltip: employed ? "Fire." : "Hire.",
                     onPressed: confirm,
                     icon: employed
                         ? const Icon(Icons.person_remove)
                         : const Icon(Icons.person_add),
                     padding: EdgeInsets.zero,
-                    visualDensity: VisualDensity.compact,
                   ),
                 ),
               ),

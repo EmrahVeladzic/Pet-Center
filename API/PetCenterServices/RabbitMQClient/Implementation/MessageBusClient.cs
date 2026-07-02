@@ -26,10 +26,10 @@ public class MessageBusClient : IMessageBusClient
         IConfigurationSection section = config.GetSection("RabbitMQ");
         _settings = new RabbitMQSettings
         {
-            HostName = section["HostName"] ?? "localhost",
-            QueueName = section["QueueName"] ?? "PetCenterContactQueue",
-            UserName = section["UserName"] ?? "guest",
-            Password = section["Password"] ?? "guest"
+            HostName = section["HostName"]!,
+            QueueName = section["QueueName"]!,
+            UserName = section["UserName"]!,
+            Password = section["Password"]!
         };
         logger = loggerFactory.CreateLogger(GetType());
     }

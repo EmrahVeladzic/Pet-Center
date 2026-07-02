@@ -22,6 +22,8 @@ namespace PetCenterAPI.Controllers
     {
         protected readonly TService service;
 
+        protected virtual long MaxUploadSize => 5 * 1024 * 1024;
+
         protected bool TryGetUserId(out Guid user_id){
 
             user_id = default;
@@ -38,98 +40,61 @@ namespace PetCenterAPI.Controllers
 
         }
 
-        protected bool TryParseFileToken(out Guid session, out Guid user_id, out Guid album_id, out string file_hash, out string purpose, out PetCenterModels.ModelUtils.FileScope scope, out string origin)
+    protected record FileTokenResult(
+        Guid Session,
+        Guid UserId,
+        Guid AlbumId,
+        string FileHash,
+        string Purpose,
+        PetCenterModels.ModelUtils.FileScope Scope,
+        string Origin
+    );
+
+    protected async Task<FileTokenResult?> TryParseFileToken()
+    {
+        try
         {
-            session=Guid.Empty;
-            user_id = Guid.Empty;
-            album_id = Guid.Empty;
-            file_hash = string.Empty;
-            purpose = string.Empty;
-            scope = default;
-            origin = string.Empty;
-
-            try
+            if (!TryGetUserId(out Guid user_id) || !TryGetJTI(out Guid session))
             {
-                if (!TryGetUserId(out user_id)||!TryGetJTI(out session))
-                {
-                    return false;
-                }
-
-
-
-
-                string? rawToken = Request.Headers["X-File-Token"].FirstOrDefault();
-                if (string.IsNullOrWhiteSpace(rawToken))
-                {
-                    return false;
-                }
-
-                JwtSecurityTokenHandler handler = new();
-                JwtSecurityToken jwt = handler.ReadJwtToken(rawToken);
-
-                string? userClaim = User.FindFirst("user_id")?.Value;   
-                string? albumClaim = jwt.Claims.FirstOrDefault(c => c.Type == "album_id")?.Value;
-                string? hashClaim  = jwt.Claims.FirstOrDefault(c => c.Type == "file_hash")?.Value;
-                string? purposeClaim = jwt.Claims.FirstOrDefault(c => c.Type == "purpose")?.Value;
-                string? scopeClaim = jwt.Claims.FirstOrDefault(c => c.Type == "scope")?.Value;
-                string? sessionClaim = jwt.Claims.FirstOrDefault(c => c.Type == "session")?.Value;
-                string? originClaim = jwt.Claims.FirstOrDefault(c => c.Type == "origin")?.Value;
-
-                if (string.IsNullOrWhiteSpace(originClaim))
-                {
-                    return false;
-                }
-
-                origin = originClaim;
-
-                if(user_id.ToString()!=userClaim){return false;}
-
-                if (!Guid.TryParse(sessionClaim, out Guid claimGuid) || session != claimGuid)
-                {
-                    return false;
-                }
-
-                if (!Guid.TryParse(albumClaim, out album_id))
-                {
-                    return false;
-                }
-
-                if (hashClaim == null)
-                {
-                    return false;
-                }
-
-                file_hash = hashClaim;
-
-                if (string.IsNullOrWhiteSpace(purposeClaim))
-                {
-                    return false;
-                }
-
-                purpose = purposeClaim;
-
-                PetCenterModels.ModelUtils.FileScope? parsedScope = Crypto.ValidateScope(scopeClaim ?? "");
-                if (parsedScope == null)
-                {
-                    return false;
-                }
-
-                scope = parsedScope.Value;
-
-                if (scope == FileScope.ReadOnly && string.IsNullOrWhiteSpace(file_hash))
-                {
-                    return false;
-                }
-
-                return true;
+                return null;
             }
-            catch
+
+            AuthenticateResult result = await HttpContext.AuthenticateAsync("FileToken");
+            if (!result.Succeeded)
             {
-                return false;
+                return null;
             }
+
+            ClaimsPrincipal fileToken = result.Principal!;
+
+            string? userClaim = fileToken.FindFirst("user_id")?.Value;
+            string? albumClaim = fileToken.FindFirst("album_id")?.Value;
+            string? hashClaim = fileToken.FindFirst("file_hash")?.Value;
+            string? purposeClaim = fileToken.FindFirst("purpose")?.Value;
+            string? scopeClaim = fileToken.FindFirst("scope")?.Value;
+            string? sessionClaim = fileToken.FindFirst("session")?.Value;
+            string? originClaim = fileToken.FindFirst("origin")?.Value;
+
+            if (string.IsNullOrWhiteSpace(originClaim)) return null;
+            if (user_id.ToString() != userClaim) return null;
+            if (!Guid.TryParse(sessionClaim, out Guid claimGuid) || session != claimGuid) return null;
+            if (!Guid.TryParse(albumClaim, out Guid album_id)) return null;
+            if (hashClaim == null) return null;
+            if (string.IsNullOrWhiteSpace(purposeClaim)) return null;
+
+            PetCenterModels.ModelUtils.FileScope? parsedScope = Crypto.ValidateScope(scopeClaim ?? "");
+            if (parsedScope == null) return null;
+
+            if (parsedScope.Value == FileScope.ReadOnly && string.IsNullOrWhiteSpace(hashClaim)) return null;
+
+            return new FileTokenResult(session, user_id, album_id, hashClaim, purposeClaim, parsedScope.Value, originClaim);
         }
-       
-           
+        catch
+        {
+            return null;
+        }
+    }
+            
 
         public BLOBControllerTemplate(TService s)
         {
@@ -140,19 +105,20 @@ namespace PetCenterAPI.Controllers
         [HttpGet]
         public virtual async Task<IActionResult> Get()
         {
-            if(TryParseFileToken(out Guid session, out Guid user_id, out Guid album_id, out string file_hash, out string purpose, out FileScope scope, out string origin))
+            FileTokenResult? ft = await TryParseFileToken();
+            if(ft!=null)
             {
-                if (ControllerContext.ActionDescriptor.ControllerName.ToLowerInvariant() == purpose.ToLowerInvariant())
+                if (ControllerContext.ActionDescriptor.ControllerName.ToLowerInvariant() == ft.Purpose.ToLowerInvariant() && ft.Scope!=FileScope.Invalid)
                 {
 
-                    ServiceOutput<object> cleared = await service.CheckScope(user_id,album_id,FileScope.ReadOnly,origin);
+                    ServiceOutput<object> cleared = await service.CheckScope(ft.UserId,ft.AlbumId,FileScope.ReadOnly,ft.Origin,ft.FileHash);
 
                     if (!ServiceOutput<object>.IsSuccess(cleared))
                     {
                         return ResultConverter.Convert<TDTO>(ServiceOutput<TDTO>.Error(cleared.Code,cleared.ErrorMessage!));
                     }
 
-                    return ResultConverter.Convert<byte[]>(await service.Download(user_id,file_hash));
+                    return ResultConverter.Convert<byte[]>(await service.Download(ft.UserId,ft.FileHash));
                 }
             }
 
@@ -163,29 +129,45 @@ namespace PetCenterAPI.Controllers
         [HttpPost]
         public virtual async Task<IActionResult> Post()
         {
-            if(TryParseFileToken(out Guid session,out Guid user_id, out Guid album_id, out string file_hash, out string purpose, out FileScope scope, out string origin))
+            FileTokenResult? ft = await TryParseFileToken();
+            if(ft!=null)
             {
-                if (ControllerContext.ActionDescriptor.ControllerName.ToLowerInvariant() == purpose.ToLowerInvariant() && scope == FileScope.Write)
+
+                if (ControllerContext.ActionDescriptor.ControllerName.ToLowerInvariant() == ft.Purpose.ToLowerInvariant() && ft.Scope == FileScope.Write)
                 {
 
-                    ServiceOutput<object> cleared = await service.CheckScope(user_id,album_id,FileScope.Write,origin);
+                    ServiceOutput<object> cleared = await service.CheckScope(ft.UserId,ft.AlbumId,FileScope.Write,ft.Origin,null);
 
                     if (!ServiceOutput<object>.IsSuccess(cleared))
                     {
                         return ResultConverter.Convert<TDTO>(ServiceOutput<TDTO>.Error(cleared.Code,cleared.ErrorMessage!));
                     }
 
+                    if (Request.ContentLength is long declared && declared > MaxUploadSize)
+                    {
+                        return StatusCode(StatusCodes.Status413PayloadTooLarge, "File too large.");
+                    }
 
-                    using (MemoryStream ms = new MemoryStream()){
+                    using (MemoryStream ms = new MemoryStream())
+                    {
+                        byte[] buffer = new byte[81920];
+                        long total = 0;
+                        int read;
+                        while ((read = await Request.Body.ReadAsync(buffer, 0, buffer.Length)) > 0)
+                        {
+                            total += read;
+                            if (total > MaxUploadSize)
+                            {
 
-                        await Request.Body.CopyToAsync(ms);
+                                return StatusCode(StatusCodes.Status413PayloadTooLarge, "File too large.");
+                            }
+                            await ms.WriteAsync(buffer, 0, read);
+                        }
 
                         byte[] data = ms.ToArray();
-
-                        return ResultConverter.Convert<TDTO>(await service.Upload(session,user_id,album_id,data,origin));
-                    
+                        return ResultConverter.Convert<TDTO>(await service.Upload(ft.Session, ft.UserId, ft.AlbumId, data, ft.Origin));
                     }
-                
+        
                 
                 }
             }
@@ -197,18 +179,19 @@ namespace PetCenterAPI.Controllers
         [HttpDelete]
         public virtual async Task<IActionResult> Delete()
         {
-            if(TryParseFileToken(out Guid session,out Guid user_id, out Guid album_id, out string file_hash, out string purpose, out FileScope scope, out string origin))
+            FileTokenResult? ft = await TryParseFileToken();
+            if(ft!=null)
             {
-                if (ControllerContext.ActionDescriptor.ControllerName.ToLowerInvariant() == purpose.ToLowerInvariant() && scope == FileScope.Write)
+                if (ControllerContext.ActionDescriptor.ControllerName.ToLowerInvariant() == ft.Purpose.ToLowerInvariant() && ft.Scope == FileScope.Write)
                 {
-                    ServiceOutput<object> cleared = await service.CheckScope(user_id,album_id,FileScope.Write,origin);
+                    ServiceOutput<object> cleared = await service.CheckScope(ft.UserId,ft.AlbumId,FileScope.Write,ft.Origin,ft.FileHash);
 
                     if (!ServiceOutput<object>.IsSuccess(cleared))
                     {
                         return ResultConverter.Convert<TDTO>(ServiceOutput<TDTO>.Error(cleared.Code,cleared.ErrorMessage!));
                     }
 
-                    return ResultConverter.Convert<object>(await service.Delete(user_id,file_hash,album_id));
+                    return ResultConverter.Convert<object>(await service.Delete(ft.UserId,ft.FileHash,ft.AlbumId));
                 
                 
                 }

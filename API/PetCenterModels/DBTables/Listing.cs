@@ -18,6 +18,13 @@ namespace PetCenterModels.DBTables
         Pet = 2,
         Medical = 3
     }
+
+    public enum EvaluationStatus : byte
+    {
+        Pending = 0,
+        Approved = 1,
+        Denied = 2
+    }
         
     [Table("Listing", Schema = "Offer")]
     public class Listing : AlbumIncludingTableEntity
@@ -34,12 +41,13 @@ namespace PetCenterModels.DBTables
         public Guid FranchiseId { get; set; }
         [Column("Visible")]
         public bool Visible { get; set; } = false;
-        [Column("Approved")]
-        public bool Approved { get; set; } = false;
+
+        [Column("EvaluationStatus")]
+        public EvaluationStatus Status {get; set;} = EvaluationStatus.Pending;
+
         [Column("Posted")]
         public DateTime Posted {get; set;} = DateTime.UtcNow;
-        [Column("Updated")]
-        public bool Updated {get; set;} = true;
+        
         [Column("EvaluatorID")]
         public Guid? EvaluatorId { get; set; } = null;
         [Column("EvaluatorContact")]

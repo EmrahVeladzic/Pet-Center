@@ -82,6 +82,7 @@ class PageSelectorState extends State<PageSelector> {
         mainAxisSize: MainAxisSize.min,
         children: [
           IconButton(
+            tooltip: "Previous page",
             onPressed: currentPage > 1
                 ? () => changePage(currentPage - 1)
                 : null,
@@ -108,6 +109,7 @@ class PageSelectorState extends State<PageSelector> {
           ),
 
           IconButton(
+            tooltip: "Next page",
             onPressed: currentPage < maxPage
                 ? () => changePage(currentPage + 1)
                 : null,

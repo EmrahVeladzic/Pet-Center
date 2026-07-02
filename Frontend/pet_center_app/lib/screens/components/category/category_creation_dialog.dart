@@ -55,8 +55,9 @@ class _CategoryCreationDialogState extends State<CategoryCreationDialog> {
         child: AlertDialog(
           title: Row(
             children: [
-              Expanded(child: design.textMarquee('Enter:')),
+              Expanded(child: design.textMarquee('Define category:')),
               IconButton(
+                tooltip: "Close",
                 icon: const Icon(Icons.close),
                 onPressed: () => Navigator.of(context).pop(),
               ),
@@ -114,7 +115,9 @@ class _CategoryCreationDialogState extends State<CategoryCreationDialog> {
                   invokeCallback();
                 }
               },
-              child: design.fittedText('Save'),
+              child: design.fittedText(
+                (widget.fromCurrent == null) ? 'Add' : "Overwrite",
+              ),
             ),
           ],
         ),

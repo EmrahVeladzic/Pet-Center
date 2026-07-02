@@ -84,7 +84,7 @@ class ReactiveDesignSystem extends ThemeExtension<ReactiveDesignSystem> {
     return ReactiveDesignSystem(
       spacing: isLandscape ? width * 0.015 : width * 0.04,
 
-      boundedIconSize: isLandscape ? width * 0.02 : width * 0.05,
+      boundedIconSize: isLandscape ? width * 0.03 : width * 0.1,
 
       boundedImageSize: isLandscape ? width * 0.075 : width * 0.2,
 

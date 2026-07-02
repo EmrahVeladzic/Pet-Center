@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:pet_center_app/models/enums.dart';
 import 'package:pet_center_app/utils/app_style.dart';
-import 'package:pet_center_app/utils/jwt_parser.dart';
+import 'package:pet_center_app/utils/jwt_utils.dart';
 
 class DeletionDialog extends StatefulWidget {
   final bool bannable;
@@ -36,6 +36,7 @@ class _DeletionDialogState extends State<DeletionDialog> {
               child: design.textMarquee('Remove ${widget.itemName ?? 'item'}?'),
             ),
             IconButton(
+              tooltip: "Close",
               icon: const Icon(Icons.close),
               onPressed: () => Navigator.of(context).pop(),
             ),

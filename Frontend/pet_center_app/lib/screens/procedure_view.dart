@@ -75,10 +75,12 @@ class _ProcedureViewState extends State<ProcedureView> {
         ),
         actions: [
           IconButton(
+            tooltip: "Define procedure",
             onPressed: () {
               showDialog(
                 context: context,
                 builder: (_) => TextEntryDialog(
+                  dialogName: "New medical procedure:",
                   limit: 50,
                   inputDecoration: "Description...",
                   validation: (value) => validateGeneric(value),
@@ -88,7 +90,7 @@ class _ProcedureViewState extends State<ProcedureView> {
             },
             icon: const Icon(Icons.add),
             padding: EdgeInsets.zero,
-            visualDensity: VisualDensity.compact,
+
             constraints: const BoxConstraints(),
           ),
         ],
@@ -102,6 +104,7 @@ class _ProcedureViewState extends State<ProcedureView> {
                 showDialog(
                   context: context,
                   builder: (_) => TextEntryDialog(
+                    dialogName: "Edit procedure:",
                     limit: 50,
                     inputDecoration: "Description...",
                     validation: (value) => validateGeneric(value),
