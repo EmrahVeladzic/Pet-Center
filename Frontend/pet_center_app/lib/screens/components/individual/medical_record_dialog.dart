@@ -62,8 +62,9 @@ class _SpecificationCreationDialogState extends State<MedicalRecordDialog> {
         child: AlertDialog(
           title: Row(
             children: [
-              Expanded(child: design.textMarquee('Enter:')),
+              Expanded(child: design.textMarquee('Set medical record entry:')),
               IconButton(
+                tooltip: "Close",
                 icon: const Icon(Icons.close),
                 onPressed: () => Navigator.of(context).pop(),
               ),
@@ -118,7 +119,7 @@ class _SpecificationCreationDialogState extends State<MedicalRecordDialog> {
                   invokeCallback();
                 }
               },
-              child: design.fittedText('Save'),
+              child: design.fittedText('Set'),
             ),
           ],
         ),

@@ -36,6 +36,7 @@ class _DeletionDialogState extends State<DeletionDialog> {
               child: design.textMarquee('Remove ${widget.itemName ?? 'item'}?'),
             ),
             IconButton(
+              tooltip: "Close",
               icon: const Icon(Icons.close),
               onPressed: () => Navigator.of(context).pop(),
             ),

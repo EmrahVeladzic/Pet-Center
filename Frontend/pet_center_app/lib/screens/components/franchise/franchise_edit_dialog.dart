@@ -68,6 +68,7 @@ class _FranchiseEditDialogState extends State<FranchiseEditDialog> {
             children: [
               Expanded(child: design.textMarquee("Edit franchise details:")),
               IconButton(
+                tooltip: "Edit details",
                 icon: const Icon(Icons.close),
                 onPressed: () => Navigator.of(context).pop(),
               ),

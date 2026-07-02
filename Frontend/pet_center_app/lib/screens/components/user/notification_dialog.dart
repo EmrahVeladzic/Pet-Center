@@ -79,6 +79,7 @@ class _NotificationDialogState extends State<NotificationDialog> {
             children: [
               Expanded(child: design.textMarquee("Add notification")),
               IconButton(
+                tooltip: "Close",
                 icon: const Icon(Icons.close),
                 onPressed: () => Navigator.of(context).pop(),
               ),

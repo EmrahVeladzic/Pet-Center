@@ -105,7 +105,11 @@ class _AccountPageScreen extends State<AccountPageScreen> {
     return DataScreenScaffold<AccountFilters, AccountResponseDTO>(
       appTitle: 'People:',
       importActions: [
-        IconButton(icon: Icon(Icons.picture_as_pdf), onPressed: toPdf),
+        IconButton(
+          tooltip: "Convert to PDF",
+          icon: Icon(Icons.picture_as_pdf),
+          onPressed: toPdf,
+        ),
       ],
       maxPage: pageCount,
       pageSelectorKey: _pageSelectorKey,

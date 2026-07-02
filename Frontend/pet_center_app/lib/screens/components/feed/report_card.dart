@@ -28,10 +28,12 @@ class ReportCard extends StatelessWidget {
         decoration: design.panelDecoration(visited),
         child: Row(
           children: [
+            Expanded(flex: 4, child: Text("Report - ${report.reason}")),
             Expanded(
-              flex: 4,
+              flex: 2,
               child: Text(
-                "${report.reason} - ${formatDate(report.datePosted)}",
+                "Posted on:\n${formatDate(report.datePosted)}",
+                textAlign: TextAlign.center,
               ),
             ),
             Expanded(
@@ -44,10 +46,11 @@ class ReportCard extends StatelessWidget {
                   child: FittedBox(
                     fit: BoxFit.contain,
                     child: IconButton(
+                      tooltip: "Details",
                       onPressed: onTap,
                       icon: const Icon(Icons.arrow_forward),
                       padding: EdgeInsets.zero,
-                      visualDensity: VisualDensity.compact,
+
                       constraints: const BoxConstraints(),
                     ),
                   ),

@@ -48,27 +48,29 @@ class _TemplateSelectionScreenState extends State<TemplateSelectionScreen> {
           ),
         ),
       ),
-      body: [
-        ...templates.expand(
-          (e) => [
-            FractionallySizedBox(
-              widthFactor: 0.5,
-              alignment: Alignment.center,
-              child: ElevatedButton(
-                onPressed: () {
-                  final id = e.id;
-                  if (id == null) {
-                    return;
-                  }
-                  switchToSelection(id);
-                },
-                child: design.fittedText(e.description),
+      body: templates.isEmpty
+          ? [Center(child: design.fittedText("No templates available."))]
+          : [
+              ...templates.expand(
+                (e) => [
+                  FractionallySizedBox(
+                    widthFactor: 0.5,
+                    alignment: Alignment.center,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        final id = e.id;
+                        if (id == null) {
+                          return;
+                        }
+                        switchToSelection(id);
+                      },
+                      child: design.fittedText(e.description),
+                    ),
+                  ),
+                  design.verticalGap(),
+                ],
               ),
-            ),
-            design.verticalGap(),
-          ],
-        ),
-      ],
+            ],
 
       bottomNavigationBar: BottomAppBar(
         child: role == Access.user

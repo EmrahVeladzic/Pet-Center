@@ -79,6 +79,7 @@ class _ItemViewState extends State<ItemView> {
         ),
         actions: [
           IconButton(
+            tooltip: "Define product",
             onPressed: () {
               showDialog(
                 context: context,
@@ -90,7 +91,7 @@ class _ItemViewState extends State<ItemView> {
             },
             icon: const Icon(Icons.add),
             padding: EdgeInsets.zero,
-            visualDensity: VisualDensity.compact,
+
             constraints: const BoxConstraints(),
           ),
         ],
@@ -117,6 +118,9 @@ class _ItemViewState extends State<ItemView> {
                 showDialog(
                   context: context,
                   builder: (_) => ConfirmationDialog(
+                    title: "Remove product?",
+                    body:
+                        "This will remove the selected product. Do you wish to continue?",
                     confirmAction: () {
                       final id = e.id;
                       if (id != null) {

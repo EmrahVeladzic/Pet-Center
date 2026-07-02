@@ -61,6 +61,7 @@ class _DataScreenScaffoldState<F extends FilterTemplate, T>
           if (widget.importActions.isNotEmpty) ...widget.importActions,
           if (widget.filterPrereq) ...[
             IconButton(
+              tooltip: _filterVisible ? "Hide filter." : "Show filter.",
               icon: _filterVisible
                   ? const Icon(Icons.arrow_drop_up)
                   : const Icon(Icons.arrow_drop_down),
@@ -106,15 +107,24 @@ class _DataScreenScaffoldState<F extends FilterTemplate, T>
                         ),
                       ),
                     ],
-                    body: ListView.builder(
-                      itemCount: widget.dataSource.length,
-                      itemBuilder: (context, index) => Column(
-                        children: [
-                          widget.itemBuilder(context, widget.dataSource[index]),
-                          design.verticalGap(1),
-                        ],
-                      ),
-                    ),
+                    body: widget.dataSource.isEmpty
+                        ? Center(
+                            child: design.fittedText(
+                              "No results${widget.filterPrereq ? " for current filters" : ""}.",
+                            ),
+                          )
+                        : ListView.builder(
+                            itemCount: widget.dataSource.length,
+                            itemBuilder: (context, index) => Column(
+                              children: [
+                                widget.itemBuilder(
+                                  context,
+                                  widget.dataSource[index],
+                                ),
+                                design.verticalGap(1),
+                              ],
+                            ),
+                          ),
                   ),
           ),
         ),

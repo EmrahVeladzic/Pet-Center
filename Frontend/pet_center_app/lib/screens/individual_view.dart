@@ -86,6 +86,7 @@ class _IndividualViewScreenState extends State<IndividualViewScreen> {
         actions: [
           if ((widget.src ?? []).length < 50) ...[
             IconButton(
+              tooltip: "Add individual pet",
               icon: const Icon(Icons.add),
 
               onPressed: () {
@@ -139,6 +140,8 @@ class _IndividualViewScreenState extends State<IndividualViewScreen> {
                 showDialog(
                   context: context,
                   builder: (_) => ConfirmationDialog(
+                    title: "Remove individual?",
+                    body: "This will remove this pet. Continue?",
                     confirmAction: () {
                       removeAnimal(e.id!);
                     },

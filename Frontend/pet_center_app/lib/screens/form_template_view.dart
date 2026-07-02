@@ -79,6 +79,7 @@ class _FormTemplateViewState extends State<FormTemplateView> {
               showDialog(
                 context: context,
                 builder: (_) => TextEntryDialog(
+                  dialogName: "New template:",
                   limit: 100,
                   inputDecoration: "Description...",
                   validation: (value) => validateGeneric(value),
@@ -88,7 +89,7 @@ class _FormTemplateViewState extends State<FormTemplateView> {
             },
             icon: const Icon(Icons.add),
             padding: EdgeInsets.zero,
-            visualDensity: VisualDensity.compact,
+
             constraints: const BoxConstraints(),
           ),
         ],
@@ -103,6 +104,7 @@ class _FormTemplateViewState extends State<FormTemplateView> {
                 showDialog(
                   context: context,
                   builder: (_) => TextEntryDialog(
+                    dialogName: "Edit template:",
                     initText: e.description,
                     limit: 100,
                     inputDecoration: "Description...",

@@ -63,6 +63,7 @@ class _SuppliesViewScreenState extends State<SuppliesViewScreen> {
         ),
         actions: [
           IconButton(
+            tooltip: "Set supplies",
             icon: const Icon(Icons.add),
 
             onPressed: () {
@@ -79,6 +80,7 @@ class _SuppliesViewScreenState extends State<SuppliesViewScreen> {
             },
           ),
           IconButton(
+            tooltip: "View wishlist",
             icon: const Icon(Icons.view_list),
             onPressed: () {
               Navigator.push(
@@ -98,6 +100,7 @@ class _SuppliesViewScreenState extends State<SuppliesViewScreen> {
                 showDialog(
                   context: context,
                   builder: (_) => ConfirmationDialog(
+                    title: "Stop tracking supplies:",
                     confirmAction: () {
                       final id = e.id;
                       if (id == null) {

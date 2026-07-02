@@ -38,11 +38,24 @@ class ItemCard extends StatelessWidget {
                   children: [
                     Flexible(
                       fit: FlexFit.loose,
-                      child: design.fittedText(item.title, 2.0),
+                      child: Text("Product name:", textAlign: TextAlign.center),
                     ),
                     Flexible(
                       fit: FlexFit.loose,
-                      child: design.fittedText(
+                      child: Text(
+                        item.title,
+                        textAlign: TextAlign.center,
+                        textScaler: TextScaler.linear(1.5),
+                      ),
+                    ),
+                    Flexible(
+                      fit: FlexFit.loose,
+                      child: Text("For:", textAlign: TextAlign.center),
+                    ),
+                    Flexible(
+                      fit: FlexFit.loose,
+                      child: Text(
+                        textAlign: TextAlign.center,
                         "${kinds.where((k) => k.id == item.kindId).firstOrNull?.title ?? "Animal"}${item.scale != null ? " - ${item.scale?.displayName}" : ""}",
                       ),
                     ),
@@ -66,10 +79,11 @@ class ItemCard extends StatelessWidget {
                   child: FittedBox(
                     fit: BoxFit.contain,
                     child: IconButton(
+                      tooltip: "Edit",
                       onPressed: editAction,
                       icon: const Icon(Icons.edit),
                       padding: EdgeInsets.zero,
-                      visualDensity: VisualDensity.compact,
+
                       constraints: const BoxConstraints(),
                     ),
                   ),
@@ -86,10 +100,11 @@ class ItemCard extends StatelessWidget {
                   child: FittedBox(
                     fit: BoxFit.contain,
                     child: IconButton(
+                      tooltip: "Delete",
                       onPressed: deleteAction,
                       icon: const Icon(Icons.delete),
                       padding: EdgeInsets.zero,
-                      visualDensity: VisualDensity.compact,
+
                       constraints: const BoxConstraints(),
                     ),
                   ),
