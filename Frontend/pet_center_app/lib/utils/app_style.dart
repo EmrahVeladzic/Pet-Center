@@ -151,7 +151,14 @@ class ReactiveDesignSystem extends ThemeExtension<ReactiveDesignSystem> {
               children: [
                 Expanded(child: fittedText(label, 1.0, BoxFit.scaleDown)),
                 horizontalGap(),
-                Icon(icon, size: boundedIconSize),
+                Expanded(
+                  child: FittedBox(
+                    alignment: Alignment.centerRight,
+                    fit: BoxFit.scaleDown,
+                    child: Icon(icon, size: boundedIconSize),
+                  ),
+                ),
+
               ],
             ),
           ),
