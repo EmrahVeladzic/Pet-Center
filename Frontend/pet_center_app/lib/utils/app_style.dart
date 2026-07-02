@@ -117,6 +117,49 @@ class ReactiveDesignSystem extends ThemeExtension<ReactiveDesignSystem> {
     );
   }
 
+  Widget navAction(
+  String label,
+  VoidCallback onPressed, {
+  IconData icon = Icons.chevron_right,
+  bool visited = false,
+  }) {
+    final bool isLandscape = layoutDirection == Axis.horizontal;
+
+    if (isLandscape) {
+     
+      return FractionallySizedBox(
+        widthFactor: 0.5,
+        alignment: Alignment.center,
+        child: ElevatedButton(
+          onPressed: onPressed,
+          child: fittedText(label),
+        ),
+      );
+    }
+   
+    return Container(
+      height: screenHeight * 0.12,  
+      margin: EdgeInsets.symmetric(vertical: 1),
+      decoration: panelDecoration(visited),
+      child: Material(
+        type: MaterialType.transparency,
+        child: InkWell(
+          onTap: onPressed,
+          child: Padding(
+            padding: EdgeInsets.all(spacing),
+            child: Row(
+              children: [
+                Expanded(child: fittedText(label, 1.0, BoxFit.scaleDown)),
+                horizontalGap(),
+                Icon(icon, size: boundedIconSize),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget textMarquee(
     String text, [
     double? limit,
