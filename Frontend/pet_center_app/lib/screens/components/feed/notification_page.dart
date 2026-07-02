@@ -4,6 +4,7 @@ import 'package:pet_center_app/screens/components/feed/notification_card.dart';
 import 'package:pet_center_app/screens/notification_view.dart';
 import 'package:pet_center_app/services/static_user_data_service.dart';
 import 'package:pet_center_app/services/user_service.dart';
+import 'package:pet_center_app/utils/app_style.dart';
 
 class NotificationPage extends StatefulWidget {
   const NotificationPage({super.key});
@@ -63,7 +64,14 @@ class _NotificationPageState extends State<NotificationPage>
   @override
   Widget build(BuildContext context) {
     super.build(context);
+    final ReactiveDesignSystem design = Theme.of(
+      context,
+    ).extension<ReactiveDesignSystem>()!;
+
     if (_loading) return const Center(child: CircularProgressIndicator());
+    if (_items.isEmpty) {
+      return Center(child: design.fittedText("No new notifications."));
+    }
 
     return ListView.builder(
       itemCount: _items.length,

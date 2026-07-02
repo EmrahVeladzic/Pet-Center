@@ -63,10 +63,11 @@ class FacilityCard extends StatelessWidget {
                     child: FittedBox(
                       fit: BoxFit.contain,
                       child: IconButton(
+                        tooltip: "Edit",
                         onPressed: editAction,
                         icon: const Icon(Icons.edit),
                         padding: EdgeInsets.zero,
-                        visualDensity: VisualDensity.compact,
+
                         constraints: const BoxConstraints(),
                       ),
                     ),
@@ -83,10 +84,11 @@ class FacilityCard extends StatelessWidget {
                     child: FittedBox(
                       fit: BoxFit.contain,
                       child: IconButton(
+                        tooltip: "Delete",
                         onPressed: deleteAction,
                         icon: const Icon(Icons.delete),
                         padding: EdgeInsets.zero,
-                        visualDensity: VisualDensity.compact,
+
                         constraints: const BoxConstraints(),
                       ),
                     ),

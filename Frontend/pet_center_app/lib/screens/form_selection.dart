@@ -10,7 +10,7 @@ import 'package:pet_center_app/screens/templates/data_screen_scaffold.dart';
 import 'package:pet_center_app/services/form_service.dart';
 import 'package:pet_center_app/services/static_user_data_service.dart';
 
-import 'package:pet_center_app/utils/jwt_parser.dart';
+import 'package:pet_center_app/utils/jwt_utils.dart';
 
 class FormSelectionScreen extends StatefulWidget {
   final int maxPage;
@@ -118,7 +118,11 @@ class _FormSelectionScreenState extends State<FormSelectionScreen> {
     return DataScreenScaffold<FormFilters, FormDTO>(
       importActions: [
         if (role == Access.business && templateId != null) ...[
-          IconButton(icon: Icon(Icons.add), onPressed: createForm),
+          IconButton(
+            tooltip: "Create form",
+            icon: Icon(Icons.add),
+            onPressed: createForm,
+          ),
         ],
       ],
       maxPage: widget.maxPage,

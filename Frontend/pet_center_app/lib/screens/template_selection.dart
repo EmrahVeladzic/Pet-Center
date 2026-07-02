@@ -8,7 +8,7 @@ import 'package:pet_center_app/services/form_service.dart';
 import 'package:pet_center_app/services/static_user_data_service.dart';
 import 'package:pet_center_app/utils/app_style.dart';
 
-import 'package:pet_center_app/utils/jwt_parser.dart';
+import 'package:pet_center_app/utils/jwt_utils.dart';
 
 class TemplateSelectionScreen extends StatefulWidget {
   const TemplateSelectionScreen({super.key});
@@ -48,27 +48,29 @@ class _TemplateSelectionScreenState extends State<TemplateSelectionScreen> {
           ),
         ),
       ),
-      body: [
-        ...templates.expand(
-          (e) => [
-            FractionallySizedBox(
-              widthFactor: 0.5,
-              alignment: Alignment.center,
-              child: ElevatedButton(
-                onPressed: () {
-                  final id = e.id;
-                  if (id == null) {
-                    return;
-                  }
-                  switchToSelection(id);
-                },
-                child: design.fittedText(e.description),
+      body: templates.isEmpty
+          ? [Center(child: design.fittedText("No templates available."))]
+          : [
+              ...templates.expand(
+                (e) => [
+                  FractionallySizedBox(
+                    widthFactor: 0.5,
+                    alignment: Alignment.center,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        final id = e.id;
+                        if (id == null) {
+                          return;
+                        }
+                        switchToSelection(id);
+                      },
+                      child: design.fittedText(e.description),
+                    ),
+                  ),
+                  design.verticalGap(),
+                ],
               ),
-            ),
-            design.verticalGap(),
-          ],
-        ),
-      ],
+            ],
 
       bottomNavigationBar: BottomAppBar(
         child: role == Access.user

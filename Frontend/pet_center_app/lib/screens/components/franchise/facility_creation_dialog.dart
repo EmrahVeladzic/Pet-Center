@@ -74,6 +74,7 @@ class _FacilityCreationDialogState extends State<FacilityCreationDialog> {
                 ),
               ),
               IconButton(
+                tooltip: "Close",
                 icon: const Icon(Icons.close),
                 onPressed: () => Navigator.of(context).pop(),
               ),

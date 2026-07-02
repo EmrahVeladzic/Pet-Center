@@ -276,7 +276,7 @@ namespace PetCenterServices.Services
                         frm.EvaluatorId=token_holder;
                         frm.EvaluationDate=DateTime.UtcNow;
                         frm.Reason=reason;
-                        frm.Approved=false;
+                        frm.Status=EvaluationStatus.Denied;
                         Account? acc = await dbContext.Accounts.FindAsync(token_holder);
                         frm.EvaluatorContact=acc?.Contact;
 

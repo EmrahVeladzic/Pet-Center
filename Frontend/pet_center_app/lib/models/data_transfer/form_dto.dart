@@ -1,6 +1,7 @@
 import 'package:json_annotation/json_annotation.dart';
 import 'package:pet_center_app/models/data_transfer/note_sub_dto.dart';
 import 'package:pet_center_app/models/data_transfer/image_dto.dart';
+import 'package:pet_center_app/models/enums.dart';
 part 'form_dto.g.dart';
 
 @JsonSerializable(explicitToJson: true)
@@ -53,7 +54,7 @@ class FormDTO {
   String? evalContact;
   DateTime? evalDate;
   String? evalReason;
-  bool approved;
+  EvaluationStatus status;
 
   FormDTO({
     this.id,
@@ -72,7 +73,7 @@ class FormDTO {
     this.evalContact,
     this.evalDate,
     this.evalReason,
-    this.approved = false,
+    this.status = EvaluationStatus.pending,
   }) : entries = entries ?? [],
        media = media ?? [];
 
@@ -93,7 +94,7 @@ class FormDTO {
     evalContact: evalContact,
     evalDate: evalDate,
     evalReason: evalReason,
-    approved: approved,
+    status: status,
   );
 
   factory FormDTO.fromJson(Map<String, dynamic> json) =>

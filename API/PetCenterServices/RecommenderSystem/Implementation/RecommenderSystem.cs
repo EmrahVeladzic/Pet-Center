@@ -91,7 +91,7 @@ namespace PetCenterServices.Recommender
 
         public async Task RecommendListingToUsers(PetCenterDBContext ctx,Listing listing)
         {         
-            if(listing.Type!=ListingType.Product||!listing.Visible||!listing.Approved){return;}
+            if(listing.Type!=ListingType.Product||!listing.Visible||listing.Status!=EvaluationStatus.Approved){return;}
             listing.ProductExtension=await ctx.ProductListings.Include(pl=>pl.Product).FirstOrDefaultAsync(pl=>pl.Id==listing.Id);
             listing.ListingDiscount=await ctx.Discounts.FirstOrDefaultAsync(d=>d.ListingId==listing.Id);
 

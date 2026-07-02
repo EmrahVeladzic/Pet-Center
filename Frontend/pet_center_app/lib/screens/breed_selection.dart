@@ -11,7 +11,7 @@ import 'package:pet_center_app/screens/templates/data_screen_scaffold.dart';
 import 'package:pet_center_app/services/breed_service.dart';
 import 'package:pet_center_app/services/listing_service.dart';
 
-import 'package:pet_center_app/utils/jwt_parser.dart';
+import 'package:pet_center_app/utils/jwt_utils.dart';
 
 class BreedSelectionScreen extends StatefulWidget {
   final int maxPage;
@@ -153,7 +153,11 @@ class _BreedSelectionScreenState extends State<BreedSelectionScreen> {
     return DataScreenScaffold<BreedFilters, BreedDTO>(
       importActions: [
         if (role == Access.admin || role == Access.owner) ...[
-          IconButton(icon: Icon(Icons.add), onPressed: createBreed),
+          IconButton(
+            tooltip: "Define breed",
+            icon: Icon(Icons.add),
+            onPressed: createBreed,
+          ),
         ],
       ],
       maxPage: widget.maxPage,
@@ -190,7 +194,11 @@ class _BreedSelectionScreenState extends State<BreedSelectionScreen> {
           onDelete: () {
             showDialog(
               context: context,
+
               builder: (_) => ConfirmationDialog(
+                title: "Remove breed",
+                body:
+                    "Are you sure you want to remove this breed and any data referencing it?",
                 confirmAction: () {
                   final id = source.id;
 

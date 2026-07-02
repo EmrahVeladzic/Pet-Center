@@ -4,7 +4,7 @@ import 'package:pet_center_app/models/data_transfer/user/user_response_dto.dart'
 import 'package:pet_center_app/models/enums.dart';
 import 'package:pet_center_app/utils/app_style.dart';
 import 'package:pet_center_app/utils/helpers.dart';
-import 'package:pet_center_app/utils/jwt_parser.dart';
+import 'package:pet_center_app/utils/jwt_utils.dart';
 
 class AnnouncementCard extends StatelessWidget {
   final AnnouncementSubDTO announcement;
@@ -34,11 +34,26 @@ class AnnouncementCard extends StatelessWidget {
         child: Row(
           children: [
             Expanded(
-              flex: 5,
+              flex: 4,
+              child: Text("Announcement - ${announcement.body}"),
+            ),
+            Expanded(
+              flex: 2,
               child: Text(
-                "${announcement.body} - ${formatDate(announcement.datePosted)}",
+                "Posted on:\n${formatDate(announcement.datePosted)}",
+                textAlign: TextAlign.center,
               ),
             ),
+            if (announcement.notes?.firstOrNull != null) ...[
+              Expanded(
+                flex: 2,
+                child: Text(
+                  "${announcement.notes!.first.title}\n${announcement.notes!.first.body}",
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ],
+
             Expanded(
               flex: 1,
 
@@ -50,10 +65,11 @@ class AnnouncementCard extends StatelessWidget {
                   child: FittedBox(
                     fit: BoxFit.contain,
                     child: IconButton(
+                      tooltip: "Mark as read",
                       onPressed: onTap,
                       icon: const Icon(Icons.done_all),
                       padding: EdgeInsets.zero,
-                      visualDensity: VisualDensity.compact,
+
                       constraints: const BoxConstraints(),
                     ),
                   ),
@@ -72,10 +88,11 @@ class AnnouncementCard extends StatelessWidget {
                     child: FittedBox(
                       fit: BoxFit.contain,
                       child: IconButton(
+                        tooltip: "Delete",
                         onPressed: onDelete,
                         icon: const Icon(Icons.delete),
                         padding: EdgeInsets.zero,
-                        visualDensity: VisualDensity.compact,
+
                         constraints: const BoxConstraints(),
                       ),
                     ),

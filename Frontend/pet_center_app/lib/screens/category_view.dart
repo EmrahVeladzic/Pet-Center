@@ -76,6 +76,7 @@ class _CategoryViewState extends State<CategoryView> {
         ),
         actions: [
           IconButton(
+            tooltip: "Define category",
             onPressed: () {
               showDialog(
                 context: context,
@@ -84,7 +85,7 @@ class _CategoryViewState extends State<CategoryView> {
             },
             icon: const Icon(Icons.add),
             padding: EdgeInsets.zero,
-            visualDensity: VisualDensity.compact,
+
             constraints: const BoxConstraints(),
           ),
         ],
@@ -114,6 +115,9 @@ class _CategoryViewState extends State<CategoryView> {
                 showDialog(
                   context: context,
                   builder: (_) => ConfirmationDialog(
+                    title: "Remove category?",
+                    body:
+                        "This will remove the selected category and all data referencing it. Continue?",
                     confirmAction: () {
                       final id = e.id;
                       if (id != null) {

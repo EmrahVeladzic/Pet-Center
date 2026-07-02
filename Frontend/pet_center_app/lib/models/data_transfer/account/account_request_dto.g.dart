@@ -12,7 +12,6 @@ AccountRequestDTO _$AccountRequestDTOFromJson(Map<String, dynamic> json) =>
       currentVersion: json['currentVersion'] as String? ?? '',
       contact: json['contact'] as String? ?? '',
       password: json['password'] as String? ?? '',
-      newPassword: json['newPassword'] as String? ?? '',
       role: $enumDecodeNullable(_$AccessEnumMap, json['role']) ?? Access.user,
     );
 
@@ -22,7 +21,6 @@ Map<String, dynamic> _$AccountRequestDTOToJson(AccountRequestDTO instance) =>
       'currentVersion': instance.currentVersion,
       'contact': instance.contact,
       'password': instance.password,
-      'newPassword': instance.newPassword,
       'role': _$AccessEnumMap[instance.role]!,
     };
 

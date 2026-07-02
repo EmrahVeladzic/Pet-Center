@@ -17,7 +17,7 @@ import 'package:pet_center_app/services/franchise_service.dart';
 import 'package:pet_center_app/services/static_user_data_service.dart';
 import 'package:pet_center_app/utils/app_style.dart';
 import 'package:pet_center_app/utils/helpers.dart';
-import 'package:pet_center_app/utils/jwt_parser.dart';
+import 'package:pet_center_app/utils/jwt_utils.dart';
 import 'package:pet_center_app/utils/pdf_utils.dart';
 import 'package:pet_center_app/utils/validators.dart';
 
@@ -140,9 +140,17 @@ class _FormViewScreenState extends State<FormViewScreen> {
         ),
         actions: [
           if (role == Access.business) ...[
-            IconButton(icon: const Icon(Icons.edit), onPressed: navigateToEdit),
+            IconButton(
+              tooltip: "Edit",
+              icon: const Icon(Icons.edit),
+              onPressed: navigateToEdit,
+            ),
           ],
-          IconButton(icon: Icon(Icons.picture_as_pdf), onPressed: toPdf),
+          IconButton(
+            tooltip: "Export to PDF",
+            icon: Icon(Icons.picture_as_pdf),
+            onPressed: toPdf,
+          ),
           IconButton(
             onPressed: () {
               if (role == Access.business) {
@@ -151,6 +159,7 @@ class _FormViewScreenState extends State<FormViewScreen> {
                   builder: (_) => ConfirmationDialog(
                     confirmAction: removeForm,
                     title: "Withdraw form",
+                    body: "This will remove your form. Continue?",
                   ),
                 );
               } else if (widget.form.evalContact == null) {
@@ -175,7 +184,14 @@ class _FormViewScreenState extends State<FormViewScreen> {
                 );
               }
             },
-            icon: (role == Access.business)
+            tooltip: role == Access.business
+                ? "Withdraw form"
+                : widget.form.evalContact == null
+                ? "Deny form"
+                : role == Access.owner
+                ? "Delete form"
+                : null,
+            icon: role == Access.business
                 ? const Icon(Icons.delete)
                 : const Icon(Icons.block),
           ),
@@ -183,13 +199,14 @@ class _FormViewScreenState extends State<FormViewScreen> {
       ),
       body: [
         design.verticalGap(design.spacing),
-        if (widget.form.evalContact != null &&
+        if (widget.form.status != EvaluationStatus.pending &&
+            widget.form.evalContact != null &&
             widget.form.evalDate != null &&
             (role == Access.owner || role == Access.admin)) ...[
           Padding(
             padding: EdgeInsetsGeometry.symmetric(horizontal: design.spacing),
             child: Text(
-              'Evaluation note: This form was ${widget.form.approved ? 'approved' : 'denied'} by ${widget.form.evalContact} on ${formatDate(widget.form.evalDate!)}.${(widget.form.evalReason?.isNotEmpty ?? false) ? ' The specified reason was: "${widget.form.evalReason}".' : ''}',
+              'Evaluation note: This form was ${widget.form.status.toString().toLowerCase()} by ${widget.form.evalContact} on ${formatDate(widget.form.evalDate!)}.${(widget.form.evalReason?.isNotEmpty ?? false) ? ' The specified reason was: "${widget.form.evalReason}".' : ''}',
               style: TextStyle(fontSize: design.fontSize * 1.5),
             ),
           ),

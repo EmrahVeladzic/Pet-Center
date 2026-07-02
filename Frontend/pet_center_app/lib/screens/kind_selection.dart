@@ -8,7 +8,7 @@ import 'package:pet_center_app/services/breed_service.dart';
 import 'package:pet_center_app/services/static_user_data_service.dart';
 import 'package:pet_center_app/utils/app_style.dart';
 
-import 'package:pet_center_app/utils/jwt_parser.dart';
+import 'package:pet_center_app/utils/jwt_utils.dart';
 
 class KindSelectionScreen extends StatefulWidget {
   const KindSelectionScreen({super.key});
@@ -54,27 +54,35 @@ class _KindSelectionScreenState extends State<KindSelectionScreen> {
           ),
         ),
       ),
-      body: [
-        ...kinds.expand(
-          (e) => [
-            FractionallySizedBox(
-              widthFactor: 0.5,
-              alignment: Alignment.center,
-              child: ElevatedButton(
-                onPressed: () {
-                  final id = e.id;
-                  if (id == null) {
-                    return;
-                  }
-                  switchToSelection(id, role == Access.user);
-                },
-                child: design.fittedText(e.title),
+      body: kinds.isEmpty
+          ? [
+              Center(
+                child: design.fittedText(
+                  "No animal kinds are currently defined.",
+                ),
               ),
-            ),
-            design.verticalGap(),
-          ],
-        ),
-      ],
+            ]
+          : [
+              ...kinds.expand(
+                (e) => [
+                  FractionallySizedBox(
+                    widthFactor: 0.5,
+                    alignment: Alignment.center,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        final id = e.id;
+                        if (id == null) {
+                          return;
+                        }
+                        switchToSelection(id, role == Access.user);
+                      },
+                      child: design.fittedText(e.title),
+                    ),
+                  ),
+                  design.verticalGap(),
+                ],
+              ),
+            ],
 
       bottomNavigationBar: BottomAppBar(
         child: role == Access.user

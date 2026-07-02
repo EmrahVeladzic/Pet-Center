@@ -111,10 +111,11 @@ class BreedCard extends StatelessWidget {
                   child: FittedBox(
                     fit: BoxFit.contain,
                     child: IconButton(
+                      tooltip: "Close",
                       onPressed: adminMode ? onAdminTap : onTap,
                       icon: const Icon(Icons.arrow_forward),
                       padding: EdgeInsets.zero,
-                      visualDensity: VisualDensity.compact,
+
                       constraints: const BoxConstraints(),
                     ),
                   ),
@@ -133,10 +134,11 @@ class BreedCard extends StatelessWidget {
                     child: FittedBox(
                       fit: BoxFit.contain,
                       child: IconButton(
+                        tooltip: "Delete",
                         onPressed: onDelete,
                         icon: const Icon(Icons.delete),
                         padding: EdgeInsets.zero,
-                        visualDensity: VisualDensity.compact,
+
                         constraints: const BoxConstraints(),
                       ),
                     ),

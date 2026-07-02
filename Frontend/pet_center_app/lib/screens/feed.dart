@@ -6,7 +6,7 @@ import 'package:pet_center_app/screens/components/feed/note_page.dart';
 import 'package:pet_center_app/screens/components/feed/notification_page.dart';
 import 'package:pet_center_app/screens/components/feed/report_page.dart';
 import 'package:pet_center_app/utils/app_style.dart';
-import 'package:pet_center_app/utils/jwt_parser.dart';
+import 'package:pet_center_app/utils/jwt_utils.dart';
 
 class FeedScreen extends StatefulWidget {
   const FeedScreen({super.key});
@@ -68,6 +68,7 @@ class _FeedScreenState extends State<FeedScreen> {
                     if (index == 0 &&
                         (role == Access.admin || role == Access.owner)) {
                       return IconButton(
+                        tooltip: "Create announcement",
                         icon: const Icon(Icons.add),
                         onPressed: () {
                           showDialog(

@@ -53,11 +53,13 @@ class _WishlistViewScreenState extends State<WishlistViewScreen> {
         ),
         actions: [
           IconButton(
+            tooltip: "Set term",
             icon: const Icon(Icons.add),
             onPressed: () {
               showDialog(
                 context: context,
                 builder: (_) => TextEntryDialog(
+                  dialogName: "Wishlist term:",
                   limit: 75,
                   inputDecoration: "Term...",
                   validation: (value) => validateGeneric(value),

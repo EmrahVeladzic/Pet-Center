@@ -8,7 +8,6 @@ class AccountRequestDTO {
   String currentVersion;
   String contact;
   String password;
-  String newPassword;
   Access role;
 
   AccountRequestDTO({
@@ -16,7 +15,6 @@ class AccountRequestDTO {
     this.currentVersion = '',
     this.contact = '',
     this.password = '',
-    this.newPassword = '',
     this.role = Access.user,
   });
 
@@ -31,6 +29,5 @@ class AccountRequestDTO {
     contact: contact,
     password: password,
     role: role,
-    newPassword: newPassword,
   );
 }

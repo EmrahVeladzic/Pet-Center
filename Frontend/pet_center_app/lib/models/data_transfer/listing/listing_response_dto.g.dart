@@ -24,7 +24,9 @@ ListingResponseDTO _$ListingResponseDTOFromJson(Map<String, dynamic> json) =>
       franchiseName: json['franchiseName'] as String? ?? '',
       locked: json['locked'] as bool? ?? true,
       full: json['full'] as bool? ?? true,
-      approved: json['approved'] as bool? ?? false,
+      status:
+          $enumDecodeNullable(_$EvaluationStatusEnumMap, json['status']) ??
+          EvaluationStatus.pending,
       visible: json['visible'] as bool? ?? false,
       priceMinor: (json['priceMinor'] as num?)?.toInt() ?? 0,
       posted: json['posted'] == null
@@ -86,7 +88,6 @@ Map<String, dynamic> _$ListingResponseDTOToJson(ListingResponseDTO instance) =>
       'franchiseId': instance.franchiseId,
       'contact': instance.contact,
       'franchiseName': instance.franchiseName,
-      'approved': instance.approved,
       'visible': instance.visible,
       'priceMinor': instance.priceMinor,
       'type': _$ListingTypeEnumMap[instance.type]!,
@@ -101,7 +102,14 @@ Map<String, dynamic> _$ListingResponseDTOToJson(ListingResponseDTO instance) =>
       'evalContact': instance.evalContact,
       'evalDate': instance.evalDate?.toIso8601String(),
       'evalReason': instance.evalReason,
+      'status': _$EvaluationStatusEnumMap[instance.status]!,
     };
+
+const _$EvaluationStatusEnumMap = {
+  EvaluationStatus.pending: 0,
+  EvaluationStatus.approved: 1,
+  EvaluationStatus.denied: 2,
+};
 
 const _$ListingTypeEnumMap = {
   ListingType.generic: 0,

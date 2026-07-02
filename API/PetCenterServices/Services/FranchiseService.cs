@@ -102,7 +102,7 @@ namespace PetCenterServices.Services
                     await dbContext.Notifications.AddAsync(notif);
                     await dbSet.AddAsync(franch);
 
-                    frm.Approved=true;
+                    frm.Status=EvaluationStatus.Approved;
                     frm.Reason=null;
                     frm.EvaluationDate=DateTime.UtcNow;
                     frm.EvaluatorId=token_holder;

@@ -29,11 +29,17 @@ class NotificationCard extends StatelessWidget {
         child: Row(
           children: [
             Expanded(
-              flex: 4,
+              flex: 3,
+              child: Text("Notification - ${notification.title}"),
+            ),
+            Expanded(
+              flex: 1,
               child: Text(
-                "${notification.title} - ${formatDate(notification.datePosted)}",
+                "Posted on:\n${formatDate(notification.datePosted)}",
+                textAlign: TextAlign.center,
               ),
             ),
+
             Expanded(
               flex: 1,
 
@@ -45,12 +51,14 @@ class NotificationCard extends StatelessWidget {
                   child: FittedBox(
                     fit: BoxFit.contain,
                     child: IconButton(
+                      tooltip:
+                          "Mark as ${notification.seen ? "not read" : "read"}",
                       onPressed: onSeen,
                       icon: notification.seen
                           ? const Icon(Icons.close)
                           : const Icon(Icons.check),
                       padding: EdgeInsets.zero,
-                      visualDensity: VisualDensity.compact,
+
                       constraints: const BoxConstraints(),
                     ),
                   ),
@@ -68,10 +76,11 @@ class NotificationCard extends StatelessWidget {
                   child: FittedBox(
                     fit: BoxFit.contain,
                     child: IconButton(
+                      tooltip: "Details",
                       onPressed: onTap,
                       icon: const Icon(Icons.arrow_forward),
                       padding: EdgeInsets.zero,
-                      visualDensity: VisualDensity.compact,
+
                       constraints: const BoxConstraints(),
                     ),
                   ),

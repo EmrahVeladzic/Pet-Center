@@ -58,8 +58,9 @@ class _DiscountDialogState extends State<DiscountDialog> {
         child: AlertDialog(
           title: Row(
             children: [
-              Expanded(child: design.textMarquee('Enter:')),
+              Expanded(child: design.textMarquee('Set discount:')),
               IconButton(
+                tooltip: "Close",
                 icon: const Icon(Icons.close),
                 onPressed: () => Navigator.of(context).pop(),
               ),
@@ -116,7 +117,7 @@ class _DiscountDialogState extends State<DiscountDialog> {
                   invokeCallback();
                 }
               },
-              child: design.fittedText('Save'),
+              child: design.fittedText('Set'),
             ),
           ],
         ),

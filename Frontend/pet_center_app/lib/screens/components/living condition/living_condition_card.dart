@@ -4,7 +4,7 @@ import 'package:pet_center_app/models/enums.dart';
 import 'package:pet_center_app/screens/components/radio_button_component.dart';
 import 'package:pet_center_app/services/living_condition_service.dart';
 import 'package:pet_center_app/utils/app_style.dart';
-import 'package:pet_center_app/utils/jwt_parser.dart';
+import 'package:pet_center_app/utils/jwt_utils.dart';
 
 class LivingConditionCard extends StatefulWidget {
   final LivingConditionFieldDTO livingCondition;
@@ -75,10 +75,11 @@ class _LivingConditionCardState extends State<LivingConditionCard> {
                         child: FittedBox(
                           fit: BoxFit.contain,
                           child: IconButton(
+                            tooltip: "Edit question",
                             onPressed: widget.editAction,
                             icon: const Icon(Icons.edit),
                             padding: EdgeInsets.zero,
-                            visualDensity: VisualDensity.compact,
+
                             constraints: const BoxConstraints(),
                           ),
                         ),
@@ -94,10 +95,11 @@ class _LivingConditionCardState extends State<LivingConditionCard> {
                         child: FittedBox(
                           fit: BoxFit.contain,
                           child: IconButton(
+                            tooltip: "Remove question",
                             onPressed: widget.deleteAction,
                             icon: const Icon(Icons.delete),
                             padding: EdgeInsets.zero,
-                            visualDensity: VisualDensity.compact,
+
                             constraints: const BoxConstraints(),
                           ),
                         ),

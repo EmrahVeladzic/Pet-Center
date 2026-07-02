@@ -74,8 +74,13 @@ class _IndividualCreationDialogState extends State<IndividualCreationDialog> {
         child: AlertDialog(
           title: Row(
             children: [
-              Expanded(child: design.textMarquee('Enter:')),
+              Expanded(
+                child: design.textMarquee(
+                  '${(widget.fromCurrent == null) ? "Add" : "Edit"} individual pet:',
+                ),
+              ),
               IconButton(
+                tooltip: "Close",
                 icon: const Icon(Icons.close),
                 onPressed: () => Navigator.of(context).pop(),
               ),
@@ -167,7 +172,7 @@ class _IndividualCreationDialogState extends State<IndividualCreationDialog> {
                   invokeCallback();
                 }
               },
-              child: design.fittedText('Save'),
+              child: design.fittedText('Save pet'),
             ),
           ],
         ),

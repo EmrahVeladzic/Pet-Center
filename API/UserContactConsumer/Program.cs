@@ -12,7 +12,7 @@ class Program
             .AddJsonFile("appsettings.json")
             .AddEnvironmentVariables();
 
-        var configuration = builder.Build();
+        IConfigurationRoot configuration = builder.Build();
 
         using ILoggerFactory loggerFactory = LoggerFactory.Create(logging =>
         {
@@ -22,6 +22,16 @@ class Program
         });
 
         ILogger<Program> logger = loggerFactory.CreateLogger<Program>();
+
+        ConsumerConfigValidator validator = new();
+
+        string? validation = validator.ValidateEachRun(configuration);
+
+        if (validation != null)
+        {
+            logger.LogCritical(validation);
+            return; 
+        }
 
         EmailService email_service = new(configuration, loggerFactory.CreateLogger<EmailService>());
         ContactConsumer consumer = await ContactConsumer.CreateAsync(configuration, email_service, loggerFactory.CreateLogger<ContactConsumer>());

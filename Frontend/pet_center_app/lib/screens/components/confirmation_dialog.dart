@@ -32,6 +32,7 @@ class _ConfirmationDialogState extends State<ConfirmationDialog> {
           children: [
             Expanded(child: design.textMarquee(widget.title)),
             IconButton(
+              tooltip: "Close",
               icon: const Icon(Icons.close),
               onPressed: () => Navigator.of(context).pop(),
             ),

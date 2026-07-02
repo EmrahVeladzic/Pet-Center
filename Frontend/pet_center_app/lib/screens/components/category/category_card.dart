@@ -82,10 +82,11 @@ class CategoryCard extends StatelessWidget {
                         child: FittedBox(
                           fit: BoxFit.contain,
                           child: IconButton(
+                            tooltip: "Edit",
                             onPressed: editAction,
                             icon: const Icon(Icons.edit),
                             padding: EdgeInsets.zero,
-                            visualDensity: VisualDensity.compact,
+
                             constraints: const BoxConstraints(),
                           ),
                         ),
@@ -102,6 +103,7 @@ class CategoryCard extends StatelessWidget {
                         child: FittedBox(
                           fit: BoxFit.contain,
                           child: IconButton(
+                            tooltip: "View products",
                             onPressed: () {
                               if (category.id == null) {
                                 return;
@@ -116,7 +118,7 @@ class CategoryCard extends StatelessWidget {
                             },
                             icon: const Icon(Icons.view_list),
                             padding: EdgeInsets.zero,
-                            visualDensity: VisualDensity.compact,
+
                             constraints: const BoxConstraints(),
                           ),
                         ),
@@ -153,9 +155,10 @@ class CategoryCard extends StatelessWidget {
                                   ),
                                 );
                               },
+                              tooltip: "Set",
                               icon: const Icon(Icons.note_add),
                               padding: EdgeInsets.zero,
-                              visualDensity: VisualDensity.compact,
+
                               constraints: const BoxConstraints(),
                             ),
                           ),
@@ -173,10 +176,11 @@ class CategoryCard extends StatelessWidget {
                         child: FittedBox(
                           fit: BoxFit.contain,
                           child: IconButton(
+                            tooltip: "Delete",
                             onPressed: deleteAction,
                             icon: const Icon(Icons.delete),
                             padding: EdgeInsets.zero,
-                            visualDensity: VisualDensity.compact,
+
                             constraints: const BoxConstraints(),
                           ),
                         ),

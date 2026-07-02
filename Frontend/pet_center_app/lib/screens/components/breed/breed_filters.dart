@@ -4,7 +4,7 @@ import 'package:pet_center_app/models/enums.dart';
 import 'package:pet_center_app/screens/templates/filter_template.dart';
 
 import 'package:pet_center_app/utils/app_style.dart';
-import 'package:pet_center_app/utils/jwt_parser.dart';
+import 'package:pet_center_app/utils/jwt_utils.dart';
 
 class BreedFilters extends StatefulWidget
     with FilterTemplate

@@ -64,8 +64,9 @@ class _AnnouncementCreationDialogState
         child: AlertDialog(
           title: Row(
             children: [
-              Expanded(child: design.textMarquee('Enter:')),
+              Expanded(child: design.textMarquee('Add announcement:')),
               IconButton(
+                tooltip: "Close",
                 icon: const Icon(Icons.close),
                 onPressed: () => Navigator.of(context).pop(),
               ),
@@ -135,6 +136,7 @@ class _AnnouncementCreationDialogState
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       IconButton(
+                        tooltip: "Subtract",
                         icon: Icon(Icons.remove, color: mainTone),
                         onPressed: () => setState(() {
                           if (days > 1) {
@@ -143,6 +145,7 @@ class _AnnouncementCreationDialogState
                         }),
                       ),
                       IconButton(
+                        tooltip: "Add",
                         icon: Icon(Icons.add, color: mainTone),
                         onPressed: () => setState(() {
                           if (days < 31) {

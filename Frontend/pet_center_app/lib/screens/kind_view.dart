@@ -89,16 +89,18 @@ class _KindViewScreenState extends State<KindViewScreen> {
           width: design.screenWidth * marqueeTitleWMult,
           height: design.marqueeSize,
           child: design.textMarquee(
-            'Form kinds:',
+            'Kinds:',
             design.screenWidth * marqueeTitleWMult,
           ),
         ),
         actions: [
           IconButton(
+            tooltip: "Define kind",
             onPressed: () {
               showDialog(
                 context: context,
                 builder: (_) => TextEntryDialog(
+                  dialogName: "Kind:",
                   limit: 30,
                   inputDecoration: "Description...",
                   validation: (value) => validateGeneric(value),
@@ -108,7 +110,7 @@ class _KindViewScreenState extends State<KindViewScreen> {
             },
             icon: const Icon(Icons.add),
             padding: EdgeInsets.zero,
-            visualDensity: VisualDensity.compact,
+
             constraints: const BoxConstraints(),
           ),
         ],
@@ -123,6 +125,7 @@ class _KindViewScreenState extends State<KindViewScreen> {
                 showDialog(
                   context: context,
                   builder: (_) => TextEntryDialog(
+                    dialogName: "Kind:",
                     initText: e.title,
                     limit: 30,
                     inputDecoration: "Description...",

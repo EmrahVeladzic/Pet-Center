@@ -8,7 +8,7 @@ import 'package:pet_center_app/services/listing_service.dart';
 import 'package:pet_center_app/services/static_user_data_service.dart';
 import 'package:pet_center_app/utils/app_style.dart';
 import 'package:pet_center_app/utils/helpers.dart';
-import 'package:pet_center_app/utils/jwt_parser.dart';
+import 'package:pet_center_app/utils/jwt_utils.dart';
 
 class CommentCard extends StatelessWidget {
   final CommentResponseSubDTO comment;
@@ -55,6 +55,7 @@ class CommentCard extends StatelessWidget {
                 child: Align(
                   alignment: Alignment.center,
                   child: IconButton(
+                    tooltip: "Remove",
                     onPressed: () {
                       showDialog(
                         context: context,
@@ -70,7 +71,6 @@ class CommentCard extends StatelessWidget {
                     },
                     icon: const Icon(Icons.delete),
                     padding: EdgeInsets.zero,
-                    visualDensity: VisualDensity.compact,
                   ),
                 ),
               ),
@@ -80,6 +80,7 @@ class CommentCard extends StatelessWidget {
                 child: Align(
                   alignment: Alignment.center,
                   child: IconButton(
+                    tooltip: "Report",
                     onPressed: () {
                       showDialog(
                         context: context,
@@ -91,7 +92,6 @@ class CommentCard extends StatelessWidget {
                     },
                     icon: const Icon(Icons.report),
                     padding: EdgeInsets.zero,
-                    visualDensity: VisualDensity.compact,
                   ),
                 ),
               ),
