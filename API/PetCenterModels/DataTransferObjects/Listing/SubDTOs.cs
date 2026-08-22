@@ -24,9 +24,14 @@ namespace PetCenterModels.DataTransferObjects
         public byte PerListing {get; set;} = 1;
 
 
-        public bool Validate()
+        public string? Validate()
         {
-            return !(ProductId==Guid.Empty) && (PerListing>0);
+            if (PerListing <= 0)
+            {
+                return "Product listings may not offer 0 products.";
+            }
+
+            return (ProductId==Guid.Empty)? "Product listings must reference a product." : null;
         }
 
         public ProductListing? ToEntity()
@@ -67,9 +72,9 @@ namespace PetCenterModels.DataTransferObjects
         public Guid Identity {get; set;} = Guid.Empty;
 
 
-        public bool Validate()
+        public string? Validate()
         {
-            return !(AnimalId==Guid.Empty);
+            return (AnimalId==Guid.Empty)? "Adoption listings must reference the pet that is up for adoption." :null;
         }
 
         public AnimalListing? ToEntity()
@@ -107,9 +112,9 @@ namespace PetCenterModels.DataTransferObjects
         public Guid ProcedureId {get; set;} = Guid.Empty;
 
 
-        public bool Validate()
+        public string? Validate()
         {
-            return !(ProcedureId==Guid.Empty);
+            return (ProcedureId==Guid.Empty)? "Procedure listings must reference a medical procedure.": null;
         }
 
         public MedicalListing? ToEntity()

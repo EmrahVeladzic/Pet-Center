@@ -46,18 +46,51 @@ namespace PetCenterModels.DataTransferObjects
             return output;
         }
 
-        public bool Validate()
+        public string? Validate()
         {
 
             switch (Type)
             {
-                case ListingType.Product:{ if(ProductListingExtension==null||!ProductListingExtension.Validate()){return false;} break;}
-                case ListingType.Medical:{ if(MedicalListingExtension==null||!MedicalListingExtension.Validate()){return false;} break;}
-                case ListingType.Pet:{ if(AnimalListingExtension==null||!AnimalListingExtension.Validate()){return false;} break;}
+                case ListingType.Product:{ 
+                    MedicalListingExtension=null;
+                    AnimalListingExtension=null;
+                    if(ProductListingExtension==null){return "Missing product extension for product listing.";}
+                    string? val = ProductListingExtension.Validate();
+                    if(val!=null){return val;}
+                    break;
+                }
+                case ListingType.Medical:{ 
+                    ProductListingExtension=null;
+                    AnimalListingExtension=null;
+                    if(MedicalListingExtension==null){return "Missing medical extension for medical listing.";}
+                    string? val = MedicalListingExtension.Validate();
+                    if(val!=null){return val;}
+                    break;
+                }
+                case ListingType.Pet:{ 
+                    ProductListingExtension=null;
+                    MedicalListingExtension=null;
+                    if(AnimalListingExtension==null){return "Missing animal extension for adoption listing.";}
+                    string? val = AnimalListingExtension.Validate();
+                    if(val!=null){return val;}                     
+                    break;                
+                }
+                default:{
+                    MedicalListingExtension=null;
+                    ProductListingExtension=null;
+                    AnimalListingExtension=null;
+                    break;
+                }
             }
 
+            if(PriceMinor<0){PriceMinor=0;}
 
-            return (!string.IsNullOrWhiteSpace(Name) && !string.IsNullOrWhiteSpace(Description)&&PriceMinor>=0 && !(FranchiseId==Guid.Empty));
+            if(FranchiseId==Guid.Empty){return "No franchise provided.";}
+
+            if(string.IsNullOrWhiteSpace(Description)){return "Listings must have a description.";}
+
+
+            return string.IsNullOrWhiteSpace(Name)? "Listings must have a title.": null;
         
         }
     }

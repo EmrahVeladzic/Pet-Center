@@ -16,6 +16,7 @@ using PetCenterServices.Workers;
 using PetCenterServices.Seeder;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using PetCenterAPI;
 
 
@@ -51,6 +52,8 @@ builder.Services.AddMemoryCache();
 
 builder.Services.AddControllers(options =>
 {
+    options.ModelBinderProviders.Insert(0, new ClaimModelBinderProvider());
+
     options.ModelMetadataDetailsProviders.Add(
         new Microsoft.AspNetCore.Mvc.ModelBinding.Metadata.ExcludeBindingMetadataProvider(
             typeof(System.ComponentModel.ReadOnlyAttribute)
@@ -108,6 +111,7 @@ builder.Services.AddSwaggerGen(cfg =>
     });
 
     cfg.SchemaFilter<CurrentVersionSchemaFilter>();
+    cfg.OperationFilter<ClaimParameterOperationFilter>();
 });
 
 
@@ -171,7 +175,10 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 string? jti = context.Principal?
                     .FindFirst(JwtRegisteredClaimNames.Jti)?.Value;
 
-                if (jti == null || !Guid.TryParse(jti, out var parsedJti))
+                string? sub = context.Principal?
+                    .FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+                if (!Guid.TryParse(jti, out Guid parsedJti) || !Guid.TryParse(sub, out _))
                 {
                     context.Fail("Invalid token.");
                     return;
@@ -181,8 +188,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                     .GetRequiredService<PetCenterDBContext>();
 
                 bool isInvalidated = await db.InvalidatedTokens
-                    .AnyAsync(t => t.Id == parsedJti
-                                && t.Expiry <= DateTime.UtcNow);
+                    .AnyAsync(t => t.Id == parsedJti);
 
                 if (isInvalidated)
                 {
@@ -248,6 +254,15 @@ app.UseExceptionHandler(errorApp =>
     errorApp.Run(async context =>
     {
         Exception? ex = context.Features.Get<IExceptionHandlerFeature>()?.Error;
+
+        if (ex is InvalidTokenException)
+        {
+            context.Response.StatusCode = 401;
+            context.Response.ContentType = "application/json";
+            await context.Response.WriteAsync(JsonSerializer.Serialize(new { error = "Invalid token." }));
+            return;
+        }
+
         ServiceOutput<object> output = ServiceOutput<object>.FromException(ex, logger);
         await PetCenterAPI.Controllers.ResultConverter.WriteAsync(context, output);
     });

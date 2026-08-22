@@ -55,9 +55,10 @@ namespace PetCenterServices.Services
         
         public override async Task<ServiceOutput<object>> IsClearedToCreate(Guid token_holder, LivingConditionFieldDTO resource)
         {
-            if (!resource.Validate())
+            string? val = resource.Validate();
+            if (val!=null)
             {
-                return ServiceOutput<object>.Error(HttpCode.BadRequest,"DTO validation failed.");
+                return ServiceOutput<object>.Error(HttpCode.BadRequest,val);
             }
             if(await dbSet.AnyAsync(l=>l.Title.ToLower()==resource.Title.ToLower()))
             {
@@ -69,9 +70,10 @@ namespace PetCenterServices.Services
 
         public override async Task<ServiceOutput<object>> IsClearedToUpdate(Guid token_holder, LivingConditionFieldDTO resource)
         {
-            if (!resource.Validate())
+            string? val = resource.Validate();
+            if (val!=null)
             {
-                return ServiceOutput<object>.Error(HttpCode.BadRequest,"DTO validation failed.");
+                return ServiceOutput<object>.Error(HttpCode.BadRequest,val);
             }
             LivingConditionField? field = await dbSet.FindAsync(resource.Id);
             if (field == null)

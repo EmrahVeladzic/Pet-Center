@@ -94,9 +94,10 @@ namespace PetCenterServices.Services
 
         public override async Task<ServiceOutput<object>> IsClearedToCreate(Guid token_holder, BreedDTO resource)
         {
-            if (!resource.Validate())
+            string? val = resource.Validate();
+            if (val!=null)
             {
-                return ServiceOutput<object>.Error(HttpCode.BadRequest,"DTO validation failed.");
+                return ServiceOutput<object>.Error(HttpCode.BadRequest,val);
             }
 
             if(!await dbContext.AnimalKinds.AnyAsync(k => k.Id == resource.KindId))
@@ -113,9 +114,11 @@ namespace PetCenterServices.Services
 
         public override async Task<ServiceOutput<object>> IsClearedToUpdate(Guid token_holder, BreedDTO resource)
         {
-            if (!resource.Validate())
+
+            string? val = resource.Validate();
+            if (val!=null)
             {
-                return ServiceOutput<object>.Error(HttpCode.BadRequest,"DTO validation failed.");
+                return ServiceOutput<object>.Error(HttpCode.BadRequest,val);
             }
 
             if(!await dbContext.AnimalKinds.AnyAsync(k => k.Id == resource.KindId))

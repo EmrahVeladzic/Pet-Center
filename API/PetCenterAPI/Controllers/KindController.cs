@@ -7,6 +7,7 @@ using PetCenterModels.SearchObjects;
 using PetCenterServices.Interfaces;
 using PetCenterServices.Utils;
 using System.Security.Claims;
+using PetCenterAPI;
 
 
 namespace PetCenterAPI.Controllers
@@ -19,27 +20,25 @@ namespace PetCenterAPI.Controllers
         public KindController(IKindService s):base(s) { }
 
 
-       
 
         [Authorize(Roles = "Admin,Owner")]
         [HttpPut("{id}")]
-        public override Task<IActionResult> Put([FromRoute] Guid id, [FromBody] KindDTO ent)
+        public override Task<IActionResult> Put([FromRoute] Guid id, [FromBody] KindDTO ent, [UserId] Guid user_id, [SessionId] Guid session)
         {
-            return base.Put(id, ent);
+            return base.Put(id, ent, user_id, session);
         }
-        
         [Authorize(Roles = "Admin,Owner")]
         [HttpDelete("{id}")]
-        public override Task<IActionResult> Delete(Guid id)
+        public override Task<IActionResult> Delete(Guid id, [UserId] Guid user_id)
         {
-            return base.Delete(id);
+            return base.Delete(id, user_id);
         }
 
         [Authorize(Roles = "Admin,Owner")]
         [HttpPost]
-        public override Task<IActionResult> Post([FromBody] KindDTO ent)
+        public override Task<IActionResult> Post([FromBody] KindDTO ent, [UserId] Guid user_id, [SessionId] Guid session)
         {
-            return base.Post(ent);
+            return base.Post(ent, user_id, session);
         }
 
     }

@@ -29,8 +29,14 @@ namespace PetCenterModels.DataTransferObjects
 
     public class PasswordChangeDTO
     {
-        public string? Contact {get; set;} = null;
         public string OldPW {get; set;} = string.Empty;
+        public string NewPW {get; set;} = string.Empty;
+    }
+
+    public class PasswordRecoveryDTO
+    {
+        public string Contact {get; set;} = string.Empty;
+        public int Code {get; set;}
         public string NewPW {get; set;} = string.Empty;
     }
 
@@ -39,7 +45,6 @@ namespace PetCenterModels.DataTransferObjects
         public int OldCode {get; set;}
         public int NewCode {get; set;}
     }
-    
     public interface IGeneratedSubDTO
     {
         public string Title {get; set;}
@@ -52,7 +57,7 @@ namespace PetCenterModels.DataTransferObjects
 
         public byte[] CurrentVersion { get; set; }
 
-        public bool Validate();
+        public string? Validate();
     }
 
     public interface ISerializableRequestDTO<TEntity> : IBaseRequestDTO where TEntity: BaseTableEntity
@@ -71,7 +76,6 @@ namespace PetCenterModels.DataTransferObjects
         public static abstract TSelf? FromEntity(TEntity? entity);
 
     }
-    
     public interface IBLOBReferencingDTO<TEntity,TSelf,TMeta> : IBaseResponseDTO<TEntity,TSelf> where TEntity: BLOBReferencingEntity<TMeta> where TSelf : IBaseResponseDTO<TEntity, TSelf> where TMeta : IMetadataOutput
     {
         public string? Token {get; set;}
@@ -83,7 +87,6 @@ namespace PetCenterModels.DataTransferObjects
         public static abstract TSelf? FromEntity(TEntity? entity, String token);
 
     }
- 
 
     public interface IAlbumCarryingDTO<TEntity,TSelf,TMedia,TBLOBRef,TMeta> : IBaseResponseDTO<TEntity,TSelf> where TEntity : AlbumIncludingTableEntity where TSelf : IBaseResponseDTO<TEntity,TSelf> where TBLOBRef : BLOBReferencingEntity<TMeta>  where TMedia : IBLOBReferencingDTO<TBLOBRef,TMedia,TMeta> where TMeta:IMetadataOutput
     {
@@ -102,5 +105,4 @@ namespace PetCenterModels.DataTransferObjects
         public static abstract TSelf? FromEntity(TEntity? entity, String token);
     }
 
-  
 }

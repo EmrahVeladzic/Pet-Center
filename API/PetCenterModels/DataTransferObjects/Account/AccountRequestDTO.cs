@@ -33,10 +33,10 @@ namespace PetCenterModels.DataTransferObjects
         public Access Role {get; set;} = Access.User;    
     
 
-        public bool Validate()
+        public string? Validate()
         {            
             Contact=Contact.ToLowerInvariant();
-            return ModelValidationUtils.ValidateContact(Contact);
+            return ModelValidationUtils.ValidateContact(Contact)? null : "Invalid contact.";
         }
     }
 }

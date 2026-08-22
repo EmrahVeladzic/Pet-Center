@@ -7,6 +7,7 @@ using PetCenterModels.SearchObjects;
 using PetCenterServices.Interfaces;
 using PetCenterServices.Utils;
 using System.Security.Claims;
+using PetCenterAPI;
 
 
 namespace PetCenterAPI.Controllers
@@ -18,50 +19,39 @@ namespace PetCenterAPI.Controllers
 
         public LivingConditionFieldController(ILivingConditionFieldService s):base(s) { }
 
-      
-       
 
         [Authorize(Roles = "Admin,Owner")]
         [HttpPut("{id}")]
-        public override Task<IActionResult> Put([FromRoute] Guid id, [FromBody] LivingConditionFieldDTO ent)
+        public override Task<IActionResult> Put([FromRoute] Guid id, [FromBody] LivingConditionFieldDTO ent, [UserId] Guid user_id, [SessionId] Guid session)
         {
-            return base.Put(id, ent);
+            return base.Put(id, ent, user_id, session);
         }
-        
         [Authorize(Roles = "Admin,Owner")]
         [HttpDelete("{id}")]
-        public override Task<IActionResult> Delete(Guid id)
+        public override Task<IActionResult> Delete(Guid id, [UserId] Guid user_id)
         {
-            return base.Delete(id);
+            return base.Delete(id, user_id);
         }
 
         [Authorize(Roles = "Admin,Owner")]
         [HttpPost]
-        public override Task<IActionResult> Post([FromBody] LivingConditionFieldDTO ent)
+        public override Task<IActionResult> Post([FromBody] LivingConditionFieldDTO ent, [UserId] Guid user_id, [SessionId] Guid session)
         {
-            return base.Post(ent);
+            return base.Post(ent, user_id, session);
         }
 
         [Authorize(Roles ="User")]
         [HttpPut("Entry/{field_id}")]
-        public async Task<IActionResult> AddEntry([FromRoute]Guid field_id, [FromQuery] bool answer)
+        public async Task<IActionResult> AddEntry([FromRoute]Guid field_id, [FromQuery] bool answer, [UserId] Guid user_id)
         {
-            if(TryGetUserId(out Guid user_id))
-            {
-                return ResultConverter.Convert<LivingConditionEntrySubDTO>(await service.AddEntry(user_id,field_id,answer));
-            }
-            return StatusCode(401,"Invalid token.");
+            return ResultConverter.Convert<LivingConditionEntrySubDTO>(await service.AddEntry(user_id,field_id,answer));
         }
 
         [Authorize(Roles ="User")]
         [HttpDelete("Entry/{entry_id}")]
-        public async Task<IActionResult> RemoveEntry([FromRoute]Guid entry_id)
+        public async Task<IActionResult> RemoveEntry([FromRoute]Guid entry_id, [UserId] Guid user_id)
         {
-            if(TryGetUserId(out Guid user_id))
-            {
-                return ResultConverter.Convert<object>(await service.RemoveEntry(user_id,entry_id));
-            }
-            return StatusCode(401,"Invalid token.");
+            return ResultConverter.Convert<object>(await service.RemoveEntry(user_id,entry_id));
         }
 
     }
