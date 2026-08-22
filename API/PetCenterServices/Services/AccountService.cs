@@ -43,9 +43,10 @@ namespace PetCenterServices.Services
 
         public override async Task<ServiceOutput<AccountResponseDTO>> Post(Guid session,Guid token_holder,AccountRequestDTO req)
         {
-            if (!req.Validate())
+            string? val = req.Validate();
+            if (val!=null)
             {
-                return ServiceOutput<AccountResponseDTO>.Error(HttpCode.BadRequest,"Please provide a valid contact and password.");
+                return ServiceOutput<AccountResponseDTO>.Error(HttpCode.BadRequest,val);
             }
             if (req.Role == Access.Owner)
             {
@@ -275,64 +276,95 @@ namespace PetCenterServices.Services
             return ServiceOutput<string>.Success("Your account transfer code pair will be sent shortly.");
         }
 
-        public async Task<ServiceOutput<string>> ResetPassword(Guid? token_holder, PasswordChangeDTO change)
+        public async Task<ServiceOutput<string>> ChangePassword(Guid token_holder, PasswordChangeDTO change)
         {
-            Account? acc = null;
-            if (token_holder == null)
+            Account? acc = await dbSet.FindAsync(token_holder);
+
+            if (acc == null)
             {
-                acc = await dbSet.FirstOrDefaultAsync(a=>a.Contact==change.Contact);
-            }
-            else
-            {
-                acc = await dbSet.FindAsync(token_holder);
+                return ServiceOutput<string>.Error(HttpCode.NotFound,"No account with this ID exists.");
             }
 
+            string current = Crypto.GenerateHash(change.OldPW, acc.PasswordSalt);
 
-            if (acc != null)
+            if (!string.Equals(current, acc.PasswordHash, StringComparison.Ordinal))
             {
-                SingleTimeEntry? entry = await dbContext.SingleTimeEntries.FindAsync(acc.Id);
-               
-                string login_pwd = Crypto.GenerateHash(change.OldPW, acc.PasswordSalt);
-                string single_time_pwd = string.Empty;
+                return ServiceOutput<string>.Error(HttpCode.Forbidden,"The current password is not correct.");
+            }
 
-                if (entry != null)
+            try
+            {
+                string salt = Crypto.GenerateSalt();
+                acc.PasswordSalt = salt;
+                acc.PasswordHash = Crypto.GenerateHash(change.NewPW, salt);
+                await dbContext.SaveChangesAsync();
+            }
+            catch(Exception ex)
+            {
+                return ServiceOutput<string>.FromException(ex,logger);
+            }
+
+            return ServiceOutput<string>.Success("Password changed.");
+        }
+
+        public async Task<ServiceOutput<string>> RecoverPassword(PasswordRecoveryDTO recovery)
+        {
+            Account? acc = await dbSet.FirstOrDefaultAsync(a=>a.Contact==recovery.Contact);
+
+            if (acc == null)
+            {
+                return ServiceOutput<string>.Error(HttpCode.BadRequest,"Could not recover the account. Make sure the details are correct.");
+            }
+
+            SingleTimeEntry? entry = await dbContext.SingleTimeEntries.FindAsync(acc.Id);
+
+            if (entry == null)
+            {
+                return ServiceOutput<string>.Error(HttpCode.BadRequest,"Could not recover the account. Make sure the details are correct.");
+            }
+
+            if (entry.Expiry <= DateTime.UtcNow)
+            {
+                return ServiceOutput<string>.Error(HttpCode.Forbidden,"The one-time entry code has expired.");
+            }
+
+            string hash = Crypto.GenerateHash(recovery.Code.ToString(), entry.CodeSalt);
+
+            if (!string.Equals(hash, entry.CodeHash, StringComparison.Ordinal))
+            {
+                return ServiceOutput<string>.Error(HttpCode.BadRequest,"Could not recover the account. Make sure the details are correct.");
+            }
+
+            await using(IDbContextTransaction tx = await dbContext.Database.BeginTransactionAsync())
+            {
+                try
                 {
-                    single_time_pwd = Crypto.GenerateHash(change.OldPW,entry.CodeSalt);
+                    string salt = Crypto.GenerateSalt();
+                    acc.PasswordSalt = salt;
+                    acc.PasswordHash = Crypto.GenerateHash(recovery.NewPW, salt);
+
+                    dbContext.SingleTimeEntries.Remove(entry);
+
+                    await dbContext.SaveChangesAsync();
+                    await tx.CommitAsync();
                 }
-
-
-                if (login_pwd == acc.PasswordHash || single_time_pwd==entry?.CodeHash)
+                catch(Exception ex)
                 {
-                    if(entry!=null && single_time_pwd==entry.CodeHash )
-                    {
-                        if(entry.Expiry <= DateTime.UtcNow){
-                            return ServiceOutput<string>.Error(HttpCode.Forbidden,"The one-time entry code has expired.");
-                        }
-
-                        string salt =Crypto.GenerateSalt();
-                        acc.PasswordSalt=salt;
-                        acc.PasswordHash=Crypto.GenerateHash(change.NewPW,salt);
-
-                        if (entry != null)
-                        {
-                            dbContext.SingleTimeEntries.Remove(entry);
-                        }
-
-                        await dbContext.SaveChangesAsync();
-                    }
+                    await tx.RollbackAsync();
+                    return ServiceOutput<string>.FromException(ex,logger);
                 }
             }
 
-            return ServiceOutput<string>.Error(HttpCode.BadRequest,"Could not reset password. Make sure the details are correct.");
+            return ServiceOutput<string>.Success("Password recovered.");
         }
 
 
         public async Task<ServiceOutput<string>> LogIn(AccountRequestDTO req)
         {
-
-            if (!req.Validate())
+            string? val = req.Validate();
+            if (val!=null)
             {
-                return ServiceOutput<string>.Error(HttpCode.BadRequest,"Please provide a valid contact and password.");
+                return ServiceOutput<string>.Error(HttpCode.BadRequest,val);
             }
 
 
@@ -423,7 +455,7 @@ namespace PetCenterServices.Services
             }          
 
             await dbContext.SaveChangesAsync();
-            await message_bus_client.SendEmailMessage(new ConsumerMessage(){Contact=acc.Contact,Message=$"Your one-time entry code is {code}. You may use it once instead of your password.",Subject="Account recovery",Name=acc.AccountUser.UserName});
+            await message_bus_client.SendEmailMessage(new ConsumerMessage(){Contact=acc.Contact,Message=$"Your one-time entry code is {code}. You may use it once to set a new password.",Subject="Account recovery",Name=acc.AccountUser.UserName});
             return  ServiceOutput<string>.Success($"Your one-time entry code will be sent shortly.");
                        
             
@@ -618,19 +650,22 @@ namespace PetCenterServices.Services
 
         public override async Task<ServiceOutput<object>> IsClearedToCreate(Guid token_holder, AccountRequestDTO resource)
         {           
-            if (resource.Validate())
+
+            string? val = resource.Validate();
+            if (val != null)
             {
-
-                Account? existing = await dbContext.Accounts.FirstOrDefaultAsync(a=>a.Contact==resource.Contact);
-                if (existing != null)
-                {
-                    return ServiceOutput<object>.Error(HttpCode.Conflict,"An account with the specified contact already exists.");
-                }
-
-
-                return ServiceOutput<object>.Success(null,HttpCode.NoContent);
+                return ServiceOutput<object>.Error(HttpCode.BadRequest,val);
             }
-            return ServiceOutput<object>.Error(HttpCode.BadRequest,"Invalid Contact and/or Password.");
+
+            Account? existing = await dbContext.Accounts.FirstOrDefaultAsync(a=>a.Contact==resource.Contact);
+            if (existing != null)
+            {
+                return ServiceOutput<object>.Error(HttpCode.Conflict,"An account with the specified contact already exists.");
+            }
+
+
+            return ServiceOutput<object>.Success(null,HttpCode.NoContent);
+           
         }
 
         public override Task<ServiceOutput<object>> IsClearedToUpdate(Guid token_holder, AccountRequestDTO resource)

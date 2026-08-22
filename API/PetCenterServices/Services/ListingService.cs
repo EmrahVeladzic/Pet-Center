@@ -831,9 +831,10 @@ namespace PetCenterServices.Services
             }
 
 
-            if (!resource.Validate())
+            string? val = resource.Validate();
+            if (val!=null)
             {
-                return ServiceOutput<object>.Error(HttpCode.BadRequest,"DTO validation failed.");
+                return ServiceOutput<object>.Error(HttpCode.BadRequest,val);
             }
             if(!await FranchiseService.IsEmployeeOfFranchise(dbContext, token_holder, resource.FranchiseId))
             {
@@ -850,9 +851,10 @@ namespace PetCenterServices.Services
 
         public override async Task<ServiceOutput<object>> IsClearedToUpdate(Guid token_holder, ListingRequestDTO resource)
         {
-            if (!resource.Validate())
+            string? val = resource.Validate();
+            if (val!=null)
             {
-                return ServiceOutput<object>.Error(HttpCode.BadRequest,"DTO validation failed.");
+                return ServiceOutput<object>.Error(HttpCode.BadRequest,val);
             }
             if(!await FranchiseService.IsEmployeeOfFranchise(dbContext, token_holder, resource.FranchiseId))
             {

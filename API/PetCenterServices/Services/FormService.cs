@@ -196,9 +196,10 @@ namespace PetCenterServices.Services
         public override async Task<ServiceOutput<object>> IsClearedToCreate(Guid token_holder, FormDTO resource)
         {
             resource.UserId = token_holder;
-            if (!resource.Validate())
-            {            
-                return ServiceOutput<object>.Error(HttpCode.BadRequest, "DTO validation failed.");
+            string? val = resource.Validate();
+            if (val!=null)
+            {
+                return ServiceOutput<object>.Error(HttpCode.BadRequest,val);
             }
             
             if (await dbContext.Franchises.AnyAsync(f => f.OwnerId == token_holder && f.FranchiseName == resource.FranchiseName)) 

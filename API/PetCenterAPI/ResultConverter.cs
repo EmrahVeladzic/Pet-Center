@@ -7,6 +7,11 @@ namespace PetCenterAPI.Controllers
 
     public static class ResultConverter
     {
+        public static IActionResult Fail(HttpCode code, string message)
+        {
+            return Convert(ServiceOutput<object>.Error(code, message));
+        }
+
         public static IActionResult Convert<T>(ServiceOutput<T> output){
             if (output.Code == HttpCode.NoContent)
             {

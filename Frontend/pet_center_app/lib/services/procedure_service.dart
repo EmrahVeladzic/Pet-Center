@@ -151,7 +151,7 @@ class ProcedureService {
     apiServiceBusy.value = true;
     try {
       final response = await http.delete(
-        Uri.parse("${AppConfig.apiBaseUrl}/api/Procedure/Procedure/$id"),
+        Uri.parse("${AppConfig.apiBaseUrl}/api/Procedure/Specification/$id"),
         headers: {'Authorization': 'Bearer $rawToken'},
       );
 

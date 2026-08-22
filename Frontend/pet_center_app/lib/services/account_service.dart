@@ -119,7 +119,7 @@ class AccountService {
 
   static Future<String?> recoverAccount(
     String contact,
-    String oldPW,
+    int code,
     String newPW,
   ) async {
     apiServiceBusy.value = true;
@@ -130,7 +130,7 @@ class AccountService {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
         },
-        body: jsonEncode({'contact': contact, 'oldPW': oldPW, 'newPW': newPW}),
+        body: jsonEncode({'contact': contact, 'code': code, 'newPW': newPW}),
       );
 
       final result = await ServiceOutput.fromResponse<String>(

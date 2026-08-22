@@ -50,9 +50,13 @@ namespace PetCenterModels.DataTransferObjects
             return formTemplateField;
         }
 
-        public bool Validate()
+        public string? Validate()
         {
-            return FormTemplateId != Guid.Empty && !string.IsNullOrWhiteSpace(Description);
+            
+            if(FormTemplateId==Guid.Empty){return "Form template field must reference a form template.";}
+            
+
+            return string.IsNullOrWhiteSpace(Description)? "Form template field description may not be empty.": null;
         }
 
     }
@@ -95,9 +99,9 @@ namespace PetCenterModels.DataTransferObjects
         }
         
         
-        public bool Validate()
+        public string? Validate()
         {
-            return !string.IsNullOrWhiteSpace(Description);
+            return string.IsNullOrWhiteSpace(Description)? "Form template description may not be empty.": null;
         }
 
 

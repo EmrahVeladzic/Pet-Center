@@ -19,9 +19,9 @@ namespace PetCenterModels.DataTransferObjects
         public string UserName { get; set; } = string.Empty;
 
 
-        public bool Validate()
+        public string? Validate()
         {
-            return (!string.IsNullOrWhiteSpace(UserName));           
+            return string.IsNullOrWhiteSpace(UserName)? "Usernames may not be empty.": null;           
         }
         
     }

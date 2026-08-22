@@ -28,6 +28,7 @@ class _CredentialsScreenState extends State<CredentialsScreen> {
   bool unverified = false;
   bool forgot = false;
   int verificationCode = 0;
+  int entryCode = 0;
 
   void _linkAction() async {
     if (unverified) {
@@ -44,6 +45,7 @@ class _CredentialsScreenState extends State<CredentialsScreen> {
         if (registerMode) {
           forgot = false;
           newPwd = '';
+          entryCode = 0;
         }
       });
     }
@@ -53,6 +55,7 @@ class _CredentialsScreenState extends State<CredentialsScreen> {
     setState(() {
       forgot = !forgot;
       newPwd = '';
+      entryCode = 0;
     });
     if (contact.isNotEmpty && forgot) {
       final output = await AccountService.forgotPassword(contact);
@@ -107,12 +110,26 @@ class _CredentialsScreenState extends State<CredentialsScreen> {
             registerMode = false;
           });
         }
+      } else if (forgot) {
+        final output = await AccountService.recoverAccount(
+          contact.trim(),
+          entryCode,
+          newPwd.trim(),
+        );
+        if (!mounted) {
+          return;
+        }
+        if (output != null) {
+          showSnackbar("Your password has been reset. Please log in.");
+          setState(() {
+            forgot = false;
+            newPwd = '';
+            entryCode = 0;
+          });
+        }
       } else {
         final output = await AccountService.logIn(
-          AccountRequestDTO(
-            contact: contact.trim(),
-            password: forgot ? newPwd.trim() : password.trim(),
-          ),
+          AccountRequestDTO(contact: contact.trim(), password: password.trim()),
         );
         if (!mounted) {
           return;
@@ -178,6 +195,8 @@ class _CredentialsScreenState extends State<CredentialsScreen> {
                                   ? "Account verification"
                                   : registerMode
                                   ? 'Register'
+                                  : forgot
+                                  ? 'Reset password'
                                   : 'Login'),
                               null,
                               1.0,
@@ -200,19 +219,18 @@ class _CredentialsScreenState extends State<CredentialsScreen> {
                                 onChanged: (v) => contact = v,
                               ),
                               SizedBox(height: design.spacing),
-                              TextFormField(
-                                key: const ValueKey('pwd'),
-                                decoration: InputDecoration(
-                                  labelText: 'Password',
-                                ),
-                                validator: (value) {
-                                  return validateGeneric(value);
-                                },
-                                obscureText: true,
-                                onChanged: (v) => password = v,
-                              ),
 
                               if (forgot) ...[
+                                TextFormField(
+                                  key: const ValueKey('entryCode'),
+                                  decoration: InputDecoration(
+                                    labelText: 'One-time code',
+                                  ),
+                                  keyboardType: TextInputType.number,
+                                  validator: (value) => validateNumeric(value),
+                                  onChanged: (v) =>
+                                      entryCode = int.tryParse(v) ?? 0,
+                                ),
                                 SizedBox(height: design.spacing),
                                 TextFormField(
                                   key: const ValueKey('newPwd'),
@@ -224,6 +242,18 @@ class _CredentialsScreenState extends State<CredentialsScreen> {
                                   },
                                   obscureText: true,
                                   onChanged: (v) => newPwd = v,
+                                ),
+                              ] else ...[
+                                TextFormField(
+                                  key: const ValueKey('pwd'),
+                                  decoration: InputDecoration(
+                                    labelText: 'Password',
+                                  ),
+                                  validator: (value) {
+                                    return validateGeneric(value);
+                                  },
+                                  obscureText: true,
+                                  onChanged: (v) => password = v,
                                 ),
                               ],
 
@@ -302,6 +332,8 @@ class _CredentialsScreenState extends State<CredentialsScreen> {
                                     ? "Verify"
                                     : registerMode
                                     ? 'Register'
+                                    : forgot
+                                    ? 'Reset password'
                                     : 'Login',
                               ),
                             ),

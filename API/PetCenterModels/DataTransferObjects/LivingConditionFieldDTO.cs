@@ -95,9 +95,14 @@ namespace PetCenterModels.DataTransferObjects
         }
         
         
-        public bool Validate()
+        public string? Validate()
         {
-            return !string.IsNullOrWhiteSpace(Title) && !((InvestmentEffect+TerritoryEffect+PricingEffect+LongevityEffect+CohabitationEffect)==0.0f);
+            if ((InvestmentEffect + TerritoryEffect + PricingEffect + LongevityEffect + CohabitationEffect) == 0.0f)
+            {
+                return "Questions must have at least one effect.";
+            }
+
+            return string.IsNullOrWhiteSpace(Title)? "Question title may not be empty.": null ;
         }
 
 

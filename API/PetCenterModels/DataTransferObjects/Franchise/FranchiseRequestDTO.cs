@@ -23,11 +23,16 @@ namespace PetCenterModels.DataTransferObjects
         [MaxLength(255)]
         public string Contact { get; set; } = string.Empty;
 
-        public bool Validate()
+        public string? Validate()
         {
             Contact=Contact.ToLowerInvariant();
+
+            if (!ModelValidationUtils.ValidateContact(Contact))
+            {
+                return "Invalid franchise contact.";
+            }
            
-            return !string.IsNullOrWhiteSpace(FranchiseName) && ModelValidationUtils.ValidateContact(Contact);
+            return string.IsNullOrWhiteSpace(FranchiseName)? "Franchise names may not be empty.": null;
         }
     }
 

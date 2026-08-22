@@ -119,9 +119,10 @@ namespace PetCenterServices.Services
                    return ServiceOutput<object>.Error(HttpCode.Forbidden, "You are not employed by this franchise."); 
                 }
             }
-            if (!resource.Validate())
-            {            
-                return ServiceOutput<object>.Error(HttpCode.BadRequest, "DTO validation failed.");
+            string? val = resource.Validate();
+            if (val!=null)
+            {
+                return ServiceOutput<object>.Error(HttpCode.BadRequest,val);
             }
             if(! await dbContext.AnimalBreeds.AnyAsync(b => b.Id == resource.BreedId)){
                 return ServiceOutput<object>.Error(HttpCode.NotFound,"The specified animal breed does not exist.");
@@ -169,9 +170,10 @@ namespace PetCenterServices.Services
                    return ServiceOutput<object>.Error(HttpCode.Forbidden, "You are not employed by this franchise."); 
                 }
             }
-            if (!resource.Validate())
-            {            
-                return ServiceOutput<object>.Error(HttpCode.BadRequest, "DTO validation failed.");
+            string? val = resource.Validate();
+            if (val!=null)
+            {
+                return ServiceOutput<object>.Error(HttpCode.BadRequest,val);
             }
             if(! await dbContext.AnimalBreeds.AnyAsync(b => b.Id == resource.BreedId)){
                 return ServiceOutput<object>.Error(HttpCode.NotFound,"The specified animal breed does not exist.");

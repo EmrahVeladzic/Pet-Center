@@ -63,9 +63,15 @@ namespace PetCenterModels.DataTransferObjects
         }
         
         
-        public bool Validate()
+        public string? Validate()
         {            
-            return !string.IsNullOrWhiteSpace(Title) && (Mass==null||Mass>=0);
+            if(Mass!=null && Mass < 0)
+            {
+                Mass=0;
+            }
+
+
+            return string.IsNullOrWhiteSpace(Title)? "Product title may not be empty.":null;
         }
 
 

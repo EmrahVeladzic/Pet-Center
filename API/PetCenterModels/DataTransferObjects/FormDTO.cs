@@ -54,9 +54,19 @@ namespace PetCenterModels.DataTransferObjects
             return field;
         }
 
-        public bool Validate()
+        public string? Validate()
         {
-            return FormTemplateFieldId != Guid.Empty && !string.IsNullOrWhiteSpace(Serialized);
+            if (string.IsNullOrWhiteSpace(Serialized))
+            {
+                return "No answer provided.";
+            }
+
+            if (FormTemplateFieldId == Guid.Empty)
+            {
+                return "The entry needs to reference a field.";
+            }
+
+            return null;
         }
 
     }
@@ -176,18 +186,27 @@ namespace PetCenterModels.DataTransferObjects
         }
         
         
-        public bool Validate()
+        public string? Validate()
         {
             DefaultContact=DefaultContact.ToLowerInvariant();
-            if(string.IsNullOrWhiteSpace(FranchiseName)){return false;}
+            if(string.IsNullOrWhiteSpace(FranchiseName)){return "The franchise name needs to be provided.";}
             
-            if(!ModelValidationUtils.ValidateContact(DefaultContact)){return false;}
-            if(UserId==Guid.Empty){return false;}
-            if(FormTemplateId==Guid.Empty){return false;}
+            if(!ModelValidationUtils.ValidateContact(DefaultContact)){return "Invalid franchise contact.";}
+            if(UserId==Guid.Empty){return "Owner of franchise not specified.";}
+            if(FormTemplateId==Guid.Empty){return "Form does not reference a template.";}
 
-            if(Entries.Any(e=>!e.Validate())){return false;}
+            for(int i = 0; i< Entries.Count; i++)
+            {
+                string? val = Entries[i].Validate();
 
-            return true;
+                if (val != null)
+                {
+                    return $"Entry {i+1}/{Entries.Count} - \"{val}\".";
+                }
+            }
+
+
+            return null;
         }
 
 

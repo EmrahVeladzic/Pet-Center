@@ -9,6 +9,7 @@ using PetCenterServices.Utils;
 using System.Security.Claims;
 using PetCenterModels.ModelUtils;
 using Microsoft.IdentityModel.JsonWebTokens;
+using PetCenterAPI;
 
 namespace PetCenterAPI.Controllers
 {
@@ -19,40 +20,6 @@ namespace PetCenterAPI.Controllers
     {
         protected readonly TService service;
 
-        
-        protected bool TryGetJTI(out Guid token_id){
-
-            token_id = default;
-
-            return Guid.TryParse(User.FindFirst(JwtRegisteredClaimNames.Jti)?.Value,out token_id);
-
-        }
-
-        protected bool TryGetJWTExpiry(out DateTime exp){
-
-            exp = default;
-
-            string? value = User.FindFirst(JwtRegisteredClaimNames.Exp)?.Value;
-
-            if (value == null || !long.TryParse(value, out long seconds)){
-                return false;
-            }
-
-            exp = DateTimeOffset.FromUnixTimeSeconds(seconds).UtcDateTime;
-
-            return true;
-        }
-
-        protected bool TryGetUserId(out Guid user_id){
-
-            user_id = default;
-
-            return Guid.TryParse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value,out user_id);
-
-        }
-
-        
-       
         protected Access SpecifySearchAuthority()
         {
             if (User.IsInRole("Admin")||User.IsInRole("Owner"))
@@ -76,96 +43,63 @@ namespace PetCenterAPI.Controllers
 
        
         [HttpGet]
-        public virtual async Task<IActionResult>Get([FromQuery] TSearch search)
+        public virtual async Task<IActionResult>Get([FromQuery] TSearch search, [UserId] Guid id, [SessionId] Guid session)
         {  
-            if (TryGetUserId(out Guid id) && TryGetJTI (out Guid session))
-            {
-                search.Session=session;
-                search.AuthoritySpecifier = SpecifySearchAuthority();
-                return ResultConverter.Convert<List<TResponse>>(await service.Get(id,search));
-            }
-            return StatusCode(401,"Invalid token.");         
-            
+            search.Session=session;
+            search.AuthoritySpecifier = SpecifySearchAuthority();
+            return ResultConverter.Convert<List<TResponse>>(await service.Get(id,search));
         }
 
   
 
         [HttpGet("Count")]
-        public virtual async Task<IActionResult> Count([FromQuery] TSearch search)
+        public virtual async Task<IActionResult> Count([FromQuery] TSearch search, [UserId] Guid id, [SessionId] Guid session)
         {
-
-            if (TryGetUserId(out Guid id) && TryGetJTI(out Guid session))
-            {
-                search.Session=session;
-                search.AuthoritySpecifier = SpecifySearchAuthority();
-                return ResultConverter.Convert<int>(await service.Count(id,search));
-            }
-            return StatusCode(401,"Invalid token.");   
-          
+            search.Session=session;
+            search.AuthoritySpecifier = SpecifySearchAuthority();
+            return ResultConverter.Convert<int>(await service.Count(id,search));
         }
 
     
         [HttpPost]
-        public virtual async Task<IActionResult> Post([FromBody] TRequest ent)
+        public virtual async Task<IActionResult> Post([FromBody] TRequest ent, [UserId] Guid user_id, [SessionId] Guid session)
         {
-            if(TryGetUserId(out Guid user_id) && TryGetJTI(out Guid session))
+            ServiceOutput<object> cleared = await service.IsClearedToCreate(user_id,ent);
+
+            if (!ServiceOutput<object>.IsSuccess(cleared))
             {
-                ServiceOutput<object> cleared = await service.IsClearedToCreate(user_id,ent);
-
-                if (!ServiceOutput<object>.IsSuccess(cleared))
-                {
-                    return ResultConverter.Convert<object>(cleared);
-                }
-
-                return ResultConverter.Convert<TResponse>(await service.Post(session,user_id,ent));
-                              
-                
+                return ResultConverter.Convert<object>(cleared);
             }
-            return StatusCode(401,"Invalid token.");           
+
+            return ResultConverter.Convert<TResponse>(await service.Post(session,user_id,ent));
         }
  
         [HttpPut("{id}")]
-        public virtual async Task<IActionResult> Put([FromRoute] Guid id, [FromBody] TRequest ent)
+        public virtual async Task<IActionResult> Put([FromRoute] Guid id, [FromBody] TRequest ent, [UserId] Guid user_id, [SessionId] Guid session)
         {
-            if(TryGetUserId(out Guid user_id) && TryGetJTI(out Guid session))
+            ent.Id = id;
+
+            ServiceOutput<object> cleared = await service.IsClearedToUpdate(user_id,ent);
+
+            if (!ServiceOutput<object>.IsSuccess(cleared))
             {
-                ent.Id = id;
-                
-                ServiceOutput<object> cleared = await service.IsClearedToUpdate(user_id,ent);
-
-                if (!ServiceOutput<object>.IsSuccess(cleared))
-                {
-                    return ResultConverter.Convert<object>(cleared);
-                }
-
-
-                return ResultConverter.Convert<TResponse>(await service.Put(session,user_id,ent));
-                              
-                
+                return ResultConverter.Convert<object>(cleared);
             }
-            return StatusCode(401,"Invalid token.");  
 
+            return ResultConverter.Convert<TResponse>(await service.Put(session,user_id,ent));
         }
   
         [HttpDelete("{id}")]
-        public virtual async Task<IActionResult> Delete([FromRoute]Guid id)
+        public virtual async Task<IActionResult> Delete([FromRoute]Guid id, [UserId] Guid user_id)
         {
-            if(TryGetUserId(out Guid user_id))
+            ServiceOutput<object> cleared = await service.IsClearedToDelete(user_id,id);
+
+            if (!ServiceOutput<object>.IsSuccess(cleared))
             {
-               
-                ServiceOutput<object> cleared = await service.IsClearedToDelete(user_id,id);
-
-                if (!ServiceOutput<object>.IsSuccess(cleared))
-                {
-                    return ResultConverter.Convert<object>(cleared);
-                }
-               
-                return ResultConverter.Convert<object>(await service.Delete(user_id,id));
-                              
-                
+                return ResultConverter.Convert<object>(cleared);
             }
-            return StatusCode(401,"Invalid token."); 
 
+            return ResultConverter.Convert<object>(await service.Delete(user_id,id));
         }
 
 
