@@ -54,16 +54,8 @@ class _LivingConditionScreenState extends State<LivingConditionScreen> {
     ).extension<ReactiveDesignSystem>()!;
 
     return BasicScreenScaffold(
-      appBar: AppBar(
-        title: SizedBox(
-          width: design.screenWidth * marqueeTitleWMult,
-          height: design.marqueeSize,
-          child: design.textMarquee(
-            'Living conditions',
-            design.screenWidth * marqueeTitleWMult,
-          ),
-        ),
-      ),
+      title: 'Living conditions',
+      description: 'Describe the space and lifestyle you can offer an animal.',
       body: [
         ...condition.expand(
           (e) => [

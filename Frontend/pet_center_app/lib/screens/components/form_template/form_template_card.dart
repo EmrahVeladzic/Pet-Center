@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:pet_center_app/models/data_transfer/form_template_dto.dart';
 import 'package:pet_center_app/screens/components/confirmation_dialog.dart';
+import 'package:pet_center_app/screens/components/entity_list_tile.dart';
 import 'package:pet_center_app/screens/components/form_template/form_template_field_card.dart';
 import 'package:pet_center_app/screens/components/form_template/form_template_field_dialog.dart';
+import 'package:pet_center_app/screens/components/status_chip.dart';
 import 'package:pet_center_app/services/form_template_service.dart';
-import 'package:pet_center_app/utils/app_style.dart';
+import 'package:pet_center_app/utils/tokens.dart';
 
 class FormTemplateCard extends StatelessWidget {
   final FormTemplateDTO template;
@@ -28,161 +30,103 @@ class FormTemplateCard extends StatelessWidget {
     }
   }
 
+  void openFieldDialog(BuildContext context, [FormTemplateFieldDTO? current]) {
+    if (template.id == null) {
+      return;
+    }
+    showDialog(
+      context: context,
+      builder: (_) => FormTemplateFieldDialog(
+        formTemplateId: template.id!,
+        fromCurrent: current,
+        callback: (value) {
+          template.fields.removeWhere((f) => f.id == (current?.id ?? value.id));
+          template.fields.add(value);
+          rebuildCallback();
+        },
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final ReactiveDesignSystem design = Theme.of(
-      context,
-    ).extension<ReactiveDesignSystem>()!;
+    final theme = Theme.of(context);
+    final fields = template.fields;
 
-    return Padding(
-      padding: EdgeInsetsGeometry.symmetric(horizontal: 0, vertical: 1),
-      child: Container(
-        decoration: design.panelDecoration(),
-        child: Column(
-          children: [
-            Padding(
-              padding: EdgeInsets.all(design.spacing),
-              child: Row(
+    final actions = <EntityAction>[
+      EntityAction(
+        icon: Icons.playlist_add,
+        tooltip: 'Add field',
+        onPressed: template.id == null ? null : () => openFieldDialog(context),
+      ),
+      EntityAction(
+        icon: Icons.edit_outlined,
+        tooltip: 'Edit template',
+        onPressed: editAction,
+      ),
+      EntityAction(
+        icon: Icons.delete_outline,
+        tooltip: 'Delete template',
+        onPressed: deleteAction,
+        destructive: true,
+      ),
+    ];
+
+    return EntityListTile(
+      icon: Icons.assignment_outlined,
+      title: template.description.isEmpty
+          ? 'Untitled template'
+          : template.description,
+      subtitle: fields.isEmpty
+          ? 'No fields defined yet'
+          : (fields.length == 1 ? '1 field' : '${fields.length} fields'),
+      chips: [
+        if (fields.isEmpty)
+          const StatusChip(label: 'Incomplete', tone: StatusTone.warning),
+      ],
+      expanded: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          ResponsiveActionBar(actions: actions),
+          if (fields.isNotEmpty) ...[
+            const SizedBox(height: Spacing.xs),
+            Theme(
+              data: theme.copyWith(dividerColor: Colors.transparent),
+              child: ExpansionTile(
+                tilePadding: EdgeInsets.zero,
+                title: Text('Fields', style: theme.textTheme.titleSmall),
                 children: [
-                  Expanded(
-                    flex: 5,
-
-                    child: Text(
-                      "Template: ${template.description}",
-                      textScaler: TextScaler.linear(1.5),
-                    ),
-                  ),
-                  Expanded(
-                    flex: 1,
-                    child: Align(
-                      alignment: Alignment.center,
-                      child: SizedBox(
-                        width: design.boundedIconSize,
-                        height: design.boundedIconSize,
-                        child: FittedBox(
-                          fit: BoxFit.contain,
-                          child: IconButton(
-                            tooltip: "Add",
-                            onPressed: () {
-                              if (template.id == null) return;
-                              showDialog(
-                                context: context,
-                                builder: (_) => FormTemplateFieldDialog(
-                                  formTemplateId: template.id!,
-                                  callback: (value) {
-                                    template.fields.removeWhere(
-                                      (f) => f.id == value.id,
-                                    );
-                                    template.fields.add(value);
-                                    rebuildCallback();
-                                  },
-                                ),
-                              );
+                  for (final e in fields) ...[
+                    FormTemplateFieldCard(
+                      field: e,
+                      editAction: () => openFieldDialog(context, e),
+                      deleteAction: () {
+                        showDialog<bool>(
+                          context: context,
+                          builder: (_) => ConfirmationDialog(
+                            title: 'Remove this field?',
+                            body:
+                                'Forms built from this template will no longer ask for it.',
+                            consequence: 'This cannot be undone.',
+                            confirmLabel: 'Remove',
+                            destructive: true,
+                            confirmAction: () {
+                              final id = e.id;
+                              if (id != null) {
+                                removeField(id);
+                              }
                             },
-                            icon: const Icon(Icons.note_add),
-                            padding: EdgeInsets.zero,
-
-                            constraints: const BoxConstraints(),
                           ),
-                        ),
-                      ),
+                        );
+                      },
                     ),
-                  ),
-                  Expanded(
-                    flex: 1,
-                    child: Align(
-                      alignment: Alignment.center,
-                      child: SizedBox(
-                        width: design.boundedIconSize,
-                        height: design.boundedIconSize,
-                        child: FittedBox(
-                          fit: BoxFit.contain,
-                          child: IconButton(
-                            tooltip: "Edit template",
-                            onPressed: editAction,
-                            icon: const Icon(Icons.edit),
-                            padding: EdgeInsets.zero,
-
-                            constraints: const BoxConstraints(),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  Expanded(
-                    flex: 1,
-                    child: Align(
-                      alignment: Alignment.center,
-                      child: SizedBox(
-                        width: design.boundedIconSize,
-                        height: design.boundedIconSize,
-                        child: FittedBox(
-                          fit: BoxFit.contain,
-                          child: IconButton(
-                            tooltip: "Delete",
-                            onPressed: deleteAction,
-                            icon: const Icon(Icons.delete),
-                            padding: EdgeInsets.zero,
-
-                            constraints: const BoxConstraints(),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
+                    const SizedBox(height: Spacing.xs),
+                  ],
                 ],
               ),
             ),
-            if (template.fields.isNotEmpty) ...[
-              ExpansionTile(
-                title: const Text("Fields"),
-                children: template.fields
-                    .expand(
-                      (e) => [
-                        FormTemplateFieldCard(
-                          field: e,
-                          editAction: () {
-                            if (template.id == null) return;
-                            showDialog(
-                              context: context,
-                              builder: (_) => FormTemplateFieldDialog(
-                                formTemplateId: template.id!,
-                                fromCurrent: e,
-                                callback: (value) {
-                                  template.fields.removeWhere(
-                                    (f) => f.id == e.id,
-                                  );
-                                  template.fields.add(value);
-                                  rebuildCallback();
-                                },
-                              ),
-                            );
-                          },
-                          deleteAction: () {
-                            showDialog(
-                              context: context,
-                              builder: (_) => ConfirmationDialog(
-                                title: "Remove field",
-                                body:
-                                    "Are you sure you wish to remove this field?",
-                                confirmAction: () {
-                                  final id = e.id;
-                                  if (id != null) {
-                                    removeField(id);
-                                  }
-                                },
-                              ),
-                            );
-                          },
-                        ),
-                        design.verticalGap(1),
-                      ],
-                    )
-                    .toList(),
-              ),
-            ],
           ],
-        ),
+        ],
       ),
     );
   }

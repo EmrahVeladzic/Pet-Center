@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
-
 import 'package:pet_center_app/models/data_transfer/user/user_response_dto.dart';
 import 'package:pet_center_app/models/enums.dart';
-import 'package:pet_center_app/utils/app_style.dart';
+import 'package:pet_center_app/screens/components/entity_list_tile.dart';
+import 'package:pet_center_app/screens/components/status_chip.dart';
 import 'package:pet_center_app/utils/helpers.dart';
 import 'package:pet_center_app/utils/jwt_utils.dart';
+import 'package:pet_center_app/utils/tokens.dart';
 
 class AnnouncementCard extends StatelessWidget {
   final AnnouncementSubDTO announcement;
@@ -22,87 +23,67 @@ class AnnouncementCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final ReactiveDesignSystem design = Theme.of(
-      context,
-    ).extension<ReactiveDesignSystem>()!;
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final note = announcement.notes?.firstOrNull;
 
-    return Padding(
-      padding: EdgeInsetsGeometry.symmetric(horizontal: 0, vertical: 1),
-      child: Container(
-        padding: EdgeInsets.all(design.spacing),
-        decoration: design.panelDecoration(visited),
-        child: Row(
-          children: [
-            Expanded(
-              flex: 4,
-              child: Text("Announcement - ${announcement.body}"),
-            ),
-            Expanded(
-              flex: 2,
-              child: Text(
-                "Posted on:\n${formatDate(announcement.datePosted)}",
-                textAlign: TextAlign.center,
-              ),
-            ),
-            if (announcement.notes?.firstOrNull != null) ...[
-              Expanded(
-                flex: 2,
-                child: Text(
-                  "${announcement.notes!.first.title}\n${announcement.notes!.first.body}",
-                  textAlign: TextAlign.center,
-                ),
-              ),
-            ],
-
-            Expanded(
-              flex: 1,
-
-              child: Align(
-                alignment: Alignment.center,
-                child: SizedBox(
-                  width: design.boundedIconSize,
-                  height: design.boundedIconSize,
-                  child: FittedBox(
-                    fit: BoxFit.contain,
-                    child: IconButton(
-                      tooltip: "Mark as read",
-                      onPressed: onTap,
-                      icon: const Icon(Icons.done_all),
-                      padding: EdgeInsets.zero,
-
-                      constraints: const BoxConstraints(),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            if (role == Access.owner) ...[
-              Expanded(
-                flex: 1,
-
-                child: Align(
-                  alignment: Alignment.center,
-                  child: SizedBox(
-                    width: design.boundedIconSize,
-                    height: design.boundedIconSize,
-                    child: FittedBox(
-                      fit: BoxFit.contain,
-                      child: IconButton(
-                        tooltip: "Delete",
-                        onPressed: onDelete,
-                        icon: const Icon(Icons.delete),
-                        padding: EdgeInsets.zero,
-
-                        constraints: const BoxConstraints(),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ],
+    return EntityListTile(
+      icon: Icons.campaign_outlined,
+      visited: visited,
+      title: announcement.body.isEmpty
+          ? 'Empty announcement'
+          : announcement.body,
+      subtitle: 'Posted ${formatDate(announcement.datePosted)}',
+      chips: [
+        if (!visited) const StatusChip(label: 'New', tone: StatusTone.info),
+      ],
+      actions: [
+        EntityAction(
+          icon: Icons.done_all,
+          tooltip: 'Mark as read',
+          onPressed: visited ? null : onTap,
         ),
-      ),
+        if (role == Access.owner)
+          EntityAction(
+            icon: Icons.delete_outline,
+            tooltip: 'Delete announcement',
+            onPressed: onDelete,
+            destructive: true,
+          ),
+      ],
+      expanded: note == null
+          ? null
+          : Container(
+              padding: const EdgeInsets.all(Spacing.sm),
+              decoration: BoxDecoration(
+                color: scheme.surfaceContainerLow,
+                borderRadius: Radii.smAll,
+                border: Border.all(color: scheme.outlineVariant),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    note.title,
+                    softWrap: true,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.titleSmall,
+                  ),
+                  const SizedBox(height: Spacing.xxs),
+                  Text(
+                    note.body,
+                    softWrap: true,
+                    maxLines: 4,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: scheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+            ),
     );
   }
 }

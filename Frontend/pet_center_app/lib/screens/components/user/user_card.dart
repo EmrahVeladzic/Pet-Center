@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:pet_center_app/models/data_transfer/user/user_response_dto.dart';
 import 'package:pet_center_app/screens/components/confirmation_dialog.dart';
-import 'package:pet_center_app/utils/app_style.dart';
+import 'package:pet_center_app/screens/components/entity_list_tile.dart';
+import 'package:pet_center_app/screens/components/status_chip.dart';
 
 class UserCard extends StatelessWidget {
   final UserResponseDTO user;
@@ -19,54 +20,43 @@ class UserCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final ReactiveDesignSystem design = Theme.of(
-      context,
-    ).extension<ReactiveDesignSystem>()!;
-
     void confirm() {
-      showDialog(
+      showDialog<bool>(
         context: context,
         builder: (_) => ConfirmationDialog(
           confirmAction: callback,
-          body:
-              "Are you sure you wish to ${(employed) ? "fire" : "hire"} this person?",
-          title: employed ? "Fire" : "Hire",
+          title: employed ? 'Remove this employee?' : 'Hire this person?',
+          body: employed
+              ? 'This person will no longer be employed at this franchise and will lose the access that comes with it.'
+              : 'This person will be employed at this franchise and will gain the access that comes with it.',
+          consequence: employed
+              ? 'You can hire them again later, but any access tied to the role ends immediately.'
+              : null,
+          confirmLabel: employed ? 'Remove' : 'Hire',
+          destructive: employed,
         ),
       );
     }
 
-    return Padding(
-      padding: EdgeInsetsGeometry.symmetric(horizontal: 0, vertical: 1),
-      child: Container(
-        decoration: design.panelDecoration(),
-        child: Row(
-          children: [
-            Expanded(
-              flex: 4,
-              child: Padding(
-                padding: EdgeInsetsGeometry.all(design.spacing),
-                child: Text(user.userName),
-              ),
-            ),
-            if (asEmployer) ...[
-              Expanded(
-                flex: 1,
-                child: Align(
-                  alignment: Alignment.center,
-                  child: IconButton(
-                    tooltip: employed ? "Fire." : "Hire.",
-                    onPressed: confirm,
-                    icon: employed
-                        ? const Icon(Icons.person_remove)
-                        : const Icon(Icons.person_add),
-                    padding: EdgeInsets.zero,
-                  ),
-                ),
-              ),
-            ],
-          ],
+    return EntityListTile(
+      icon: Icons.person_outline,
+      title: user.userName.isEmpty ? 'Unnamed user' : user.userName,
+      subtitle: employed ? 'Currently employed here' : 'Not employed here',
+      chips: [
+        StatusChip(
+          label: employed ? 'Employed' : 'Available',
+          tone: employed ? StatusTone.success : StatusTone.neutral,
         ),
-      ),
+      ],
+      actions: [
+        if (asEmployer)
+          EntityAction(
+            icon: employed ? Icons.person_remove : Icons.person_add,
+            tooltip: employed ? 'Remove from franchise' : 'Hire',
+            onPressed: confirm,
+            destructive: employed,
+          ),
+      ],
     );
   }
 }

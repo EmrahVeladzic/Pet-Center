@@ -4,7 +4,10 @@ import 'package:pet_center_app/models/data_transfer/individual/individual_respon
 import 'package:pet_center_app/models/data_transfer/listing/listing_response_dto.dart';
 import 'package:pet_center_app/models/enums.dart';
 import 'package:pet_center_app/screens/components/listing/listing_card.dart';
+import 'package:pet_center_app/screens/components/status_chip.dart';
 import 'package:pet_center_app/screens/components/listing/listing_filters.dart';
+import 'package:pet_center_app/screens/components/app_data_table.dart';
+import 'package:pet_center_app/screens/components/media_thumbnail.dart';
 import 'package:pet_center_app/screens/components/page_selector.dart';
 import 'package:pet_center_app/screens/listing_edit.dart';
 import 'package:pet_center_app/screens/listing_view.dart';
@@ -13,6 +16,7 @@ import 'package:pet_center_app/services/listing_service.dart';
 import 'package:pet_center_app/services/static_user_data_service.dart';
 import 'package:pet_center_app/utils/hive_cache.dart';
 import 'package:pet_center_app/utils/jwt_utils.dart';
+import 'package:pet_center_app/utils/tokens.dart';
 
 class ListingSelectionScreen extends StatefulWidget {
   final int maxPage;
@@ -256,7 +260,10 @@ class _ListingSelectionScreenState extends State<ListingSelectionScreen> {
       maxPage: widget.maxPage,
       switchPage: switchPage,
       pageSelectorKey: _pageSelectorKey,
-      appTitle: "Listings:",
+      appTitle: 'Listings',
+      description:
+          'Products, services and animals offered across the platform.',
+      emptyTitle: 'No listings yet',
       loading: _initLoading,
       filterPrereq: true,
       dataSource: dataSource,
@@ -272,6 +279,83 @@ class _ListingSelectionScreenState extends State<ListingSelectionScreen> {
         initSex: sex,
         initScale: scale,
       ),
+      columns: [
+        DataColumnSpec<ListingResponseDTO>(
+          label: 'Listing',
+          flex: 5,
+          cell: (context, listing) => Row(
+            children: [
+              MediaThumbnail(
+                media: listing.media,
+                fallbackIcon: Icons.sell_outlined,
+              ),
+              const SizedBox(width: Spacing.sm),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      listing.name.isEmpty ? 'Untitled listing' : listing.name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.titleSmall,
+                    ),
+                    Text(
+                      listing.franchiseName.isEmpty
+                          ? 'Unknown provider'
+                          : listing.franchiseName,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+        DataColumnSpec<ListingResponseDTO>(
+          label: 'Price',
+          flex: 2,
+          cell: (context, listing) => ListingPrice(listing: listing),
+        ),
+        DataColumnSpec<ListingResponseDTO>(
+          label: 'Status',
+          flex: 3,
+          hideOnMedium: true,
+          cell: (context, listing) => Wrap(
+            spacing: Spacing.xxs,
+            runSpacing: Spacing.xxs,
+            children: [
+              if (ownsListing(listing)) VisibilityChip(listing: listing),
+              if (visitedListingIndices.contains(listing.id))
+                const StatusChip(label: 'Seen', tone: StatusTone.neutral),
+            ],
+          ),
+        ),
+        DataColumnSpec<ListingResponseDTO>(
+          label: 'Actions',
+          flex: 2,
+          alignment: Alignment.centerRight,
+          cell: (context, listing) => IconButton(
+            tooltip: 'Open listing',
+            icon: const Icon(Icons.arrow_forward),
+            onPressed: () {
+              if (listing.id != null) {
+                viewListing(listing);
+              }
+            },
+          ),
+        ),
+      ],
+      onRowTap: (listing) {
+        if (listing.id != null) {
+          viewListing(listing);
+        }
+      },
       itemBuilder: (p0, source) {
         return ListingCard(
           listing: source,

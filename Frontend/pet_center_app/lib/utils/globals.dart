@@ -5,3 +5,5 @@ final GlobalKey<ScaffoldMessengerState> rootScaffoldKey =
     GlobalKey<ScaffoldMessengerState>();
 
 final apiServiceBusy = signal<bool>(false);
+
+final selfRevision = signal<int>(0);

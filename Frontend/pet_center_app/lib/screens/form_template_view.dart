@@ -64,15 +64,10 @@ class _FormTemplateViewState extends State<FormTemplateView> {
     ).extension<ReactiveDesignSystem>()!;
 
     return BasicScreenScaffold(
+      title: 'Form templates',
+      description:
+          'Templates that determine which fields an adoption form asks for.',
       appBar: AppBar(
-        title: SizedBox(
-          width: design.screenWidth * marqueeTitleWMult,
-          height: design.marqueeSize,
-          child: design.textMarquee(
-            'Form Templates:',
-            design.screenWidth * marqueeTitleWMult,
-          ),
-        ),
         actions: [
           IconButton(
             onPressed: () {

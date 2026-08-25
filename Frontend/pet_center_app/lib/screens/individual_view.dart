@@ -74,15 +74,9 @@ class _IndividualViewScreenState extends State<IndividualViewScreen> {
 
     return BasicScreenScaffold(
       center: false,
+      title: 'Animals',
+      description: 'Individual animals and their medical history.',
       appBar: AppBar(
-        title: SizedBox(
-          width: design.screenWidth * marqueeTitleWMult,
-          height: design.marqueeSize,
-          child: design.textMarquee(
-            'Individuals:',
-            design.screenWidth * marqueeTitleWMult,
-          ),
-        ),
         actions: [
           if ((widget.src ?? []).length < 50) ...[
             IconButton(

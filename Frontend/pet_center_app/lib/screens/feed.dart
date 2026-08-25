@@ -5,6 +5,7 @@ import 'package:pet_center_app/screens/components/feed/announcement_page.dart';
 import 'package:pet_center_app/screens/components/feed/note_page.dart';
 import 'package:pet_center_app/screens/components/feed/notification_page.dart';
 import 'package:pet_center_app/screens/components/feed/report_page.dart';
+import 'package:pet_center_app/screens/templates/screen_scaffold.dart';
 import 'package:pet_center_app/utils/app_style.dart';
 import 'package:pet_center_app/utils/jwt_utils.dart';
 
@@ -46,14 +47,8 @@ class _FeedScreenState extends State<FeedScreen> {
       length: tabs.length,
       child: Scaffold(
         appBar: AppBar(
-          title: SizedBox(
-            width: design.screenWidth * marqueeTitleWMult,
-            height: design.marqueeSize,
-            child: design.textMarquee(
-              'Feed',
-              design.screenWidth * marqueeTitleWMult,
-            ),
-          ),
+          leading: BasicScreenScaffold.shellLeading(context),
+          title: Text('Feed', maxLines: 1, overflow: TextOverflow.ellipsis),
 
           actions: [
             Builder(

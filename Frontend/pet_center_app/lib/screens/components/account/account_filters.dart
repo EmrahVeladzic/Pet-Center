@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:pet_center_app/models/enums.dart';
-import 'package:pet_center_app/screens/components/dropdown_menus.dart';
-
+import 'package:pet_center_app/screens/components/filter_bar.dart';
 import 'package:pet_center_app/screens/templates/filter_template.dart';
-
-import 'package:pet_center_app/utils/app_style.dart';
 import 'package:pet_center_app/utils/globals.dart';
+import 'package:pet_center_app/utils/tokens.dart';
 
 class AccountFilters extends StatefulWidget
     with FilterTemplate
@@ -32,7 +30,6 @@ class AccountFilters extends StatefulWidget
 class _AccountFiltersState extends State<AccountFilters> {
   late Access accRole;
   late String accContact;
-
   late final TextEditingController _controller;
 
   @override
@@ -41,6 +38,18 @@ class _AccountFiltersState extends State<AccountFilters> {
     accContact = widget.contact;
     accRole = widget.role;
     _controller = TextEditingController(text: accContact);
+  }
+
+  @override
+  void didUpdateWidget(AccountFilters oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.contact != oldWidget.contact && widget.contact != accContact) {
+      accContact = widget.contact;
+      _controller.text = widget.contact;
+    }
+    if (widget.role != oldWidget.role && widget.role != accRole) {
+      accRole = widget.role;
+    }
   }
 
   @override
@@ -63,45 +72,60 @@ class _AccountFiltersState extends State<AccountFilters> {
 
   @override
   Widget build(BuildContext context) {
-    final ReactiveDesignSystem design = Theme.of(
-      context,
-    ).extension<ReactiveDesignSystem>()!;
+    final busy = apiServiceBusy.value;
 
-    return SizedBox.expand(
-      child: Container(
-        decoration: BoxDecoration(color: filterTone),
-        padding: EdgeInsets.symmetric(horizontal: design.spacing / 2),
-        child: Row(
-          children: [
-            Expanded(
-              flex: 4,
-              child: TextField(
-                enabled: !apiServiceBusy.value,
-                maxLength: 255,
-                maxLines: 1,
-                minLines: 1,
-                keyboardType: TextInputType.text,
-                decoration: InputDecoration(hintText: "Contact"),
-                controller: _controller,
-                onSubmitted: (value) {
-                  invokeCallback(accRole, value);
+    final search = TextField(
+      enabled: !busy,
+      maxLength: 255,
+      maxLines: 1,
+      minLines: 1,
+      keyboardType: TextInputType.text,
+      controller: _controller,
+      onSubmitted: (value) => invokeCallback(accRole, value),
+      decoration: InputDecoration(
+        hintText: 'Search by contact',
+        counterText: '',
+        prefixIcon: const Icon(Icons.search, size: IconSizes.md),
+        suffixIcon: accContact.isEmpty
+            ? null
+            : IconButton(
+                tooltip: 'Clear search',
+                icon: const Icon(Icons.close, size: IconSizes.md),
+                onPressed: () {
+                  _controller.clear();
+                  invokeCallback(accRole, '');
                 },
               ),
-            ),
-            Expanded(flex: 1, child: design.horizontalGap(design.spacing / 2)),
-            Expanded(
-              flex: 4,
-              child: accessWidget(design.dropdownW, accRole, (
-                Access? newValue,
-              ) {
-                if (newValue != null) {
-                  invokeCallback(newValue, accContact);
-                }
-              }),
-            ),
-          ],
-        ),
       ),
+    );
+
+    final roleField = DropdownMenu<Access>(
+      key: ValueKey<Access>(accRole),
+      enabled: !busy,
+      expandedInsets: EdgeInsets.zero,
+      initialSelection: accRole,
+      requestFocusOnTap: false,
+      label: const Text('Role'),
+      onSelected: (value) {
+        if (value != null) {
+          invokeCallback(value, accContact);
+        }
+      },
+      dropdownMenuEntries: Access.values
+          .map(
+            (level) => DropdownMenuEntry<Access>(
+              value: level,
+              label: level.displayName,
+            ),
+          )
+          .toList(),
+    );
+
+    return FilterBar(
+      children: [
+        FilterField(minWidth: 240, maxWidth: 360, expand: true, child: search),
+        FilterField(child: roleField),
+      ],
     );
   }
 }

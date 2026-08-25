@@ -52,15 +52,10 @@ class _SuppliesViewScreenState extends State<SuppliesViewScreen> {
 
     return BasicScreenScaffold(
       center: false,
+      title: 'Supplies',
+      description:
+          'What you currently have in stock for the animals in your care.',
       appBar: AppBar(
-        title: SizedBox(
-          width: design.screenWidth * marqueeTitleWMult,
-          height: design.marqueeSize,
-          child: design.textMarquee(
-            'Supplies:',
-            design.screenWidth * marqueeTitleWMult,
-          ),
-        ),
         actions: [
           IconButton(
             tooltip: "Set supplies",

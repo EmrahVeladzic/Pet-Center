@@ -44,100 +44,90 @@ class _PasswordChangeDialogState extends State<PasswordChangeDialog> {
       context,
     ).extension<ReactiveDesignSystem>()!;
 
-    return FittedBox(
-      fit: BoxFit.scaleDown,
-      child: Form(
-        key: _formKey,
-        child: AlertDialog(
-          title: Row(
-            children: [
-              Expanded(child: design.textMarquee('${'Change password:'}:')),
-              IconButton(
-                tooltip: "Close",
-                icon: const Icon(Icons.close),
-                onPressed: () => Navigator.of(context).pop(),
-              ),
-            ],
-          ),
-          content: SizedBox(
-            width: design.dialogWidth,
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  ColoredBox(
-                    color: listTone,
-                    child: TextFormField(
-                      controller: _firstController,
-                      maxLines: 1,
-                      maxLength: 255,
-                      minLines: 1,
-                      keyboardType: TextInputType.text,
-                      obscureText: true,
-                      decoration: InputDecoration(labelText: "Old password..."),
-                      validator: (value) {
-                        return validateGeneric(value);
-                      },
-                    ),
-                  ),
-                  design.verticalGap(design.spacing / 2),
-                  ColoredBox(
-                    color: listTone,
-                    child: TextFormField(
-                      controller: _secondController,
-                      maxLines: 1,
-                      maxLength: 255,
-                      minLines: 1,
-                      keyboardType: TextInputType.text,
-                      obscureText: true,
-                      decoration: InputDecoration(labelText: "New password..."),
-                      validator: (value) {
-                        return validatePasswordWithConfirm(
-                          value,
-                          _thirdController.text,
-                        );
-                      },
-                    ),
-                  ),
-                  design.verticalGap(design.spacing / 2),
-                  ColoredBox(
-                    color: listTone,
-                    child: TextFormField(
-                      controller: _thirdController,
-                      maxLines: 1,
-                      maxLength: 255,
-                      minLines: 1,
-                      keyboardType: TextInputType.text,
-                      obscureText: true,
-                      decoration: InputDecoration(
-                        labelText: "Confirm password...",
-                      ),
-                      validator: (value) {
-                        return validatePasswordWithConfirm(
-                          value,
-                          _secondController.text,
-                        );
-                      },
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          actions: [
-            ElevatedButton(
-              onPressed: () {
-                if (_formKey.currentState != null &&
-                    _formKey.currentState!.validate()) {
-                  Navigator.of(context).pop();
-                  invokeCallback();
-                }
-              },
-              child: design.fittedText('Proceed'),
+    return Form(
+      key: _formKey,
+      child: AlertDialog(
+        title: Row(
+          children: [
+            Expanded(child: design.textMarquee('${'Change password:'}:')),
+            IconButton(
+              tooltip: "Close",
+              icon: const Icon(Icons.close),
+              onPressed: () => Navigator.of(context).pop(),
             ),
           ],
         ),
+        content: SizedBox(
+          width: design.dialogWidth,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                TextFormField(
+                  controller: _firstController,
+                  maxLines: 1,
+                  maxLength: 255,
+                  minLines: 1,
+                  keyboardType: TextInputType.text,
+                  obscureText: true,
+                  decoration: InputDecoration(labelText: "Old password..."),
+                  validator: (value) {
+                    return validateGeneric(value);
+                  },
+                ),
+                design.verticalGap(design.spacing / 2),
+                TextFormField(
+                  controller: _secondController,
+                  maxLines: 1,
+                  maxLength: 255,
+                  minLines: 1,
+                  keyboardType: TextInputType.text,
+                  obscureText: true,
+                  decoration: InputDecoration(labelText: "New password..."),
+                  validator: (value) {
+                    return validatePasswordWithConfirm(
+                      value,
+                      _thirdController.text,
+                    );
+                  },
+                ),
+                design.verticalGap(design.spacing / 2),
+                TextFormField(
+                  controller: _thirdController,
+                  maxLines: 1,
+                  maxLength: 255,
+                  minLines: 1,
+                  keyboardType: TextInputType.text,
+                  obscureText: true,
+                  decoration: InputDecoration(labelText: "Confirm password..."),
+                  validator: (value) {
+                    return validatePasswordWithConfirm(
+                      value,
+                      _secondController.text,
+                    );
+                  },
+                ),
+              ],
+            ),
+          ),
+        ),
+        actions: [
+          OutlinedButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              if (_formKey.currentState != null &&
+                  _formKey.currentState!.validate()) {
+                Navigator.of(context).pop();
+                invokeCallback();
+              }
+            },
+            child: design.fittedText('Proceed'),
+          ),
+        ],
       ),
     );
   }

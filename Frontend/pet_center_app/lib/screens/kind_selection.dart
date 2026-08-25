@@ -42,18 +42,10 @@ class _KindSelectionScreenState extends State<KindSelectionScreen> {
 
     return BasicScreenScaffold(
       center: true,
-      appBar: AppBar(
-        title: SizedBox(
-          width: design.screenWidth * marqueeTitleWMult,
-          height: design.marqueeSize,
-          child: design.textMarquee(
-            role == Access.user
-                ? 'Choose which kind of animal you are interested in:'
-                : "Choose kind:",
-            design.screenWidth * marqueeTitleWMult,
-          ),
-        ),
-      ),
+      title: role == Access.user ? 'Choose an animal' : 'Species',
+      description: role == Access.user
+          ? 'Pick the kind of animal you are interested in adopting.'
+          : 'Species available in the system.',
       body: kinds.isEmpty
           ? [
               Center(

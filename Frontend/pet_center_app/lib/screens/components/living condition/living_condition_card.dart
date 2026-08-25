@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:pet_center_app/models/data_transfer/living_condition_dto.dart';
 import 'package:pet_center_app/models/enums.dart';
+import 'package:pet_center_app/screens/components/entity_list_tile.dart';
 import 'package:pet_center_app/screens/components/radio_button_component.dart';
 import 'package:pet_center_app/services/living_condition_service.dart';
-import 'package:pet_center_app/utils/app_style.dart';
 import 'package:pet_center_app/utils/jwt_utils.dart';
 
 class LivingConditionCard extends StatefulWidget {
@@ -50,85 +50,42 @@ class _LivingConditionCardState extends State<LivingConditionCard> {
 
   @override
   Widget build(BuildContext context) {
-    final ReactiveDesignSystem design = Theme.of(
-      context,
-    ).extension<ReactiveDesignSystem>()!;
+    final admin = role == Access.owner || role == Access.admin;
 
-    return Padding(
-      padding: EdgeInsetsGeometry.symmetric(horizontal: 0, vertical: 1),
-      child: Container(
-        padding: EdgeInsets.all(design.spacing),
-        decoration: design.panelDecoration(),
-        child: Column(
-          children: [
-            Row(
-              children: [
-                Expanded(flex: 8, child: Text(widget.livingCondition.title)),
-                if (role == Access.owner || role == Access.admin) ...[
-                  Expanded(
-                    flex: 1,
-                    child: Align(
-                      alignment: Alignment.center,
-                      child: SizedBox(
-                        width: design.boundedIconSize,
-                        height: design.boundedIconSize,
-                        child: FittedBox(
-                          fit: BoxFit.contain,
-                          child: IconButton(
-                            tooltip: "Edit question",
-                            onPressed: widget.editAction,
-                            icon: const Icon(Icons.edit),
-                            padding: EdgeInsets.zero,
-
-                            constraints: const BoxConstraints(),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  Expanded(
-                    child: Align(
-                      alignment: Alignment.center,
-                      child: SizedBox(
-                        width: design.boundedIconSize,
-                        height: design.boundedIconSize,
-                        child: FittedBox(
-                          fit: BoxFit.contain,
-                          child: IconButton(
-                            tooltip: "Remove question",
-                            onPressed: widget.deleteAction,
-                            icon: const Icon(Icons.delete),
-                            padding: EdgeInsets.zero,
-
-                            constraints: const BoxConstraints(),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
+    return EntityListTile(
+      icon: Icons.help_outline,
+      title: widget.livingCondition.title.isEmpty
+          ? 'Untitled question'
+          : widget.livingCondition.title,
+      actions: [
+        if (admin)
+          EntityAction(
+            icon: Icons.edit_outlined,
+            tooltip: 'Edit question',
+            onPressed: widget.editAction,
+          ),
+        if (admin)
+          EntityAction(
+            icon: Icons.delete_outline,
+            tooltip: 'Remove question',
+            onPressed: widget.deleteAction,
+            destructive: true,
+          ),
+      ],
+      expanded: role == Access.user
+          ? RadioButtonComponent<bool?>(
+              options: const [
+                RadioOption<bool?>(value: true, label: "Yes"),
+                RadioOption<bool?>(value: null, label: "Unsure"),
+                RadioOption<bool?>(value: false, label: "No"),
               ],
-            ),
-
-            if (role == Access.user) ...[
-              design.verticalGap(design.spacing / 2),
-
-              RadioButtonComponent<bool?>(
-                options: const [
-                  RadioOption<bool?>(value: true, label: "Yes"),
-                  RadioOption<bool?>(value: null, label: "Unsure"),
-                  RadioOption<bool?>(value: false, label: "No"),
-                ],
-                groupValue: _answer,
-                onChanged: (value) {
-                  setState(() => _answer = value);
-                  onAnswer(value);
-                },
-              ),
-            ],
-          ],
-        ),
-      ),
+              groupValue: _answer,
+              onChanged: (value) {
+                setState(() => _answer = value);
+                onAnswer(value);
+              },
+            )
+          : null,
     );
   }
 }

@@ -119,16 +119,8 @@ class _FranchiseViewScreenState extends State<FranchiseViewScreen> {
     ).extension<ReactiveDesignSystem>()!;
 
     return BasicScreenScaffold(
-      appBar: AppBar(
-        title: SizedBox(
-          width: design.screenWidth * marqueeTitleWMult,
-          height: design.marqueeSize,
-          child: design.textMarquee(
-            'Workplaces:',
-            design.screenWidth * marqueeTitleWMult,
-          ),
-        ),
-      ),
+      title: 'Workplaces',
+      description: 'Franchises and facilities where you are employed.',
       body: [
         ...(self?.workplaces ?? []).expand(
           (e) => [

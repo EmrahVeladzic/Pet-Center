@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:pet_center_app/screens/components/dropdown_menus.dart';
-
+import 'package:pet_center_app/models/data_transfer/form_template_dto.dart';
+import 'package:pet_center_app/screens/components/filter_bar.dart';
 import 'package:pet_center_app/screens/templates/filter_template.dart';
 import 'package:pet_center_app/services/static_user_data_service.dart';
-
-import 'package:pet_center_app/utils/app_style.dart';
 
 class FormFilters extends StatefulWidget
     with FilterTemplate
@@ -31,7 +29,15 @@ class FormFilters extends StatefulWidget
 class _FormFiltersState extends State<FormFilters> {
   late String? templateId;
   late bool eval;
-  late bool isNull;
+
+  bool get filterByTemplate => templateId != null;
+
+  @override
+  void initState() {
+    super.initState();
+    eval = widget.initEval;
+    templateId = widget.initTemplateId;
+  }
 
   void change(String? id, bool e) {
     if (!mounted) {
@@ -40,119 +46,51 @@ class _FormFiltersState extends State<FormFilters> {
     setState(() {
       eval = e;
       templateId = id;
-      isNull = id == null;
     });
-    widget.callback(id, eval);
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    eval = widget.initEval;
-    templateId = widget.initTemplateId;
-    isNull = templateId == null;
+    widget.callback(id, e);
   }
 
   @override
   Widget build(BuildContext context) {
-    final ReactiveDesignSystem design = Theme.of(
-      context,
-    ).extension<ReactiveDesignSystem>()!;
-
-    return SizedBox.expand(
-      child: Container(
-        decoration: BoxDecoration(color: filterTone),
-        padding: EdgeInsets.symmetric(horizontal: design.spacing),
-        child: Row(
-          children: [
-            Expanded(
-              flex: 1,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-
-                    children: [
-                      if (templates.isNotEmpty) ...[
-                        if (templateId != null) ...[
-                          Expanded(
-                            flex: 3,
-                            child: templateWidget(design.dropdownW, templates, (
-                              value,
-                            ) {
-                              if (value != null) {
-                                setState(() {
-                                  templateId = value.id;
-                                });
-                                widget.callback(templateId, eval);
-                              }
-                            }),
-                          ),
-                          Expanded(
-                            flex: 1,
-                            child: design.horizontalGap(design.spacing / 2),
-                          ),
-                        ],
-
-                        Expanded(
-                          flex: 2,
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              design.fittedText("Filter by template"),
-                              Checkbox(
-                                value: !isNull,
-                                onChanged: (value) {
-                                  if (value == null) {
-                                    return;
-                                  }
-                                  setState(() {
-                                    isNull = !value;
-                                    templateId = isNull
-                                        ? null
-                                        : templates.firstOrNull?.id;
-                                  });
-                                  widget.callback(templateId, eval);
-                                },
-                              ),
-                            ],
-                          ),
-                        ),
-
-                        Expanded(
-                          flex: 2,
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              design.fittedText("Show evaluated."),
-                              Checkbox(
-                                value: eval,
-                                onChanged: (value) {
-                                  if (value == null) {
-                                    return;
-                                  }
-                                  setState(() {
-                                    eval = value;
-                                  });
-                                  widget.callback(templateId, eval);
-                                },
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                ],
-              ),
+    final templateField = DropdownMenu<FormTemplateDTO>(
+      key: ValueKey<String?>(templateId),
+      enabled: filterByTemplate,
+      expandedInsets: EdgeInsets.zero,
+      enableFilter: true,
+      requestFocusOnTap: false,
+      label: const Text('Template'),
+      initialSelection: templates.where((t) => t.id == templateId).firstOrNull,
+      onSelected: (value) {
+        if (value != null) {
+          change(value.id, eval);
+        }
+      },
+      dropdownMenuEntries: templates
+          .map(
+            (dto) => DropdownMenuEntry<FormTemplateDTO>(
+              value: dto,
+              label: dto.description,
             ),
-          ],
+          )
+          .toList(),
+    );
+
+    return FilterBar(
+      children: [
+        FilterField(minWidth: 220, maxWidth: 320, child: templateField),
+        FilterToggle(
+          label: 'Filter by template',
+          value: filterByTemplate,
+          onChanged: (value) {
+            change(value ? templates.firstOrNull?.id : null, eval);
+          },
         ),
-      ),
+        FilterToggle(
+          label: 'Show evaluated',
+          value: eval,
+          onChanged: (value) => change(templateId, value),
+        ),
+      ],
     );
   }
 }

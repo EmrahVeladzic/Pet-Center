@@ -83,13 +83,10 @@ class _NotificationViewScreenState extends State<NotificationViewScreen> {
     return Scaffold(
       backgroundColor: mainTone,
       appBar: AppBar(
-        title: SizedBox(
-          width: design.screenWidth * marqueeTitleWMult,
-          height: design.marqueeSize,
-          child: design.textMarquee(
-            "${widget.notification.title} - ${formatDate(widget.notification.datePosted)}",
-            design.screenWidth * marqueeTitleWMult,
-          ),
+        title: Text(
+          "${widget.notification.title} - ${formatDate(widget.notification.datePosted)}",
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
         ),
       ),
       body: Center(

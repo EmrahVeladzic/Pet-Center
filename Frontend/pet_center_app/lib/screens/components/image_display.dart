@@ -5,6 +5,7 @@ import 'package:pet_center_app/models/data_transfer/image_dto.dart';
 import 'package:pet_center_app/screens/components/confirmation_dialog.dart';
 import 'package:pet_center_app/services/image_service.dart';
 import 'package:pet_center_app/utils/app_style.dart';
+import 'package:pet_center_app/utils/tokens.dart';
 import 'package:pet_center_app/utils/image_cache_service.dart';
 import 'dart:ui' as ui;
 
@@ -14,6 +15,7 @@ class ImageDisplay extends StatefulWidget {
   final bool locked;
   final bool creating;
   final void Function(ImageDTO? output)? editCallback;
+  final double maxHeightFactor;
 
   const ImageDisplay({
     super.key,
@@ -22,6 +24,7 @@ class ImageDisplay extends StatefulWidget {
     required this.locked,
     required this.creating,
     this.editCallback,
+    this.maxHeightFactor = 0.5,
   });
 
   @override
@@ -29,6 +32,8 @@ class ImageDisplay extends StatefulWidget {
 }
 
 class ImageDisplayState extends State<ImageDisplay> {
+  double get maxHeightFactor => widget.maxHeightFactor;
+
   Uint8List? _decoded;
   ImageDTO? dataSrc;
   bool _loading = true;
@@ -105,123 +110,140 @@ class ImageDisplayState extends State<ImageDisplay> {
     return true;
   }
 
+  Widget _overlayButton({
+    required IconData icon,
+    required String tooltip,
+    required VoidCallback onTap,
+    required ColorScheme scheme,
+  }) {
+    return Material(
+      color: scheme.surface.withValues(alpha: 0.85),
+      shape: const CircleBorder(),
+      child: IconButton(
+        tooltip: tooltip,
+        icon: Icon(icon, size: IconSizes.md),
+        onPressed: onTap,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final design = Theme.of(context).extension<ReactiveDesignSystem>()!;
-    double w = design.screenWidth * design.bodyWMult * imgWMult;
-    double h = w * ((dataSrc?.height ?? 64) / (dataSrc?.width ?? 64));
-
-    double ratio = w / h;
-    if (ratio < 1.0) {
-      w *= (ratio * ratio);
-      h *= (ratio * ratio);
-    }
+    final scheme = Theme.of(context).colorScheme;
 
     final double nw = (dataSrc?.width ?? 64).toDouble();
     final double nh = (dataSrc?.height ?? 64).toDouble();
+    final double aspect = (nw <= 0 || nh <= 0) ? 1.0 : nw / nh;
 
-    if (_loading) {
-      return SizedBox(
-        width: w,
-        height: h,
-        child: FittedBox(
-          fit: BoxFit.contain,
-          child: SizedBox(
-            width: nw,
-            height: nh,
-            child: ColoredBox(
-              color: listTone,
-              child: Center(
-                child: SizedBox(
-                  width: nw * 0.5,
-                  height: nh * 0.5,
-                  child: const CircularProgressIndicator(strokeWidth: 1),
-                ),
-              ),
+    final bool canDelete =
+        dataSrc?.canWrite == true && !widget.locked && _decoded != null;
+    final bool canCreate =
+        (widget.creationToken != null || widget.creating) &&
+        !widget.locked &&
+        _decoded == null;
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final screen = MediaQuery.sizeOf(context);
+
+        final double availableWidth = constraints.hasBoundedWidth
+            ? constraints.maxWidth
+            : screen.width;
+
+        double maxHeight = screen.height * maxHeightFactor;
+        if (constraints.hasBoundedHeight && constraints.maxHeight < maxHeight) {
+          maxHeight = constraints.maxHeight;
+        }
+
+        double w = availableWidth;
+        double h = w / aspect;
+
+        if (h > maxHeight) {
+          h = maxHeight;
+          w = h * aspect;
+        }
+
+        if (w > availableWidth) {
+          w = availableWidth;
+          h = w / aspect;
+        }
+
+        Widget content;
+
+        if (_loading) {
+          content = Container(
+            color: scheme.surfaceContainerHigh,
+            alignment: Alignment.center,
+            child: const SizedBox(
+              width: 24,
+              height: 24,
+              child: CircularProgressIndicator(strokeWidth: 2),
             ),
-          ),
-        ),
-      );
-    }
+          );
+        } else if (_decoded != null) {
+          content = Image.memory(
+            _decoded!,
+            fit: BoxFit.contain,
+            filterQuality: FilterQuality.medium,
+          );
+        } else {
+          content = Container(
+            color: scheme.surfaceContainerHigh,
+            alignment: Alignment.center,
+            child: Icon(
+              _error ? Icons.error_outline : Icons.image_outlined,
+              size: IconSizes.lg,
+              color: _error ? scheme.error : scheme.onSurfaceVariant,
+            ),
+          );
+        }
 
-    if (_decoded != null) {
-      return SizedBox(
-        width: w,
-        height: h,
-        child: FittedBox(
-          fit: BoxFit.contain,
+        return SizedBox(
+          width: w,
+          height: h,
           child: Stack(
             children: [
-              SizedBox(
-                width: nw,
-                height: nh,
-                child: Image.memory(
-                  _decoded!,
-                  fit: BoxFit.contain,
-                  filterQuality: FilterQuality.none,
-                ),
+              Positioned.fill(
+                child: ClipRRect(borderRadius: Radii.smAll, child: content),
               ),
-              if (dataSrc?.canWrite == true && !widget.locked)
+              if (canDelete)
                 Positioned(
-                  top: 0,
-                  right: 0,
-                  child: GestureDetector(
+                  top: Spacing.xxs,
+                  right: Spacing.xxs,
+                  child: _overlayButton(
+                    icon: Icons.delete_outline,
+                    tooltip: 'Delete image',
+                    scheme: scheme,
                     onTap: () {
-                      showDialog(
+                      showDialog<bool>(
                         context: context,
                         builder: (_) => ConfirmationDialog(
                           confirmAction: _onDelete,
-                          title: "Delete image",
-                          body: "Are you sure you wish to delete this image?",
+                          title: "Delete this image?",
+                          body: "The image will be removed from this record.",
+                          consequence: "This cannot be undone.",
+                          confirmLabel: "Delete",
+                          destructive: true,
                         ),
                       );
                     },
-                    child: ColoredBox(
-                      color: visitedPanelTone,
-                      child: Icon(Icons.delete_outline, size: nw * 0.125),
-                    ),
+                  ),
+                ),
+              if (canCreate)
+                Positioned(
+                  top: Spacing.xxs,
+                  right: Spacing.xxs,
+                  child: _overlayButton(
+                    icon: Icons.add_photo_alternate_outlined,
+                    tooltip: 'Upload image',
+                    scheme: scheme,
+                    onTap: _onCreate,
                   ),
                 ),
             ],
           ),
-        ),
-      );
-    }
-
-    return SizedBox(
-      width: w,
-      height: h,
-      child: FittedBox(
-        fit: BoxFit.contain,
-        child: Stack(
-          children: [
-            SizedBox(
-              width: nw,
-              height: nh,
-              child: ColoredBox(
-                color: listTone,
-                child: Icon(
-                  (_error) ? Icons.error_outline : Icons.image,
-                  size: nw * 0.5,
-                ),
-              ),
-            ),
-            if ((widget.creationToken != null || widget.creating) &&
-                !widget.locked)
-              Positioned(
-                top: 0,
-                right: 0,
-                child: GestureDetector(
-                  onTap: _onCreate,
-                  child: ColoredBox(
-                    color: visitedPanelTone,
-                    child: Icon(Icons.create_outlined, size: nw * 0.125),
-                  ),
-                ),
-              ),
-          ],
-        ),
-      ),
+        );
+      },
     );
   }
 

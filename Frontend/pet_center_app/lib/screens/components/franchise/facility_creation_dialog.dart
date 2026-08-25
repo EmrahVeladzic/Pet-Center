@@ -87,34 +87,28 @@ class _FacilityCreationDialogState extends State<FacilityCreationDialog> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  ColoredBox(
-                    color: listTone,
-                    child: TextFormField(
-                      controller: _cityController,
-                      maxLines: null,
-                      maxLength: 100,
-                      minLines: dialogMinLines,
-                      keyboardType: TextInputType.text,
-                      decoration: InputDecoration(hintText: 'City:'),
-                      validator: (value) {
-                        return validateGeneric(value);
-                      },
-                    ),
+                  TextFormField(
+                    controller: _cityController,
+                    maxLines: null,
+                    maxLength: 100,
+                    minLines: dialogMinLines,
+                    keyboardType: TextInputType.text,
+                    decoration: InputDecoration(hintText: 'City:'),
+                    validator: (value) {
+                      return validateGeneric(value);
+                    },
                   ),
                   design.verticalGap(design.spacing / 2),
-                  ColoredBox(
-                    color: listTone,
-                    child: TextFormField(
-                      controller: _streetController,
-                      maxLines: null,
-                      maxLength: 150,
-                      minLines: dialogMinLines,
-                      keyboardType: TextInputType.text,
-                      decoration: InputDecoration(hintText: 'Street:'),
-                      validator: (value) {
-                        return validateGeneric(value);
-                      },
-                    ),
+                  TextFormField(
+                    controller: _streetController,
+                    maxLines: null,
+                    maxLength: 150,
+                    minLines: dialogMinLines,
+                    keyboardType: TextInputType.text,
+                    decoration: InputDecoration(hintText: 'Street:'),
+                    validator: (value) {
+                      return validateGeneric(value);
+                    },
                   ),
                   design.verticalGap(design.spacing / 2),
                   Row(
@@ -129,22 +123,19 @@ class _FacilityCreationDialogState extends State<FacilityCreationDialog> {
                   ),
                   if (hasContact) ...[
                     design.verticalGap(design.spacing / 2),
-                    ColoredBox(
-                      color: listTone,
-                      child: TextFormField(
-                        controller: _contactOverrideController,
-                        maxLines: null,
-                        maxLength: 255,
-                        minLines: dialogMinLines,
-                        keyboardType: TextInputType.text,
-                        decoration: InputDecoration(hintText: 'Contact:'),
-                        validator: (value) {
-                          if (!hasContact) {
-                            return null;
-                          }
-                          return validateGeneric(value);
-                        },
-                      ),
+                    TextFormField(
+                      controller: _contactOverrideController,
+                      maxLines: null,
+                      maxLength: 255,
+                      minLines: dialogMinLines,
+                      keyboardType: TextInputType.text,
+                      decoration: InputDecoration(hintText: 'Contact:'),
+                      validator: (value) {
+                        if (!hasContact) {
+                          return null;
+                        }
+                        return validateGeneric(value);
+                      },
                     ),
                   ],
                 ],
@@ -152,6 +143,10 @@ class _FacilityCreationDialogState extends State<FacilityCreationDialog> {
             ),
           ),
           actions: [
+            OutlinedButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancel'),
+            ),
             ElevatedButton(
               onPressed: () {
                 if (_formKey.currentState != null &&

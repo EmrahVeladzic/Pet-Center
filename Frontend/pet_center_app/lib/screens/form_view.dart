@@ -129,15 +129,9 @@ class _FormViewScreenState extends State<FormViewScreen> {
     ).extension<ReactiveDesignSystem>()!;
 
     return BasicScreenScaffold(
+      title: franchiseName,
+      description: 'Adoption form submitted by this provider.',
       appBar: AppBar(
-        title: SizedBox(
-          width: design.screenWidth * marqueeTitleWMult,
-          height: design.marqueeSize,
-          child: design.textMarquee(
-            franchiseName,
-            design.screenWidth * marqueeTitleWMult,
-          ),
-        ),
         actions: [
           if (role == Access.business) ...[
             IconButton(
