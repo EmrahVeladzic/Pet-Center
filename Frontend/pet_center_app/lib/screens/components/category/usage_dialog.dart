@@ -71,105 +71,102 @@ class _UsageCreationDialogState extends State<UsageCreationDialog> {
       context,
     ).extension<ReactiveDesignSystem>()!;
 
-    return FittedBox(
-      fit: BoxFit.scaleDown,
-      child: Form(
-        key: _formKey,
-        child: AlertDialog(
-          title: Row(
-            children: [
-              Expanded(child: design.textMarquee('Usage specifics:')),
-              IconButton(
-                tooltip: "Close",
-                icon: const Icon(Icons.close),
-                onPressed: () => Navigator.of(context).pop(),
-              ),
-            ],
-          ),
-          content: SizedBox(
-            width: design.dialogWidth,
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      kindWidget(design.dialogWidth, kinds, (value) {
-                        if (mounted && value != null) {
-                          setState(() {
-                            data.kindId = value.id!;
-                          });
-                        }
-                      }),
-                    ],
-                  ),
-                  design.verticalGap(1),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      Checkbox(
-                        value: data.scaleSpecific != null,
-                        onChanged: (value) {
-                          if (value == null) return;
-                          setState(() {
-                            data.scaleSpecific = value
-                                ? AnimalScale.values.first
-                                : null;
-                          });
-                        },
-                      ),
-                      design.fittedText('Scale specific'),
-                    ],
-                  ),
-                  if (data.scaleSpecific != null) ...[
-                    design.verticalGap(1),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        scaleWidget(
-                          design.dialogWidth,
-                          data.scaleSpecific ?? AnimalScale.medium,
-                          (value) {
-                            data.scaleSpecific = value;
-                          },
-                        ),
-                      ],
-                    ),
-                  ],
-                  design.verticalGap(design.spacing),
-                  ColoredBox(
-                    color: listTone,
-                    child: TextFormField(
-                      controller: _gramsController,
-                      maxLines: 1,
-                      minLines: 1,
-                      keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(
-                        labelText: "Daily amount (g)...",
-                      ),
-                      validator: (value) =>
-                          validateNumericInRange(value, 1, 10000),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          actions: [
-            ElevatedButton(
-              onPressed: () {
-                if (_formKey.currentState != null &&
-                    _formKey.currentState!.validate()) {
-                  Navigator.of(context).pop();
-                  invokeCallback();
-                }
-              },
-              child: design.fittedText('Save'),
+    return Form(
+      key: _formKey,
+      child: AlertDialog(
+        title: Row(
+          children: [
+            Expanded(child: design.textMarquee('Usage specifics:')),
+            IconButton(
+              tooltip: "Close",
+              icon: const Icon(Icons.close),
+              onPressed: () => Navigator.of(context).pop(),
             ),
           ],
         ),
+        content: SizedBox(
+          width: design.dialogWidth,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    kindWidget(design.dialogWidth, kinds, (value) {
+                      if (mounted && value != null) {
+                        setState(() {
+                          data.kindId = value.id!;
+                        });
+                      }
+                    }),
+                  ],
+                ),
+                design.verticalGap(1),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    Checkbox(
+                      value: data.scaleSpecific != null,
+                      onChanged: (value) {
+                        if (value == null) return;
+                        setState(() {
+                          data.scaleSpecific = value
+                              ? AnimalScale.values.first
+                              : null;
+                        });
+                      },
+                    ),
+                    design.fittedText('Scale specific'),
+                  ],
+                ),
+                if (data.scaleSpecific != null) ...[
+                  design.verticalGap(1),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      scaleWidget(
+                        design.dialogWidth,
+                        data.scaleSpecific ?? AnimalScale.medium,
+                        (value) {
+                          data.scaleSpecific = value;
+                        },
+                      ),
+                    ],
+                  ),
+                ],
+                design.verticalGap(design.spacing),
+                TextFormField(
+                  controller: _gramsController,
+                  maxLines: 1,
+                  minLines: 1,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(
+                    labelText: "Daily amount (g)...",
+                  ),
+                  validator: (value) => validateNumericInRange(value, 1, 10000),
+                ),
+              ],
+            ),
+          ),
+        ),
+        actions: [
+          OutlinedButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              if (_formKey.currentState != null &&
+                  _formKey.currentState!.validate()) {
+                Navigator.of(context).pop();
+                invokeCallback();
+              }
+            },
+            child: const Text('Save'),
+          ),
+        ],
       ),
     );
   }

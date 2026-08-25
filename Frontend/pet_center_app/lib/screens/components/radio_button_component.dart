@@ -32,8 +32,11 @@ class _RadioItem<T> extends StatelessWidget {
                 value: option.value,
                 materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 fillColor: WidgetStateProperty.resolveWith<Color>((states) {
-                  if (states.contains(WidgetState.selected)) return mainTone;
-                  return secondaryTone;
+                  final scheme = Theme.of(context).colorScheme;
+                  if (states.contains(WidgetState.selected)) {
+                    return scheme.primary;
+                  }
+                  return scheme.outline;
                 }),
               ),
             ],

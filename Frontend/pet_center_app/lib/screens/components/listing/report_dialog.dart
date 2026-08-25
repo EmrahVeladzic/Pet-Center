@@ -69,25 +69,26 @@ class _ReportDialogState extends State<ReportDialog> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  ColoredBox(
-                    color: listTone,
-                    child: TextFormField(
-                      controller: _controller,
-                      maxLines: null,
-                      maxLength: 255,
-                      minLines: dialogMinLines,
-                      keyboardType: TextInputType.multiline,
-                      decoration: InputDecoration(hintText: 'Reason:'),
-                      validator: (value) {
-                        return validateGeneric(value);
-                      },
-                    ),
+                  TextFormField(
+                    controller: _controller,
+                    maxLines: null,
+                    maxLength: 255,
+                    minLines: dialogMinLines,
+                    keyboardType: TextInputType.multiline,
+                    decoration: InputDecoration(hintText: 'Reason:'),
+                    validator: (value) {
+                      return validateGeneric(value);
+                    },
                   ),
                 ],
               ),
             ),
           ),
           actions: [
+            OutlinedButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancel'),
+            ),
             ElevatedButton(
               onPressed: () {
                 if (_formKey.currentState != null &&

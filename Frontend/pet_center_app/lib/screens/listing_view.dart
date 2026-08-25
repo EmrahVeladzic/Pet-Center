@@ -318,15 +318,9 @@ class _ListingViewScreenState extends State<ListingViewScreen> {
     ).extension<ReactiveDesignSystem>()!;
 
     return BasicScreenScaffold(
+      title: widget.listing.name,
+      description: 'Listing details, availability and comments.',
       appBar: AppBar(
-        title: SizedBox(
-          width: design.screenWidth * marqueeTitleWMult,
-          height: design.marqueeSize,
-          child: design.textMarquee(
-            widget.listing.name,
-            design.screenWidth * marqueeTitleWMult,
-          ),
-        ),
         actions: [
           if (role == Access.business &&
               (self?.workplaces?.any(

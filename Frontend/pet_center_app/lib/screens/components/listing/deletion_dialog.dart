@@ -27,56 +27,57 @@ class _DeletionDialogState extends State<DeletionDialog> {
       context,
     ).extension<ReactiveDesignSystem>()!;
 
-    return FittedBox(
-      fit: BoxFit.scaleDown,
-      child: AlertDialog(
-        title: Row(
-          children: [
-            Expanded(
-              child: design.textMarquee('Remove ${widget.itemName ?? 'item'}?'),
-            ),
-            IconButton(
-              tooltip: "Close",
-              icon: const Icon(Icons.close),
-              onPressed: () => Navigator.of(context).pop(),
-            ),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            design.textMarquee(
-              'You are about to remove this ${widget.itemName ?? 'item'}.',
-            ),
-            if (widget.bannable &&
-                (role == Access.owner || role == Access.admin)) ...[
-              design.verticalGap(),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(child: design.textMarquee('Ban user')),
-                  Switch(
-                    value: banUser,
-                    onChanged: (val) => setState(() => banUser = val),
-                  ),
-                ],
-              ),
-            ],
-          ],
-        ),
-        actions: [
-          ElevatedButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              widget.deletionAction(banUser);
-            },
-            child: design.fittedText(
-              widget.bannable && banUser ? 'Remove & Ban' : 'Remove',
-            ),
+    return AlertDialog(
+      title: Row(
+        children: [
+          Expanded(
+            child: design.textMarquee('Remove ${widget.itemName ?? 'item'}?'),
+          ),
+          IconButton(
+            tooltip: "Close",
+            icon: const Icon(Icons.close),
+            onPressed: () => Navigator.of(context).pop(),
           ),
         ],
       ),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          design.textMarquee(
+            'You are about to remove this ${widget.itemName ?? 'item'}.',
+          ),
+          if (widget.bannable &&
+              (role == Access.owner || role == Access.admin)) ...[
+            design.verticalGap(),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(child: design.textMarquee('Ban user')),
+                Switch(
+                  value: banUser,
+                  onChanged: (val) => setState(() => banUser = val),
+                ),
+              ],
+            ),
+          ],
+        ],
+      ),
+      actions: [
+        OutlinedButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Cancel'),
+        ),
+        ElevatedButton(
+          onPressed: () {
+            Navigator.of(context).pop();
+            widget.deletionAction(banUser);
+          },
+          child: design.fittedText(
+            widget.bannable && banUser ? 'Remove & Ban' : 'Remove',
+          ),
+        ),
+      ],
     );
   }
 }

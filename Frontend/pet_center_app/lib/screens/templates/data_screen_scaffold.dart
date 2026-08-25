@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 
+import 'package:pet_center_app/screens/components/app_data_table.dart';
+import 'package:pet_center_app/screens/components/empty_state.dart';
+import 'package:pet_center_app/screens/components/page_header.dart';
 import 'package:pet_center_app/screens/components/page_selector.dart';
 import 'package:pet_center_app/screens/templates/filter_template.dart';
-
+import 'package:pet_center_app/screens/templates/screen_scaffold.dart';
 import 'package:pet_center_app/utils/app_style.dart';
+import 'package:pet_center_app/utils/tokens.dart';
 
 class DataScreenScaffold<F extends FilterTemplate, T> extends StatefulWidget {
   final int maxPage;
@@ -17,6 +21,14 @@ class DataScreenScaffold<F extends FilterTemplate, T> extends StatefulWidget {
   final Widget Function(BuildContext, T source) itemBuilder;
   final List<Widget> importActions;
 
+  final String? description;
+  final List<DataColumnSpec<T>>? columns;
+  final Widget? primaryAction;
+  final String emptyTitle;
+  final String? emptyMessage;
+  final VoidCallback? onResetFilters;
+  final void Function(T item)? onRowTap;
+
   const DataScreenScaffold({
     super.key,
     required this.maxPage,
@@ -29,6 +41,13 @@ class DataScreenScaffold<F extends FilterTemplate, T> extends StatefulWidget {
     required this.filter,
     required this.itemBuilder,
     this.importActions = const [],
+    this.description,
+    this.columns,
+    this.primaryAction,
+    this.emptyTitle = 'Nothing to show yet',
+    this.emptyMessage,
+    this.onResetFilters,
+    this.onRowTap,
   });
 
   @override
@@ -38,109 +57,131 @@ class DataScreenScaffold<F extends FilterTemplate, T> extends StatefulWidget {
 
 class _DataScreenScaffoldState<F extends FilterTemplate, T>
     extends State<DataScreenScaffold<F, T>> {
-  bool _filterVisible = false;
+  Widget _filterBar(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: scheme.surface,
+        borderRadius: Radii.mdAll,
+        border: Border.all(color: scheme.outlineVariant),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: widget.filter,
+    );
+  }
+
+  Widget _empty(BuildContext context) {
+    final filtered = widget.filterPrereq;
+
+    return EmptyState(
+      icon: filtered ? Icons.search_off : Icons.inbox_outlined,
+      title: filtered ? 'No matching results' : widget.emptyTitle,
+      message:
+          widget.emptyMessage ??
+          (filtered
+              ? 'No records match the filters you selected. Try widening them or clearing the filter to see everything.'
+              : 'There is nothing here yet. New records will appear in this list once they are added.'),
+      secondaryActionLabel: filtered && widget.onResetFilters != null
+          ? 'Clear filters'
+          : null,
+      onSecondaryAction: widget.onResetFilters,
+    );
+  }
+
+  Widget _content(BuildContext context, ReactiveDesignSystem design) {
+    if (widget.loading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (widget.dataSource.isEmpty) {
+      return _empty(context);
+    }
+
+    final columns = widget.columns;
+    if (columns != null && !design.isCompact) {
+      return AppDataTable<T>(
+        columns: columns,
+        items: widget.dataSource,
+        onRowTap: widget.onRowTap,
+      );
+    }
+
+    return ListView.separated(
+      padding: EdgeInsets.zero,
+      itemCount: widget.dataSource.length,
+      separatorBuilder: (_, _) =>
+          SizedBox(height: Spacing.listGap.resolve(design.windowClass)),
+      itemBuilder: (context, index) =>
+          widget.itemBuilder(context, widget.dataSource[index]),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
-    final ReactiveDesignSystem design = Theme.of(
-      context,
-    ).extension<ReactiveDesignSystem>()!;
+    final design = context.design;
+    final gutter = Spacing.gutter.resolve(design.windowClass);
 
     return Scaffold(
-      backgroundColor: mainTone,
       appBar: AppBar(
-        title: SizedBox(
-          width: design.screenWidth * marqueeTitleWMult,
-          height: design.marqueeSize,
-          child: design.textMarquee(
-            widget.appTitle,
-            design.screenWidth * marqueeTitleWMult,
-          ),
-        ),
-        actions: [
-          if (widget.importActions.isNotEmpty) ...widget.importActions,
-          if (widget.filterPrereq) ...[
-            IconButton(
-              tooltip: _filterVisible ? "Hide filter." : "Show filter.",
-              icon: _filterVisible
-                  ? const Icon(Icons.arrow_drop_up)
-                  : const Icon(Icons.arrow_drop_down),
-              onPressed: () {
-                if (!mounted) {
-                  return;
-                }
-                setState(() {
-                  _filterVisible = !_filterVisible;
-                });
-              },
-            ),
-          ],
-        ],
+        leading: BasicScreenScaffold.shellLeading(context),
+        title: null,
+        actions: widget.importActions,
       ),
-      body: Center(
-        child: FractionallySizedBox(
-          widthFactor: design.bodyWMult,
-          heightFactor: 1.0,
-          child: Container(
-            color: listTone,
-            child: widget.loading
-                ? Center(
-                    child: Transform.scale(
-                      scale: 3,
-                      child: CircularProgressIndicator(),
-                    ),
-                  )
-                : NestedScrollView(
-                    headerSliverBuilder: (context, _) => [
-                      SliverAppBar(
-                        pinned: true,
-                        automaticallyImplyLeading: false,
-                        toolbarHeight: _filterVisible
-                            ? design.getToolbarHeight(
-                                widget.filter.filterRowCount(),
-                                widget.filter.filterFontSize(),
-                              )
-                            : 0,
-                        flexibleSpace: FlexibleSpaceBar(
-                          collapseMode: CollapseMode.none,
-                          background: widget.filter,
-                        ),
+      body: SafeArea(
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(
+              maxWidth: Breakpoints.maxContentWidth,
+            ),
+            child: Padding(
+              padding: EdgeInsets.symmetric(
+                horizontal: gutter,
+                vertical: design.isShort ? Spacing.sm : gutter,
+              ),
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final page = Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      PageHeader(
+                        title: widget.appTitle,
+                        description: widget.description,
+                        actions: [
+                          if (widget.primaryAction != null)
+                            widget.primaryAction!,
+                        ],
+                      ),
+                      SizedBox(height: gutter),
+                      if (widget.filterPrereq) ...[
+                        _filterBar(context),
+                        const SizedBox(height: Spacing.sm),
+                      ],
+                      Expanded(child: _content(context, design)),
+                      const SizedBox(height: Spacing.sm),
+                      PageSelector(
+                        key: widget.pageSelectorKey,
+                        maxPage: widget.maxPage,
+                        onChanged: widget.switchPage,
+                        resultCount: widget.dataSource.length,
                       ),
                     ],
-                    body: widget.dataSource.isEmpty
-                        ? Center(
-                            child: design.fittedText(
-                              "No results${widget.filterPrereq ? " for current filters" : ""}.",
-                            ),
-                          )
-                        : ListView.builder(
-                            itemCount: widget.dataSource.length,
-                            itemBuilder: (context, index) => Column(
-                              children: [
-                                widget.itemBuilder(
-                                  context,
-                                  widget.dataSource[index],
-                                ),
-                                design.verticalGap(1),
-                              ],
-                            ),
-                          ),
-                  ),
-          ),
-        ),
-      ),
-      bottomNavigationBar: BottomAppBar(
-        child: FittedBox(
-          fit: BoxFit.scaleDown,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              PageSelector(
-                key: widget.pageSelectorKey,
-                maxPage: widget.maxPage,
-                onChanged: widget.switchPage,
+                  );
+
+                  if (constraints.maxHeight.isFinite &&
+                      constraints.maxHeight < Breakpoints.minPageHeight) {
+                    return SingleChildScrollView(
+                      child: SizedBox(
+                        height: Breakpoints.minPageHeight,
+                        child: page,
+                      ),
+                    );
+                  }
+
+                  return page;
+                },
               ),
-            ],
+            ),
           ),
         ),
       ),

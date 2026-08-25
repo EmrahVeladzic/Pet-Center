@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:pet_center_app/models/data_transfer/user/user_response_dto.dart';
-import 'package:pet_center_app/utils/app_style.dart';
+import 'package:pet_center_app/screens/components/entity_list_tile.dart';
+import 'package:pet_center_app/screens/components/status_chip.dart';
 import 'package:pet_center_app/utils/helpers.dart';
 
 class NotificationCard extends StatelessWidget {
@@ -17,79 +18,33 @@ class NotificationCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final ReactiveDesignSystem design = Theme.of(
-      context,
-    ).extension<ReactiveDesignSystem>()!;
+    final seen = notification.seen;
 
-    return Padding(
-      padding: EdgeInsetsGeometry.symmetric(horizontal: 0, vertical: 1),
-      child: Container(
-        padding: EdgeInsets.all(design.spacing),
-        decoration: design.panelDecoration(notification.seen),
-        child: Row(
-          children: [
-            Expanded(
-              flex: 3,
-              child: Text("Notification - ${notification.title}"),
-            ),
-            Expanded(
-              flex: 1,
-              child: Text(
-                "Posted on:\n${formatDate(notification.datePosted)}",
-                textAlign: TextAlign.center,
-              ),
-            ),
-
-            Expanded(
-              flex: 1,
-
-              child: Align(
-                alignment: Alignment.center,
-                child: SizedBox(
-                  width: design.boundedIconSize,
-                  height: design.boundedIconSize,
-                  child: FittedBox(
-                    fit: BoxFit.contain,
-                    child: IconButton(
-                      tooltip:
-                          "Mark as ${notification.seen ? "not read" : "read"}",
-                      onPressed: onSeen,
-                      icon: notification.seen
-                          ? const Icon(Icons.close)
-                          : const Icon(Icons.check),
-                      padding: EdgeInsets.zero,
-
-                      constraints: const BoxConstraints(),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            Expanded(
-              flex: 1,
-
-              child: Align(
-                alignment: Alignment.center,
-                child: SizedBox(
-                  width: design.boundedIconSize,
-                  height: design.boundedIconSize,
-                  child: FittedBox(
-                    fit: BoxFit.contain,
-                    child: IconButton(
-                      tooltip: "Details",
-                      onPressed: onTap,
-                      icon: const Icon(Icons.arrow_forward),
-                      padding: EdgeInsets.zero,
-
-                      constraints: const BoxConstraints(),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ],
+    return EntityListTile(
+      icon: seen
+          ? Icons.notifications_none_outlined
+          : Icons.notifications_active_outlined,
+      visited: seen,
+      onTap: onTap,
+      title: notification.title.isEmpty
+          ? 'Untitled notification'
+          : notification.title,
+      subtitle: 'Received ${formatDate(notification.datePosted)}',
+      chips: [
+        if (!seen) const StatusChip(label: 'Unread', tone: StatusTone.info),
+      ],
+      actions: [
+        EntityAction(
+          icon: seen ? Icons.mark_email_unread_outlined : Icons.check,
+          tooltip: seen ? 'Mark as unread' : 'Mark as read',
+          onPressed: onSeen,
         ),
-      ),
+        EntityAction(
+          icon: Icons.arrow_forward,
+          tooltip: 'Open notification',
+          onPressed: onTap,
+        ),
+      ],
     );
   }
 }

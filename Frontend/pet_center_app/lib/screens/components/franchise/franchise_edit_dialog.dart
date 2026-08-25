@@ -81,40 +81,38 @@ class _FranchiseEditDialogState extends State<FranchiseEditDialog> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  ColoredBox(
-                    color: listTone,
-                    child: TextFormField(
-                      controller: _nameController,
-                      maxLines: null,
-                      maxLength: 75,
-                      minLines: dialogMinLines,
-                      keyboardType: TextInputType.text,
-                      decoration: InputDecoration(hintText: 'Name:'),
-                      validator: (value) {
-                        return validateGeneric(value);
-                      },
-                    ),
+                  TextFormField(
+                    controller: _nameController,
+                    maxLines: null,
+                    maxLength: 75,
+                    minLines: dialogMinLines,
+                    keyboardType: TextInputType.text,
+                    decoration: InputDecoration(hintText: 'Name:'),
+                    validator: (value) {
+                      return validateGeneric(value);
+                    },
                   ),
                   design.verticalGap(design.spacing / 2),
-                  ColoredBox(
-                    color: listTone,
-                    child: TextFormField(
-                      controller: _contactController,
-                      maxLines: null,
-                      maxLength: 255,
-                      minLines: dialogMinLines,
-                      keyboardType: TextInputType.text,
-                      decoration: InputDecoration(hintText: 'Contact:'),
-                      validator: (value) {
-                        return validateContact(value);
-                      },
-                    ),
+                  TextFormField(
+                    controller: _contactController,
+                    maxLines: null,
+                    maxLength: 255,
+                    minLines: dialogMinLines,
+                    keyboardType: TextInputType.text,
+                    decoration: InputDecoration(hintText: 'Contact:'),
+                    validator: (value) {
+                      return validateContact(value);
+                    },
                   ),
                 ],
               ),
             ),
           ),
           actions: [
+            OutlinedButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancel'),
+            ),
             ElevatedButton(
               onPressed: () {
                 if (_formKey.currentState != null &&

@@ -55,72 +55,70 @@ class _TextEntryDialogState extends State<TextEntryDialog> {
 
     bool singleRow = widget.hideText || widget.limit <= 75;
 
-    return FittedBox(
-      fit: BoxFit.scaleDown,
-      child: Form(
-        key: _formKey,
-        child: AlertDialog(
-          title: Row(
-            children: [
-              Expanded(
-                child: design.textMarquee(
-                  '${(widget.dialogName != null) ? widget.dialogName : 'Enter:'}:',
-                ),
-              ),
-              IconButton(
-                tooltip: "Close",
-                icon: const Icon(Icons.close),
-                onPressed: () => Navigator.of(context).pop(),
-              ),
-            ],
-          ),
-          content: SizedBox(
-            width: design.dialogWidth,
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  ColoredBox(
-                    color: listTone,
-                    child: TextFormField(
-                      controller: _controller,
-                      maxLines: (singleRow) ? 1 : null,
-                      maxLength: widget.limit,
-                      minLines: (singleRow) ? 1 : dialogMinLines,
-                      keyboardType: (singleRow)
-                          ? TextInputType.text
-                          : TextInputType.multiline,
-                      obscureText: widget.hideText,
-                      decoration: InputDecoration(
-                        labelText: widget.inputDecoration ?? "Text...",
-                      ),
-                      validator: (value) {
-                        if (widget.validation != null) {
-                          return widget.validation!(value);
-                        } else {
-                          return null;
-                        }
-                      },
-                    ),
-                  ),
-                ],
+    return Form(
+      key: _formKey,
+      child: AlertDialog(
+        title: Row(
+          children: [
+            Expanded(
+              child: design.textMarquee(
+                '${(widget.dialogName != null) ? widget.dialogName : 'Enter:'}:',
               ),
             ),
-          ),
-          actions: [
-            ElevatedButton(
-              onPressed: () {
-                if (_formKey.currentState != null &&
-                    _formKey.currentState!.validate()) {
-                  Navigator.of(context).pop();
-                  invokeCallback();
-                }
-              },
-              child: design.fittedText('Save'),
+            IconButton(
+              tooltip: "Close",
+              icon: const Icon(Icons.close),
+              onPressed: () => Navigator.of(context).pop(),
             ),
           ],
         ),
+        content: SizedBox(
+          width: design.dialogWidth,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                TextFormField(
+                  controller: _controller,
+                  maxLines: (singleRow) ? 1 : null,
+                  maxLength: widget.limit,
+                  minLines: (singleRow) ? 1 : dialogMinLines,
+                  keyboardType: (singleRow)
+                      ? TextInputType.text
+                      : TextInputType.multiline,
+                  obscureText: widget.hideText,
+                  decoration: InputDecoration(
+                    labelText: widget.inputDecoration ?? "Text...",
+                  ),
+                  validator: (value) {
+                    if (widget.validation != null) {
+                      return widget.validation!(value);
+                    } else {
+                      return null;
+                    }
+                  },
+                ),
+              ],
+            ),
+          ),
+        ),
+        actions: [
+          OutlinedButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              if (_formKey.currentState != null &&
+                  _formKey.currentState!.validate()) {
+                Navigator.of(context).pop();
+                invokeCallback();
+              }
+            },
+            child: const Text('Save'),
+          ),
+        ],
       ),
     );
   }

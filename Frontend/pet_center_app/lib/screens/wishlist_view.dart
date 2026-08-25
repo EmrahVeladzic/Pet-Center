@@ -42,15 +42,10 @@ class _WishlistViewScreenState extends State<WishlistViewScreen> {
     ).extension<ReactiveDesignSystem>()!;
 
     return BasicScreenScaffold(
+      title: 'Wishlist',
+      description:
+          'Terms you are looking for. Matching listings are highlighted for you.',
       appBar: AppBar(
-        title: SizedBox(
-          width: design.screenWidth * marqueeTitleWMult,
-          height: design.marqueeSize,
-          child: design.textMarquee(
-            'Wishlist:',
-            design.screenWidth * marqueeTitleWMult,
-          ),
-        ),
         actions: [
           IconButton(
             tooltip: "Set term",

@@ -165,16 +165,9 @@ class _ListingEditScreenState extends State<ListingEditScreen> {
     return BasicScreenScaffold(
       formKey: _formKey,
       center: true,
-      appBar: AppBar(
-        title: SizedBox(
-          width: design.screenWidth * marqueeTitleWMult,
-          height: design.marqueeSize,
-          child: design.textMarquee(
-            isNew ? 'New Listing:' : 'Edit Listing:',
-            design.screenWidth * marqueeTitleWMult,
-          ),
-        ),
-      ),
+      title: isNew ? 'New listing' : 'Edit listing',
+      description:
+          'Describe what you are offering, set a price and control its visibility.',
       body: [
         ImageDisplay(
           key: _imageKey,

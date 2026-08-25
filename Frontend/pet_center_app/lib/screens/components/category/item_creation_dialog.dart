@@ -62,120 +62,111 @@ class _ItemCreationDialogState extends State<ItemCreationDialog> {
       context,
     ).extension<ReactiveDesignSystem>()!;
 
-    return FittedBox(
-      fit: BoxFit.scaleDown,
-      child: Form(
-        key: _formKey,
-        child: AlertDialog(
-          title: Row(
-            children: [
-              Expanded(child: design.textMarquee('Product details:')),
-              IconButton(
-                tooltip: "Close",
-                icon: const Icon(Icons.close),
-                onPressed: () => Navigator.of(context).pop(),
-              ),
-            ],
-          ),
-          content: SizedBox(
-            width: design.dialogWidth,
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  ColoredBox(
-                    color: listTone,
-                    child: TextFormField(
-                      controller: _titleController,
-                      maxLines: 1,
-                      maxLength: 75,
-                      minLines: 1,
-                      keyboardType: TextInputType.text,
-                      decoration: const InputDecoration(labelText: "Title..."),
-                      validator: (value) => validateGeneric(value),
+    return Form(
+      key: _formKey,
+      child: AlertDialog(
+        title: Row(
+          children: [
+            Expanded(child: design.textMarquee('Product details:')),
+            IconButton(
+              tooltip: "Close",
+              icon: const Icon(Icons.close),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+          ],
+        ),
+        content: SizedBox(
+          width: design.dialogWidth,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                TextFormField(
+                  controller: _titleController,
+                  maxLines: 1,
+                  maxLength: 75,
+                  minLines: 1,
+                  keyboardType: TextInputType.text,
+                  decoration: const InputDecoration(labelText: "Title..."),
+                  validator: (value) => validateGeneric(value),
+                ),
+                design.verticalGap(design.spacing),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    kindWidget(design.dialogWidth, kinds, (value) {
+                      if (mounted && value != null) {
+                        setState(() {
+                          data.kindId = value.id!;
+                        });
+                      }
+                    }),
+                  ],
+                ),
+                design.verticalGap(design.spacing),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    Checkbox(
+                      value: data.scale != null,
+                      onChanged: (value) {
+                        if (value == null) return;
+                        setState(() {
+                          data.scale = value ? AnimalScale.values.first : null;
+                        });
+                      },
                     ),
-                  ),
+                    design.fittedText('Scale specific'),
+                  ],
+                ),
+                if (data.scale != null) ...[
                   design.verticalGap(design.spacing),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      kindWidget(design.dialogWidth, kinds, (value) {
-                        if (mounted && value != null) {
+                      scaleWidget(
+                        design.dialogWidth,
+                        data.scale ?? AnimalScale.medium,
+                        (value) {
                           setState(() {
-                            data.kindId = value.id!;
-                          });
-                        }
-                      }),
-                    ],
-                  ),
-                  design.verticalGap(design.spacing),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      Checkbox(
-                        value: data.scale != null,
-                        onChanged: (value) {
-                          if (value == null) return;
-                          setState(() {
-                            data.scale = value
-                                ? AnimalScale.values.first
-                                : null;
+                            data.scale = value;
                           });
                         },
                       ),
-                      design.fittedText('Scale specific'),
                     ],
                   ),
-                  if (data.scale != null) ...[
-                    design.verticalGap(design.spacing),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        scaleWidget(
-                          design.dialogWidth,
-                          data.scale ?? AnimalScale.medium,
-                          (value) {
-                            setState(() {
-                              data.scale = value;
-                            });
-                          },
-                        ),
-                      ],
-                    ),
-                  ],
-                  design.verticalGap(design.spacing),
-                  ColoredBox(
-                    color: listTone,
-                    child: TextFormField(
-                      controller: _massController,
-                      maxLines: 1,
-                      minLines: 1,
-                      keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(
-                        labelText: "Mass (g)...",
-                      ),
-                      validator: (value) =>
-                          validateNumericInRange(value, 1, 100000),
-                    ),
-                  ),
                 ],
-              ),
+                design.verticalGap(design.spacing),
+                TextFormField(
+                  controller: _massController,
+                  maxLines: 1,
+                  minLines: 1,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(labelText: "Mass (g)..."),
+                  validator: (value) =>
+                      validateNumericInRange(value, 1, 100000),
+                ),
+              ],
             ),
           ),
-          actions: [
-            ElevatedButton(
-              onPressed: () {
-                if (_formKey.currentState != null &&
-                    _formKey.currentState!.validate()) {
-                  Navigator.of(context).pop();
-                  invokeCallback();
-                }
-              },
-              child: design.fittedText('Save details'),
-            ),
-          ],
         ),
+        actions: [
+          OutlinedButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              if (_formKey.currentState != null &&
+                  _formKey.currentState!.validate()) {
+                Navigator.of(context).pop();
+                invokeCallback();
+              }
+            },
+            child: design.fittedText('Save details'),
+          ),
+        ],
       ),
     );
   }

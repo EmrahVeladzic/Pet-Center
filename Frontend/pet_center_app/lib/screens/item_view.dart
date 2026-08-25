@@ -68,15 +68,9 @@ class _ItemViewState extends State<ItemView> {
     ).extension<ReactiveDesignSystem>()!;
 
     return BasicScreenScaffold(
+      title: 'Items',
+      description: 'Concrete items belonging to a category.',
       appBar: AppBar(
-        title: SizedBox(
-          width: design.screenWidth * marqueeTitleWMult,
-          height: design.marqueeSize,
-          child: design.textMarquee(
-            'Items:',
-            design.screenWidth * marqueeTitleWMult,
-          ),
-        ),
         actions: [
           IconButton(
             tooltip: "Define product",

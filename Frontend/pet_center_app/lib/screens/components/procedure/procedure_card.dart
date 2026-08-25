@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:pet_center_app/models/data_transfer/procedure_dto.dart';
 import 'package:pet_center_app/screens/components/confirmation_dialog.dart';
+import 'package:pet_center_app/screens/components/entity_list_tile.dart';
 import 'package:pet_center_app/screens/components/procedure/specification_card.dart';
 import 'package:pet_center_app/screens/components/procedure/specification_dialog.dart';
+import 'package:pet_center_app/screens/components/status_chip.dart';
 import 'package:pet_center_app/services/procedure_service.dart';
 import 'package:pet_center_app/services/static_user_data_service.dart';
-import 'package:pet_center_app/utils/app_style.dart';
+import 'package:pet_center_app/utils/tokens.dart';
 
 class ProcedureCard extends StatelessWidget {
   final ProcedureDTO procedure;
@@ -29,161 +31,105 @@ class ProcedureCard extends StatelessWidget {
     }
   }
 
+  void openSpecificationDialog(
+    BuildContext context, [
+    ProcedureSpecificationSubDTO? current,
+  ]) {
+    if (kinds.isEmpty || procedure.id == null) {
+      return;
+    }
+    showDialog(
+      context: context,
+      builder: (_) => SpecificationCreationDialog(
+        procedureId: procedure.id!,
+        fromCurrent: current,
+        callback: (value) {
+          procedure.specifications.removeWhere((s) => s.id == value.id);
+          procedure.specifications.add(value);
+          rebuildCallback();
+        },
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final ReactiveDesignSystem design = Theme.of(
-      context,
-    ).extension<ReactiveDesignSystem>()!;
+    final count = procedure.specifications.length;
 
-    return Padding(
-      padding: EdgeInsetsGeometry.symmetric(horizontal: 0, vertical: 1),
-      child: Container(
-        decoration: design.panelDecoration(),
-        child: Column(
-          children: [
-            Padding(
-              padding: EdgeInsets.all(design.spacing),
-              child: Row(
+    return EntityListTile(
+      icon: Icons.medical_services_outlined,
+      title: procedure.description.isEmpty
+          ? 'Untitled procedure'
+          : procedure.description,
+      subtitle: count == 0
+          ? 'Not defined for any species yet'
+          : (count == 1 ? '1 specification' : '$count specifications'),
+      chips: [
+        if (count == 0)
+          const StatusChip(label: 'Undefined', tone: StatusTone.warning),
+      ],
+      actions: [
+        EntityAction(
+          icon: Icons.note_add_outlined,
+          tooltip: 'Define procedure for a species',
+          onPressed: kinds.isEmpty || procedure.id == null
+              ? null
+              : () => openSpecificationDialog(context),
+        ),
+        EntityAction(
+          icon: Icons.edit_outlined,
+          tooltip: 'Edit procedure',
+          onPressed: editAction,
+        ),
+        EntityAction(
+          icon: Icons.delete_outline,
+          tooltip: 'Remove procedure',
+          onPressed: deleteAction,
+          destructive: true,
+        ),
+      ],
+      expanded: count == 0
+          ? null
+          : Theme(
+              data: Theme.of(
+                context,
+              ).copyWith(dividerColor: Colors.transparent),
+              child: ExpansionTile(
+                tilePadding: EdgeInsets.zero,
+                title: Text(
+                  'Specifications',
+                  style: Theme.of(context).textTheme.titleSmall,
+                ),
                 children: [
-                  Expanded(
-                    flex: 5,
-
-                    child: design.fittedText(procedure.description, 2.0),
-                  ),
-                  Expanded(
-                    flex: 1,
-                    child: Align(
-                      alignment: Alignment.center,
-                      child: SizedBox(
-                        width: design.boundedIconSize,
-                        height: design.boundedIconSize,
-                        child: FittedBox(
-                          fit: BoxFit.contain,
-                          child: IconButton(
-                            tooltip: "Define procedure",
-                            onPressed: () {
-                              if (kinds.isEmpty || procedure.id == null) {
-                                return;
+                  for (final e in procedure.specifications) ...[
+                    SpecificationCard(
+                      specification: e,
+                      editAction: () => openSpecificationDialog(context, e),
+                      deleteAction: () {
+                        showDialog<bool>(
+                          context: context,
+                          builder: (_) => ConfirmationDialog(
+                            title: 'Remove this specification?',
+                            body:
+                                'The specification will no longer apply to this procedure.',
+                            consequence: 'This cannot be undone.',
+                            confirmLabel: 'Remove',
+                            destructive: true,
+                            confirmAction: () {
+                              final id = e.id;
+                              if (id != null) {
+                                removeSpecification(id);
                               }
-                              showDialog(
-                                context: context,
-                                builder: (_) => SpecificationCreationDialog(
-                                  procedureId: procedure.id!,
-                                  callback: (value) {
-                                    procedure.specifications.removeWhere(
-                                      (s) => s.id == value.id,
-                                    );
-                                    procedure.specifications.add(value);
-                                    rebuildCallback();
-                                  },
-                                ),
-                              );
                             },
-                            icon: const Icon(Icons.note_add),
-                            padding: EdgeInsets.zero,
-
-                            constraints: const BoxConstraints(),
                           ),
-                        ),
-                      ),
+                        );
+                      },
                     ),
-                  ),
-                  Expanded(
-                    flex: 1,
-                    child: Align(
-                      alignment: Alignment.center,
-                      child: SizedBox(
-                        width: design.boundedIconSize,
-                        height: design.boundedIconSize,
-                        child: FittedBox(
-                          fit: BoxFit.contain,
-                          child: IconButton(
-                            tooltip: "Edit procedure",
-                            onPressed: editAction,
-                            icon: const Icon(Icons.edit),
-                            padding: EdgeInsets.zero,
-
-                            constraints: const BoxConstraints(),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  Expanded(
-                    flex: 1,
-                    child: Align(
-                      alignment: Alignment.center,
-                      child: SizedBox(
-                        width: design.boundedIconSize,
-                        height: design.boundedIconSize,
-                        child: FittedBox(
-                          fit: BoxFit.contain,
-                          child: IconButton(
-                            tooltip: "Remove procedure",
-                            onPressed: deleteAction,
-                            icon: const Icon(Icons.delete),
-                            padding: EdgeInsets.zero,
-
-                            constraints: const BoxConstraints(),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
+                    const SizedBox(height: Spacing.xs),
+                  ],
                 ],
               ),
             ),
-            if (procedure.specifications.isNotEmpty) ...[
-              ExpansionTile(
-                title: const Text("Specifications"),
-                children: procedure.specifications
-                    .expand(
-                      (e) => [
-                        SpecificationCard(
-                          specification: e,
-                          editAction: () {
-                            if (procedure.id == null || kinds.isEmpty) return;
-                            showDialog(
-                              context: context,
-                              builder: (_) => SpecificationCreationDialog(
-                                procedureId: procedure.id!,
-                                fromCurrent: e,
-                                callback: (value) {
-                                  procedure.specifications.removeWhere(
-                                    (s) => s.id == value.id,
-                                  );
-                                  procedure.specifications.add(value);
-                                  rebuildCallback();
-                                },
-                              ),
-                            );
-                          },
-                          deleteAction: () {
-                            showDialog(
-                              context: context,
-                              builder: (_) => ConfirmationDialog(
-                                title: "Remove specification",
-                                body:
-                                    "Are you sure you wish to remove this specification?",
-                                confirmAction: () {
-                                  final id = e.id;
-                                  if (id != null) {
-                                    removeSpecification(id);
-                                  }
-                                },
-                              ),
-                            );
-                          },
-                        ),
-                        design.verticalGap(1),
-                      ],
-                    )
-                    .toList(),
-              ),
-            ],
-          ],
-        ),
-      ),
     );
   }
 }

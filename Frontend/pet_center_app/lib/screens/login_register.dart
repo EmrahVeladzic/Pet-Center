@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:pet_center_app/models/data_transfer/account/account_request_dto.dart';
 import 'package:pet_center_app/models/enums.dart';
 import 'package:pet_center_app/screens/components/radio_button_component.dart';
-import 'package:pet_center_app/screens/dashboard.dart';
+import 'package:pet_center_app/screens/components/shell/app_shell.dart';
 import 'package:pet_center_app/services/account_service.dart';
 import 'package:pet_center_app/services/static_user_data_service.dart';
 
@@ -87,7 +87,7 @@ class _CredentialsScreenState extends State<CredentialsScreen> {
     }
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (_) => const DashboardScreen()),
+      MaterialPageRoute(builder: (_) => const AppShell()),
     );
   }
 

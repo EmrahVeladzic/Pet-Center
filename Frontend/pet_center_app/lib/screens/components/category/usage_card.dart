@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:pet_center_app/models/data_transfer/category_dto.dart';
 import 'package:pet_center_app/models/enums.dart';
+import 'package:pet_center_app/screens/components/entity_list_tile.dart';
 import 'package:pet_center_app/services/static_user_data_service.dart';
-import 'package:pet_center_app/utils/app_style.dart';
+import 'package:pet_center_app/utils/tokens.dart';
 
 class UsageCard extends StatelessWidget {
   final UsageSubDTO usage;
@@ -18,86 +19,71 @@ class UsageCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final ReactiveDesignSystem design = Theme.of(
-      context,
-    ).extension<ReactiveDesignSystem>()!;
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
 
-    return Padding(
-      padding: EdgeInsetsGeometry.symmetric(horizontal: 0, vertical: 1),
-      child: Container(
-        color: listTone,
-        child: Row(
-          children: [
-            Expanded(
-              flex: 4,
-              child: Padding(
-                padding: EdgeInsets.all(design.spacing),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Flexible(
-                      fit: FlexFit.loose,
-                      child: design.fittedText(
-                        "${kinds.where((k) => k.id == usage.kindId).firstOrNull?.title ?? "Animal"}${(usage.scaleSpecific != null) ? " - ${usage.scaleSpecific!.displayName}" : ""}",
-                      ),
-                    ),
-                    Flexible(
-                      fit: FlexFit.loose,
-                      child: design.fittedText(
-                        "${usage.averageDailyAmountGrams}g / day",
-                      ),
-                    ),
-                  ],
+    final kindName =
+        kinds.where((k) => k.id == usage.kindId).firstOrNull?.title ?? 'Animal';
+    final scale = usage.scaleSpecific;
+    final label = scale == null
+        ? kindName
+        : '$kindName, ${scale.displayName} scale';
+
+    return Container(
+      padding: const EdgeInsets.all(Spacing.sm),
+      decoration: BoxDecoration(
+        color: scheme.surfaceContainerLow,
+        borderRadius: Radii.smAll,
+        border: Border.all(color: scheme.outlineVariant),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            Icons.restaurant_outlined,
+            size: IconSizes.md,
+            color: scheme.onSurfaceVariant,
+          ),
+          const SizedBox(width: Spacing.xs),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  label,
+                  softWrap: true,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.bodyMedium,
                 ),
-              ),
-            ),
-
-            Expanded(
-              flex: 1,
-              child: Align(
-                alignment: Alignment.center,
-                child: SizedBox(
-                  width: design.boundedIconSize,
-                  height: design.boundedIconSize,
-                  child: FittedBox(
-                    fit: BoxFit.contain,
-                    child: IconButton(
-                      tooltip: "Edit",
-                      onPressed: editAction,
-                      icon: const Icon(Icons.edit),
-                      padding: EdgeInsets.zero,
-
-                      constraints: const BoxConstraints(),
-                    ),
+                Text(
+                  '${usage.averageDailyAmountGrams} g per day',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: scheme.onSurfaceVariant,
                   ),
                 ),
-              ),
+              ],
             ),
-
-            Expanded(
-              flex: 1,
-              child: Align(
-                alignment: Alignment.center,
-                child: SizedBox(
-                  width: design.boundedIconSize,
-                  height: design.boundedIconSize,
-                  child: FittedBox(
-                    fit: BoxFit.contain,
-                    child: IconButton(
-                      tooltip: "Delete",
-                      onPressed: deleteAction,
-                      icon: const Icon(Icons.delete),
-                      padding: EdgeInsets.zero,
-
-                      constraints: const BoxConstraints(),
-                    ),
-                  ),
-                ),
+          ),
+          const SizedBox(width: Spacing.xs),
+          EntityActionBar(
+            actions: [
+              EntityAction(
+                icon: Icons.edit_outlined,
+                tooltip: 'Edit usage estimate',
+                onPressed: editAction,
               ),
-            ),
-          ],
-        ),
+              EntityAction(
+                icon: Icons.delete_outline,
+                tooltip: 'Remove usage estimate',
+                onPressed: deleteAction,
+                destructive: true,
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }

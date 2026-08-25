@@ -5,11 +5,13 @@ import 'package:pet_center_app/models/enums.dart';
 import 'package:pet_center_app/screens/components/account/account_card.dart';
 import 'package:pet_center_app/screens/components/account/account_filters.dart';
 
+import 'package:pet_center_app/screens/components/app_data_table.dart';
 import 'package:pet_center_app/screens/components/page_selector.dart';
 import 'package:pet_center_app/screens/templates/data_screen_scaffold.dart';
 import 'package:pet_center_app/services/account_service.dart';
 import 'package:pet_center_app/utils/app_style.dart';
 import 'package:pet_center_app/utils/pdf_utils.dart';
+import 'package:pet_center_app/utils/tokens.dart';
 
 class AccountPageScreen extends StatefulWidget {
   final int maxPage;
@@ -100,14 +102,84 @@ class _AccountPageScreen extends State<AccountPageScreen> {
     await accountsToPdf(accRole, accContact);
   }
 
+  void resetFilters() {
+    resetPages(Access.user, '');
+  }
+
+  List<DataColumnSpec<AccountResponseDTO>> get columns => [
+    DataColumnSpec<AccountResponseDTO>(
+      label: 'User',
+      flex: 5,
+      cell: (context, acc) => Row(
+        children: [
+          AccountAvatar(acc: acc),
+          const SizedBox(width: Spacing.sm),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  acc.contact.isEmpty ? 'No contact provided' : acc.contact,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.titleSmall,
+                ),
+                Text(
+                  acc.accessLevel.displayName,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    ),
+    DataColumnSpec<AccountResponseDTO>(
+      label: 'Access level',
+      flex: 3,
+      hideOnMedium: true,
+      cell: (context, acc) => AccessChip(level: acc.accessLevel),
+    ),
+    DataColumnSpec<AccountResponseDTO>(
+      label: 'Status',
+      flex: 3,
+      cell: (context, acc) => VerificationChip(verified: acc.verified),
+    ),
+    DataColumnSpec<AccountResponseDTO>(
+      label: 'Actions',
+      flex: 3,
+      alignment: Alignment.centerRight,
+      cell: (context, acc) => AccountActions(
+        acc: acc,
+        onBan: () {
+          if (acc.id == null) {
+            return;
+          }
+          ban(acc.id!);
+        },
+        onChangeRole: (level) => setRole(level, acc),
+      ),
+    ),
+  ];
+
   @override
   Widget build(BuildContext context) {
     return DataScreenScaffold<AccountFilters, AccountResponseDTO>(
-      appTitle: 'People:',
+      appTitle: 'Users',
+      description:
+          'Manage accounts, roles and verification across the organisation.',
+      columns: columns,
+      emptyTitle: 'No accounts yet',
+      onResetFilters: resetFilters,
       importActions: [
         IconButton(
-          tooltip: "Convert to PDF",
-          icon: Icon(Icons.picture_as_pdf),
+          tooltip: "Export this list to PDF",
+          icon: const Icon(Icons.picture_as_pdf),
           onPressed: toPdf,
         ),
       ],
@@ -122,7 +194,7 @@ class _AccountPageScreen extends State<AccountPageScreen> {
         contact: accContact,
       ),
       filterPrereq: true,
-      itemBuilder: (p0, source) {
+      itemBuilder: (context, source) {
         return AccountCard(
           acc: source,
           onTap: () {

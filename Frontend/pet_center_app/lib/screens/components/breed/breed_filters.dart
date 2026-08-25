@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:pet_center_app/models/enums.dart';
-
+import 'package:pet_center_app/screens/components/filter_bar.dart';
 import 'package:pet_center_app/screens/templates/filter_template.dart';
-
-import 'package:pet_center_app/utils/app_style.dart';
 import 'package:pet_center_app/utils/jwt_utils.dart';
 
 class BreedFilters extends StatefulWidget
@@ -32,6 +30,13 @@ class _BreedFiltersState extends State<BreedFilters> {
   late bool incomplete;
   late bool adoption;
 
+  @override
+  void initState() {
+    super.initState();
+    incomplete = widget.initIncomplete;
+    adoption = widget.initAdoption;
+  }
+
   void change(bool inc, bool adp) {
     if (!mounted) {
       return;
@@ -44,55 +49,22 @@ class _BreedFiltersState extends State<BreedFilters> {
   }
 
   @override
-  void initState() {
-    super.initState();
-
-    incomplete = widget.initIncomplete;
-    adoption = widget.initAdoption;
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final ReactiveDesignSystem design = Theme.of(
-      context,
-    ).extension<ReactiveDesignSystem>()!;
-
-    return SizedBox.expand(
-      child: Container(
-        decoration: BoxDecoration(color: filterTone),
-        padding: EdgeInsets.symmetric(horizontal: design.spacing),
-        child: Row(
-          children: [
-            Expanded(
-              flex: 1,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  design.fittedText(
-                    role == Access.user ? "Up for adoption" : "Incomplete",
-                  ),
-                  if (role == Access.user) ...[
-                    Checkbox(
-                      value: adoption,
-                      onChanged: (value) {
-                        change(incomplete, value!);
-                      },
-                    ),
-                  ] else ...[
-                    Checkbox(
-                      value: incomplete,
-                      onChanged: (value) {
-                        change(value!, adoption);
-                      },
-                    ),
-                  ],
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
+    return FilterBar(
+      children: [
+        if (role == Access.user)
+          FilterToggle(
+            label: 'Only breeds up for adoption',
+            value: adoption,
+            onChanged: (value) => change(incomplete, value),
+          )
+        else
+          FilterToggle(
+            label: 'Only incomplete breeds',
+            value: incomplete,
+            onChanged: (value) => change(value, adoption),
+          ),
+      ],
     );
   }
 }

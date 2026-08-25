@@ -12,8 +12,10 @@ import 'package:pet_center_app/services/static_user_data_service.dart';
 import 'package:pet_center_app/services/user_service.dart';
 
 import 'package:pet_center_app/utils/app_style.dart';
+import 'package:pet_center_app/utils/globals.dart';
 import 'package:pet_center_app/utils/hive_cache.dart';
 import 'package:pet_center_app/utils/jwt_utils.dart';
+import 'package:pet_center_app/utils/tokens.dart';
 import 'package:pet_center_app/utils/validators.dart';
 
 class UserViewScreen extends StatefulWidget {
@@ -28,7 +30,7 @@ class _UserViewScreenState extends State<UserViewScreen> {
     clearToken();
     StaticAndUserDataService.clearObtainedData();
     if (mounted) {
-      Navigator.of(context).pushAndRemoveUntil(
+      Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
         MaterialPageRoute(builder: (context) => CredentialsScreen()),
         (route) => false,
       );
@@ -41,6 +43,7 @@ class _UserViewScreenState extends State<UserViewScreen> {
       setState(() {
         self?.userName = response.userName;
       });
+      selfRevision.value++;
     }
   }
 
@@ -129,16 +132,8 @@ class _UserViewScreenState extends State<UserViewScreen> {
 
     return BasicScreenScaffold(
       center: true,
-      appBar: AppBar(
-        title: SizedBox(
-          width: design.screenWidth * marqueeTitleWMult,
-          height: design.marqueeSize,
-          child: design.textMarquee(
-            "${(self?.userName != null) ? self?.userName : 'User details'}",
-            design.screenWidth * marqueeTitleWMult,
-          ),
-        ),
-      ),
+      title: self?.userName ?? 'User details',
+      description: 'Your account details, session and stored data.',
       body: [
         design.textMarquee(
           "Account details:",
@@ -250,46 +245,100 @@ class _UserViewScreenState extends State<UserViewScreen> {
           ),
         ),
         design.verticalGap(design.spacing),
-        design.textMarquee(
-          "Advanced:",
-          design.bodyWMult * design.screenWidth,
-          1.0,
-          1.5,
-        ),
         design.verticalGap(design.spacing),
-        FractionallySizedBox(
-          widthFactor: 0.5,
-          alignment: Alignment.center,
-          child: ElevatedButton(
-            onPressed: () {
-              showDialog(
-                context: context,
-                builder: (_) => ConfirmationDialog(
-                  confirmAction: resetUser,
-                  title: "Reset",
-                  body: "Are you sure you wish to reset your profile?",
-                ),
-              );
-            },
-            child: design.fittedText('Wipe user data'),
+        Container(
+          padding: const EdgeInsets.all(Spacing.md),
+          decoration: BoxDecoration(
+            color: Theme.of(
+              context,
+            ).colorScheme.errorContainer.withValues(alpha: 0.35),
+            borderRadius: Radii.mdAll,
+            border: Border.all(color: Theme.of(context).colorScheme.error),
           ),
-        ),
-        design.verticalGap(design.spacing),
-        FractionallySizedBox(
-          widthFactor: 0.5,
-          alignment: Alignment.center,
-          child: ElevatedButton(
-            onPressed: () {
-              showDialog(
-                context: context,
-                builder: (_) => ConfirmationDialog(
-                  confirmAction: deleteAccount,
-                  title: "Deactivate account",
-                  body: "Are you sure you wish to deactivate your account?",
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(
+                    Icons.warning_amber_rounded,
+                    size: IconSizes.lg,
+                    color: Theme.of(context).colorScheme.error,
+                  ),
+                  const SizedBox(width: Spacing.xs),
+                  Expanded(
+                    child: Text(
+                      'Irreversible actions',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        color: Theme.of(context).colorScheme.error,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: Spacing.xxs),
+              Text(
+                'These actions permanently remove data and cannot be undone.',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
-              );
-            },
-            child: design.fittedText('Delete account'),
+              ),
+              const SizedBox(height: Spacing.md),
+              Wrap(
+                spacing: Spacing.xs,
+                runSpacing: Spacing.xs,
+                children: [
+                  OutlinedButton.icon(
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Theme.of(context).colorScheme.error,
+                      side: BorderSide(
+                        color: Theme.of(context).colorScheme.error,
+                      ),
+                    ),
+                    icon: const Icon(Icons.restart_alt, size: IconSizes.md),
+                    label: const Text('Wipe user data'),
+                    onPressed: () {
+                      showDialog<bool>(
+                        context: context,
+                        builder: (_) => ConfirmationDialog(
+                          confirmAction: resetUser,
+                          title: "Wipe your user data?",
+                          body:
+                              "Your profile will be reset and the records associated with it will be removed.",
+                          consequence:
+                              "This cannot be undone. Your account stays active, but its data is erased permanently.",
+                          confirmLabel: "Wipe data",
+                          destructive: true,
+                        ),
+                      );
+                    },
+                  ),
+                  FilledButton.icon(
+                    style: FilledButton.styleFrom(
+                      backgroundColor: Theme.of(context).colorScheme.error,
+                      foregroundColor: Theme.of(context).colorScheme.onError,
+                    ),
+                    icon: const Icon(Icons.person_off, size: IconSizes.md),
+                    label: const Text('Delete account'),
+                    onPressed: () {
+                      showDialog<bool>(
+                        context: context,
+                        builder: (_) => ConfirmationDialog(
+                          confirmAction: deleteAccount,
+                          title: "Delete your account?",
+                          body:
+                              "Your account will be deactivated and you will be signed out immediately.",
+                          consequence:
+                              "This cannot be undone. You will lose access to this account and everything stored under it.",
+                          confirmLabel: "Delete account",
+                          destructive: true,
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ],
           ),
         ),
       ],

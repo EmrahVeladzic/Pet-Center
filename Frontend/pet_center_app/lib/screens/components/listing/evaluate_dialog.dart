@@ -70,19 +70,16 @@ class _EvaluateDialogState extends State<EvaluateDialog> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  ColoredBox(
-                    color: listTone,
-                    child: TextFormField(
-                      controller: _controller,
-                      maxLines: null,
-                      maxLength: 150,
-                      minLines: dialogMinLines,
-                      keyboardType: TextInputType.multiline,
-                      decoration: InputDecoration(hintText: 'Note:'),
-                      validator: (value) {
-                        return validateGeneric(value);
-                      },
-                    ),
+                  TextFormField(
+                    controller: _controller,
+                    maxLines: null,
+                    maxLength: 150,
+                    minLines: dialogMinLines,
+                    keyboardType: TextInputType.multiline,
+                    decoration: InputDecoration(hintText: 'Note:'),
+                    validator: (value) {
+                      return validateGeneric(value);
+                    },
                   ),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.start,
@@ -106,6 +103,10 @@ class _EvaluateDialogState extends State<EvaluateDialog> {
             ),
           ),
           actions: [
+            OutlinedButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancel'),
+            ),
             ElevatedButton(
               onPressed: () {
                 if (_formKey.currentState != null &&

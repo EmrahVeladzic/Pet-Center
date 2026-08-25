@@ -84,15 +84,9 @@ class _KindViewScreenState extends State<KindViewScreen> {
     ).extension<ReactiveDesignSystem>()!;
 
     return BasicScreenScaffold(
+      title: 'Species',
+      description: 'Animal species recognised by the system, and their breeds.',
       appBar: AppBar(
-        title: SizedBox(
-          width: design.screenWidth * marqueeTitleWMult,
-          height: design.marqueeSize,
-          child: design.textMarquee(
-            'Kinds:',
-            design.screenWidth * marqueeTitleWMult,
-          ),
-        ),
         actions: [
           IconButton(
             tooltip: "Define kind",
