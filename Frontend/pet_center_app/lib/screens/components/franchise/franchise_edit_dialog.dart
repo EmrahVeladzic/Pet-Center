@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pet_center_app/screens/components/app_dialog.dart';
 import 'package:pet_center_app/models/data_transfer/franchise/franchise_request_dto.dart';
 import 'package:pet_center_app/models/data_transfer/franchise/franchise_response_dto.dart';
 
@@ -63,7 +64,8 @@ class _FranchiseEditDialogState extends State<FranchiseEditDialog> {
       key: _formKey,
       child: FittedBox(
         fit: BoxFit.scaleDown,
-        child: AlertDialog(
+        child: ScrollableAlertDialog(
+          scrollable: true,
           title: Row(
             children: [
               Expanded(child: design.textMarquee("Edit franchise details:")),
@@ -76,36 +78,34 @@ class _FranchiseEditDialogState extends State<FranchiseEditDialog> {
           ),
           content: SizedBox(
             width: design.dialogWidth,
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  TextFormField(
-                    controller: _nameController,
-                    maxLines: null,
-                    maxLength: 75,
-                    minLines: dialogMinLines,
-                    keyboardType: TextInputType.text,
-                    decoration: InputDecoration(hintText: 'Name:'),
-                    validator: (value) {
-                      return validateGeneric(value);
-                    },
-                  ),
-                  design.verticalGap(design.spacing / 2),
-                  TextFormField(
-                    controller: _contactController,
-                    maxLines: null,
-                    maxLength: 255,
-                    minLines: dialogMinLines,
-                    keyboardType: TextInputType.text,
-                    decoration: InputDecoration(hintText: 'Contact:'),
-                    validator: (value) {
-                      return validateContact(value);
-                    },
-                  ),
-                ],
-              ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                TextFormField(
+                  controller: _nameController,
+                  maxLines: null,
+                  maxLength: 75,
+                  minLines: dialogMinLines,
+                  keyboardType: TextInputType.text,
+                  decoration: InputDecoration(hintText: 'Name:'),
+                  validator: (value) {
+                    return validateGeneric(value);
+                  },
+                ),
+                design.verticalGap(design.spacing / 2),
+                TextFormField(
+                  controller: _contactController,
+                  maxLines: null,
+                  maxLength: 255,
+                  minLines: dialogMinLines,
+                  keyboardType: TextInputType.text,
+                  decoration: InputDecoration(hintText: 'Contact:'),
+                  validator: (value) {
+                    return validateContact(value);
+                  },
+                ),
+              ],
             ),
           ),
           actions: [

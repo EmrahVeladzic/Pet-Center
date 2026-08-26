@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:pet_center_app/screens/components/app_dialog.dart';
 import 'package:pet_center_app/services/listing_service.dart';
 import 'package:pet_center_app/utils/app_style.dart';
 import 'package:pet_center_app/utils/validators.dart';
@@ -47,7 +48,8 @@ class _ReportDialogState extends State<ReportDialog> {
       key: _formKey,
       child: FittedBox(
         fit: BoxFit.scaleDown,
-        child: AlertDialog(
+        child: ScrollableAlertDialog(
+          scrollable: true,
           title: Row(
             children: [
               Expanded(
@@ -64,24 +66,22 @@ class _ReportDialogState extends State<ReportDialog> {
           ),
           content: SizedBox(
             width: design.dialogWidth,
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  TextFormField(
-                    controller: _controller,
-                    maxLines: null,
-                    maxLength: 255,
-                    minLines: dialogMinLines,
-                    keyboardType: TextInputType.multiline,
-                    decoration: InputDecoration(hintText: 'Reason:'),
-                    validator: (value) {
-                      return validateGeneric(value);
-                    },
-                  ),
-                ],
-              ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                TextFormField(
+                  controller: _controller,
+                  maxLines: null,
+                  maxLength: 255,
+                  minLines: dialogMinLines,
+                  keyboardType: TextInputType.multiline,
+                  decoration: InputDecoration(hintText: 'Reason:'),
+                  validator: (value) {
+                    return validateGeneric(value);
+                  },
+                ),
+              ],
             ),
           ),
           actions: [

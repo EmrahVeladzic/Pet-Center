@@ -79,63 +79,107 @@ class _EntityListTileState extends State<EntityListTile> {
     final scheme = theme.colorScheme;
     final design = context.design;
 
-    final header = Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
+    final titleBlock = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
       children: [
-        widget.leading ??
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: scheme.surfaceContainerHigh,
-                borderRadius: Radii.smAll,
-              ),
-              child: Icon(
-                widget.icon,
-                size: IconSizes.md,
-                color: scheme.onSurfaceVariant,
-              ),
+        Text(
+          widget.title,
+          softWrap: true,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          style: theme.textTheme.titleSmall,
+        ),
+        if (widget.subtitle != null) ...[
+          const SizedBox(height: Spacing.xxs),
+          Text(
+            widget.subtitle!,
+            softWrap: true,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: scheme.onSurfaceVariant,
             ),
-        const SizedBox(width: Spacing.sm),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
+          ),
+        ],
+      ],
+    );
+
+    final leading =
+        widget.leading ??
+        Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(
+            color: scheme.surfaceContainerHigh,
+            borderRadius: Radii.smAll,
+          ),
+          child: Icon(
+            widget.icon,
+            size: IconSizes.lg,
+            color: scheme.onSurfaceVariant,
+          ),
+        );
+
+    final trailing = <Widget>[
+      ...widget.chips,
+      if (widget.actions.isNotEmpty) EntityActionBar(actions: widget.actions),
+    ];
+
+    final header = LayoutBuilder(
+      builder: (context, constraints) {
+        final available = constraints.hasBoundedWidth
+            ? constraints.maxWidth
+            : MediaQuery.sizeOf(context).width;
+
+        final estimated =
+            (widget.chips.length * 96) + (widget.actions.length * 48);
+        final titleReserve = available < 320 ? 120.0 : 220.0;
+        final stacked =
+            trailing.isNotEmpty && available - titleReserve < estimated;
+
+        if (!stacked) {
+          return Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Text(
-                widget.title,
-                softWrap: true,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: theme.textTheme.titleSmall,
-              ),
-              if (widget.subtitle != null) ...[
-                const SizedBox(height: Spacing.xxs),
-                Text(
-                  widget.subtitle!,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: scheme.onSurfaceVariant,
-                  ),
+              leading,
+              const SizedBox(width: Spacing.sm),
+              Expanded(child: titleBlock),
+              if (trailing.isNotEmpty) ...[
+                const SizedBox(width: Spacing.xs),
+                Wrap(
+                  spacing: Spacing.xxs,
+                  runSpacing: Spacing.xxs,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: trailing,
                 ),
               ],
             ],
-          ),
-        ),
-        if (widget.chips.isNotEmpty) ...[
-          const SizedBox(width: Spacing.xs),
-          Wrap(
-            spacing: Spacing.xxs,
-            runSpacing: Spacing.xxs,
-            children: widget.chips,
-          ),
-        ],
-        if (widget.actions.isNotEmpty) ...[
-          const SizedBox(width: Spacing.xs),
-          EntityActionBar(actions: widget.actions),
-        ],
-      ],
+          );
+        }
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                leading,
+                const SizedBox(width: Spacing.sm),
+                Expanded(child: titleBlock),
+              ],
+            ),
+            const SizedBox(height: Spacing.xs),
+            Wrap(
+              spacing: Spacing.xxs,
+              runSpacing: Spacing.xxs,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: trailing,
+            ),
+          ],
+        );
+      },
     );
 
     return MouseRegion(
@@ -225,7 +269,11 @@ class ResponsiveActionBar extends StatelessWidget {
           OutlinedButton.icon(
             onPressed: action.onPressed,
             icon: Icon(action.icon, size: IconSizes.md),
-            label: Text(action.tooltip),
+            label: Text(
+              action.tooltip,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
             style: action.destructive
                 ? OutlinedButton.styleFrom(
                     foregroundColor: scheme.error,

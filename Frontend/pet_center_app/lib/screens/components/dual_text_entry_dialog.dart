@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:pet_center_app/screens/components/app_dialog.dart';
 import 'package:pet_center_app/utils/app_style.dart';
 
 class DualTextEntryDialog extends StatefulWidget {
@@ -69,7 +70,8 @@ class _DualTextEntryDialogState extends State<DualTextEntryDialog> {
 
     return Form(
       key: _formKey,
-      child: AlertDialog(
+      child: ScrollableAlertDialog(
+        scrollable: true,
         title: Row(
           children: [
             Expanded(
@@ -84,65 +86,63 @@ class _DualTextEntryDialogState extends State<DualTextEntryDialog> {
         ),
         content: SizedBox(
           width: design.dialogWidth,
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                TextFormField(
-                  controller: _firstController,
-                  maxLines: 1,
-                  maxLength: widget.limit,
-                  minLines: 1,
-                  keyboardType: TextInputType.text,
-                  obscureText: widget.hideText,
-                  decoration: InputDecoration(
-                    labelText: widget.firstDecor ?? 'Text...',
-                  ),
-                  validator: (value) {
-                    if (widget.sharedValidation != null) {
-                      return widget.sharedValidation!(value);
-                    } else if (widget.firstValidation != null) {
-                      return widget.firstValidation!(value);
-                    } else {
-                      return null;
-                    }
-                  },
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              TextFormField(
+                controller: _firstController,
+                maxLines: 1,
+                maxLength: widget.limit,
+                minLines: 1,
+                keyboardType: TextInputType.text,
+                obscureText: widget.hideText,
+                decoration: InputDecoration(
+                  labelText: widget.firstDecor ?? 'Text...',
                 ),
+                validator: (value) {
+                  if (widget.sharedValidation != null) {
+                    return widget.sharedValidation!(value);
+                  } else if (widget.firstValidation != null) {
+                    return widget.firstValidation!(value);
+                  } else {
+                    return null;
+                  }
+                },
+              ),
+              design.verticalGap(design.spacing / 2),
+              TextFormField(
+                controller: _secondController,
+                maxLines: 1,
+                maxLength: widget.limit,
+                minLines: 1,
+                keyboardType: TextInputType.text,
+                obscureText: widget.hideText,
+                decoration: InputDecoration(
+                  labelText: widget.secondDecor ?? 'Text...',
+                ),
+                validator: (value) {
+                  if (widget.sharedValidation != null) {
+                    return widget.sharedValidation!(value);
+                  } else if (widget.secondValidation != null) {
+                    return widget.secondValidation!(value);
+                  } else {
+                    return null;
+                  }
+                },
+              ),
+              if (widget.linkCallback != null) ...[
                 design.verticalGap(design.spacing / 2),
-                TextFormField(
-                  controller: _secondController,
-                  maxLines: 1,
-                  maxLength: widget.limit,
-                  minLines: 1,
-                  keyboardType: TextInputType.text,
-                  obscureText: widget.hideText,
-                  decoration: InputDecoration(
-                    labelText: widget.secondDecor ?? 'Text...',
-                  ),
-                  validator: (value) {
-                    if (widget.sharedValidation != null) {
-                      return widget.sharedValidation!(value);
-                    } else if (widget.secondValidation != null) {
-                      return widget.secondValidation!(value);
-                    } else {
-                      return null;
+                TextButton(
+                  onPressed: () {
+                    if (widget.linkCallback != null) {
+                      widget.linkCallback!();
                     }
                   },
+                  child: design.fittedText((widget.linkName ?? 'Problem?')),
                 ),
-                if (widget.linkCallback != null) ...[
-                  design.verticalGap(design.spacing / 2),
-                  TextButton(
-                    onPressed: () {
-                      if (widget.linkCallback != null) {
-                        widget.linkCallback!();
-                      }
-                    },
-                    child: design.fittedText((widget.linkName ?? 'Problem?')),
-                  ),
-                ],
               ],
-            ),
+            ],
           ),
         ),
         actions: [

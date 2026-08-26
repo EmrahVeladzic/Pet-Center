@@ -9,6 +9,7 @@ import 'package:pet_center_app/services/category_service.dart';
 import 'package:pet_center_app/services/static_user_data_service.dart';
 
 import 'package:pet_center_app/utils/app_style.dart';
+import 'package:pet_center_app/utils/tokens.dart';
 
 class SuppliesViewScreen extends StatefulWidget {
   const SuppliesViewScreen({super.key});
@@ -95,7 +96,12 @@ class _SuppliesViewScreenState extends State<SuppliesViewScreen> {
                 showDialog(
                   context: context,
                   builder: (_) => ConfirmationDialog(
-                    title: "Stop tracking supplies:",
+                    title: "Stop tracking this supply?",
+                    body: "This supply record will be removed from your stock.",
+                    consequence:
+                        "This cannot be undone. You can add the record again later.",
+                    confirmLabel: "Stop tracking",
+                    destructive: true,
                     confirmAction: () {
                       final id = e.id;
                       if (id == null) {
@@ -108,7 +114,7 @@ class _SuppliesViewScreenState extends State<SuppliesViewScreen> {
               },
             ),
 
-            design.verticalGap(1),
+            design.verticalGap(Spacing.xs),
           ],
         ),
       ],

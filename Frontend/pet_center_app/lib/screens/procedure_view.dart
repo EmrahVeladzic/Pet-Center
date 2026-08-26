@@ -83,9 +83,6 @@ class _ProcedureViewState extends State<ProcedureView> {
               );
             },
             icon: const Icon(Icons.add),
-            padding: EdgeInsets.zero,
-
-            constraints: const BoxConstraints(),
           ),
         ],
       ),
@@ -115,8 +112,13 @@ class _ProcedureViewState extends State<ProcedureView> {
                 showDialog(
                   context: context,
                   builder: (_) => ConfirmationDialog(
-                    title: "Remove procedure",
-                    body: "Are you sure you wish to remove this procedure?",
+                    title: "Remove this procedure?",
+                    body:
+                        "The procedure will be removed along with its specifications.",
+                    consequence:
+                        "This cannot be undone. Medical records referencing it lose that reference.",
+                    confirmLabel: "Remove procedure",
+                    destructive: true,
                     confirmAction: () {
                       final id = e.id;
                       if (id != null) {

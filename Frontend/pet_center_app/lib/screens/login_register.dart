@@ -152,8 +152,13 @@ class _CredentialsScreenState extends State<CredentialsScreen> {
         return;
       }
       if (output != null) {
-        appState.parseJwt(rawToken);
-        onLogin();
+        parseJwt(output);
+        setState(() {
+          unverified = !(userToken?.verified ?? false);
+        });
+        if (userToken != null) {
+          onLogin();
+        }
       }
     }
   }

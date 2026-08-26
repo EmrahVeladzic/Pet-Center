@@ -83,9 +83,6 @@ class _FormTemplateViewState extends State<FormTemplateView> {
               );
             },
             icon: const Icon(Icons.add),
-            padding: EdgeInsets.zero,
-
-            constraints: const BoxConstraints(),
           ),
         ],
       ),
@@ -112,8 +109,13 @@ class _FormTemplateViewState extends State<FormTemplateView> {
                 showDialog(
                   context: context,
                   builder: (_) => ConfirmationDialog(
-                    title: "Remove template",
-                    body: "Are you sure you wish to remove this form template?",
+                    title: "Remove this template?",
+                    body:
+                        "The template will be removed along with all of its fields.",
+                    consequence:
+                        "This cannot be undone. Forms already submitted from it are unaffected.",
+                    confirmLabel: "Remove template",
+                    destructive: true,
                     confirmAction: () {
                       final id = e.id;
                       if (id != null) {

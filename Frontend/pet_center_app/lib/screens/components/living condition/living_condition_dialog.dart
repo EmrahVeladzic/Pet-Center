@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pet_center_app/screens/components/app_dialog.dart';
 import 'package:pet_center_app/models/data_transfer/living_condition_dto.dart';
 import 'package:pet_center_app/screens/components/normalized_input.dart';
 
@@ -51,7 +52,8 @@ class _LivingConditionDialogState extends State<LivingConditionDialog> {
 
     return Form(
       key: _formKey,
-      child: AlertDialog(
+      child: ScrollableAlertDialog(
+        scrollable: true,
         title: Row(
           children: [
             Expanded(
@@ -68,68 +70,66 @@ class _LivingConditionDialogState extends State<LivingConditionDialog> {
         ),
         content: SizedBox(
           width: design.dialogWidth,
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                TextFormField(
-                  onChanged: (value) {
-                    data.title = value;
-                  },
-                  controller: _controller,
-                  maxLines: null,
-                  maxLength: 75,
-                  minLines: dialogMinLines,
-                  keyboardType: TextInputType.text,
-                  decoration: InputDecoration(labelText: "Question..."),
-                  validator: (value) {
-                    return validateGeneric(value);
-                  },
-                ),
-                design.verticalGap(design.spacing / 2),
-                design.fittedText("Investment:"),
-                NormalizedInput(
-                  bothAxis: true,
-                  initValue: data.investmentEffect,
-                  changeCallback: (value) {
-                    data.investmentEffect = value;
-                  },
-                ),
-                design.fittedText("Territory:"),
-                NormalizedInput(
-                  bothAxis: true,
-                  initValue: data.territoryEffect,
-                  changeCallback: (value) {
-                    data.territoryEffect = value;
-                  },
-                ),
-                design.fittedText("Pricing:"),
-                NormalizedInput(
-                  bothAxis: true,
-                  initValue: data.pricingEffect,
-                  changeCallback: (value) {
-                    data.pricingEffect = value;
-                  },
-                ),
-                design.fittedText("Longevity:"),
-                NormalizedInput(
-                  bothAxis: true,
-                  initValue: data.longevityEffect,
-                  changeCallback: (value) {
-                    data.longevityEffect = value;
-                  },
-                ),
-                design.fittedText("Cohabitation:"),
-                NormalizedInput(
-                  bothAxis: true,
-                  initValue: data.cohabitationEffect,
-                  changeCallback: (value) {
-                    data.cohabitationEffect = value;
-                  },
-                ),
-              ],
-            ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              TextFormField(
+                onChanged: (value) {
+                  data.title = value;
+                },
+                controller: _controller,
+                maxLines: null,
+                maxLength: 75,
+                minLines: dialogMinLines,
+                keyboardType: TextInputType.text,
+                decoration: InputDecoration(labelText: "Question..."),
+                validator: (value) {
+                  return validateGeneric(value);
+                },
+              ),
+              design.verticalGap(design.spacing / 2),
+              design.fittedText("Investment:"),
+              NormalizedInput(
+                bothAxis: true,
+                initValue: data.investmentEffect,
+                changeCallback: (value) {
+                  data.investmentEffect = value;
+                },
+              ),
+              design.fittedText("Territory:"),
+              NormalizedInput(
+                bothAxis: true,
+                initValue: data.territoryEffect,
+                changeCallback: (value) {
+                  data.territoryEffect = value;
+                },
+              ),
+              design.fittedText("Pricing:"),
+              NormalizedInput(
+                bothAxis: true,
+                initValue: data.pricingEffect,
+                changeCallback: (value) {
+                  data.pricingEffect = value;
+                },
+              ),
+              design.fittedText("Longevity:"),
+              NormalizedInput(
+                bothAxis: true,
+                initValue: data.longevityEffect,
+                changeCallback: (value) {
+                  data.longevityEffect = value;
+                },
+              ),
+              design.fittedText("Cohabitation:"),
+              NormalizedInput(
+                bothAxis: true,
+                initValue: data.cohabitationEffect,
+                changeCallback: (value) {
+                  data.cohabitationEffect = value;
+                },
+              ),
+            ],
           ),
         ),
         actions: [

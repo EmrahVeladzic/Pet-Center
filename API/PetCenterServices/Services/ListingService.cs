@@ -342,7 +342,7 @@ namespace PetCenterServices.Services
             if (comment != null)
             {
 
-                Listing? listing = await dbSet.FirstOrDefaultAsync(l=>l.Id==comment.ListingId);
+                Listing? listing = await dbSet.Include(l=>l.Album).FirstOrDefaultAsync(l=>l.Id==comment.ListingId);
                 if (listing == null||listing.Album==null||listing.Album.Reserved==0)
                 {
                     return ServiceOutput<object>.Error(HttpCode.NotFound,"The selected listing does not exist.");

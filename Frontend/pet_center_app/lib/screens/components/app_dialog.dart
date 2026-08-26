@@ -174,3 +174,62 @@ class DialogConfirmButton extends StatelessWidget {
     return FilledButton(onPressed: handle, style: style, child: Text(label));
   }
 }
+
+class ScrollableAlertDialog extends StatelessWidget {
+  final Widget? title;
+  final Widget? content;
+  final List<Widget>? actions;
+  final bool scrollable;
+
+  const ScrollableAlertDialog({
+    super.key,
+    this.title,
+    this.content,
+    this.actions,
+    this.scrollable = true,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final design = context.design;
+    final acts = actions ?? const <Widget>[];
+
+    return Dialog(
+      insetPadding: const EdgeInsets.all(Spacing.md),
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxWidth: design.dialogWidth + (Spacing.lg * 2),
+        ),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(Spacing.lg),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              if (title != null) ...[
+                DefaultTextStyle(
+                  style: theme.textTheme.titleLarge ?? const TextStyle(),
+                  child: title!,
+                ),
+                const SizedBox(height: Spacing.sm),
+                Divider(height: 1, color: theme.colorScheme.outlineVariant),
+                const SizedBox(height: Spacing.md),
+              ],
+              ?content,
+              if (acts.isNotEmpty) ...[
+                const SizedBox(height: Spacing.md),
+                Wrap(
+                  alignment: WrapAlignment.end,
+                  spacing: Spacing.xs,
+                  runSpacing: Spacing.xs,
+                  children: acts,
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
