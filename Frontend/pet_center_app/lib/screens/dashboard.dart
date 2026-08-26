@@ -121,26 +121,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       _push(
         FormSelectionScreen(maxPage: output, templateId: null, eval: false),
       );
-    } else {
-      actions.addAll([
-        design.navAction('Evaluate listings',
-            evaluateListings, icon: Icons.fact_check),
-        design.navAction('Evaluate forms',
-            viewForms, icon: Icons.assignment),
-        design.navAction('Manage users',
-            accountPage, icon: Icons.manage_accounts),
-        design.navAction('Manage static data',
-            staticDataEditor, icon: Icons.dataset),
-      ]);
     }
-
-  
-    actions.addAll([
-      design.navAction('Messages', () => _go(FeedScreen()), icon: Icons.mail),
-      design.navAction('User', () => _go(UserViewScreen()), icon: Icons.person),
-    ]);
-
-    return actions;
   }
 
   List<DashboardSection> _sections() {
@@ -192,8 +173,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
             DashboardAction(
               label: 'Supplies and wishlist',
-              description:
-                  'What you have in stock and what you are looking for',
+              description: 'What you have in stock and what you are looking for',
               icon: Icons.inventory_2_outlined,
               onTap: () => _push(const SuppliesViewScreen()),
             ),
@@ -270,45 +250,45 @@ class _DashboardScreenState extends State<DashboardScreen> {
       selfRevision.value;
 
       return BasicScreenScaffold(
-        title: name != null ? 'Welcome back, $name' : 'Dashboard',
-        description: 'Pick up where you left off, or jump to a section below.',
-        body: [
-          for (final section in sections) ...[
-            Padding(
-              padding: const EdgeInsets.only(
-                top: Spacing.xs,
-                bottom: Spacing.sm,
-              ),
-              child: Text(
-                section.title,
-                style: theme.textTheme.titleMedium?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
+      title: name != null ? 'Welcome back, $name' : 'Dashboard',
+      description: 'Pick up where you left off, or jump to a section below.',
+      body: [
+        for (final section in sections) ...[
+          Padding(
+            padding: const EdgeInsets.only(
+              top: Spacing.xs,
+              bottom: Spacing.sm,
+            ),
+            child: Text(
+              section.title,
+              style: theme.textTheme.titleMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
               ),
             ),
-            LayoutBuilder(
-              builder: (context, constraints) {
-                final available = constraints.maxWidth;
-                final columns = design.isCompact
-                    ? 1
-                    : (available >= 900 ? 3 : 2);
-                final spacing = Spacing.sm;
-                final cardWidth =
-                    (available - (spacing * (columns - 1))) / columns;
+          ),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final available = constraints.maxWidth;
+              final columns = design.isCompact
+                  ? 1
+                  : (available >= 900 ? 3 : 2);
+              final spacing = Spacing.sm;
+              final cardWidth =
+                  (available - (spacing * (columns - 1))) / columns;
 
-                return Wrap(
-                  spacing: spacing,
-                  runSpacing: spacing,
-                  children: [
-                    for (final action in section.actions)
-                      SizedBox(
-                        width: cardWidth,
-                        child: _ActionCard(action: action),
-                      ),
-                  ],
-                );
-              },
-            ),
+              return Wrap(
+                spacing: spacing,
+                runSpacing: spacing,
+                children: [
+                  for (final action in section.actions)
+                    SizedBox(
+                      width: cardWidth,
+                      child: _ActionCard(action: action),
+                    ),
+                ],
+              );
+            },
+          ),
             const SizedBox(height: Spacing.lg),
           ],
         ],
