@@ -317,9 +317,10 @@ namespace PetCenterServices.Services
 
         public override async Task<ServiceOutput<object>> IsClearedToUpdate(Guid token_holder, UserRequestDTO resource)
         {
-            if (!resource.Validate())
+            string? val = resource.Validate();
+            if (val!=null)
             {
-                return ServiceOutput<object>.Error(HttpCode.BadRequest,"Request validation failure.");
+                return ServiceOutput<object>.Error(HttpCode.BadRequest,val);
             }
 
             if (resource.Id != token_holder)

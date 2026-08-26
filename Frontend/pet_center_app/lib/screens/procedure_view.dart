@@ -64,15 +64,9 @@ class _ProcedureViewState extends State<ProcedureView> {
     ).extension<ReactiveDesignSystem>()!;
 
     return BasicScreenScaffold(
+      title: 'Procedures',
+      description: 'Medical procedures that can be recorded against an animal.',
       appBar: AppBar(
-        title: SizedBox(
-          width: design.screenWidth * marqueeTitleWMult,
-          height: design.marqueeSize,
-          child: design.textMarquee(
-            'Procedures:',
-            design.screenWidth * marqueeTitleWMult,
-          ),
-        ),
         actions: [
           IconButton(
             tooltip: "Define procedure",
@@ -89,9 +83,6 @@ class _ProcedureViewState extends State<ProcedureView> {
               );
             },
             icon: const Icon(Icons.add),
-            padding: EdgeInsets.zero,
-
-            constraints: const BoxConstraints(),
           ),
         ],
       ),
@@ -121,8 +112,13 @@ class _ProcedureViewState extends State<ProcedureView> {
                 showDialog(
                   context: context,
                   builder: (_) => ConfirmationDialog(
-                    title: "Remove procedure",
-                    body: "Are you sure you wish to remove this procedure?",
+                    title: "Remove this procedure?",
+                    body:
+                        "The procedure will be removed along with its specifications.",
+                    consequence:
+                        "This cannot be undone. Medical records referencing it lose that reference.",
+                    confirmLabel: "Remove procedure",
+                    destructive: true,
                     confirmAction: () {
                       final id = e.id;
                       if (id != null) {

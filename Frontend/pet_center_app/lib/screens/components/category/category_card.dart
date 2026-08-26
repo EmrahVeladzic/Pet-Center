@@ -1,18 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:pet_center_app/models/data_transfer/category_dto.dart';
+import 'package:pet_center_app/screens/components/category/usage_card.dart';
 import 'package:pet_center_app/screens/components/category/usage_dialog.dart';
 import 'package:pet_center_app/screens/components/confirmation_dialog.dart';
-import 'package:pet_center_app/screens/components/category/usage_card.dart';
+import 'package:pet_center_app/screens/components/entity_list_tile.dart';
+import 'package:pet_center_app/screens/components/status_chip.dart';
 import 'package:pet_center_app/screens/item_view.dart';
 import 'package:pet_center_app/services/category_service.dart';
 import 'package:pet_center_app/services/static_user_data_service.dart';
-import 'package:pet_center_app/utils/app_style.dart';
+import 'package:pet_center_app/utils/tokens.dart';
 
 class CategoryCard extends StatelessWidget {
   final CategoryDTO category;
   final VoidCallback editAction;
   final VoidCallback deleteAction;
-
   final VoidCallback rebuildCallback;
 
   const CategoryCard({
@@ -32,217 +33,127 @@ class CategoryCard extends StatelessWidget {
     }
   }
 
+  void openUsageDialog(BuildContext context, [UsageSubDTO? current]) {
+    if (category.id == null || kinds.isEmpty) {
+      return;
+    }
+    showDialog(
+      context: context,
+      builder: (_) => UsageCreationDialog(
+        categoryId: category.id!,
+        fromCurrent: current,
+        callback: (value) {
+          category.usageSpecifics?.removeWhere(
+            (u) => u.id == (current?.id ?? value.id),
+          );
+          category.usageSpecifics?.add(value);
+          rebuildCallback();
+        },
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final ReactiveDesignSystem design = Theme.of(
-      context,
-    ).extension<ReactiveDesignSystem>()!;
-
+    final theme = Theme.of(context);
     final usages =
         category.usageSpecifics?.whereType<UsageSubDTO>().toList() ?? [];
 
-    return Padding(
-      padding: EdgeInsetsGeometry.symmetric(horizontal: 0, vertical: 1),
-      child: Container(
-        decoration: design.panelDecoration(),
-        child: Column(
-          children: [
-            Padding(
-              padding: EdgeInsets.all(design.spacing),
-              child: Row(
+    final actions = <EntityAction>[
+      EntityAction(
+        icon: Icons.view_list_outlined,
+        tooltip: 'View items',
+        onPressed: category.id == null
+            ? null
+            : () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => ItemView(categoryId: category.id!),
+                  ),
+                );
+              },
+      ),
+      if (category.consumable)
+        EntityAction(
+          icon: Icons.note_add_outlined,
+          tooltip: 'Set usage estimate',
+          onPressed: kinds.isEmpty ? null : () => openUsageDialog(context),
+        ),
+      EntityAction(
+        icon: Icons.edit_outlined,
+        tooltip: 'Edit category',
+        onPressed: editAction,
+      ),
+      EntityAction(
+        icon: Icons.delete_outline,
+        tooltip: 'Delete category',
+        onPressed: deleteAction,
+        destructive: true,
+      ),
+    ];
+
+    return EntityListTile(
+      icon: Icons.category_outlined,
+      title: category.title.isEmpty ? 'Untitled category' : category.title,
+      subtitle: usages.isEmpty
+          ? null
+          : (usages.length == 1
+                ? '1 usage estimate'
+                : '${usages.length} usage estimates'),
+      chips: [
+        StatusChip(
+          label: category.consumable ? 'Consumable' : 'Non-consumable',
+          tone: StatusTone.neutral,
+          showDot: false,
+        ),
+      ],
+      expanded: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          ResponsiveActionBar(actions: actions),
+          if (usages.isNotEmpty) ...[
+            const SizedBox(height: Spacing.xs),
+            Theme(
+              data: theme.copyWith(dividerColor: Colors.transparent),
+              child: ExpansionTile(
+                tilePadding: EdgeInsets.zero,
+                title: Text(
+                  'Usage specifics',
+                  style: theme.textTheme.titleSmall,
+                ),
                 children: [
-                  Expanded(
-                    flex: 5,
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Flexible(
-                          fit: FlexFit.loose,
-                          child: design.fittedText(category.title, 2.0),
-                        ),
-                        Flexible(
-                          fit: FlexFit.loose,
-                          child: design.fittedText(
-                            category.consumable
-                                ? "Consumable"
-                                : "Non-consumable",
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Expanded(
-                    flex: 1,
-                    child: Align(
-                      alignment: Alignment.center,
-                      child: SizedBox(
-                        width: design.boundedIconSize,
-                        height: design.boundedIconSize,
-                        child: FittedBox(
-                          fit: BoxFit.contain,
-                          child: IconButton(
-                            tooltip: "Edit",
-                            onPressed: editAction,
-                            icon: const Icon(Icons.edit),
-                            padding: EdgeInsets.zero,
-
-                            constraints: const BoxConstraints(),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  Expanded(
-                    flex: 1,
-                    child: Align(
-                      alignment: Alignment.center,
-                      child: SizedBox(
-                        width: design.boundedIconSize,
-                        height: design.boundedIconSize,
-                        child: FittedBox(
-                          fit: BoxFit.contain,
-                          child: IconButton(
-                            tooltip: "View products",
-                            onPressed: () {
-                              if (category.id == null) {
-                                return;
+                  for (final e in usages) ...[
+                    UsageCard(
+                      usage: e,
+                      editAction: () => openUsageDialog(context, e),
+                      deleteAction: () {
+                        showDialog<bool>(
+                          context: context,
+                          builder: (_) => ConfirmationDialog(
+                            title: 'Remove this usage estimate?',
+                            body:
+                                'The estimate will no longer apply to this category.',
+                            consequence: 'This cannot be undone.',
+                            confirmLabel: 'Remove',
+                            destructive: true,
+                            confirmAction: () {
+                              final id = e.id;
+                              if (id != null) {
+                                removeUsage(id);
                               }
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) =>
-                                      ItemView(categoryId: category.id!),
-                                ),
-                              );
                             },
-                            icon: const Icon(Icons.view_list),
-                            padding: EdgeInsets.zero,
-
-                            constraints: const BoxConstraints(),
                           ),
-                        ),
-                      ),
+                        );
+                      },
                     ),
-                  ),
-                  if (category.consumable) ...[
-                    Expanded(
-                      flex: 1,
-                      child: Align(
-                        alignment: Alignment.center,
-                        child: SizedBox(
-                          width: design.boundedIconSize,
-                          height: design.boundedIconSize,
-                          child: FittedBox(
-                            fit: BoxFit.contain,
-                            child: IconButton(
-                              onPressed: () {
-                                if (kinds.isEmpty) {
-                                  return;
-                                }
-                                showDialog(
-                                  context: context,
-                                  builder: (_) => UsageCreationDialog(
-                                    callback: (value) {
-                                      category.usageSpecifics?.removeWhere(
-                                        (u) => u.id == value.id,
-                                      );
-
-                                      category.usageSpecifics?.add(value);
-                                      rebuildCallback();
-                                    },
-                                    categoryId: category.id!,
-                                  ),
-                                );
-                              },
-                              tooltip: "Set",
-                              icon: const Icon(Icons.note_add),
-                              padding: EdgeInsets.zero,
-
-                              constraints: const BoxConstraints(),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
+                    const SizedBox(height: Spacing.xs),
                   ],
-                  Expanded(
-                    flex: 1,
-                    child: Align(
-                      alignment: Alignment.center,
-                      child: SizedBox(
-                        width: design.boundedIconSize,
-                        height: design.boundedIconSize,
-                        child: FittedBox(
-                          fit: BoxFit.contain,
-                          child: IconButton(
-                            tooltip: "Delete",
-                            onPressed: deleteAction,
-                            icon: const Icon(Icons.delete),
-                            padding: EdgeInsets.zero,
-
-                            constraints: const BoxConstraints(),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
                 ],
               ),
             ),
-            if (usages.isNotEmpty) ...[
-              ExpansionTile(
-                title: const Text("Usage specifics"),
-                children: usages
-                    .expand(
-                      (e) => [
-                        UsageCard(
-                          usage: e,
-
-                          editAction: () {
-                            if (category.id == null || kinds.isEmpty) {
-                              return;
-                            }
-                            showDialog(
-                              context: context,
-                              builder: (_) => UsageCreationDialog(
-                                callback: (value) {
-                                  category.usageSpecifics?.removeWhere(
-                                    (u) => u.id == e.id,
-                                  );
-                                  category.usageSpecifics?.add(value);
-                                  rebuildCallback();
-                                },
-                                categoryId: category.id!,
-                                fromCurrent: e,
-                              ),
-                            );
-                          },
-                          deleteAction: () {
-                            showDialog(
-                              context: context,
-                              builder: (_) => ConfirmationDialog(
-                                title: "Remove usage",
-                                body:
-                                    "Are you sure you wish to remove this usage entry?",
-                                confirmAction: () {
-                                  final id = e.id;
-                                  if (id != null) {
-                                    removeUsage(id);
-                                  }
-                                },
-                              ),
-                            );
-                          },
-                        ),
-                        design.verticalGap(1),
-                      ],
-                    )
-                    .toList(),
-              ),
-            ],
           ],
-        ),
+        ],
       ),
     );
   }

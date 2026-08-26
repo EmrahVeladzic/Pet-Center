@@ -65,15 +65,9 @@ class _CategoryViewState extends State<CategoryView> {
     ).extension<ReactiveDesignSystem>()!;
 
     return BasicScreenScaffold(
+      title: 'Categories',
+      description: 'Categories used to group listings and supplies.',
       appBar: AppBar(
-        title: SizedBox(
-          width: design.screenWidth * marqueeTitleWMult,
-          height: design.marqueeSize,
-          child: design.textMarquee(
-            'Categories:',
-            design.screenWidth * marqueeTitleWMult,
-          ),
-        ),
         actions: [
           IconButton(
             tooltip: "Define category",
@@ -84,9 +78,6 @@ class _CategoryViewState extends State<CategoryView> {
               );
             },
             icon: const Icon(Icons.add),
-            padding: EdgeInsets.zero,
-
-            constraints: const BoxConstraints(),
           ),
         ],
       ),
@@ -115,9 +106,13 @@ class _CategoryViewState extends State<CategoryView> {
                 showDialog(
                   context: context,
                   builder: (_) => ConfirmationDialog(
-                    title: "Remove category?",
+                    title: "Remove this category?",
                     body:
-                        "This will remove the selected category and all data referencing it. Continue?",
+                        "The category will be removed along with its items and usage estimates.",
+                    consequence:
+                        "This cannot be undone. Listings and supplies referencing it lose that reference.",
+                    confirmLabel: "Remove category",
+                    destructive: true,
                     confirmAction: () {
                       final id = e.id;
                       if (id != null) {

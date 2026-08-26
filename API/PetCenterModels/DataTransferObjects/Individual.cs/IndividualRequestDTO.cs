@@ -62,9 +62,20 @@ namespace PetCenterModels.DataTransferObjects
             return output;
         }
 
-        public bool Validate()
+        public string? Validate()
         {
-            return !string.IsNullOrWhiteSpace(Name) && ((AuthoritySpecifier==Access.User&&ShelterId==null&&OwnerId!=null)||(AuthoritySpecifier==Access.BusinessAccount&&OwnerId==null&&ShelterId!=null));
+            if(AuthoritySpecifier==Access.User){
+                ShelterId=null;
+                if(OwnerId==null){return "Owner not provided.";}
+            }
+
+            if (AuthoritySpecifier == Access.BusinessAccount){
+                OwnerId=null;
+                if(ShelterId==null){return "Shelter not provided.";}
+            }
+
+
+            return string.IsNullOrWhiteSpace(Name)? "Animal names may not be empty.": null;
         }
     }
 }

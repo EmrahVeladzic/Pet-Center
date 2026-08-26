@@ -16,13 +16,13 @@ namespace PetCenterServices.Interfaces
     {    
         public Task<ServiceOutput<string>> LogIn(AccountRequestDTO req);       
         public Task <ServiceOutput<string>> RequestAccountVerification(Guid id);
-        public Task<ServiceOutput<string>> ResetPassword(Guid? token_holder, PasswordChangeDTO change_dto);
+        public Task<ServiceOutput<string>> ChangePassword(Guid token_holder, PasswordChangeDTO change);
+        public Task<ServiceOutput<string>> RecoverPassword(PasswordRecoveryDTO recovery);
         public Task <ServiceOutput<string>> RequestAccountTransfer(Guid id, string? contact_overwrite);
         public Task <ServiceOutput<string>> RequestSingleTimeEntryCode(string contact);
         public Task<ServiceOutput<string>> VerifyAccount(Guid id, int code, Guid session);  
         public Task<ServiceOutput<string>> TransferAccount(Guid id, int old_code, int new_code);
         public Task<ServiceOutput<string>> SetRole(Guid owner_id, Guid id, Access role);
         public Task<ServiceOutput<object>> LogOut(Guid token_id, DateTime exp);
-        
     }
 }

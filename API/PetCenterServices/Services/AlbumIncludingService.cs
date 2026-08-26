@@ -115,10 +115,10 @@ namespace PetCenterServices.Services
 
         public override async Task<ServiceOutput<TResponse>> Post(Guid session,Guid token_holder,TRequest req)
         {
-            bool valid = req.Validate();
-            if (!valid)
+            string? val = req.Validate();
+            if (val!=null)
             {
-                return ServiceOutput<TResponse>.Error(HttpCode.BadRequest,"Invalid request.");
+                return ServiceOutput<TResponse>.Error(HttpCode.BadRequest,val);
             }
 
             if(req is ISerializableRequestDTO<TEntity> serializable)

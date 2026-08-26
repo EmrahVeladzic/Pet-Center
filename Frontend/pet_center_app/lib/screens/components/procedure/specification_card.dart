@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:pet_center_app/models/data_transfer/procedure_dto.dart';
+import 'package:pet_center_app/screens/components/entity_list_tile.dart';
+import 'package:pet_center_app/screens/components/status_chip.dart';
 import 'package:pet_center_app/services/static_user_data_service.dart';
-import 'package:pet_center_app/utils/app_style.dart';
 
 class SpecificationCard extends StatelessWidget {
   final ProcedureSpecificationSubDTO specification;
@@ -17,102 +18,60 @@ class SpecificationCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final ReactiveDesignSystem design = Theme.of(
-      context,
-    ).extension<ReactiveDesignSystem>()!;
-
     final kind = kinds.where((k) => k.id == specification.kindId).firstOrNull;
-
     final breed = kind?.breeds
         .where((b) => b.id == specification.breedId)
         .firstOrNull;
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 1),
-      child: Container(
-        color: listTone,
-        child: Row(
-          children: [
-            Expanded(
-              flex: 5,
-              child: Padding(
-                padding: EdgeInsets.all(design.spacing),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    design.fittedText(
-                      "${kind?.title ?? "Animal"}${breed != null ? " - ${breed.title}" : ""}",
-                      2.0,
-                    ),
+    final exempt = specification.approximateAge == null;
+    final sex = specification.sexSpecific;
 
-                    design.fittedText(
-                      (specification.approximateAge == null)
-                          ? [
-                              "Exempt",
-                              if (specification.sexSpecific != null)
-                                specification.sexSpecific! ? "Male" : "Female",
-                            ].join(" · ")
-                          : [
-                              specification.optional ? "Optional" : "Required",
-                              if (specification.sexSpecific != null)
-                                specification.sexSpecific! ? "Male" : "Female",
-                              "Age: ${specification.approximateAge}d",
-                              if (specification.interval != null)
-                                "Every ${specification.interval}d"
-                              else
-                                "One-time",
-                            ].join(" · "),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            Expanded(
-              flex: 1,
-              child: Align(
-                alignment: Alignment.center,
-                child: SizedBox(
-                  width: design.boundedIconSize,
-                  height: design.boundedIconSize,
-                  child: FittedBox(
-                    fit: BoxFit.contain,
-                    child: IconButton(
-                      tooltip: "Set specification",
-                      onPressed: editAction,
-                      icon: const Icon(Icons.edit),
-                      padding: EdgeInsets.zero,
+    final details = <String>[
+      if (!exempt) 'From ${specification.approximateAge} days old',
+      if (!exempt)
+        if (specification.interval != null)
+          'Every ${specification.interval} days'
+        else
+          'One-time',
+    ];
 
-                      constraints: const BoxConstraints(),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            Expanded(
-              flex: 1,
-              child: Align(
-                alignment: Alignment.center,
-                child: SizedBox(
-                  width: design.boundedIconSize,
-                  height: design.boundedIconSize,
-                  child: FittedBox(
-                    fit: BoxFit.contain,
-                    child: IconButton(
-                      tooltip: "Remove specification",
-                      onPressed: deleteAction,
-                      icon: const Icon(Icons.delete),
-                      padding: EdgeInsets.zero,
-
-                      constraints: const BoxConstraints(),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ],
+    return EntityListTile(
+      icon: Icons.rule,
+      title: breed == null
+          ? (kind?.title ?? 'Animal')
+          : '${kind?.title ?? 'Animal'}, ${breed.title}',
+      subtitle: details.isEmpty ? null : details.join(' · '),
+      chips: [
+        if (exempt)
+          const StatusChip(label: 'Exempt', tone: StatusTone.neutral)
+        else
+          StatusChip(
+            label: specification.optional ? 'Optional' : 'Required',
+            tone: specification.optional
+                ? StatusTone.neutral
+                : StatusTone.warning,
+            showDot: false,
+          ),
+        if (sex != null)
+          StatusChip(
+            label: sex ? 'Male' : 'Female',
+            tone: StatusTone.neutral,
+            showDot: false,
+          ),
+      ],
+      actions: [
+        EntityAction(
+          icon: Icons.edit_outlined,
+          tooltip: 'Edit specification',
+          onPressed: editAction,
         ),
-      ),
+        EntityAction(
+          icon: Icons.delete_outline,
+          tooltip: 'Remove specification',
+          onPressed: deleteAction,
+          destructive: true,
+        ),
+      ],
     );
   }
 }

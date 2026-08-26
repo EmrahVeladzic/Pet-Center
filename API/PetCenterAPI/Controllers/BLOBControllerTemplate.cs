@@ -11,6 +11,7 @@ using PetCenterModels.ModelUtils;
 using Microsoft.AspNetCore.Authentication;
 using System.IdentityModel.Tokens.Jwt;
 using PetCenterAPI.Filters;
+using PetCenterAPI;
 
 
 namespace PetCenterAPI.Controllers
@@ -24,22 +25,6 @@ namespace PetCenterAPI.Controllers
 
         protected virtual long MaxUploadSize => 5 * 1024 * 1024;
 
-        protected bool TryGetUserId(out Guid user_id){
-
-            user_id = default;
-
-            return Guid.TryParse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value,out user_id);
-
-        }
-
-        protected bool TryGetJTI(out Guid token_id){
-
-            token_id = default;
-
-            return Guid.TryParse(User.FindFirst(JwtRegisteredClaimNames.Jti)?.Value,out token_id);
-
-        }
-
     protected record FileTokenResult(
         Guid Session,
         Guid UserId,
@@ -50,15 +35,10 @@ namespace PetCenterAPI.Controllers
         string Origin
     );
 
-    protected async Task<FileTokenResult?> TryParseFileToken()
+    protected async Task<FileTokenResult?> TryParseFileToken(Guid user_id, Guid session)
     {
         try
         {
-            if (!TryGetUserId(out Guid user_id) || !TryGetJTI(out Guid session))
-            {
-                return null;
-            }
-
             AuthenticateResult result = await HttpContext.AuthenticateAsync("FileToken");
             if (!result.Succeeded)
             {
@@ -103,9 +83,9 @@ namespace PetCenterAPI.Controllers
 
         [RequireFileToken]
         [HttpGet]
-        public virtual async Task<IActionResult> Get()
+        public virtual async Task<IActionResult> Get([UserId] Guid user_id, [SessionId] Guid session)
         {
-            FileTokenResult? ft = await TryParseFileToken();
+            FileTokenResult? ft = await TryParseFileToken(user_id, session);
             if(ft!=null)
             {
                 if (ControllerContext.ActionDescriptor.ControllerName.ToLowerInvariant() == ft.Purpose.ToLowerInvariant() && ft.Scope!=FileScope.Invalid)
@@ -122,14 +102,14 @@ namespace PetCenterAPI.Controllers
                 }
             }
 
-            return StatusCode(401,"Invalid token.");
+            return ResultConverter.Fail(HttpCode.Unauthorized,"Invalid token.");
         }
 
         [RequireFileToken]
         [HttpPost]
-        public virtual async Task<IActionResult> Post()
+        public virtual async Task<IActionResult> Post([UserId] Guid user_id, [SessionId] Guid session)
         {
-            FileTokenResult? ft = await TryParseFileToken();
+            FileTokenResult? ft = await TryParseFileToken(user_id, session);
             if(ft!=null)
             {
 
@@ -145,7 +125,7 @@ namespace PetCenterAPI.Controllers
 
                     if (Request.ContentLength is long declared && declared > MaxUploadSize)
                     {
-                        return StatusCode(StatusCodes.Status413PayloadTooLarge, "File too large.");
+                        return ResultConverter.Fail(HttpCode.PayloadTooLarge, "File too large.");
                     }
 
                     using (MemoryStream ms = new MemoryStream())
@@ -159,7 +139,7 @@ namespace PetCenterAPI.Controllers
                             if (total > MaxUploadSize)
                             {
 
-                                return StatusCode(StatusCodes.Status413PayloadTooLarge, "File too large.");
+                                return ResultConverter.Fail(HttpCode.PayloadTooLarge, "File too large.");
                             }
                             await ms.WriteAsync(buffer, 0, read);
                         }
@@ -172,14 +152,14 @@ namespace PetCenterAPI.Controllers
                 }
             }
 
-            return StatusCode(401,"Invalid token.");
+            return ResultConverter.Fail(HttpCode.Unauthorized,"Invalid token.");
         }
 
         [RequireFileToken]
         [HttpDelete]
-        public virtual async Task<IActionResult> Delete()
+        public virtual async Task<IActionResult> Delete([UserId] Guid user_id, [SessionId] Guid session)
         {
-            FileTokenResult? ft = await TryParseFileToken();
+            FileTokenResult? ft = await TryParseFileToken(user_id, session);
             if(ft!=null)
             {
                 if (ControllerContext.ActionDescriptor.ControllerName.ToLowerInvariant() == ft.Purpose.ToLowerInvariant() && ft.Scope == FileScope.Write)
@@ -197,7 +177,7 @@ namespace PetCenterAPI.Controllers
                 }
             }
 
-            return StatusCode(401,"Invalid token.");
+            return ResultConverter.Fail(HttpCode.Unauthorized,"Invalid token.");
         }
        
     }

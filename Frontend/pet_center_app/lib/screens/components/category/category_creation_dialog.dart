@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pet_center_app/screens/components/app_dialog.dart';
 import 'package:pet_center_app/models/data_transfer/category_dto.dart';
 
 import 'package:pet_center_app/utils/app_style.dart';
@@ -48,79 +49,76 @@ class _CategoryCreationDialogState extends State<CategoryCreationDialog> {
       context,
     ).extension<ReactiveDesignSystem>()!;
 
-    return FittedBox(
-      fit: BoxFit.scaleDown,
-      child: Form(
-        key: _formKey,
-        child: AlertDialog(
-          title: Row(
-            children: [
-              Expanded(child: design.textMarquee('Define category:')),
-              IconButton(
-                tooltip: "Close",
-                icon: const Icon(Icons.close),
-                onPressed: () => Navigator.of(context).pop(),
-              ),
-            ],
-          ),
-          content: SizedBox(
-            width: design.dialogWidth,
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  ColoredBox(
-                    color: listTone,
-                    child: TextFormField(
-                      controller: _controller,
-                      maxLines: 1,
-                      maxLength: 75,
-                      minLines: 1,
-                      keyboardType: TextInputType.text,
-
-                      decoration: InputDecoration(labelText: "Title..."),
-                      validator: (value) {
-                        return validateGeneric(value);
-                      },
-                    ),
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      Checkbox(
-                        value: data.consumable,
-                        onChanged: (value) {
-                          if (value == null) {
-                            return;
-                          }
-                          setState(() {
-                            data.consumable = value;
-                          });
-                        },
-                      ),
-                      design.fittedText('Consumable'),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ),
-          actions: [
-            ElevatedButton(
-              onPressed: () {
-                if (_formKey.currentState != null &&
-                    _formKey.currentState!.validate()) {
-                  Navigator.of(context).pop();
-                  invokeCallback();
-                }
-              },
-              child: design.fittedText(
-                (widget.fromCurrent == null) ? 'Add' : "Overwrite",
-              ),
+    return Form(
+      key: _formKey,
+      child: ScrollableAlertDialog(
+        scrollable: true,
+        title: Row(
+          children: [
+            Expanded(child: design.textMarquee('Define category:')),
+            IconButton(
+              tooltip: "Close",
+              icon: const Icon(Icons.close),
+              onPressed: () => Navigator.of(context).pop(),
             ),
           ],
         ),
+        content: SizedBox(
+          width: design.dialogWidth,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              TextFormField(
+                controller: _controller,
+                maxLines: 1,
+                maxLength: 75,
+                minLines: 1,
+                keyboardType: TextInputType.text,
+
+                decoration: InputDecoration(labelText: "Title..."),
+                validator: (value) {
+                  return validateGeneric(value);
+                },
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  Checkbox(
+                    value: data.consumable,
+                    onChanged: (value) {
+                      if (value == null) {
+                        return;
+                      }
+                      setState(() {
+                        data.consumable = value;
+                      });
+                    },
+                  ),
+                  Flexible(child: design.fittedText('Consumable')),
+                ],
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          OutlinedButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              if (_formKey.currentState != null &&
+                  _formKey.currentState!.validate()) {
+                Navigator.of(context).pop();
+                invokeCallback();
+              }
+            },
+            child: design.fittedText(
+              (widget.fromCurrent == null) ? 'Add' : "Overwrite",
+            ),
+          ),
+        ],
       ),
     );
   }

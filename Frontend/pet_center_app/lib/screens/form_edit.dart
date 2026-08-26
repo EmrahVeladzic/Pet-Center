@@ -144,16 +144,9 @@ class _FormEditScreenState extends State<FormEditScreen> {
     return BasicScreenScaffold(
       formKey: _formKey,
       center: true,
-      appBar: AppBar(
-        title: SizedBox(
-          width: design.screenWidth * marqueeTitleWMult,
-          height: design.marqueeSize,
-          child: design.textMarquee(
-            widget.fromCurrent != null ? 'Edit Form:' : 'New Form:',
-            design.screenWidth * marqueeTitleWMult,
-          ),
-        ),
-      ),
+      title: widget.fromCurrent != null ? 'Edit form' : 'New form',
+      description:
+          'Fill in the template fields and attach any supporting photos.',
       body: [
         ImageDisplay(
           key: _imageKey,

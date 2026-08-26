@@ -4,6 +4,8 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using PetCenterAPI.Controllers;
+using PetCenterServices.Utils;
 
 namespace PetCenterAPI.Filters
 {
@@ -20,7 +22,7 @@ namespace PetCenterAPI.Filters
 
             if (string.IsNullOrWhiteSpace(fileToken))
             {
-                context.Result = new ObjectResult("Missing file token.") { StatusCode = 401 };
+                context.Result = ResultConverter.Fail(HttpCode.Unauthorized, "Missing file token.");
                 return;
             }
 
@@ -37,7 +39,6 @@ namespace PetCenterAPI.Filters
                 ValidateIssuerSigningKey = true,
                 IssuerSigningKey = new SymmetricSecurityKey(
                     Encoding.UTF8.GetBytes(configuration["Jwt:Key"]!))
-                    
             };
 
             var handler = new JwtSecurityTokenHandler();
@@ -60,12 +61,12 @@ namespace PetCenterAPI.Filters
             }
             catch (SecurityTokenExpiredException)
             {
-                context.Result = new ObjectResult("File token expired.") { StatusCode = 401 };
+                context.Result = ResultConverter.Fail(HttpCode.Unauthorized, "File token expired.");
                 return;
             }
             catch
             {
-                context.Result = new ObjectResult("Invalid file token.") { StatusCode = 401 };
+                context.Result = ResultConverter.Fail(HttpCode.Unauthorized, "Invalid file token.");
                 return;
             }
 

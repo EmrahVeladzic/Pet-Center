@@ -129,15 +129,9 @@ class _MedicalRecordViewScreenState extends State<MedicalRecordViewScreen> {
 
     return BasicScreenScaffold(
       center: false,
+      title: 'Medical record',
+      description: 'Procedures performed on this animal, most recent first.',
       appBar: AppBar(
-        title: SizedBox(
-          width: design.screenWidth * marqueeTitleWMult,
-          height: design.marqueeSize,
-          child: design.textMarquee(
-            'Medical records for ${widget.src.name}:',
-            design.screenWidth * marqueeTitleWMult,
-          ),
-        ),
         actions: [
           IconButton(
             tooltip: "Set medical record",
@@ -163,7 +157,7 @@ class _MedicalRecordViewScreenState extends State<MedicalRecordViewScreen> {
                 ),
               );
             },
-            icon: Icon(Icons.add, color: panelTone),
+            icon: const Icon(Icons.add),
           ),
         ],
       ),
@@ -194,7 +188,12 @@ class _MedicalRecordViewScreenState extends State<MedicalRecordViewScreen> {
                 showDialog(
                   context: context,
                   builder: (_) => ConfirmationDialog(
-                    title: "Remove medical record entry.",
+                    title: "Remove this entry?",
+                    body:
+                        "The procedure will be removed from this animal's medical record.",
+                    consequence: "This cannot be undone.",
+                    confirmLabel: "Remove entry",
+                    destructive: true,
                     confirmAction: () {
                       deleteEntry(e.procedureId);
                     },

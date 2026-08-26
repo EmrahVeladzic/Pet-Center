@@ -1,58 +1,69 @@
 import 'package:flutter/material.dart';
-import 'package:pet_center_app/utils/app_style.dart';
+import 'package:pet_center_app/screens/components/app_dialog.dart';
+import 'package:pet_center_app/utils/tokens.dart';
 
-class ConfirmationDialog extends StatefulWidget {
+class ConfirmationDialog extends StatelessWidget {
   final String title;
   final String body;
   final VoidCallback confirmAction;
+  final bool destructive;
+  final String confirmLabel;
+  final String? consequence;
+
   const ConfirmationDialog({
     super.key,
     required this.confirmAction,
     this.title = 'Confirm',
     this.body = 'Are you sure you want to do this?',
+    this.destructive = false,
+    this.confirmLabel = 'Confirm',
+    this.consequence,
   });
 
   @override
-  State<StatefulWidget> createState() => _ConfirmationDialogState();
-}
-
-class _ConfirmationDialogState extends State<ConfirmationDialog> {
-  bool banUser = false;
-
-  @override
   Widget build(BuildContext context) {
-    final ReactiveDesignSystem design = Theme.of(
-      context,
-    ).extension<ReactiveDesignSystem>()!;
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
 
-    return FittedBox(
-      fit: BoxFit.scaleDown,
-      child: AlertDialog(
-        title: Row(
-          children: [
-            Expanded(child: design.textMarquee(widget.title)),
-            IconButton(
-              tooltip: "Close",
-              icon: const Icon(Icons.close),
-              onPressed: () => Navigator.of(context).pop(),
+    return AppDialog(
+      title: title,
+      description: body,
+      content: consequence == null
+          ? null
+          : Container(
+              padding: const EdgeInsets.all(Spacing.sm),
+              decoration: BoxDecoration(
+                color: scheme.errorContainer,
+                borderRadius: Radii.smAll,
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(
+                    Icons.warning_amber_rounded,
+                    size: IconSizes.md,
+                    color: scheme.onErrorContainer,
+                  ),
+                  const SizedBox(width: Spacing.xs),
+                  Expanded(
+                    child: Text(
+                      consequence!,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: scheme.onErrorContainer,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ],
+      actions: [
+        const DialogCancelButton(),
+        DialogConfirmButton(
+          onConfirm: confirmAction,
+          label: confirmLabel,
+          destructive: destructive,
         ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [design.textMarquee(widget.body)],
-        ),
-        actions: [
-          ElevatedButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              widget.confirmAction();
-            },
-            child: design.fittedText('OK'),
-          ),
-        ],
-      ),
+      ],
     );
   }
 }

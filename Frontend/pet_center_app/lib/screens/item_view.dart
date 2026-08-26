@@ -68,15 +68,9 @@ class _ItemViewState extends State<ItemView> {
     ).extension<ReactiveDesignSystem>()!;
 
     return BasicScreenScaffold(
+      title: 'Items',
+      description: 'Concrete items belonging to a category.',
       appBar: AppBar(
-        title: SizedBox(
-          width: design.screenWidth * marqueeTitleWMult,
-          height: design.marqueeSize,
-          child: design.textMarquee(
-            'Items:',
-            design.screenWidth * marqueeTitleWMult,
-          ),
-        ),
         actions: [
           IconButton(
             tooltip: "Define product",
@@ -90,9 +84,6 @@ class _ItemViewState extends State<ItemView> {
               );
             },
             icon: const Icon(Icons.add),
-            padding: EdgeInsets.zero,
-
-            constraints: const BoxConstraints(),
           ),
         ],
       ),
@@ -118,9 +109,12 @@ class _ItemViewState extends State<ItemView> {
                 showDialog(
                   context: context,
                   builder: (_) => ConfirmationDialog(
-                    title: "Remove product?",
-                    body:
-                        "This will remove the selected product. Do you wish to continue?",
+                    title: "Remove this item?",
+                    body: "The item will be removed from this category.",
+                    consequence:
+                        "This cannot be undone. Listings referencing it lose that reference.",
+                    confirmLabel: "Remove item",
+                    destructive: true,
                     confirmAction: () {
                       final id = e.id;
                       if (id != null) {

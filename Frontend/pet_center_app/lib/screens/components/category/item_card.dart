@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:pet_center_app/models/data_transfer/item_dto.dart';
 import 'package:pet_center_app/models/enums.dart';
+import 'package:pet_center_app/screens/components/entity_list_tile.dart';
+import 'package:pet_center_app/screens/components/status_chip.dart';
 import 'package:pet_center_app/services/static_user_data_service.dart';
-import 'package:pet_center_app/utils/app_style.dart';
 
 class ItemCard extends StatelessWidget {
   final ItemDTO item;
@@ -18,102 +19,38 @@ class ItemCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final ReactiveDesignSystem design = Theme.of(
-      context,
-    ).extension<ReactiveDesignSystem>()!;
+    final kindName =
+        kinds.where((k) => k.id == item.kindId).firstOrNull?.title ?? 'Animal';
+    final scale = item.scale;
+    final target = scale == null
+        ? 'For $kindName'
+        : 'For $kindName, ${scale.displayName} scale';
 
-    return Padding(
-      padding: EdgeInsetsGeometry.symmetric(horizontal: 0, vertical: 1),
-      child: Container(
-        color: listTone,
-        child: Row(
-          children: [
-            Expanded(
-              flex: 5,
-              child: Padding(
-                padding: EdgeInsets.all(design.spacing),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Flexible(
-                      fit: FlexFit.loose,
-                      child: Text("Product name:", textAlign: TextAlign.center),
-                    ),
-                    Flexible(
-                      fit: FlexFit.loose,
-                      child: Text(
-                        item.title,
-                        textAlign: TextAlign.center,
-                        textScaler: TextScaler.linear(1.5),
-                      ),
-                    ),
-                    Flexible(
-                      fit: FlexFit.loose,
-                      child: Text("For:", textAlign: TextAlign.center),
-                    ),
-                    Flexible(
-                      fit: FlexFit.loose,
-                      child: Text(
-                        textAlign: TextAlign.center,
-                        "${kinds.where((k) => k.id == item.kindId).firstOrNull?.title ?? "Animal"}${item.scale != null ? " - ${item.scale?.displayName}" : ""}",
-                      ),
-                    ),
-                    if (item.mass != null) ...[
-                      Flexible(
-                        fit: FlexFit.loose,
-                        child: design.fittedText("${item.mass}g"),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-            ),
-            Expanded(
-              flex: 1,
-              child: Align(
-                alignment: Alignment.center,
-                child: SizedBox(
-                  width: design.boundedIconSize,
-                  height: design.boundedIconSize,
-                  child: FittedBox(
-                    fit: BoxFit.contain,
-                    child: IconButton(
-                      tooltip: "Edit",
-                      onPressed: editAction,
-                      icon: const Icon(Icons.edit),
-                      padding: EdgeInsets.zero,
-
-                      constraints: const BoxConstraints(),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            Expanded(
-              flex: 1,
-              child: Align(
-                alignment: Alignment.center,
-                child: SizedBox(
-                  width: design.boundedIconSize,
-                  height: design.boundedIconSize,
-                  child: FittedBox(
-                    fit: BoxFit.contain,
-                    child: IconButton(
-                      tooltip: "Delete",
-                      onPressed: deleteAction,
-                      icon: const Icon(Icons.delete),
-                      padding: EdgeInsets.zero,
-
-                      constraints: const BoxConstraints(),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ],
+    return EntityListTile(
+      icon: Icons.inventory_2_outlined,
+      title: item.title.isEmpty ? 'Untitled item' : item.title,
+      subtitle: target,
+      chips: [
+        if (item.mass != null)
+          StatusChip(
+            label: '${item.mass} g',
+            tone: StatusTone.neutral,
+            showDot: false,
+          ),
+      ],
+      actions: [
+        EntityAction(
+          icon: Icons.edit_outlined,
+          tooltip: 'Edit item',
+          onPressed: editAction,
         ),
-      ),
+        EntityAction(
+          icon: Icons.delete_outline,
+          tooltip: 'Delete item',
+          onPressed: deleteAction,
+          destructive: true,
+        ),
+      ],
     );
   }
 }

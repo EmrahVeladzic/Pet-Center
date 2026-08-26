@@ -342,7 +342,7 @@ namespace PetCenterServices.Services
             if (comment != null)
             {
 
-                Listing? listing = await dbSet.FirstOrDefaultAsync(l=>l.Id==comment.ListingId);
+                Listing? listing = await dbSet.Include(l=>l.Album).FirstOrDefaultAsync(l=>l.Id==comment.ListingId);
                 if (listing == null||listing.Album==null||listing.Album.Reserved==0)
                 {
                     return ServiceOutput<object>.Error(HttpCode.NotFound,"The selected listing does not exist.");
@@ -831,9 +831,10 @@ namespace PetCenterServices.Services
             }
 
 
-            if (!resource.Validate())
+            string? val = resource.Validate();
+            if (val!=null)
             {
-                return ServiceOutput<object>.Error(HttpCode.BadRequest,"DTO validation failed.");
+                return ServiceOutput<object>.Error(HttpCode.BadRequest,val);
             }
             if(!await FranchiseService.IsEmployeeOfFranchise(dbContext, token_holder, resource.FranchiseId))
             {
@@ -850,9 +851,10 @@ namespace PetCenterServices.Services
 
         public override async Task<ServiceOutput<object>> IsClearedToUpdate(Guid token_holder, ListingRequestDTO resource)
         {
-            if (!resource.Validate())
+            string? val = resource.Validate();
+            if (val!=null)
             {
-                return ServiceOutput<object>.Error(HttpCode.BadRequest,"DTO validation failed.");
+                return ServiceOutput<object>.Error(HttpCode.BadRequest,val);
             }
             if(!await FranchiseService.IsEmployeeOfFranchise(dbContext, token_holder, resource.FranchiseId))
             {

@@ -60,11 +60,28 @@ namespace PetCenterModels.DataTransferObjects
             return facility;
         }
 
-        public bool Validate()
+        public string? Validate()
         {
             Contact=Contact?.ToLowerInvariant();
-            
-            return((Contact==null ||ModelValidationUtils.ValidateContact(Contact))&&!string.IsNullOrWhiteSpace(City)&&!string.IsNullOrWhiteSpace(Street)&&!(OwningFranchise==Guid.Empty));
+
+            if (Contact!=null && !ModelValidationUtils.ValidateContact(Contact))
+            {
+                return "Invalid facility contact.";
+            }
+
+            if (string.IsNullOrWhiteSpace(City)|| string.IsNullOrWhiteSpace(Street))
+            {
+                return "The facility location (city and street) needs to be specified.";
+            }
+
+
+            if (OwningFranchise == Guid.Empty)
+            {
+                return "The owning franchise needs to be specified.";
+            }
+        
+            return null;        
+
         }
 
 

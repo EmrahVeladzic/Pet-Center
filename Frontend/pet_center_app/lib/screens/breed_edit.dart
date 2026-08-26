@@ -75,17 +75,9 @@ class _BreedEditScreenState extends State<BreedEditScreen> {
     return BasicScreenScaffold(
       formKey: _formKey,
       center: true,
-      appBar: AppBar(
-        title: SizedBox(
-          width: design.screenWidth * marqueeTitleWMult,
-          height: design.marqueeSize,
-          child: design.textMarquee(
-            widget.fromCurrent != null ? 'Edit Breed:' : 'New Breed:',
-            design.screenWidth * marqueeTitleWMult,
-          ),
-        ),
-      ),
-
+      title: widget.fromCurrent != null ? 'Edit breed' : 'New breed',
+      description:
+          'Name the breed, pick its species and set its living-condition traits.',
       body: [
         ImageDisplay(
           key: _imageKey,

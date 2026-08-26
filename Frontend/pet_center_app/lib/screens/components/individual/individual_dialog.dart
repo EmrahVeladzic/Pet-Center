@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pet_center_app/screens/components/app_dialog.dart';
 import 'package:pet_center_app/models/data_transfer/individual/individual_request_dto.dart';
 import 'package:pet_center_app/models/data_transfer/individual/individual_response_dto.dart';
 
@@ -67,115 +68,107 @@ class _IndividualCreationDialogState extends State<IndividualCreationDialog> {
       context,
     ).extension<ReactiveDesignSystem>()!;
 
-    return FittedBox(
-      fit: BoxFit.scaleDown,
-      child: Form(
-        key: _formKey,
-        child: AlertDialog(
-          title: Row(
-            children: [
-              Expanded(
-                child: design.textMarquee(
-                  '${(widget.fromCurrent == null) ? "Add" : "Edit"} individual pet:',
-                ),
-              ),
-              IconButton(
-                tooltip: "Close",
-                icon: const Icon(Icons.close),
-                onPressed: () => Navigator.of(context).pop(),
-              ),
-            ],
-          ),
-          content: SizedBox(
-            width: design.dialogWidth,
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  ColoredBox(
-                    color: listTone,
-                    child: TextFormField(
-                      controller: _nameController,
-                      maxLines: 1,
-                      maxLength: 75,
-                      minLines: 1,
-                      keyboardType: TextInputType.text,
-                      decoration: const InputDecoration(labelText: "Name..."),
-                      validator: (value) => validateGeneric(value),
-                    ),
-                  ),
-                  design.verticalGap(design.spacing),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      breedWidget(
-                        design.dialogWidth,
-                        kinds.expand((k) => k.breeds).toList(),
-                        (value) {
-                          if (mounted && value != null) {
-                            setState(() {
-                              data.breedId = value.id!;
-                            });
-                          }
-                        },
-                      ),
-                    ],
-                  ),
-                  design.verticalGap(1),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      Checkbox(
-                        value: data.sex,
-                        onChanged: (value) {
-                          if (value == null) return;
-                          setState(() {
-                            data.sex = value;
-                          });
-                        },
-                      ),
-                      design.fittedText('Male'),
-                    ],
-                  ),
-                  design.verticalGap(1),
-
-                  ListTile(
-                    title: design.fittedText(
-                      "Birth date: ${formatDate(data.birthDate, true)}",
-                    ),
-                    trailing: const Icon(Icons.calendar_today),
-                    onTap: () async {
-                      final picked = await showDatePicker(
-                        context: context,
-                        initialDate: data.birthDate.toLocal(),
-                        firstDate: DateTime(DateTime.now().year - 100),
-                        lastDate: DateTime.now(),
-                      );
-                      if (picked != null) {
-                        setState(() {
-                          data.birthDate = picked.toUtc();
-                        });
-                      }
-                    },
-                  ),
-                ],
+    return Form(
+      key: _formKey,
+      child: ScrollableAlertDialog(
+        scrollable: true,
+        title: Row(
+          children: [
+            Expanded(
+              child: design.textMarquee(
+                '${(widget.fromCurrent == null) ? "Add" : "Edit"} individual pet:',
               ),
             ),
-          ),
-          actions: [
-            ElevatedButton(
-              onPressed: () {
-                if (_formKey.currentState != null &&
-                    _formKey.currentState!.validate()) {
-                  Navigator.of(context).pop();
-                  invokeCallback();
-                }
-              },
-              child: design.fittedText('Save pet'),
+            IconButton(
+              tooltip: "Close",
+              icon: const Icon(Icons.close),
+              onPressed: () => Navigator.of(context).pop(),
             ),
           ],
         ),
+        content: SizedBox(
+          width: design.dialogWidth,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              TextFormField(
+                controller: _nameController,
+                maxLines: 1,
+                maxLength: 75,
+                minLines: 1,
+                keyboardType: TextInputType.text,
+                decoration: const InputDecoration(labelText: "Name..."),
+                validator: (value) => validateGeneric(value),
+              ),
+              design.verticalGap(design.spacing),
+              breedWidget(
+                design.dialogWidth,
+                kinds.expand((k) => k.breeds).toList(),
+                (value) {
+                  if (mounted && value != null) {
+                    setState(() {
+                      data.breedId = value.id!;
+                    });
+                  }
+                },
+              ),
+              design.verticalGap(1),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  Checkbox(
+                    value: data.sex,
+                    onChanged: (value) {
+                      if (value == null) return;
+                      setState(() {
+                        data.sex = value;
+                      });
+                    },
+                  ),
+                  Flexible(child: design.fittedText('Male')),
+                ],
+              ),
+              design.verticalGap(1),
+
+              ListTile(
+                title: design.fittedText(
+                  "Birth date: ${formatDate(data.birthDate, true)}",
+                ),
+                trailing: const Icon(Icons.calendar_today),
+                onTap: () async {
+                  final picked = await showDatePicker(
+                    context: context,
+                    initialDate: data.birthDate.toLocal(),
+                    firstDate: DateTime(DateTime.now().year - 100),
+                    lastDate: DateTime.now(),
+                  );
+                  if (picked != null) {
+                    setState(() {
+                      data.birthDate = picked.toUtc();
+                    });
+                  }
+                },
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          OutlinedButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              if (_formKey.currentState != null &&
+                  _formKey.currentState!.validate()) {
+                Navigator.of(context).pop();
+                invokeCallback();
+              }
+            },
+            child: design.fittedText('Save pet'),
+          ),
+        ],
       ),
     );
   }

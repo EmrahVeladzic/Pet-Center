@@ -127,9 +127,10 @@ namespace PetCenterServices.Services
 
         public override async Task<ServiceOutput<object>> IsClearedToCreate(Guid token_holder, CategoryDTO resource)
         {
-            if (!resource.Validate())
+            string? val = resource.Validate();
+            if (val!=null)
             {
-                return ServiceOutput<object>.Error(HttpCode.BadRequest,"DTO validation failed.");
+                return ServiceOutput<object>.Error(HttpCode.BadRequest,val);
             }
             if(await dbSet.AnyAsync(c=>c.Title.ToLower()==resource.Title.ToLower()))
             {
@@ -141,9 +142,10 @@ namespace PetCenterServices.Services
 
         public override async Task<ServiceOutput<object>> IsClearedToUpdate(Guid token_holder, CategoryDTO resource)
         {
-            if (!resource.Validate())
+            string? val = resource.Validate();
+            if (val!=null)
             {
-                return ServiceOutput<object>.Error(HttpCode.BadRequest,"DTO validation failed.");
+                return ServiceOutput<object>.Error(HttpCode.BadRequest,val);
             }
             Category? cat = await dbSet.FindAsync(resource.Id);
             if (cat == null)

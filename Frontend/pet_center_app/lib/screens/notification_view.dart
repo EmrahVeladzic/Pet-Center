@@ -7,6 +7,7 @@ import 'package:pet_center_app/screens/listing_view.dart';
 import 'package:pet_center_app/services/listing_service.dart';
 import 'package:pet_center_app/services/static_user_data_service.dart';
 import 'package:pet_center_app/utils/app_style.dart';
+import 'package:pet_center_app/utils/tokens.dart';
 import 'package:pet_center_app/utils/helpers.dart';
 import 'package:pet_center_app/utils/hive_cache.dart';
 
@@ -81,53 +82,64 @@ class _NotificationViewScreenState extends State<NotificationViewScreen> {
     }
 
     return Scaffold(
-      backgroundColor: mainTone,
       appBar: AppBar(
-        title: SizedBox(
-          width: design.screenWidth * marqueeTitleWMult,
-          height: design.marqueeSize,
-          child: design.textMarquee(
-            "${widget.notification.title} - ${formatDate(widget.notification.datePosted)}",
-            design.screenWidth * marqueeTitleWMult,
-          ),
+        title: Text(
+          "${widget.notification.title} - ${formatDate(widget.notification.datePosted)}",
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
         ),
       ),
-      body: Center(
-        child: FractionallySizedBox(
-          widthFactor: design.bodyWMult,
-          heightFactor: 1.0,
-          child: ColoredBox(
-            color: panelTone,
-            child: Padding(
+      body: SafeArea(
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(
+              maxWidth: Breakpoints.maxFormWidth,
+            ),
+            child: ListView(
               padding: EdgeInsets.all(design.spacing),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    flex: 2,
-                    child: SingleChildScrollView(child: Text(notif.body)),
-                  ),
-                  if (relevant != null)
-                    Expanded(
-                      flex: 1,
-                      child: ListingCard(
-                        listing: relevant!,
-                        visited: visitedListingIndices.contains(relevant?.id),
-                        onTap: () {
-                          final listingId = relevant?.id;
-                          if (listingId == null) return;
-                          addIndex(listingId);
-                          switchTo();
-                        },
-                      ),
+              children: [
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(Spacing.md),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.surface,
+                    borderRadius: Radii.mdAll,
+                    border: Border.all(
+                      color: Theme.of(context).colorScheme.outlineVariant,
                     ),
+                  ),
+                  child: Text(
+                    notif.body.isEmpty
+                        ? 'This notification is empty.'
+                        : notif.body,
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                ),
+                if (relevant != null) ...[
+                  const SizedBox(height: Spacing.md),
+                  Text(
+                    'Related listing',
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                  const SizedBox(height: Spacing.xs),
+                  ListingCard(
+                    listing: relevant!,
+                    visited: visitedListingIndices.contains(relevant?.id),
+                    onTap: () {
+                      final listingId = relevant?.id;
+                      if (listingId == null) return;
+                      addIndex(listingId);
+                      switchTo();
+                    },
+                  ),
                 ],
-              ),
+              ],
             ),
           ),
         ),
       ),
-      bottomNavigationBar: BottomAppBar(),
     );
   }
 }

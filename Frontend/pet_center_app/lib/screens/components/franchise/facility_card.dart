@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:pet_center_app/models/data_transfer/facility_dto.dart';
-import 'package:pet_center_app/utils/app_style.dart';
+import 'package:pet_center_app/screens/components/entity_list_tile.dart';
 
 class FacilityCard extends StatelessWidget {
   final FacilityDTO facility;
@@ -18,87 +18,32 @@ class FacilityCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final ReactiveDesignSystem design = Theme.of(
-      context,
-    ).extension<ReactiveDesignSystem>()!;
+    final address = [
+      facility.street,
+      facility.city,
+    ].where((part) => part.trim().isNotEmpty).join(', ');
 
-    return Padding(
-      padding: EdgeInsetsGeometry.symmetric(horizontal: 0, vertical: 1),
-      child: Container(
-        color: listTone,
-        child: Row(
-          children: [
-            Expanded(
-              flex: 4,
-              child: Padding(
-                padding: EdgeInsets.all(design.spacing),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Flexible(
-                      fit: FlexFit.loose,
-                      child: design.fittedText(
-                        "${facility.street}- ${facility.city}",
-                      ),
-                    ),
-                    if (facility.contact != null) ...[
-                      Flexible(
-                        fit: FlexFit.loose,
-                        child: design.fittedText(facility.contact!),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-            ),
-            if (owner) ...[
-              Expanded(
-                flex: 1,
-                child: Align(
-                  alignment: Alignment.center,
-                  child: SizedBox(
-                    width: design.boundedIconSize,
-                    height: design.boundedIconSize,
-                    child: FittedBox(
-                      fit: BoxFit.contain,
-                      child: IconButton(
-                        tooltip: "Edit",
-                        onPressed: editAction,
-                        icon: const Icon(Icons.edit),
-                        padding: EdgeInsets.zero,
-
-                        constraints: const BoxConstraints(),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              Expanded(
-                flex: 1,
-                child: Align(
-                  alignment: Alignment.center,
-                  child: SizedBox(
-                    width: design.boundedIconSize,
-                    height: design.boundedIconSize,
-                    child: FittedBox(
-                      fit: BoxFit.contain,
-                      child: IconButton(
-                        tooltip: "Delete",
-                        onPressed: deleteAction,
-                        icon: const Icon(Icons.delete),
-                        padding: EdgeInsets.zero,
-
-                        constraints: const BoxConstraints(),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ],
-        ),
-      ),
+    return EntityListTile(
+      icon: Icons.place_outlined,
+      title: address.isEmpty ? 'No address provided' : address,
+      subtitle: (facility.contact != null && facility.contact!.isNotEmpty)
+          ? facility.contact
+          : null,
+      actions: [
+        if (owner)
+          EntityAction(
+            icon: Icons.edit_outlined,
+            tooltip: 'Edit facility',
+            onPressed: editAction,
+          ),
+        if (owner)
+          EntityAction(
+            icon: Icons.delete_outline,
+            tooltip: 'Remove facility',
+            onPressed: deleteAction,
+            destructive: true,
+          ),
+      ],
     );
   }
 }

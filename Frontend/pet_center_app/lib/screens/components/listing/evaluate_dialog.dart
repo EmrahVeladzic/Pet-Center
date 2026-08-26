@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:pet_center_app/screens/components/app_dialog.dart';
 import 'package:pet_center_app/services/listing_service.dart';
 import 'package:pet_center_app/utils/app_style.dart';
 import 'package:pet_center_app/utils/validators.dart';
@@ -52,7 +53,8 @@ class _EvaluateDialogState extends State<EvaluateDialog> {
       key: _formKey,
       child: FittedBox(
         fit: BoxFit.scaleDown,
-        child: AlertDialog(
+        child: ScrollableAlertDialog(
+          scrollable: true,
           title: Row(
             children: [
               Expanded(child: design.textMarquee('Evaluate listing:')),
@@ -65,47 +67,46 @@ class _EvaluateDialogState extends State<EvaluateDialog> {
           ),
           content: SizedBox(
             width: design.dialogWidth,
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  ColoredBox(
-                    color: listTone,
-                    child: TextFormField(
-                      controller: _controller,
-                      maxLines: null,
-                      maxLength: 150,
-                      minLines: dialogMinLines,
-                      keyboardType: TextInputType.multiline,
-                      decoration: InputDecoration(hintText: 'Note:'),
-                      validator: (value) {
-                        return validateGeneric(value);
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                TextFormField(
+                  controller: _controller,
+                  maxLines: null,
+                  maxLength: 150,
+                  minLines: dialogMinLines,
+                  keyboardType: TextInputType.multiline,
+                  decoration: InputDecoration(hintText: 'Note:'),
+                  validator: (value) {
+                    return validateGeneric(value);
+                  },
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    Checkbox(
+                      value: approved,
+                      onChanged: (value) {
+                        if (value == null) {
+                          return;
+                        }
+                        setState(() {
+                          approved = value;
+                        });
                       },
                     ),
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      Checkbox(
-                        value: approved,
-                        onChanged: (value) {
-                          if (value == null) {
-                            return;
-                          }
-                          setState(() {
-                            approved = value;
-                          });
-                        },
-                      ),
-                      design.fittedText('Approved'),
-                    ],
-                  ),
-                ],
-              ),
+                    Flexible(child: design.fittedText('Approved')),
+                  ],
+                ),
+              ],
             ),
           ),
           actions: [
+            OutlinedButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancel'),
+            ),
             ElevatedButton(
               onPressed: () {
                 if (_formKey.currentState != null &&

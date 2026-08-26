@@ -64,15 +64,10 @@ class _FormTemplateViewState extends State<FormTemplateView> {
     ).extension<ReactiveDesignSystem>()!;
 
     return BasicScreenScaffold(
+      title: 'Form templates',
+      description:
+          'Templates that determine which fields an adoption form asks for.',
       appBar: AppBar(
-        title: SizedBox(
-          width: design.screenWidth * marqueeTitleWMult,
-          height: design.marqueeSize,
-          child: design.textMarquee(
-            'Form Templates:',
-            design.screenWidth * marqueeTitleWMult,
-          ),
-        ),
         actions: [
           IconButton(
             onPressed: () {
@@ -88,9 +83,6 @@ class _FormTemplateViewState extends State<FormTemplateView> {
               );
             },
             icon: const Icon(Icons.add),
-            padding: EdgeInsets.zero,
-
-            constraints: const BoxConstraints(),
           ),
         ],
       ),
@@ -117,8 +109,13 @@ class _FormTemplateViewState extends State<FormTemplateView> {
                 showDialog(
                   context: context,
                   builder: (_) => ConfirmationDialog(
-                    title: "Remove template",
-                    body: "Are you sure you wish to remove this form template?",
+                    title: "Remove this template?",
+                    body:
+                        "The template will be removed along with all of its fields.",
+                    consequence:
+                        "This cannot be undone. Forms already submitted from it are unaffected.",
+                    confirmLabel: "Remove template",
+                    destructive: true,
                     confirmAction: () {
                       final id = e.id;
                       if (id != null) {

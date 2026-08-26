@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:pet_center_app/models/data_transfer/listing/sub_dtos.dart';
 import 'package:pet_center_app/services/listing_service.dart';
-import 'package:pet_center_app/utils/app_style.dart';
+import 'package:pet_center_app/utils/tokens.dart';
 import 'package:pet_center_app/utils/validators.dart';
 
 class CommentCreator extends StatefulWidget {
@@ -43,66 +43,50 @@ class _CommentCreatorState extends State<CommentCreator> {
 
   @override
   Widget build(BuildContext context) {
-    final ReactiveDesignSystem design = Theme.of(
-      context,
-    ).extension<ReactiveDesignSystem>()!;
+    final scheme = Theme.of(context).colorScheme;
 
-    return Padding(
-      padding: EdgeInsetsGeometry.symmetric(horizontal: 0, vertical: 1),
-      child: Container(
-        padding: EdgeInsets.all(design.spacing),
-        decoration: design.panelDecoration(),
-        child: Form(
-          key: _formKey,
-          child: Row(
-            children: [
-              Expanded(
-                flex: 4,
-                child: ColoredBox(
-                  color: listTone,
-
-                  child: TextFormField(
-                    controller: _controller,
-                    maxLines: null,
-                    maxLength: 150,
-                    minLines: 3,
-                    keyboardType: TextInputType.multiline,
-                    decoration: InputDecoration(hintText: 'Write a review...'),
-                    validator: (value) {
-                      return validateGeneric(value);
-                    },
-                  ),
-                ),
+    return Container(
+      padding: const EdgeInsets.all(Spacing.md),
+      decoration: BoxDecoration(
+        color: scheme.surface,
+        borderRadius: Radii.mdAll,
+        border: Border.all(color: scheme.outlineVariant),
+      ),
+      child: Form(
+        key: _formKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            TextFormField(
+              controller: _controller,
+              maxLines: null,
+              maxLength: 150,
+              minLines: 3,
+              keyboardType: TextInputType.multiline,
+              decoration: const InputDecoration(
+                hintText: 'Share your experience with this listing...',
+                labelText: 'Your review',
+                alignLabelWithHint: true,
               ),
-              Expanded(
-                flex: 1,
-
-                child: Align(
-                  alignment: Alignment.center,
-                  child: SizedBox(
-                    width: design.boundedIconSize,
-                    height: design.boundedIconSize,
-                    child: FittedBox(
-                      fit: BoxFit.contain,
-                      child: IconButton(
-                        tooltip: "Post review",
-                        onPressed: () {
-                          if (_formKey.currentState != null &&
-                              _formKey.currentState!.validate()) {
-                            sendReview();
-                          }
-                        },
-                        icon: const Icon(Icons.arrow_forward),
-                        padding: EdgeInsets.zero,
-
-                        constraints: const BoxConstraints(),
-                      ),
-                    ),
-                  ),
-                ),
+              validator: (value) {
+                return validateGeneric(value);
+              },
+            ),
+            const SizedBox(height: Spacing.xs),
+            Align(
+              alignment: Alignment.centerRight,
+              child: FilledButton.icon(
+                onPressed: () {
+                  if (_formKey.currentState != null &&
+                      _formKey.currentState!.validate()) {
+                    sendReview();
+                  }
+                },
+                icon: const Icon(Icons.send, size: IconSizes.md),
+                label: const Text('Post review'),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

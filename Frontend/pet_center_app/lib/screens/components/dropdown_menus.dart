@@ -16,27 +16,24 @@ Widget accessWidget(
   bool enable = true,
   Key? key,
 }) {
-  return FittedBox(
+  return ConstrainedBox(
     key: key,
-    fit: BoxFit.scaleDown,
-    child: SizedBox(
-      width: w,
-      child: DropdownMenu<Access>(
-        enabled: enable,
-        expandedInsets: EdgeInsets.zero,
-        initialSelection: src ?? Access.user,
-        requestFocusOnTap: false,
-        label: const Text('Role:'),
-        onSelected: onChange,
-        dropdownMenuEntries: Access.values.map<DropdownMenuEntry<Access>>((
-          Access method,
-        ) {
-          return DropdownMenuEntry<Access>(
-            value: method,
-            label: method.displayName,
-          );
-        }).toList(),
-      ),
+    constraints: BoxConstraints(maxWidth: w),
+    child: DropdownMenu<Access>(
+      enabled: enable,
+      expandedInsets: EdgeInsets.zero,
+      initialSelection: src ?? Access.user,
+      requestFocusOnTap: false,
+      label: const Text('Role:'),
+      onSelected: onChange,
+      dropdownMenuEntries: Access.values.map<DropdownMenuEntry<Access>>((
+        Access method,
+      ) {
+        return DropdownMenuEntry<Access>(
+          value: method,
+          label: method.displayName,
+        );
+      }).toList(),
     ),
   );
 }
@@ -48,27 +45,24 @@ Widget orderingWidget(
   bool enable = true,
   Key? key,
 }) {
-  return FittedBox(
+  return ConstrainedBox(
     key: key,
-    fit: BoxFit.scaleDown,
-    child: SizedBox(
-      width: w,
-      child: DropdownMenu<OrderingMethod>(
-        enabled: enable,
-        expandedInsets: EdgeInsets.zero,
-        initialSelection: src ?? OrderingMethod.id,
-        requestFocusOnTap: false,
-        label: const Text('Sort:'),
-        onSelected: onChange,
-        dropdownMenuEntries: OrderingMethod.values
-            .map<DropdownMenuEntry<OrderingMethod>>((OrderingMethod method) {
-              return DropdownMenuEntry<OrderingMethod>(
-                value: method,
-                label: method.displayName,
-              );
-            })
-            .toList(),
-      ),
+    constraints: BoxConstraints(maxWidth: w),
+    child: DropdownMenu<OrderingMethod>(
+      enabled: enable,
+      expandedInsets: EdgeInsets.zero,
+      initialSelection: src ?? OrderingMethod.id,
+      requestFocusOnTap: false,
+      label: const Text('Sort:'),
+      onSelected: onChange,
+      dropdownMenuEntries: OrderingMethod.values
+          .map<DropdownMenuEntry<OrderingMethod>>((OrderingMethod method) {
+            return DropdownMenuEntry<OrderingMethod>(
+              value: method,
+              label: method.displayName,
+            );
+          })
+          .toList(),
     ),
   );
 }
@@ -80,27 +74,24 @@ Widget scaleWidget(
   bool enable = true,
   Key? key,
 }) {
-  return FittedBox(
+  return ConstrainedBox(
     key: key,
-    fit: BoxFit.scaleDown,
-    child: SizedBox(
-      width: w,
-      child: DropdownMenu<AnimalScale>(
-        enabled: enable,
-        expandedInsets: EdgeInsets.zero,
-        initialSelection: src ?? AnimalScale.medium,
-        requestFocusOnTap: false,
-        label: const Text('Scale:'),
-        onSelected: onChange,
-        dropdownMenuEntries: AnimalScale.values
-            .map<DropdownMenuEntry<AnimalScale>>((AnimalScale method) {
-              return DropdownMenuEntry<AnimalScale>(
-                value: method,
-                label: method.displayName,
-              );
-            })
-            .toList(),
-      ),
+    constraints: BoxConstraints(maxWidth: w),
+    child: DropdownMenu<AnimalScale>(
+      enabled: enable,
+      expandedInsets: EdgeInsets.zero,
+      initialSelection: src ?? AnimalScale.medium,
+      requestFocusOnTap: false,
+      label: const Text('Scale:'),
+      onSelected: onChange,
+      dropdownMenuEntries: AnimalScale.values
+          .map<DropdownMenuEntry<AnimalScale>>((AnimalScale method) {
+            return DropdownMenuEntry<AnimalScale>(
+              value: method,
+              label: method.displayName,
+            );
+          })
+          .toList(),
     ),
   );
 }
@@ -112,27 +103,24 @@ Widget listingTypeWidget(
   bool enable = true,
   Key? key,
 }) {
-  return FittedBox(
+  return ConstrainedBox(
     key: key,
-    fit: BoxFit.scaleDown,
-    child: SizedBox(
-      width: w,
-      child: DropdownMenu<ListingType>(
-        enabled: enable,
-        expandedInsets: EdgeInsets.zero,
-        initialSelection: src ?? ListingType.generic,
-        requestFocusOnTap: false,
-        label: const Text('Type:'),
-        onSelected: onChange,
-        dropdownMenuEntries: ListingType.values
-            .map<DropdownMenuEntry<ListingType>>((ListingType method) {
-              return DropdownMenuEntry<ListingType>(
-                value: method,
-                label: method.displayName,
-              );
-            })
-            .toList(),
-      ),
+    constraints: BoxConstraints(maxWidth: w),
+    child: DropdownMenu<ListingType>(
+      enabled: enable,
+      expandedInsets: EdgeInsets.zero,
+      initialSelection: src ?? ListingType.generic,
+      requestFocusOnTap: false,
+      label: const Text('Type:'),
+      onSelected: onChange,
+      dropdownMenuEntries: ListingType.values
+          .map<DropdownMenuEntry<ListingType>>((ListingType method) {
+            return DropdownMenuEntry<ListingType>(
+              value: method,
+              label: method.displayName,
+            );
+          })
+          .toList(),
     ),
   );
 }
@@ -144,27 +132,24 @@ Widget procedureWidget(
   bool enable = true,
   Key? key,
 }) {
-  return FittedBox(
+  return ConstrainedBox(
     key: key,
-    fit: BoxFit.scaleDown,
-    child: SizedBox(
-      width: w,
-      child: DropdownMenu<ProcedureDTO>(
-        enabled: enable,
-        expandedInsets: EdgeInsets.zero,
-        initialSelection: src.isNotEmpty ? src.first : null,
-        enableFilter: true,
-        label: const Text('Procedure:'),
-        onSelected: onChange,
-        dropdownMenuEntries: src
-            .map(
-              (dto) => DropdownMenuEntry<ProcedureDTO>(
-                value: dto,
-                label: dto.description,
-              ),
-            )
-            .toList(),
-      ),
+    constraints: BoxConstraints(maxWidth: w),
+    child: DropdownMenu<ProcedureDTO>(
+      enabled: enable,
+      expandedInsets: EdgeInsets.zero,
+      initialSelection: src.isNotEmpty ? src.first : null,
+      enableFilter: true,
+      label: const Text('Procedure:'),
+      onSelected: onChange,
+      dropdownMenuEntries: src
+          .map(
+            (dto) => DropdownMenuEntry<ProcedureDTO>(
+              value: dto,
+              label: dto.description,
+            ),
+          )
+          .toList(),
     ),
   );
 }
@@ -176,41 +161,38 @@ Widget itemWidget(
   bool enable = true,
   Key? key,
 }) {
-  return FittedBox(
+  return ConstrainedBox(
     key: key,
-    fit: BoxFit.scaleDown,
-    child: SizedBox(
-      width: w,
-      child: DropdownMenu<ItemDTO>(
-        enabled: enable,
-        expandedInsets: EdgeInsets.zero,
-        initialSelection: src.isNotEmpty ? src.first : null,
-        enableFilter: true,
-        label: const Text('Product:'),
-        onSelected: onChange,
-        dropdownMenuEntries: src.map((dto) {
-          final kind = kinds.where((k) => k.id == dto.kindId).firstOrNull;
+    constraints: BoxConstraints(maxWidth: w),
+    child: DropdownMenu<ItemDTO>(
+      enabled: enable,
+      expandedInsets: EdgeInsets.zero,
+      initialSelection: src.isNotEmpty ? src.first : null,
+      enableFilter: true,
+      label: const Text('Product:'),
+      onSelected: onChange,
+      dropdownMenuEntries: src.map((dto) {
+        final kind = kinds.where((k) => k.id == dto.kindId).firstOrNull;
 
-          final List<String> details = [];
+        final List<String> details = [];
 
-          if (dto.mass != null) {
-            details.add('${dto.mass}g');
-          }
-          if (kind?.title != null && kind!.title.isNotEmpty) {
-            details.add(kind.title);
-          }
-          if (dto.scale?.displayName != null &&
-              dto.scale!.displayName.isNotEmpty) {
-            details.add(dto.scale!.displayName);
-          }
+        if (dto.mass != null) {
+          details.add('${dto.mass}g');
+        }
+        if (kind?.title != null && kind!.title.isNotEmpty) {
+          details.add(kind.title);
+        }
+        if (dto.scale?.displayName != null &&
+            dto.scale!.displayName.isNotEmpty) {
+          details.add(dto.scale!.displayName);
+        }
 
-          final String entryLabel = details.isEmpty
-              ? dto.title
-              : '${dto.title} (${details.join(' - ')})';
+        final String entryLabel = details.isEmpty
+            ? dto.title
+            : '${dto.title} (${details.join(' - ')})';
 
-          return DropdownMenuEntry<ItemDTO>(value: dto, label: entryLabel);
-        }).toList(),
-      ),
+        return DropdownMenuEntry<ItemDTO>(value: dto, label: entryLabel);
+      }).toList(),
     ),
   );
 }
@@ -222,27 +204,24 @@ Widget templateWidget(
   bool enable = true,
   Key? key,
 }) {
-  return FittedBox(
+  return ConstrainedBox(
     key: key,
-    fit: BoxFit.scaleDown,
-    child: SizedBox(
-      width: w,
-      child: DropdownMenu<FormTemplateDTO>(
-        enabled: enable,
-        expandedInsets: EdgeInsets.zero,
-        initialSelection: src.isNotEmpty ? src.first : null,
-        enableFilter: true,
-        label: const Text('Template:'),
-        onSelected: onChange,
-        dropdownMenuEntries: src
-            .map(
-              (dto) => DropdownMenuEntry<FormTemplateDTO>(
-                value: dto,
-                label: dto.description,
-              ),
-            )
-            .toList(),
-      ),
+    constraints: BoxConstraints(maxWidth: w),
+    child: DropdownMenu<FormTemplateDTO>(
+      enabled: enable,
+      expandedInsets: EdgeInsets.zero,
+      initialSelection: src.isNotEmpty ? src.first : null,
+      enableFilter: true,
+      label: const Text('Template:'),
+      onSelected: onChange,
+      dropdownMenuEntries: src
+          .map(
+            (dto) => DropdownMenuEntry<FormTemplateDTO>(
+              value: dto,
+              label: dto.description,
+            ),
+          )
+          .toList(),
     ),
   );
 }
@@ -254,25 +233,22 @@ Widget categoryWidget(
   bool enable = true,
   Key? key,
 }) {
-  return FittedBox(
+  return ConstrainedBox(
     key: key,
-    fit: BoxFit.scaleDown,
-    child: SizedBox(
-      width: w,
-      child: DropdownMenu<CategoryDTO>(
-        enabled: enable,
-        expandedInsets: EdgeInsets.zero,
-        initialSelection: src.isNotEmpty ? src.first : null,
-        enableFilter: true,
-        label: const Text('Category:'),
-        onSelected: onChange,
-        dropdownMenuEntries: src
-            .map(
-              (dto) =>
-                  DropdownMenuEntry<CategoryDTO>(value: dto, label: dto.title),
-            )
-            .toList(),
-      ),
+    constraints: BoxConstraints(maxWidth: w),
+    child: DropdownMenu<CategoryDTO>(
+      enabled: enable,
+      expandedInsets: EdgeInsets.zero,
+      initialSelection: src.isNotEmpty ? src.first : null,
+      enableFilter: true,
+      label: const Text('Category:'),
+      onSelected: onChange,
+      dropdownMenuEntries: src
+          .map(
+            (dto) =>
+                DropdownMenuEntry<CategoryDTO>(value: dto, label: dto.title),
+          )
+          .toList(),
     ),
   );
 }
@@ -284,36 +260,30 @@ Widget animalWidget(
   bool enable = true,
   Key? key,
 }) {
-  return FittedBox(
+  return ConstrainedBox(
     key: key,
-    fit: BoxFit.scaleDown,
-    child: SizedBox(
-      width: w,
-      child: DropdownMenu<IndividualResponseDTO>(
-        enabled: enable,
-        expandedInsets: EdgeInsets.zero,
-        initialSelection: src.isNotEmpty ? src.first : null,
-        enableFilter: true,
-        label: const Text('Pet:'),
-        onSelected: onChange,
-        dropdownMenuEntries: src.map((dto) {
-          final breed = kinds
-              .expand((k) => k.breeds)
-              .where((b) => b.id == dto.breedId)
-              .firstOrNull;
+    constraints: BoxConstraints(maxWidth: w),
+    child: DropdownMenu<IndividualResponseDTO>(
+      enabled: enable,
+      expandedInsets: EdgeInsets.zero,
+      initialSelection: src.isNotEmpty ? src.first : null,
+      enableFilter: true,
+      label: const Text('Pet:'),
+      onSelected: onChange,
+      dropdownMenuEntries: src.map((dto) {
+        final breed = kinds
+            .expand((k) => k.breeds)
+            .where((b) => b.id == dto.breedId)
+            .firstOrNull;
 
-          String lbl = dto.name;
+        String lbl = dto.name;
 
-          if (breed != null) {
-            lbl += " - ${breed.title}";
-          }
+        if (breed != null) {
+          lbl += " - ${breed.title}";
+        }
 
-          return DropdownMenuEntry<IndividualResponseDTO>(
-            value: dto,
-            label: lbl,
-          );
-        }).toList(),
-      ),
+        return DropdownMenuEntry<IndividualResponseDTO>(value: dto, label: lbl);
+      }).toList(),
     ),
   );
 }
@@ -325,30 +295,27 @@ Widget breedWidget(
   bool enable = true,
   Key? key,
 }) {
-  return FittedBox(
+  return ConstrainedBox(
     key: key,
-    fit: BoxFit.scaleDown,
-    child: SizedBox(
-      width: w,
-      child: DropdownMenu<BreedDTO>(
-        enabled: enable,
-        expandedInsets: EdgeInsets.zero,
-        initialSelection: src.isNotEmpty ? src.first : null,
-        enableFilter: true,
-        label: const Text('Breed:'),
-        onSelected: onChange,
-        dropdownMenuEntries: src.map((dto) {
-          final kindTitle = kinds
-              .where((k) => k.breeds.any((b) => b.id == dto.id))
-              .firstOrNull
-              ?.title;
+    constraints: BoxConstraints(maxWidth: w),
+    child: DropdownMenu<BreedDTO>(
+      enabled: enable,
+      expandedInsets: EdgeInsets.zero,
+      initialSelection: src.isNotEmpty ? src.first : null,
+      enableFilter: true,
+      label: const Text('Breed:'),
+      onSelected: onChange,
+      dropdownMenuEntries: src.map((dto) {
+        final kindTitle = kinds
+            .where((k) => k.breeds.any((b) => b.id == dto.id))
+            .firstOrNull
+            ?.title;
 
-          return DropdownMenuEntry<BreedDTO>(
-            value: dto,
-            label: "${dto.title}${kindTitle != null ? " - $kindTitle" : ""}",
-          );
-        }).toList(),
-      ),
+        return DropdownMenuEntry<BreedDTO>(
+          value: dto,
+          label: "${dto.title}${kindTitle != null ? " - $kindTitle" : ""}",
+        );
+      }).toList(),
     ),
   );
 }
@@ -360,24 +327,21 @@ Widget kindWidget(
   bool enable = true,
   Key? key,
 }) {
-  return FittedBox(
+  return ConstrainedBox(
     key: key,
-    fit: BoxFit.scaleDown,
-    child: SizedBox(
-      width: w,
-      child: DropdownMenu<KindDTO>(
-        enabled: enable,
-        expandedInsets: EdgeInsets.zero,
-        initialSelection: src.isNotEmpty ? src.first : null,
-        enableFilter: true,
-        label: const Text('Kind:'),
-        onSelected: onChange,
-        dropdownMenuEntries: src
-            .map(
-              (dto) => DropdownMenuEntry<KindDTO>(value: dto, label: dto.title),
-            )
-            .toList(),
-      ),
+    constraints: BoxConstraints(maxWidth: w),
+    child: DropdownMenu<KindDTO>(
+      enabled: enable,
+      expandedInsets: EdgeInsets.zero,
+      initialSelection: src.isNotEmpty ? src.first : null,
+      enableFilter: true,
+      label: const Text('Kind:'),
+      onSelected: onChange,
+      dropdownMenuEntries: src
+          .map(
+            (dto) => DropdownMenuEntry<KindDTO>(value: dto, label: dto.title),
+          )
+          .toList(),
     ),
   );
 }

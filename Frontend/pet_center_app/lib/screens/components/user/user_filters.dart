@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:pet_center_app/screens/components/filter_bar.dart';
 import 'package:pet_center_app/screens/templates/filter_template.dart';
-import 'package:pet_center_app/utils/app_style.dart';
 import 'package:pet_center_app/utils/globals.dart';
+import 'package:pet_center_app/utils/tokens.dart';
 
 class UserFilters extends StatefulWidget
     with FilterTemplate
@@ -58,52 +59,45 @@ class _UserFiltersState extends State<UserFilters> {
 
   @override
   Widget build(BuildContext context) {
-    final ReactiveDesignSystem design = Theme.of(
-      context,
-    ).extension<ReactiveDesignSystem>()!;
+    final busy = apiServiceBusy.value;
 
-    return SizedBox.expand(
-      child: Container(
-        decoration: BoxDecoration(color: filterTone),
-        padding: EdgeInsets.symmetric(horizontal: design.spacing),
-        child: Row(
-          children: [
-            Expanded(
-              flex: 4,
-
-              child: TextField(
-                enabled: !apiServiceBusy.value,
-                maxLength: 75,
-                maxLines: 1,
-                minLines: 1,
-                keyboardType: TextInputType.text,
-                decoration: InputDecoration(hintText: "Username"),
-                controller: _controller,
-                onSubmitted: (value) {
-                  change(include, value);
-                },
-              ),
+    return FilterBar(
+      children: [
+        FilterField(
+          minWidth: 240,
+          maxWidth: 360,
+          expand: true,
+          child: TextField(
+            enabled: !busy,
+            maxLength: 75,
+            maxLines: 1,
+            minLines: 1,
+            keyboardType: TextInputType.text,
+            controller: _controller,
+            onSubmitted: (value) => change(include, value),
+            decoration: InputDecoration(
+              hintText: 'Search by username',
+              counterText: '',
+              prefixIcon: const Icon(Icons.search, size: IconSizes.md),
+              suffixIcon: usrName.isEmpty
+                  ? null
+                  : IconButton(
+                      tooltip: 'Clear search',
+                      icon: const Icon(Icons.close, size: IconSizes.md),
+                      onPressed: () {
+                        _controller.clear();
+                        change(include, '');
+                      },
+                    ),
             ),
-
-            Expanded(
-              flex: 1,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  design.fittedText("Employed"),
-                  Checkbox(
-                    value: include,
-                    onChanged: (value) {
-                      change(value!, usrName);
-                    },
-                  ),
-                ],
-              ),
-            ),
-          ],
+          ),
         ),
-      ),
+        FilterToggle(
+          label: 'Only employees',
+          value: include,
+          onChanged: (value) => change(value, usrName),
+        ),
+      ],
     );
   }
 }

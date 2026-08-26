@@ -1,19 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:pet_center_app/models/data_transfer/facility_dto.dart';
 import 'package:pet_center_app/models/data_transfer/franchise/franchise_response_dto.dart';
-
 import 'package:pet_center_app/models/enums.dart';
 import 'package:pet_center_app/screens/components/confirmation_dialog.dart';
+import 'package:pet_center_app/screens/components/entity_list_tile.dart';
 import 'package:pet_center_app/screens/components/franchise/facility_card.dart';
 import 'package:pet_center_app/screens/components/franchise/facility_creation_dialog.dart';
+import 'package:pet_center_app/screens/components/status_chip.dart';
 import 'package:pet_center_app/screens/components/user/notification_dialog.dart';
 import 'package:pet_center_app/services/facility_service.dart';
-
 import 'package:pet_center_app/services/static_user_data_service.dart';
 import 'package:pet_center_app/services/user_service.dart';
 import 'package:pet_center_app/utils/app_style.dart';
-
 import 'package:pet_center_app/utils/jwt_utils.dart';
+import 'package:pet_center_app/utils/tokens.dart';
 
 class FranchiseCard extends StatelessWidget {
   final FranchiseResponseDTO franchise;
@@ -34,6 +34,10 @@ class FranchiseCard extends StatelessWidget {
     required this.listingAction,
     required this.animalAction,
   });
+
+  bool get owns => role == Access.business && franchise.owned == true;
+
+  bool get worksAt => role == Access.business && franchise.owned == false;
 
   void removeFacility(String input) async {
     final out = await FacilityService.delete(input);
@@ -68,406 +72,203 @@ class FranchiseCard extends StatelessWidget {
 
     if (output != null) {
       showSnackbar(output);
-
       self?.workplaces?.removeWhere((f) => f.id == franchise.id);
-
       rebuildCallback();
     }
   }
 
+  void openFacilityDialog(BuildContext context, [FacilityDTO? edited]) {
+    showDialog(
+      context: context,
+      builder: (_) => FacilityCreationDialog(
+        creationCallback: (input) => setFacility(input),
+        owningFranchiseId: franchise.id ?? '',
+        editedObject: edited,
+      ),
+    );
+  }
+
+  void openNotificationDialog(BuildContext context) {
+    if (self?.id == null || franchise.id == null) {
+      return;
+    }
+    showDialog(
+      context: context,
+      builder: (_) => NotificationDialog(
+        userId: self!.id!,
+        franchiseId: franchise.id,
+        callback: (value) {
+          if (value == null || self == null) {
+            return;
+          }
+          if (self!.notifications != null) {
+            self!.notifications?.removeWhere((n) => n.id == value.id);
+            self!.notifications?.add(value);
+          } else {
+            self!.notifications = [value];
+          }
+          showSnackbar('Notification added.');
+        },
+      ),
+    );
+  }
+
+  List<EntityAction> actionsFor(BuildContext context) {
+    if (owns) {
+      return [
+        EntityAction(
+          icon: Icons.local_offer_outlined,
+          tooltip: 'Listings',
+          onPressed: listingAction,
+        ),
+        EntityAction(
+          icon: Icons.pets,
+          tooltip: 'Sheltered animals',
+          onPressed: animalAction,
+        ),
+        EntityAction(
+          icon: Icons.group_outlined,
+          tooltip: 'Employees',
+          onPressed: employeeViewAction,
+        ),
+        EntityAction(
+          icon: Icons.campaign_outlined,
+          tooltip: 'Notify employees',
+          onPressed: () => openNotificationDialog(context),
+        ),
+        EntityAction(
+          icon: Icons.add_business_outlined,
+          tooltip: 'Add facility',
+          onPressed: () => openFacilityDialog(context),
+        ),
+        EntityAction(
+          icon: Icons.edit_outlined,
+          tooltip: 'Edit franchise',
+          onPressed: editAction,
+        ),
+        EntityAction(
+          icon: Icons.delete_outline,
+          tooltip: 'Remove franchise',
+          onPressed: deleteAction,
+          destructive: true,
+        ),
+      ];
+    }
+
+    if (worksAt) {
+      return [
+        EntityAction(
+          icon: Icons.local_offer_outlined,
+          tooltip: 'Listings',
+          onPressed: listingAction,
+        ),
+        EntityAction(
+          icon: Icons.pets,
+          tooltip: 'Sheltered animals',
+          onPressed: animalAction,
+        ),
+        EntityAction(
+          icon: Icons.person_remove_outlined,
+          tooltip: 'Quit this workplace',
+          destructive: true,
+          onPressed: () {
+            showDialog<bool>(
+              context: context,
+              builder: (_) => ConfirmationDialog(
+                confirmAction: quit,
+                title: 'Quit this workplace?',
+                body:
+                    'You will stop working for ${franchise.franchiseName} and lose the access that comes with it.',
+                consequence:
+                    'You will need to be hired again to regain access to this franchise.',
+                confirmLabel: 'Quit',
+                destructive: true,
+              ),
+            );
+          },
+        ),
+      ];
+    }
+
+    return const [];
+  }
+
   @override
   Widget build(BuildContext context) {
-    final ReactiveDesignSystem design = Theme.of(
-      context,
-    ).extension<ReactiveDesignSystem>()!;
+    final theme = Theme.of(context);
+    final actions = actionsFor(context);
+    final facilities = franchise.facilities;
 
-    return Padding(
-      padding: EdgeInsetsGeometry.symmetric(horizontal: 0, vertical: 1),
-      child: Container(
-        decoration: design.panelDecoration(),
-        child: Column(
-          children: [
-            Padding(
-              padding: EdgeInsets.all(design.spacing),
-              child: Row(
-                children: [
-                  Expanded(
-                    flex: 4,
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
+    return EntityListTile(
+      icon: Icons.business_outlined,
+      title: franchise.franchiseName.isEmpty
+          ? 'Unnamed franchise'
+          : franchise.franchiseName,
+      subtitle: franchise.contact.isEmpty
+          ? 'No contact provided'
+          : franchise.contact,
+      chips: [
+        if (franchise.owned == true)
+          const StatusChip(
+            label: 'Owner',
+            tone: StatusTone.info,
+            icon: Icons.workspace_premium,
+          )
+        else if (worksAt)
+          const StatusChip(label: 'Employee', tone: StatusTone.neutral),
+      ],
+      expanded: actions.isEmpty && facilities.isEmpty
+          ? null
+          : Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                if (actions.isNotEmpty) ResponsiveActionBar(actions: actions),
+                if (facilities.isNotEmpty) ...[
+                  const SizedBox(height: Spacing.xs),
+                  Theme(
+                    data: theme.copyWith(dividerColor: Colors.transparent),
+                    child: ExpansionTile(
+                      tilePadding: EdgeInsets.zero,
+                      title: Text(
+                        facilities.length == 1
+                            ? '1 facility'
+                            : '${facilities.length} facilities',
+                        style: theme.textTheme.titleSmall,
+                      ),
                       children: [
-                        Flexible(
-                          fit: FlexFit.loose,
-                          child: Text(
-                            "Franchise:",
-                            textAlign: TextAlign.center,
+                        for (final e in facilities) ...[
+                          FacilityCard(
+                            facility: e,
+                            owner: franchise.owned ?? false,
+                            editAction: () => openFacilityDialog(context, e),
+                            deleteAction: () {
+                              showDialog<bool>(
+                                context: context,
+                                builder: (_) => ConfirmationDialog(
+                                  title: 'Remove this facility?',
+                                  body:
+                                      'The facility will be removed from this franchise.',
+                                  consequence: 'This cannot be undone.',
+                                  confirmLabel: 'Remove',
+                                  destructive: true,
+                                  confirmAction: () {
+                                    final id = e.id;
+                                    if (id != null) {
+                                      removeFacility(id);
+                                    }
+                                  },
+                                ),
+                              );
+                            },
                           ),
-                        ),
-                        Flexible(
-                          fit: FlexFit.loose,
-                          child: Text(
-                            "${franchise.franchiseName}${(franchise.owned == true) ? " (Owner)" : ""}",
-                            textAlign: TextAlign.center,
-                            style: TextStyle(fontSize: 1.5 * design.fontSize),
-                          ),
-                        ),
-                        Flexible(
-                          fit: FlexFit.loose,
-                          child: Text("Contact:", textAlign: TextAlign.center),
-                        ),
-                        Flexible(
-                          fit: FlexFit.loose,
-                          child: Text(
-                            franchise.contact,
-                            textAlign: TextAlign.center,
-                          ),
-                        ),
+                          const SizedBox(height: Spacing.xs),
+                        ],
                       ],
                     ),
                   ),
-                  if (role == Access.business && franchise.owned == true) ...[
-                    Expanded(
-                      flex: 4,
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              Expanded(
-                                flex: 1,
-                                child: Align(
-                                  alignment: Alignment.center,
-                                  child: SizedBox(
-                                    width: design.boundedIconSize,
-                                    height: design.boundedIconSize,
-                                    child: FittedBox(
-                                      fit: BoxFit.contain,
-                                      child: IconButton(
-                                        tooltip: "Listings",
-                                        onPressed: listingAction,
-                                        icon: const Icon(Icons.local_offer),
-                                        padding: EdgeInsets.zero,
-
-                                        constraints: const BoxConstraints(),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              Expanded(
-                                flex: 1,
-                                child: Align(
-                                  alignment: Alignment.center,
-                                  child: SizedBox(
-                                    width: design.boundedIconSize,
-                                    height: design.boundedIconSize,
-                                    child: FittedBox(
-                                      fit: BoxFit.contain,
-                                      child: IconButton(
-                                        tooltip: "Sheltered animals",
-                                        onPressed: animalAction,
-                                        icon: const Icon(Icons.pets),
-                                        padding: EdgeInsets.zero,
-
-                                        constraints: const BoxConstraints(),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-
-                              Expanded(
-                                flex: 1,
-                                child: Align(
-                                  alignment: Alignment.center,
-                                  child: SizedBox(
-                                    width: design.boundedIconSize,
-                                    height: design.boundedIconSize,
-                                    child: FittedBox(
-                                      fit: BoxFit.contain,
-                                      child: IconButton(
-                                        tooltip: "Employees",
-                                        onPressed: employeeViewAction,
-                                        icon: const Icon(Icons.person),
-                                        padding: EdgeInsets.zero,
-
-                                        constraints: const BoxConstraints(),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              Expanded(
-                                flex: 1,
-                                child: Align(
-                                  alignment: Alignment.center,
-                                  child: SizedBox(
-                                    width: design.boundedIconSize,
-                                    height: design.boundedIconSize,
-                                    child: FittedBox(
-                                      fit: BoxFit.contain,
-                                      child: IconButton(
-                                        tooltip: "Notify employees",
-                                        onPressed: () {
-                                          if (self?.id == null ||
-                                              franchise.id == null) {
-                                            return;
-                                          }
-
-                                          showDialog(
-                                            context: context,
-                                            builder: (_) => NotificationDialog(
-                                              callback: (value) {
-                                                if (value == null ||
-                                                    self == null) {
-                                                  return;
-                                                }
-
-                                                if (self!.notifications !=
-                                                    null) {
-                                                  self!.notifications
-                                                      ?.removeWhere(
-                                                        (n) => n.id == value.id,
-                                                      );
-                                                  self!.notifications?.add(
-                                                    value,
-                                                  );
-                                                } else {
-                                                  self!.notifications = [value];
-                                                }
-                                                showSnackbar(
-                                                  "Notification added.",
-                                                );
-                                              },
-                                              userId: self!.id!,
-                                              franchiseId: franchise.id,
-                                            ),
-                                          );
-                                        },
-                                        icon: const Icon(Icons.note_add),
-                                        padding: EdgeInsets.zero,
-
-                                        constraints: const BoxConstraints(),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          design.verticalGap(design.spacing),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              Expanded(
-                                flex: 1,
-                                child: Align(
-                                  alignment: Alignment.center,
-                                  child: SizedBox(
-                                    width: design.boundedIconSize,
-                                    height: design.boundedIconSize,
-                                    child: FittedBox(
-                                      fit: BoxFit.contain,
-                                      child: IconButton(
-                                        tooltip: "Edit",
-                                        onPressed: editAction,
-                                        icon: const Icon(Icons.edit),
-                                        padding: EdgeInsets.zero,
-
-                                        constraints: const BoxConstraints(),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              Expanded(
-                                flex: 1,
-                                child: Align(
-                                  alignment: Alignment.center,
-                                  child: SizedBox(
-                                    width: design.boundedIconSize,
-                                    height: design.boundedIconSize,
-                                    child: FittedBox(
-                                      fit: BoxFit.contain,
-                                      child: IconButton(
-                                        tooltip: "Set facility",
-                                        onPressed: () {
-                                          showDialog(
-                                            context: context,
-                                            builder: (_) =>
-                                                FacilityCreationDialog(
-                                                  creationCallback: (input) =>
-                                                      setFacility(input),
-                                                  owningFranchiseId:
-                                                      franchise.id ?? "",
-                                                ),
-                                          );
-                                        },
-                                        icon: const Icon(Icons.add),
-                                        padding: EdgeInsets.zero,
-
-                                        constraints: const BoxConstraints(),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              Expanded(
-                                flex: 1,
-                                child: Align(
-                                  alignment: Alignment.center,
-                                  child: SizedBox(
-                                    width: design.boundedIconSize,
-                                    height: design.boundedIconSize,
-                                    child: FittedBox(
-                                      fit: BoxFit.contain,
-                                      child: IconButton(
-                                        tooltip: "Remove franchise",
-                                        onPressed: deleteAction,
-                                        icon: const Icon(Icons.delete),
-                                        padding: EdgeInsets.zero,
-
-                                        constraints: const BoxConstraints(),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ] else if (role == Access.business &&
-                      franchise.owned == false) ...[
-                    Expanded(
-                      flex: 1,
-                      child: Align(
-                        alignment: Alignment.center,
-                        child: SizedBox(
-                          width: design.boundedIconSize,
-                          height: design.boundedIconSize,
-                          child: FittedBox(
-                            fit: BoxFit.contain,
-                            child: IconButton(
-                              tooltip: "Listings",
-                              onPressed: listingAction,
-                              icon: const Icon(Icons.local_offer),
-                              padding: EdgeInsets.zero,
-
-                              constraints: const BoxConstraints(),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                      flex: 1,
-                      child: Align(
-                        alignment: Alignment.center,
-                        child: SizedBox(
-                          width: design.boundedIconSize,
-                          height: design.boundedIconSize,
-                          child: FittedBox(
-                            fit: BoxFit.contain,
-                            child: IconButton(
-                              tooltip: "Sheltered animals",
-                              onPressed: animalAction,
-                              icon: const Icon(Icons.pets),
-                              padding: EdgeInsets.zero,
-
-                              constraints: const BoxConstraints(),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                      flex: 1,
-                      child: Align(
-                        alignment: Alignment.center,
-                        child: SizedBox(
-                          width: design.boundedIconSize,
-                          height: design.boundedIconSize,
-                          child: FittedBox(
-                            fit: BoxFit.contain,
-                            child: IconButton(
-                              tooltip: "Quit",
-                              onPressed: () {
-                                showDialog(
-                                  context: context,
-                                  builder: (_) => ConfirmationDialog(
-                                    confirmAction: quit,
-                                    title: "Quit",
-                                    body:
-                                        "Are you sure you wish to quit working for ${franchise.franchiseName}?",
-                                  ),
-                                );
-                              },
-                              icon: const Icon(Icons.person_remove),
-                              padding: EdgeInsets.zero,
-
-                              constraints: const BoxConstraints(),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
                 ],
-              ),
+              ],
             ),
-            if (franchise.facilities.isNotEmpty) ...[
-              ExpansionTile(
-                title: Text("Facilities"),
-                children: franchise.facilities
-                    .expand(
-                      (e) => [
-                        FacilityCard(
-                          facility: e,
-                          owner: franchise.owned ?? false,
-                          editAction: () {
-                            showDialog(
-                              context: context,
-                              builder: (_) => FacilityCreationDialog(
-                                creationCallback: (input) => setFacility(input),
-                                owningFranchiseId: franchise.id ?? "",
-                                editedObject: e,
-                              ),
-                            );
-                          },
-                          deleteAction: () {
-                            showDialog(
-                              context: context,
-                              builder: (_) => ConfirmationDialog(
-                                title: "Remove facility",
-                                body:
-                                    "Are you sure you wish to remove this facility?",
-                                confirmAction: () {
-                                  final id = e.id;
-                                  if (id != null) {
-                                    removeFacility(id);
-                                  }
-                                },
-                              ),
-                            );
-                          },
-                        ),
-                        design.verticalGap(1),
-                      ],
-                    )
-                    .toList(),
-              ),
-            ],
-          ],
-        ),
-      ),
     );
   }
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:pet_center_app/models/data_transfer/listing/sub_dtos.dart';
-import 'package:pet_center_app/utils/app_style.dart';
+import 'package:pet_center_app/screens/components/entity_list_tile.dart';
+import 'package:pet_center_app/screens/components/status_chip.dart';
 import 'package:pet_center_app/utils/helpers.dart';
 
 class ReportCard extends StatelessWidget {
@@ -17,49 +18,22 @@ class ReportCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final ReactiveDesignSystem design = Theme.of(
-      context,
-    ).extension<ReactiveDesignSystem>()!;
-
-    return Padding(
-      padding: EdgeInsetsGeometry.symmetric(horizontal: 0, vertical: 1),
-      child: Container(
-        padding: EdgeInsets.all(design.spacing),
-        decoration: design.panelDecoration(visited),
-        child: Row(
-          children: [
-            Expanded(flex: 4, child: Text("Report - ${report.reason}")),
-            Expanded(
-              flex: 2,
-              child: Text(
-                "Posted on:\n${formatDate(report.datePosted)}",
-                textAlign: TextAlign.center,
-              ),
-            ),
-            Expanded(
-              flex: 1,
-              child: Align(
-                alignment: Alignment.center,
-                child: SizedBox(
-                  width: design.boundedIconSize,
-                  height: design.boundedIconSize,
-                  child: FittedBox(
-                    fit: BoxFit.contain,
-                    child: IconButton(
-                      tooltip: "Details",
-                      onPressed: onTap,
-                      icon: const Icon(Icons.arrow_forward),
-                      padding: EdgeInsets.zero,
-
-                      constraints: const BoxConstraints(),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ],
+    return EntityListTile(
+      icon: Icons.flag_outlined,
+      visited: visited,
+      onTap: onTap,
+      title: report.reason.isEmpty ? 'Report' : report.reason,
+      subtitle: 'Reported ${formatDate(report.datePosted)}',
+      chips: [
+        if (!visited) const StatusChip(label: 'New', tone: StatusTone.info),
+      ],
+      actions: [
+        EntityAction(
+          icon: Icons.arrow_forward,
+          tooltip: 'Open report',
+          onPressed: onTap,
         ),
-      ),
+      ],
     );
   }
 }

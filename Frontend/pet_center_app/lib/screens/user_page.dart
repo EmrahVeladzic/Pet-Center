@@ -87,7 +87,10 @@ class _UserPageScreenState extends State<UserPageScreen> {
   @override
   Widget build(BuildContext context) {
     return DataScreenScaffold<UserFilters, UserResponseDTO>(
-      appTitle: 'People:',
+      appTitle: 'People',
+      description:
+          'Find people by contact and manage who works at this franchise.',
+      emptyTitle: 'No people found',
       maxPage: pageCount,
       pageSelectorKey: _pageSelectorKey,
       switchPage: switchPage,

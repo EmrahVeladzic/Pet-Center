@@ -74,15 +74,9 @@ class _IndividualViewScreenState extends State<IndividualViewScreen> {
 
     return BasicScreenScaffold(
       center: false,
+      title: 'Animals',
+      description: 'Individual animals and their medical history.',
       appBar: AppBar(
-        title: SizedBox(
-          width: design.screenWidth * marqueeTitleWMult,
-          height: design.marqueeSize,
-          child: design.textMarquee(
-            'Individuals:',
-            design.screenWidth * marqueeTitleWMult,
-          ),
-        ),
         actions: [
           if ((widget.src ?? []).length < 50) ...[
             IconButton(
@@ -140,8 +134,12 @@ class _IndividualViewScreenState extends State<IndividualViewScreen> {
                 showDialog(
                   context: context,
                   builder: (_) => ConfirmationDialog(
-                    title: "Remove individual?",
-                    body: "This will remove this pet. Continue?",
+                    title: "Remove this animal?",
+                    body:
+                        "The animal will be removed along with its medical record.",
+                    consequence: "This cannot be undone.",
+                    confirmLabel: "Remove animal",
+                    destructive: true,
                     confirmAction: () {
                       removeAnimal(e.id!);
                     },

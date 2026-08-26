@@ -48,9 +48,9 @@ namespace PetCenterModels.DataTransferObjects
         }
         
         
-        public bool Validate()
+        public string? Validate()
         {
-            return !string.IsNullOrWhiteSpace(Title);
+            return string.IsNullOrWhiteSpace(Title)? "Animal kind title may not be empty.":null;
         }
 
 

@@ -38,16 +38,9 @@ class _TemplateSelectionScreenState extends State<TemplateSelectionScreen> {
 
     return BasicScreenScaffold(
       center: true,
-      appBar: AppBar(
-        title: SizedBox(
-          width: design.screenWidth * marqueeTitleWMult,
-          height: design.marqueeSize,
-          child: design.textMarquee(
-            "Choose the template for your business:",
-            design.screenWidth * marqueeTitleWMult,
-          ),
-        ),
-      ),
+      title: 'Choose a template',
+      description:
+          'Pick the business template that best describes your franchise.',
       body: templates.isEmpty
           ? [Center(child: design.fittedText("No templates available."))]
           : [

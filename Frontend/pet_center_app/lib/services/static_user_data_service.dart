@@ -58,6 +58,7 @@ class StaticAndUserDataService {
     announcements = [];
     reports = [];
     self = null;
+    selfRevision.value++;
     userStatus = '';
     visitedAnnouncementIndices = {};
     visitedReportIndices = {};
@@ -186,6 +187,7 @@ class StaticAndUserDataService {
           final newSelf = await UserService.getSelf();
           if (newSelf != null) {
             self = newSelf;
+            selfRevision.value++;
             if (userResponse != null) {
               userStatus = userResponse;
             }

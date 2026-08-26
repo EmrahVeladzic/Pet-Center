@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pet_center_app/screens/components/app_dialog.dart';
 import 'package:pet_center_app/models/data_transfer/individual/individual_response_dto.dart';
 import 'package:pet_center_app/screens/components/dropdown_menus.dart';
 import 'package:pet_center_app/services/individual_service.dart';
@@ -55,74 +56,64 @@ class _SpecificationCreationDialogState extends State<MedicalRecordDialog> {
       context,
     ).extension<ReactiveDesignSystem>()!;
 
-    return FittedBox(
-      fit: BoxFit.scaleDown,
-      child: Form(
-        key: _formKey,
-        child: AlertDialog(
-          title: Row(
-            children: [
-              Expanded(child: design.textMarquee('Set medical record entry:')),
-              IconButton(
-                tooltip: "Close",
-                icon: const Icon(Icons.close),
-                onPressed: () => Navigator.of(context).pop(),
-              ),
-            ],
-          ),
-          content: SizedBox(
-            width: design.dialogWidth,
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      procedureWidget(design.dialogWidth, procedures, (value) {
-                        if (mounted && value?.id != null) {
-                          setState(() {
-                            procedureId = value!.id!;
-                          });
-                        }
-                      }),
-                    ],
-                  ),
-                  design.verticalGap(design.spacing / 2),
-
-                  ColoredBox(
-                    color: listTone,
-                    child: TextFormField(
-                      controller: _daysController,
-                      maxLength: 4,
-                      maxLines: 1,
-                      minLines: 1,
-                      keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(
-                        labelText: "Days since procedure...",
-                      ),
-                      validator: (value) =>
-                          validateNumericInRange(value, 0, 3650),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          actions: [
-            ElevatedButton(
-              onPressed: () {
-                if (_formKey.currentState != null &&
-                    _formKey.currentState!.validate()) {
-                  Navigator.of(context).pop();
-                  invokeCallback();
-                }
-              },
-              child: design.fittedText('Set'),
+    return Form(
+      key: _formKey,
+      child: ScrollableAlertDialog(
+        scrollable: true,
+        title: Row(
+          children: [
+            Expanded(child: design.textMarquee('Set medical record entry:')),
+            IconButton(
+              tooltip: "Close",
+              icon: const Icon(Icons.close),
+              onPressed: () => Navigator.of(context).pop(),
             ),
           ],
         ),
+        content: SizedBox(
+          width: design.dialogWidth,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              procedureWidget(design.dialogWidth, procedures, (value) {
+                if (mounted && value?.id != null) {
+                  setState(() {
+                    procedureId = value!.id!;
+                  });
+                }
+              }),
+              design.verticalGap(design.spacing / 2),
+              TextFormField(
+                controller: _daysController,
+                maxLength: 4,
+                maxLines: 1,
+                minLines: 1,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(
+                  labelText: "Days since procedure...",
+                ),
+                validator: (value) => validateNumericInRange(value, 0, 3650),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          OutlinedButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              if (_formKey.currentState != null &&
+                  _formKey.currentState!.validate()) {
+                Navigator.of(context).pop();
+                invokeCallback();
+              }
+            },
+            child: design.fittedText('Set'),
+          ),
+        ],
       ),
     );
   }

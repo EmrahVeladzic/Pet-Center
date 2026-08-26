@@ -84,15 +84,9 @@ class _KindViewScreenState extends State<KindViewScreen> {
     ).extension<ReactiveDesignSystem>()!;
 
     return BasicScreenScaffold(
+      title: 'Species',
+      description: 'Animal species recognised by the system, and their breeds.',
       appBar: AppBar(
-        title: SizedBox(
-          width: design.screenWidth * marqueeTitleWMult,
-          height: design.marqueeSize,
-          child: design.textMarquee(
-            'Kinds:',
-            design.screenWidth * marqueeTitleWMult,
-          ),
-        ),
         actions: [
           IconButton(
             tooltip: "Define kind",
@@ -109,9 +103,6 @@ class _KindViewScreenState extends State<KindViewScreen> {
               );
             },
             icon: const Icon(Icons.add),
-            padding: EdgeInsets.zero,
-
-            constraints: const BoxConstraints(),
           ),
         ],
       ),
@@ -147,8 +138,13 @@ class _KindViewScreenState extends State<KindViewScreen> {
                 showDialog(
                   context: context,
                   builder: (_) => ConfirmationDialog(
-                    title: "Remove template",
-                    body: "Are you sure you wish to remove this form template?",
+                    title: "Remove this species?",
+                    body:
+                        "The species will be removed along with all of its breeds.",
+                    consequence:
+                        "This cannot be undone. Animals and listings referencing it lose that reference.",
+                    confirmLabel: "Remove species",
+                    destructive: true,
                     confirmAction: () {
                       final id = e.id;
                       if (id != null) {

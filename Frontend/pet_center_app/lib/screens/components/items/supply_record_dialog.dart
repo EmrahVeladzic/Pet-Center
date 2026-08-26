@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pet_center_app/screens/components/app_dialog.dart';
 import 'package:pet_center_app/screens/components/dropdown_menus.dart';
 import 'package:pet_center_app/services/static_user_data_service.dart';
 import 'package:pet_center_app/utils/app_style.dart';
@@ -41,90 +42,79 @@ class _SupplyRecordDialogState extends State<SupplyRecordDialog> {
       context,
     ).extension<ReactiveDesignSystem>()!;
 
-    return FittedBox(
-      fit: BoxFit.scaleDown,
-      child: Form(
-        key: _formKey,
-        child: AlertDialog(
-          title: Row(
-            children: [
-              Expanded(child: design.textMarquee('Set supplies:')),
-              IconButton(
-                icon: const Icon(Icons.close),
-                onPressed: () => Navigator.of(context).pop(),
-              ),
-            ],
-          ),
-          content: SizedBox(
-            width: design.dialogWidth,
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      kindWidget(design.dialogWidth, kinds, (value) {
-                        if (mounted && value != null) {
-                          setState(() {
-                            _selectedKindId = value.id!;
-                          });
-                        }
-                      }),
-                    ],
-                  ),
-                  design.verticalGap(design.spacing),
-
-                  categoryWidget(
-                    design.dialogWidth,
-                    categories.where((c) => c.consumable).toList(),
-                    (value) {
-                      if (mounted && value != null) {
-                        setState(() {
-                          _selectedCategoryId = value.id!;
-                        });
-                      }
-                    },
-                  ),
-
-                  design.verticalGap(design.spacing),
-                  ColoredBox(
-                    color: listTone,
-                    child: TextFormField(
-                      controller: _massController,
-                      maxLines: 1,
-                      minLines: 1,
-                      keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(
-                        labelText: "Mass (g)...",
-                      ),
-                      validator: (value) =>
-                          validateNumericInRange(value, 0, 10000),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          actions: [
-            ElevatedButton(
-              onPressed: () {
-                if (_formKey.currentState != null &&
-                    _formKey.currentState!.validate()) {
-                  Navigator.of(context).pop();
-
-                  widget.callback(
-                    _selectedCategoryId,
-                    _selectedKindId,
-                    int.parse(_massController.text),
-                  );
-                }
-              },
-              child: design.fittedText('Save'),
+    return Form(
+      key: _formKey,
+      child: ScrollableAlertDialog(
+        scrollable: true,
+        title: Row(
+          children: [
+            Expanded(child: design.textMarquee('Set supplies:')),
+            IconButton(
+              icon: const Icon(Icons.close),
+              onPressed: () => Navigator.of(context).pop(),
             ),
           ],
         ),
+        content: SizedBox(
+          width: design.dialogWidth,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              kindWidget(design.dialogWidth, kinds, (value) {
+                if (mounted && value != null) {
+                  setState(() {
+                    _selectedKindId = value.id!;
+                  });
+                }
+              }),
+              design.verticalGap(design.spacing),
+
+              categoryWidget(
+                design.dialogWidth,
+                categories.where((c) => c.consumable).toList(),
+                (value) {
+                  if (mounted && value != null) {
+                    setState(() {
+                      _selectedCategoryId = value.id!;
+                    });
+                  }
+                },
+              ),
+
+              design.verticalGap(design.spacing),
+              TextFormField(
+                controller: _massController,
+                maxLines: 1,
+                minLines: 1,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(labelText: "Mass (g)..."),
+                validator: (value) => validateNumericInRange(value, 0, 10000),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          OutlinedButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              if (_formKey.currentState != null &&
+                  _formKey.currentState!.validate()) {
+                Navigator.of(context).pop();
+
+                widget.callback(
+                  _selectedCategoryId,
+                  _selectedKindId,
+                  int.parse(_massController.text),
+                );
+              }
+            },
+            child: const Text('Save'),
+          ),
+        ],
       ),
     );
   }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pet_center_app/screens/components/app_dialog.dart';
 import 'package:pet_center_app/models/data_transfer/user/user_response_dto.dart';
 import 'package:pet_center_app/services/user_service.dart';
 
@@ -70,85 +71,74 @@ class _NotificationDialogState extends State<NotificationDialog> {
       context,
     ).extension<ReactiveDesignSystem>()!;
 
-    return FittedBox(
-      fit: BoxFit.scaleDown,
-      child: Form(
-        key: _formKey,
-        child: AlertDialog(
-          title: Row(
-            children: [
-              Expanded(child: design.textMarquee("Add notification")),
-              IconButton(
-                tooltip: "Close",
-                icon: const Icon(Icons.close),
-                onPressed: () => Navigator.of(context).pop(),
-              ),
-            ],
-          ),
-          content: SizedBox(
-            width: design.dialogWidth,
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  ColoredBox(
-                    color: listTone,
-                    child: TextFormField(
-                      controller: _titleController,
-                      maxLines: 1,
-                      maxLength: 75,
-                      minLines: 1,
-                      keyboardType: TextInputType.text,
-                      decoration: InputDecoration(labelText: "Title..."),
-                      validator: (value) => validateGeneric(value),
-                    ),
-                  ),
-                  design.verticalGap(design.spacing / 2),
-                  ColoredBox(
-                    color: listTone,
-                    child: TextFormField(
-                      controller: _bodyController,
-                      maxLines: 1,
-                      maxLength: 255,
-                      minLines: 1,
-                      keyboardType: TextInputType.text,
-                      decoration: InputDecoration(labelText: "Body..."),
-                      validator: (value) => validateGeneric(value),
-                    ),
-                  ),
-                  design.verticalGap(design.spacing / 2),
-                  ColoredBox(
-                    color: listTone,
-                    child: TextFormField(
-                      controller: _daysController,
-                      maxLines: 1,
-                      maxLength: 1,
-                      minLines: 1,
-                      keyboardType: TextInputType.number,
-                      decoration: InputDecoration(
-                        labelText: "Valid for (days)...",
-                      ),
-                      validator: (value) => validateNumericInRange(value, 1, 7),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          actions: [
-            ElevatedButton(
-              onPressed: () {
-                if (_formKey.currentState != null &&
-                    _formKey.currentState!.validate()) {
-                  Navigator.of(context).pop();
-                  invokeCallback();
-                }
-              },
-              child: design.fittedText('Save'),
+    return Form(
+      key: _formKey,
+      child: ScrollableAlertDialog(
+        scrollable: true,
+        title: Row(
+          children: [
+            Expanded(child: design.textMarquee("Add notification")),
+            IconButton(
+              tooltip: "Close",
+              icon: const Icon(Icons.close),
+              onPressed: () => Navigator.of(context).pop(),
             ),
           ],
         ),
+        content: SizedBox(
+          width: design.dialogWidth,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              TextFormField(
+                controller: _titleController,
+                maxLines: 1,
+                maxLength: 75,
+                minLines: 1,
+                keyboardType: TextInputType.text,
+                decoration: InputDecoration(labelText: "Title..."),
+                validator: (value) => validateGeneric(value),
+              ),
+              design.verticalGap(design.spacing / 2),
+              TextFormField(
+                controller: _bodyController,
+                maxLines: 1,
+                maxLength: 255,
+                minLines: 1,
+                keyboardType: TextInputType.text,
+                decoration: InputDecoration(labelText: "Body..."),
+                validator: (value) => validateGeneric(value),
+              ),
+              design.verticalGap(design.spacing / 2),
+              TextFormField(
+                controller: _daysController,
+                maxLines: 1,
+                maxLength: 1,
+                minLines: 1,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(labelText: "Valid for (days)..."),
+                validator: (value) => validateNumericInRange(value, 1, 7),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          OutlinedButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              if (_formKey.currentState != null &&
+                  _formKey.currentState!.validate()) {
+                Navigator.of(context).pop();
+                invokeCallback();
+              }
+            },
+            child: const Text('Save'),
+          ),
+        ],
       ),
     );
   }

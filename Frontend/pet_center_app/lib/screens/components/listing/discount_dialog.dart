@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pet_center_app/screens/components/app_dialog.dart';
 import 'package:pet_center_app/models/data_transfer/listing/sub_dtos.dart';
 import 'package:pet_center_app/services/listing_service.dart';
 
@@ -51,76 +52,70 @@ class _DiscountDialogState extends State<DiscountDialog> {
       context,
     ).extension<ReactiveDesignSystem>()!;
 
-    return FittedBox(
-      fit: BoxFit.scaleDown,
-      child: Form(
-        key: _formKey,
-        child: AlertDialog(
-          title: Row(
-            children: [
-              Expanded(child: design.textMarquee('Set discount:')),
-              IconButton(
-                tooltip: "Close",
-                icon: const Icon(Icons.close),
-                onPressed: () => Navigator.of(context).pop(),
-              ),
-            ],
-          ),
-          content: SizedBox(
-            width: design.dialogWidth,
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  ColoredBox(
-                    color: listTone,
-                    child: TextFormField(
-                      controller: _firstController,
-                      maxLines: 1,
-                      maxLength: 3,
-                      minLines: 1,
-                      keyboardType: TextInputType.number,
-
-                      decoration: InputDecoration(labelText: "Percent..."),
-                      validator: (value) {
-                        return validateNumericInRange(value, 15, 100);
-                      },
-                    ),
-                  ),
-                  design.verticalGap(design.spacing / 2),
-                  ColoredBox(
-                    color: listTone,
-                    child: TextFormField(
-                      controller: _secondController,
-                      maxLines: 1,
-                      maxLength: 2,
-                      minLines: 1,
-                      keyboardType: TextInputType.number,
-
-                      decoration: InputDecoration(labelText: 'Days valid...'),
-                      validator: (value) {
-                        return validateNumericInRange(value, 3, 45);
-                      },
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          actions: [
-            ElevatedButton(
-              onPressed: () {
-                if (_formKey.currentState != null &&
-                    _formKey.currentState!.validate()) {
-                  Navigator.of(context).pop();
-                  invokeCallback();
-                }
-              },
-              child: design.fittedText('Set'),
+    return Form(
+      key: _formKey,
+      child: ScrollableAlertDialog(
+        scrollable: true,
+        title: Row(
+          children: [
+            Expanded(child: design.textMarquee('Set discount:')),
+            IconButton(
+              tooltip: "Close",
+              icon: const Icon(Icons.close),
+              onPressed: () => Navigator.of(context).pop(),
             ),
           ],
         ),
+        content: SizedBox(
+          width: design.dialogWidth,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              TextFormField(
+                controller: _firstController,
+                maxLines: 1,
+                maxLength: 3,
+                minLines: 1,
+                keyboardType: TextInputType.number,
+
+                decoration: InputDecoration(labelText: "Percent..."),
+                validator: (value) {
+                  return validateNumericInRange(value, 15, 100);
+                },
+              ),
+              design.verticalGap(design.spacing / 2),
+              TextFormField(
+                controller: _secondController,
+                maxLines: 1,
+                maxLength: 2,
+                minLines: 1,
+                keyboardType: TextInputType.number,
+
+                decoration: InputDecoration(labelText: 'Days valid...'),
+                validator: (value) {
+                  return validateNumericInRange(value, 3, 45);
+                },
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          OutlinedButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              if (_formKey.currentState != null &&
+                  _formKey.currentState!.validate()) {
+                Navigator.of(context).pop();
+                invokeCallback();
+              }
+            },
+            child: design.fittedText('Set'),
+          ),
+        ],
       ),
     );
   }

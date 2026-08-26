@@ -65,9 +65,10 @@ namespace PetCenterServices.Services
 
         public override async Task<ServiceOutput<object>> IsClearedToCreate(Guid token_holder, FormTemplateDTO resource)
         {
-            if (!resource.Validate())
+            string? val = resource.Validate();
+            if (val!=null)
             {
-                return ServiceOutput<object>.Error(HttpCode.BadRequest,"DTO validation failed.");
+                return ServiceOutput<object>.Error(HttpCode.BadRequest,val);
             }
             if(await dbSet.AnyAsync(f => f.Description.ToLower() == resource.Description.ToLower()))
             {
@@ -80,9 +81,10 @@ namespace PetCenterServices.Services
 
         public override async Task<ServiceOutput<object>> IsClearedToUpdate(Guid token_holder, FormTemplateDTO resource)
         {
-            if (!resource.Validate())
+            string? val = resource.Validate();
+            if (val!=null)
             {
-                return ServiceOutput<object>.Error(HttpCode.BadRequest,"DTO validation failed.");
+                return ServiceOutput<object>.Error(HttpCode.BadRequest,val);
             }
             if(await dbSet.AnyAsync(f => f.Description.ToLower() == resource.Description.ToLower() && f.Id!=resource.Id))
             {
@@ -177,9 +179,10 @@ namespace PetCenterServices.Services
 
         public async Task<ServiceOutput<FormTemplateFieldDTO>> SetField(FormTemplateFieldDTO field)
         {
-            if(!field.Validate())
+            string? val = field.Validate();
+            if (val!=null)
             {
-                return ServiceOutput<FormTemplateFieldDTO>.Error(HttpCode.BadRequest,"DTO validation failed.");
+                return ServiceOutput<FormTemplateFieldDTO>.Error(HttpCode.BadRequest,val);
             }
             if(!await dbSet.AnyAsync(f => f.Id == field.FormTemplateId))
             {

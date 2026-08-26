@@ -8,6 +8,7 @@ using PetCenterServices.Interfaces;
 using PetCenterServices.Utils;
 using System.Security.Claims;
 using PetCenterModels.ModelUtils;
+using PetCenterAPI;
 
 
 namespace PetCenterAPI.Controllers
@@ -20,62 +21,46 @@ namespace PetCenterAPI.Controllers
         public UserController(IUserService s):base(s) { }
 
         [HttpGet("Me")]
-        public async Task<IActionResult> GetSelf()
+        public async Task<IActionResult> GetSelf([UserId] Guid user_id, [SessionId] Guid session)
         {
-            if(TryGetUserId(out Guid user_id) && TryGetJTI(out Guid session))
-            {
-                return ResultConverter.Convert<UserResponseDTO>(await service.GetById(session,user_id,user_id,SpecifySearchAuthority(),FileScope.Invalid));
-            }
-            return StatusCode(401,"Invalid token.");  
+            return ResultConverter.Convert<UserResponseDTO>(await service.GetById(session,user_id,user_id,SpecifySearchAuthority(),FileScope.Invalid));
         }
 
         [HttpGet("Status")]
-        public async Task<IActionResult> GetState()
+        public async Task<IActionResult> GetState([UserId] Guid user_id)
         {
-            if(TryGetUserId(out Guid user_id))
-            {
-                return ResultConverter.Convert<Guid>(await service.GetUserState(user_id));
-            }
-            return StatusCode(401,"Invalid token.");  
+            return ResultConverter.Convert<Guid>(await service.GetUserState(user_id));
         }
 
         [NonAction]
-        public override Task<IActionResult> Post([FromBody] UserRequestDTO ent)
+        public override Task<IActionResult> Post([FromBody] UserRequestDTO ent, [UserId] Guid user_id, [SessionId] Guid session)
         {
-            return base.Post(ent);
+            return base.Post(ent, user_id, session);
         }
        
 
         [HttpPut("SetEmployee/{usr_id}/{franchise_id}")]
         [Authorize(Roles = "Employee")]
-        public async Task<IActionResult> SetEmployee([FromRoute] Guid usr_id, [FromRoute] Guid franchise_id, [FromQuery] bool add_remove)
+        public async Task<IActionResult> SetEmployee([FromRoute] Guid usr_id, [FromRoute] Guid franchise_id, [FromQuery] bool add_remove, [UserId] Guid caller_id)
         {
-            if(TryGetUserId(out Guid caller_id))
-            {
-                return ResultConverter.Convert<string>(await service.SetEmployee(caller_id,usr_id,franchise_id,add_remove));
-            }
-            return StatusCode(401,"Invalid token.");  
+            return ResultConverter.Convert<string>(await service.SetEmployee(caller_id,usr_id,franchise_id,add_remove));
         }
 
 
         [HttpPut("SetTerm")]
         [Authorize(Roles = "User")]
-        public async Task<IActionResult> SetWishlistTerm([FromBody] TextPayloadDTO term, [FromQuery] bool add_remove)
+        public async Task<IActionResult> SetWishlistTerm([FromBody] TextPayloadDTO term, [FromQuery] bool add_remove, [UserId] Guid caller_id)
         {
-            if(TryGetUserId(out Guid caller_id))
+            if (string.IsNullOrWhiteSpace(term.Text))
             {
-                if (string.IsNullOrWhiteSpace(term.Text))
-                {
-                    return StatusCode(400,"You cannot use an empty string as a term.");
-                }
-
-                if (term.Text.Length > 50)
-                {
-                    return StatusCode(400,"The term is too long.");
-                }
-                return ResultConverter.Convert<string>(await service.SetWishlistTerm(caller_id,term.Text,add_remove));
+                return ResultConverter.Fail(HttpCode.BadRequest,"You cannot use an empty string as a term.");
             }
-            return StatusCode(401,"Invalid token.");  
+
+            if (term.Text.Length > 50)
+            {
+                return ResultConverter.Fail(HttpCode.BadRequest,"The term is too long.");
+            }
+            return ResultConverter.Convert<string>(await service.SetWishlistTerm(caller_id,term.Text,add_remove));
         }
 
         [HttpGet("Report")]       
@@ -106,12 +91,12 @@ namespace PetCenterAPI.Controllers
         {
             if (string.IsNullOrWhiteSpace(announcement.Text))
             {
-                return StatusCode(400,"The announcement text may not be empty.");
+                return ResultConverter.Fail(HttpCode.BadRequest,"The announcement text may not be empty.");
             }
 
             if (announcement.Text.Length > 255)
             {
-                return StatusCode(400,"The announcement is too long.");
+                return ResultConverter.Fail(HttpCode.BadRequest,"The announcement is too long.");
             }
             return ResultConverter.Convert<AnnouncementSubDTO>(await service.AddAnnouncement(announcement.Text,user_visible,business_visible,days_valid));
         }
@@ -127,57 +112,47 @@ namespace PetCenterAPI.Controllers
 
         [HttpPut("Notification/Seen/{notif_id}")]
         [Authorize(Roles = "User, Employee")]
-        public async Task<IActionResult> SetSeen([FromRoute] Guid notif_id)
+        public async Task<IActionResult> SetSeen([FromRoute] Guid notif_id, [UserId] Guid user_id)
         {
-            if(TryGetUserId(out Guid user_id))
-            {
-                return ResultConverter.Convert<bool>(await service.SetSeen(user_id,notif_id,SpecifySearchAuthority()));
-            }
-            return StatusCode(401,"Invalid token.");
+            return ResultConverter.Convert<bool>(await service.SetSeen(user_id,notif_id,SpecifySearchAuthority()));
         }
 
         [HttpPut("Notification/{usr_id}")]
         [Authorize(Roles = "Owner,Admin,Employee")]
-        public async Task<IActionResult> AddNotification([FromRoute] Guid usr_id, [FromBody] TitledPayloadDTO notif, [FromQuery] Guid? franchise_id, [FromQuery] Guid? listing_id, [FromQuery] int days_valid = 7)
+        public async Task<IActionResult> AddNotification([FromRoute] Guid usr_id, [FromBody] TitledPayloadDTO notif, [FromQuery] Guid? franchise_id, [FromQuery] Guid? listing_id, [UserId] Guid caller_id, [FromQuery] int days_valid = 7)
         {
-            if(TryGetUserId(out Guid caller_id))
+            Access role = SpecifySearchAuthority();
+
+            if (string.IsNullOrWhiteSpace(notif.Title) || string.IsNullOrWhiteSpace(notif.Body))
             {
+                return ResultConverter.Fail(HttpCode.BadRequest,"You need to provide a title and body.");
+            }
 
-                Access role = SpecifySearchAuthority();
-
-                if (string.IsNullOrWhiteSpace(notif.Title) || string.IsNullOrWhiteSpace(notif.Body))
-                {
-                    return StatusCode(400,"You need to provide a title and body.");
-                }
-
-                if (notif.Title.Length>75)
-                {
-                    if (notif.Body.Length > 255)
-                    {
-                        return StatusCode(400,"The title and body are too long");
-                    }
-                    return StatusCode(400,"The title is too long.");
-                }
+            if (notif.Title.Length>75)
+            {
                 if (notif.Body.Length > 255)
                 {
-                    return StatusCode(400,"The body is too long.");
+                    return ResultConverter.Fail(HttpCode.BadRequest,"The title and body are too long");
                 }
-                if (days_valid < 1||days_valid>7)
-                {
-                    return StatusCode(400,"The notification needs to last between 1 and 7 days.");
-                }
-
-                if (role == Access.BusinessAccount)
-                {
-                    usr_id=caller_id;
-                    listing_id=null;
-                }
-            
-                
-                return ResultConverter.Convert<NotificationSubDTO>(await service.AddNotification(caller_id,role, notif.Title,notif.Body,usr_id,franchise_id,listing_id,days_valid));
-        
+                return ResultConverter.Fail(HttpCode.BadRequest,"The title is too long.");
             }
-            return StatusCode(401,"Invalid token.");  
+            if (notif.Body.Length > 255)
+            {
+                return ResultConverter.Fail(HttpCode.BadRequest,"The body is too long.");
+            }
+            if (days_valid < 1||days_valid>7)
+            {
+                return ResultConverter.Fail(HttpCode.BadRequest,"The notification needs to last between 1 and 7 days.");
+            }
+
+            if (role == Access.BusinessAccount)
+            {
+                usr_id=caller_id;
+                listing_id=null;
+            }
+        
+            
+            return ResultConverter.Convert<NotificationSubDTO>(await service.AddNotification(caller_id,role, notif.Title,notif.Body,usr_id,franchise_id,listing_id,days_valid));
         }
 
         

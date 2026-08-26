@@ -3,23 +3,32 @@ import 'dart:io';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
-import 'package:marquee/marquee.dart';
+import 'package:pet_center_app/utils/app_theme.dart';
 import 'package:pet_center_app/utils/globals.dart';
+import 'package:pet_center_app/utils/tokens.dart';
 
-Color mainTone = Color.fromARGB(255, 60, 50, 75);
-Color secondaryTone = Color.fromARGB(255, 50, 40, 55);
-Color panelTone = Color.fromARGB(255, 225, 225, 225);
-Color filterTone = Color.fromARGB(255, 205, 195, 205);
-Color visitedPanelTone = Color.fromARGB(255, 185, 185, 185);
-Color listTone = Color.fromARGB(255, 200, 200, 200);
-Color shadowTone = Color.fromARGB(100, 10, 10, 10);
-Color tabTone = Color.fromARGB(255, 90, 80, 105);
-double marqueeTitleWMult = 0.7;
-double textRowMult = 1.5;
-double marqueeNoteWMult = 0.95;
+Color mainTone = kPageBackground;
+
+Color secondaryTone = kLightScheme.surface;
+
+Color panelTone = kLightScheme.surface;
+
+Color filterTone = kLightScheme.surfaceContainer;
+
+Color visitedPanelTone = kLightScheme.surfaceContainerHigh;
+
+Color listTone = kPageBackground;
+
+Color shadowTone = const Color(0x14101828);
+
+Color tabTone = kLightScheme.primary;
+
+double marqueeTitleWMult = 1.0;
+double textRowMult = 1.0;
+double marqueeNoteWMult = 1.0;
 double marqueeSpeed = 15.0;
 double marqueeBlank = 125.0;
-double imgWMult = 0.75;
+double imgWMult = 1.0;
 int dialogMinLines = 3;
 
 void showSnackbar(String message, [bool overwrite = true]) {
@@ -60,6 +69,14 @@ class ReactiveDesignSystem extends ThemeExtension<ReactiveDesignSystem> {
   final double dialogWidth;
   final double dropdownW;
 
+  final WindowClass windowClass;
+
+  final bool isShort;
+
+  final StatusPalette status;
+
+  final ColorScheme scheme;
+
   ReactiveDesignSystem({
     required this.spacing,
     required this.boundedIconSize,
@@ -72,48 +89,83 @@ class ReactiveDesignSystem extends ThemeExtension<ReactiveDesignSystem> {
     required this.screenHeight,
     required this.dialogWidth,
     required this.dropdownW,
+    required this.windowClass,
+    required this.isShort,
+    required this.status,
+    required this.scheme,
   });
 
   factory ReactiveDesignSystem.fromMediaQuery(MediaQueryData data) {
-    final double width = data.size.width;
-    final double height = data.size.height;
-    final double aspectRatio = width / height;
-    final bool isLandscape = aspectRatio > 1.0;
-    final double shortSide = data.size.shortestSide;
+    return ReactiveDesignSystem.fromSize(data.size);
+  }
+
+  factory ReactiveDesignSystem.fromSize(Size size, [ColorScheme? scheme]) {
+    final double width = size.width;
+    final double height = size.height;
+    final WindowClass windowClass = Breakpoints.of(width);
+    final bool wide = windowClass != WindowClass.compact;
+
+    const fontScale = Responsive<double>(compact: 14, medium: 14, expanded: 15);
+    const dropdown = Responsive<double>(
+      compact: 160,
+      medium: 200,
+      expanded: 240,
+    );
+    const dialog = Responsive<double>(compact: 400, medium: 480, expanded: 560);
+
+    final double resolvedFont = fontScale.resolve(windowClass);
 
     return ReactiveDesignSystem(
-      spacing: isLandscape ? width * 0.015 : width * 0.04,
+      spacing: Spacing.inset.resolve(windowClass),
+      boundedIconSize: IconSizes.lg,
+      boundedImageSize: IconSizes.thumbnail.resolve(windowClass),
+      fontSize: resolvedFont,
 
-      boundedIconSize: isLandscape ? width * 0.03 : width * 0.1,
+      marqueeSize: resolvedFont * 2.0,
 
-      boundedImageSize: isLandscape ? width * 0.075 : width * 0.2,
+      layoutDirection: wide ? Axis.horizontal : Axis.vertical,
 
-      fontSize: isLandscape ? shortSide * 0.02 : shortSide * 0.04,
-
-      dialogWidth: isLandscape ? shortSide * 0.5 : shortSide,
-
-      layoutDirection: isLandscape ? Axis.horizontal : Axis.vertical,
-
-      bodyWMult: isLandscape ? 0.5 : 1.0,
-
-      marqueeSize: (isLandscape ? shortSide * 0.02 : shortSide * 0.04) * 1.4,
+      bodyWMult: 1.0,
 
       screenWidth: width,
-
       screenHeight: height,
 
-      dropdownW: width * ((isLandscape) ? 0.25 : 0.5),
+      dialogWidth: () {
+        final preferred = dialog.resolve(windowClass);
+        final available = width - (Spacing.lg * 2);
+        return preferred < available ? preferred : available;
+      }(),
+
+      dropdownW: dropdown.resolve(windowClass),
+
+      windowClass: windowClass,
+      isShort: Breakpoints.isShort(height),
+      status: StatusPalette.light,
+      scheme: scheme ?? kLightScheme,
     );
   }
+
+  double get contentMaxWidth => Breakpoints.maxContentWidth;
+
+  bool get isExpanded => windowClass == WindowClass.expanded;
+
+  bool get isCompact => windowClass == WindowClass.compact;
 
   Widget fittedText(
     String text, [
     double mult = 1.0,
     BoxFit fit = BoxFit.scaleDown,
   ]) {
-    return FittedBox(
-      fit: fit,
-      child: Text(text, textScaler: TextScaler.linear(mult)),
+    return Text(
+      text,
+      softWrap: true,
+      maxLines: isCompact ? 6 : 4,
+      overflow: TextOverflow.ellipsis,
+      style: TextStyle(
+        fontSize: fontSize * mult,
+        fontWeight: mult >= 1.35 ? FontWeight.w600 : FontWeight.w400,
+        height: 1.35,
+      ),
     );
   }
 
@@ -173,38 +225,20 @@ class ReactiveDesignSystem extends ThemeExtension<ReactiveDesignSystem> {
     double marqueeWMult = 1.0,
     double fontMult = 1.0,
   ]) {
-    final size = fontMult * fontSize;
-
-    final painter = TextPainter(
-      text: TextSpan(
-        text: text,
-        style: TextStyle(fontSize: size),
-      ),
-      maxLines: 1,
-      textDirection: TextDirection.ltr,
-    )..layout();
-
-    double extreme = limit ?? screenWidth;
-    extreme *= marqueeWMult;
-
-    if (painter.width > extreme) {
-      return Center(
-        child: SizedBox(
-          width: extreme * marqueeWMult,
-          height: marqueeSize * fontMult,
-          child: Marquee(
-            text: text,
-            velocity: marqueeSpeed,
-            blankSpace: marqueeBlank,
-            style: TextStyle(fontSize: size),
-          ),
+    return Tooltip(
+      message: text,
+      child: Text(
+        text,
+        softWrap: true,
+        maxLines: isCompact ? 3 : 2,
+        overflow: TextOverflow.ellipsis,
+        style: TextStyle(
+          fontSize: fontSize * fontMult,
+          fontWeight: fontMult >= 1.35 ? FontWeight.w600 : FontWeight.w500,
+          height: 1.3,
         ),
-      );
-    } else {
-      return Center(
-        child: Text(text, style: TextStyle(fontSize: fontMult * fontSize)),
-      );
-    }
+      ),
+    );
   }
 
   SizedBox verticalGap([double? height]) {
@@ -212,20 +246,32 @@ class ReactiveDesignSystem extends ThemeExtension<ReactiveDesignSystem> {
   }
 
   SizedBox horizontalGap([double? width]) {
-    return SizedBox(height: width ?? spacing);
+    return SizedBox(width: width ?? spacing);
   }
 
   BoxDecoration panelDecoration([bool visited = false]) {
     return BoxDecoration(
-      color: visited ? visitedPanelTone : panelTone,
+      color: visited ? scheme.surfaceContainerHigh : scheme.surface,
+      borderRadius: Radii.mdAll,
+      border: Border.all(color: scheme.outlineVariant),
       boxShadow: visited
-          ? []
-          : [BoxShadow(blurRadius: spacing / 2, color: shadowTone)],
+          ? const []
+          : [
+              BoxShadow(
+                color: shadowTone,
+                blurRadius: 2,
+                offset: const Offset(0, 1),
+              ),
+            ],
     );
   }
 
+  static const double controlHeight = 48;
+
   double getToolbarHeight([int textRows = 1, double fontSize = 1.0]) {
-    return textRows * fontSize * textRowMult * kToolbarHeight;
+    final rows = textRows < 1 ? 1 : textRows;
+    final labelHeight = this.fontSize * 1.4;
+    return (rows * (labelHeight + controlHeight + Spacing.xs)) + (spacing * 2);
   }
 
   @override
@@ -242,6 +288,10 @@ class ReactiveDesignSystem extends ThemeExtension<ReactiveDesignSystem> {
     double? bodyWMult,
     double? dialogWidth,
     double? dropdownW,
+    WindowClass? windowClass,
+    bool? isShort,
+    StatusPalette? status,
+    ColorScheme? scheme,
   }) {
     return ReactiveDesignSystem(
       spacing: spacing ?? this.spacing,
@@ -255,6 +305,10 @@ class ReactiveDesignSystem extends ThemeExtension<ReactiveDesignSystem> {
       bodyWMult: bodyWMult ?? this.bodyWMult,
       dialogWidth: dialogWidth ?? this.dialogWidth,
       dropdownW: dropdownW ?? this.dropdownW,
+      windowClass: windowClass ?? this.windowClass,
+      isShort: isShort ?? this.isShort,
+      status: status ?? this.status,
+      scheme: scheme ?? this.scheme,
     );
   }
 
@@ -280,8 +334,16 @@ class ReactiveDesignSystem extends ThemeExtension<ReactiveDesignSystem> {
       layoutDirection: t < 0.5 ? layoutDirection : other.layoutDirection,
       bodyWMult: lerpDouble(bodyWMult, other.bodyWMult, t) ?? bodyWMult,
       dialogWidth: lerpDouble(dialogWidth, other.dialogWidth, t) ?? dialogWidth,
-
       dropdownW: lerpDouble(dropdownW, other.dropdownW, t) ?? dropdownW,
+      windowClass: t < 0.5 ? windowClass : other.windowClass,
+      isShort: t < 0.5 ? isShort : other.isShort,
+      status: t < 0.5 ? status : other.status,
+      scheme: ColorScheme.lerp(scheme, other.scheme, t),
     );
   }
+}
+
+extension DesignSystemContext on BuildContext {
+  ReactiveDesignSystem get design =>
+      Theme.of(this).extension<ReactiveDesignSystem>()!;
 }

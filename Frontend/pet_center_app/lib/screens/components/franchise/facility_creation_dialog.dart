@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pet_center_app/screens/components/app_dialog.dart';
 import 'package:pet_center_app/models/data_transfer/facility_dto.dart';
 
 import 'package:pet_center_app/utils/app_style.dart';
@@ -65,7 +66,8 @@ class _FacilityCreationDialogState extends State<FacilityCreationDialog> {
       key: _formKey,
       child: FittedBox(
         fit: BoxFit.scaleDown,
-        child: AlertDialog(
+        child: ScrollableAlertDialog(
+          scrollable: true,
           title: Row(
             children: [
               Expanded(
@@ -82,76 +84,69 @@ class _FacilityCreationDialogState extends State<FacilityCreationDialog> {
           ),
           content: SizedBox(
             width: design.dialogWidth,
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  ColoredBox(
-                    color: listTone,
-                    child: TextFormField(
-                      controller: _cityController,
-                      maxLines: null,
-                      maxLength: 100,
-                      minLines: dialogMinLines,
-                      keyboardType: TextInputType.text,
-                      decoration: InputDecoration(hintText: 'City:'),
-                      validator: (value) {
-                        return validateGeneric(value);
-                      },
-                    ),
-                  ),
-                  design.verticalGap(design.spacing / 2),
-                  ColoredBox(
-                    color: listTone,
-                    child: TextFormField(
-                      controller: _streetController,
-                      maxLines: null,
-                      maxLength: 150,
-                      minLines: dialogMinLines,
-                      keyboardType: TextInputType.text,
-                      decoration: InputDecoration(hintText: 'Street:'),
-                      validator: (value) {
-                        return validateGeneric(value);
-                      },
-                    ),
-                  ),
-                  design.verticalGap(design.spacing / 2),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(child: design.textMarquee('Has a contact')),
-                      Switch(
-                        value: hasContact,
-                        onChanged: (val) => setState(() => hasContact = val),
-                      ),
-                    ],
-                  ),
-                  if (hasContact) ...[
-                    design.verticalGap(design.spacing / 2),
-                    ColoredBox(
-                      color: listTone,
-                      child: TextFormField(
-                        controller: _contactOverrideController,
-                        maxLines: null,
-                        maxLength: 255,
-                        minLines: dialogMinLines,
-                        keyboardType: TextInputType.text,
-                        decoration: InputDecoration(hintText: 'Contact:'),
-                        validator: (value) {
-                          if (!hasContact) {
-                            return null;
-                          }
-                          return validateGeneric(value);
-                        },
-                      ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                TextFormField(
+                  controller: _cityController,
+                  maxLines: null,
+                  maxLength: 100,
+                  minLines: dialogMinLines,
+                  keyboardType: TextInputType.text,
+                  decoration: InputDecoration(hintText: 'City:'),
+                  validator: (value) {
+                    return validateGeneric(value);
+                  },
+                ),
+                design.verticalGap(design.spacing / 2),
+                TextFormField(
+                  controller: _streetController,
+                  maxLines: null,
+                  maxLength: 150,
+                  minLines: dialogMinLines,
+                  keyboardType: TextInputType.text,
+                  decoration: InputDecoration(hintText: 'Street:'),
+                  validator: (value) {
+                    return validateGeneric(value);
+                  },
+                ),
+                design.verticalGap(design.spacing / 2),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(child: design.textMarquee('Has a contact')),
+                    Switch(
+                      value: hasContact,
+                      onChanged: (val) => setState(() => hasContact = val),
                     ),
                   ],
+                ),
+                if (hasContact) ...[
+                  design.verticalGap(design.spacing / 2),
+                  TextFormField(
+                    controller: _contactOverrideController,
+                    maxLines: null,
+                    maxLength: 255,
+                    minLines: dialogMinLines,
+                    keyboardType: TextInputType.text,
+                    decoration: InputDecoration(hintText: 'Contact:'),
+                    validator: (value) {
+                      if (!hasContact) {
+                        return null;
+                      }
+                      return validateGeneric(value);
+                    },
+                  ),
                 ],
-              ),
+              ],
             ),
           ),
           actions: [
+            OutlinedButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancel'),
+            ),
             ElevatedButton(
               onPressed: () {
                 if (_formKey.currentState != null &&

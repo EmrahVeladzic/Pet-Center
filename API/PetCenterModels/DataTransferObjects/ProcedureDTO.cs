@@ -93,10 +93,10 @@ namespace PetCenterModels.DataTransferObjects
         }
         
         
-        public bool Validate()
+        public string? Validate()
         {
             
-            return !string.IsNullOrWhiteSpace(Description);
+            return string.IsNullOrWhiteSpace(Description)? "Procedure description may not be empty.":null;
         }
 
 
