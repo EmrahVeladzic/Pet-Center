@@ -8,10 +8,11 @@ Potrebno prije pokretanja (zavisi od ciljane platforme):
 
 Koraci potrebni za pokretanje:
 
-1. U root folderu projekta (Pet-Center) pokrenuti komandu "docker compose up -d" (odnosno "docker compose up --build -d" ukoliko se radi o prvom pokretanju).
-2. Nakon što se API pokrene, bit će dostupan na portu "8080" (moguće postaviti port u .env).
-3. Putanju do API-a možete postaviti u "./Frontend/pet_center_app/assets/dart_config.json", kao i putem komande "flutter run --dart-define=API_BASE_URL=http://<adresa>:<port>".
-4. Ukoliko je sve prošlo bez problema, aplikacija bi trebala funkcionisati.
+1. "env-template.md" popuniti po potrebi, te preimenovati u ".env"
+2. U root folderu projekta (Pet-Center) pokrenuti komandu "docker compose up -d" (odnosno "docker compose up --build -d" ukoliko se radi o prvom pokretanju).
+3. Nakon što se API pokrene, bit će dostupan na portu "8080" (moguće postaviti port u .env).
+4. Putanju do API-a možete postaviti u "./Frontend/pet_center_app/assets/dart_config.json", kao i putem komande "flutter run --dart-define=API_BASE_URL=http://<adresa>:<port>".
+5. Ukoliko je sve prošlo bez problema, aplikacija bi trebala funkcionisati.
 
 Pristupni podaci:
 
