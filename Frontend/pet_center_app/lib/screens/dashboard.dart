@@ -121,7 +121,26 @@ class _DashboardScreenState extends State<DashboardScreen> {
       _push(
         FormSelectionScreen(maxPage: output, templateId: null, eval: false),
       );
+    } else {
+      actions.addAll([
+        design.navAction('Evaluate listings',
+            evaluateListings, icon: Icons.fact_check),
+        design.navAction('Evaluate forms',
+            viewForms, icon: Icons.assignment),
+        design.navAction('Manage users',
+            accountPage, icon: Icons.manage_accounts),
+        design.navAction('Manage static data',
+            staticDataEditor, icon: Icons.dataset),
+      ]);
     }
+
+  
+    actions.addAll([
+      design.navAction('Messages', () => _go(FeedScreen()), icon: Icons.mail),
+      design.navAction('User', () => _go(UserViewScreen()), icon: Icons.person),
+    ]);
+
+    return actions;
   }
 
   List<DashboardSection> _sections() {
