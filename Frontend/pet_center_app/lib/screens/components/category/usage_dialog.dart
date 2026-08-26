@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pet_center_app/screens/components/app_dialog.dart';
 import 'package:pet_center_app/models/data_transfer/category_dto.dart';
 import 'package:pet_center_app/models/enums.dart';
 import 'package:pet_center_app/screens/components/dropdown_menus.dart';
@@ -73,7 +74,8 @@ class _UsageCreationDialogState extends State<UsageCreationDialog> {
 
     return Form(
       key: _formKey,
-      child: AlertDialog(
+      child: ScrollableAlertDialog(
+        scrollable: true,
         title: Row(
           children: [
             Expanded(child: design.textMarquee('Usage specifics:')),
@@ -86,69 +88,57 @@ class _UsageCreationDialogState extends State<UsageCreationDialog> {
         ),
         content: SizedBox(
           width: design.dialogWidth,
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    kindWidget(design.dialogWidth, kinds, (value) {
-                      if (mounted && value != null) {
-                        setState(() {
-                          data.kindId = value.id!;
-                        });
-                      }
-                    }),
-                  ],
-                ),
-                design.verticalGap(1),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: [
-                    Checkbox(
-                      value: data.scaleSpecific != null,
-                      onChanged: (value) {
-                        if (value == null) return;
-                        setState(() {
-                          data.scaleSpecific = value
-                              ? AnimalScale.values.first
-                              : null;
-                        });
-                      },
-                    ),
-                    design.fittedText('Scale specific'),
-                  ],
-                ),
-                if (data.scaleSpecific != null) ...[
-                  design.verticalGap(1),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      scaleWidget(
-                        design.dialogWidth,
-                        data.scaleSpecific ?? AnimalScale.medium,
-                        (value) {
-                          data.scaleSpecific = value;
-                        },
-                      ),
-                    ],
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              kindWidget(design.dialogWidth, kinds, (value) {
+                if (mounted && value != null) {
+                  setState(() {
+                    data.kindId = value.id!;
+                  });
+                }
+              }),
+              design.verticalGap(1),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  Checkbox(
+                    value: data.scaleSpecific != null,
+                    onChanged: (value) {
+                      if (value == null) return;
+                      setState(() {
+                        data.scaleSpecific = value
+                            ? AnimalScale.values.first
+                            : null;
+                      });
+                    },
                   ),
+                  Flexible(child: design.fittedText('Scale specific')),
                 ],
-                design.verticalGap(design.spacing),
-                TextFormField(
-                  controller: _gramsController,
-                  maxLines: 1,
-                  minLines: 1,
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(
-                    labelText: "Daily amount (g)...",
-                  ),
-                  validator: (value) => validateNumericInRange(value, 1, 10000),
+              ),
+              if (data.scaleSpecific != null) ...[
+                design.verticalGap(1),
+                scaleWidget(
+                  design.dialogWidth,
+                  data.scaleSpecific ?? AnimalScale.medium,
+                  (value) {
+                    data.scaleSpecific = value;
+                  },
                 ),
               ],
-            ),
+              design.verticalGap(design.spacing),
+              TextFormField(
+                controller: _gramsController,
+                maxLines: 1,
+                minLines: 1,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(
+                  labelText: "Daily amount (g)...",
+                ),
+                validator: (value) => validateNumericInRange(value, 1, 10000),
+              ),
+            ],
           ),
         ),
         actions: [

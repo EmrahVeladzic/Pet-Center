@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:pet_center_app/screens/components/app_dialog.dart';
 import 'package:pet_center_app/utils/app_style.dart';
 import 'package:pet_center_app/utils/validators.dart';
 
@@ -46,7 +47,8 @@ class _PasswordChangeDialogState extends State<PasswordChangeDialog> {
 
     return Form(
       key: _formKey,
-      child: AlertDialog(
+      child: ScrollableAlertDialog(
+        scrollable: true,
         title: Row(
           children: [
             Expanded(child: design.textMarquee('${'Change password:'}:')),
@@ -59,57 +61,55 @@ class _PasswordChangeDialogState extends State<PasswordChangeDialog> {
         ),
         content: SizedBox(
           width: design.dialogWidth,
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                TextFormField(
-                  controller: _firstController,
-                  maxLines: 1,
-                  maxLength: 255,
-                  minLines: 1,
-                  keyboardType: TextInputType.text,
-                  obscureText: true,
-                  decoration: InputDecoration(labelText: "Old password..."),
-                  validator: (value) {
-                    return validateGeneric(value);
-                  },
-                ),
-                design.verticalGap(design.spacing / 2),
-                TextFormField(
-                  controller: _secondController,
-                  maxLines: 1,
-                  maxLength: 255,
-                  minLines: 1,
-                  keyboardType: TextInputType.text,
-                  obscureText: true,
-                  decoration: InputDecoration(labelText: "New password..."),
-                  validator: (value) {
-                    return validatePasswordWithConfirm(
-                      value,
-                      _thirdController.text,
-                    );
-                  },
-                ),
-                design.verticalGap(design.spacing / 2),
-                TextFormField(
-                  controller: _thirdController,
-                  maxLines: 1,
-                  maxLength: 255,
-                  minLines: 1,
-                  keyboardType: TextInputType.text,
-                  obscureText: true,
-                  decoration: InputDecoration(labelText: "Confirm password..."),
-                  validator: (value) {
-                    return validatePasswordWithConfirm(
-                      value,
-                      _secondController.text,
-                    );
-                  },
-                ),
-              ],
-            ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              TextFormField(
+                controller: _firstController,
+                maxLines: 1,
+                maxLength: 255,
+                minLines: 1,
+                keyboardType: TextInputType.text,
+                obscureText: true,
+                decoration: InputDecoration(labelText: "Old password..."),
+                validator: (value) {
+                  return validateGeneric(value);
+                },
+              ),
+              design.verticalGap(design.spacing / 2),
+              TextFormField(
+                controller: _secondController,
+                maxLines: 1,
+                maxLength: 255,
+                minLines: 1,
+                keyboardType: TextInputType.text,
+                obscureText: true,
+                decoration: InputDecoration(labelText: "New password..."),
+                validator: (value) {
+                  return validatePasswordWithConfirm(
+                    value,
+                    _thirdController.text,
+                  );
+                },
+              ),
+              design.verticalGap(design.spacing / 2),
+              TextFormField(
+                controller: _thirdController,
+                maxLines: 1,
+                maxLength: 255,
+                minLines: 1,
+                keyboardType: TextInputType.text,
+                obscureText: true,
+                decoration: InputDecoration(labelText: "Confirm password..."),
+                validator: (value) {
+                  return validatePasswordWithConfirm(
+                    value,
+                    _secondController.text,
+                  );
+                },
+              ),
+            ],
           ),
         ),
         actions: [

@@ -84,9 +84,6 @@ class _ItemViewState extends State<ItemView> {
               );
             },
             icon: const Icon(Icons.add),
-            padding: EdgeInsets.zero,
-
-            constraints: const BoxConstraints(),
           ),
         ],
       ),
@@ -112,9 +109,12 @@ class _ItemViewState extends State<ItemView> {
                 showDialog(
                   context: context,
                   builder: (_) => ConfirmationDialog(
-                    title: "Remove product?",
-                    body:
-                        "This will remove the selected product. Do you wish to continue?",
+                    title: "Remove this item?",
+                    body: "The item will be removed from this category.",
+                    consequence:
+                        "This cannot be undone. Listings referencing it lose that reference.",
+                    confirmLabel: "Remove item",
+                    destructive: true,
                     confirmAction: () {
                       final id = e.id;
                       if (id != null) {

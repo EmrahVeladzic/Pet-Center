@@ -158,9 +158,13 @@ class _FranchiseViewScreenState extends State<FranchiseViewScreen> {
                 showDialog(
                   context: context,
                   builder: (_) => ConfirmationDialog(
-                    title: "Remove franchise",
+                    title: "Remove this franchise?",
                     body:
-                        "Are you sure you wish to remove this franchise? Doing so will require a new form application if you change your mind.",
+                        "The franchise will be removed along with its facilities and listings.",
+                    consequence:
+                        "This cannot be undone. Restoring it would require a new application.",
+                    confirmLabel: "Remove franchise",
+                    destructive: true,
                     confirmAction: () {
                       final id = e.id;
                       if (id != null) {

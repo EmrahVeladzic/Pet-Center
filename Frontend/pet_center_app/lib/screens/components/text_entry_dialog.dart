@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:pet_center_app/screens/components/app_dialog.dart';
 import 'package:pet_center_app/utils/app_style.dart';
 
 class TextEntryDialog extends StatefulWidget {
@@ -57,7 +58,8 @@ class _TextEntryDialogState extends State<TextEntryDialog> {
 
     return Form(
       key: _formKey,
-      child: AlertDialog(
+      child: ScrollableAlertDialog(
+        scrollable: true,
         title: Row(
           children: [
             Expanded(
@@ -74,33 +76,31 @@ class _TextEntryDialogState extends State<TextEntryDialog> {
         ),
         content: SizedBox(
           width: design.dialogWidth,
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                TextFormField(
-                  controller: _controller,
-                  maxLines: (singleRow) ? 1 : null,
-                  maxLength: widget.limit,
-                  minLines: (singleRow) ? 1 : dialogMinLines,
-                  keyboardType: (singleRow)
-                      ? TextInputType.text
-                      : TextInputType.multiline,
-                  obscureText: widget.hideText,
-                  decoration: InputDecoration(
-                    labelText: widget.inputDecoration ?? "Text...",
-                  ),
-                  validator: (value) {
-                    if (widget.validation != null) {
-                      return widget.validation!(value);
-                    } else {
-                      return null;
-                    }
-                  },
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              TextFormField(
+                controller: _controller,
+                maxLines: (singleRow) ? 1 : null,
+                maxLength: widget.limit,
+                minLines: (singleRow) ? 1 : dialogMinLines,
+                keyboardType: (singleRow)
+                    ? TextInputType.text
+                    : TextInputType.multiline,
+                obscureText: widget.hideText,
+                decoration: InputDecoration(
+                  labelText: widget.inputDecoration ?? "Text...",
                 ),
-              ],
-            ),
+                validator: (value) {
+                  if (widget.validation != null) {
+                    return widget.validation!(value);
+                  } else {
+                    return null;
+                  }
+                },
+              ),
+            ],
           ),
         ),
         actions: [

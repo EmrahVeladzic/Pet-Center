@@ -182,7 +182,7 @@ ThemeData buildAppTheme(WindowClass windowClass) {
     iconButtonTheme: IconButtonThemeData(
       style: IconButton.styleFrom(
         foregroundColor: scheme.onSurfaceVariant,
-        iconSize: IconSizes.md,
+        iconSize: IconSizes.lg,
         shape: const RoundedRectangleBorder(borderRadius: Radii.smAll),
       ),
     ),

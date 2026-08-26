@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pet_center_app/screens/components/app_dialog.dart';
 import 'package:pet_center_app/screens/components/dropdown_menus.dart';
 import 'package:pet_center_app/services/static_user_data_service.dart';
 import 'package:pet_center_app/utils/app_style.dart';
@@ -43,7 +44,8 @@ class _SupplyRecordDialogState extends State<SupplyRecordDialog> {
 
     return Form(
       key: _formKey,
-      child: AlertDialog(
+      child: ScrollableAlertDialog(
+        scrollable: true,
         title: Row(
           children: [
             Expanded(child: design.textMarquee('Set supplies:')),
@@ -55,48 +57,41 @@ class _SupplyRecordDialogState extends State<SupplyRecordDialog> {
         ),
         content: SizedBox(
           width: design.dialogWidth,
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    kindWidget(design.dialogWidth, kinds, (value) {
-                      if (mounted && value != null) {
-                        setState(() {
-                          _selectedKindId = value.id!;
-                        });
-                      }
-                    }),
-                  ],
-                ),
-                design.verticalGap(design.spacing),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              kindWidget(design.dialogWidth, kinds, (value) {
+                if (mounted && value != null) {
+                  setState(() {
+                    _selectedKindId = value.id!;
+                  });
+                }
+              }),
+              design.verticalGap(design.spacing),
 
-                categoryWidget(
-                  design.dialogWidth,
-                  categories.where((c) => c.consumable).toList(),
-                  (value) {
-                    if (mounted && value != null) {
-                      setState(() {
-                        _selectedCategoryId = value.id!;
-                      });
-                    }
-                  },
-                ),
+              categoryWidget(
+                design.dialogWidth,
+                categories.where((c) => c.consumable).toList(),
+                (value) {
+                  if (mounted && value != null) {
+                    setState(() {
+                      _selectedCategoryId = value.id!;
+                    });
+                  }
+                },
+              ),
 
-                design.verticalGap(design.spacing),
-                TextFormField(
-                  controller: _massController,
-                  maxLines: 1,
-                  minLines: 1,
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(labelText: "Mass (g)..."),
-                  validator: (value) => validateNumericInRange(value, 0, 10000),
-                ),
-              ],
-            ),
+              design.verticalGap(design.spacing),
+              TextFormField(
+                controller: _massController,
+                maxLines: 1,
+                minLines: 1,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(labelText: "Mass (g)..."),
+                validator: (value) => validateNumericInRange(value, 0, 10000),
+              ),
+            ],
           ),
         ),
         actions: [

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pet_center_app/screens/components/app_dialog.dart';
 import 'package:pet_center_app/models/data_transfer/item_dto.dart';
 import 'package:pet_center_app/models/enums.dart';
 import 'package:pet_center_app/screens/components/dropdown_menus.dart';
@@ -64,7 +65,8 @@ class _ItemCreationDialogState extends State<ItemCreationDialog> {
 
     return Form(
       key: _formKey,
-      child: AlertDialog(
+      child: ScrollableAlertDialog(
+        scrollable: true,
         title: Row(
           children: [
             Expanded(child: design.textMarquee('Product details:')),
@@ -77,78 +79,65 @@ class _ItemCreationDialogState extends State<ItemCreationDialog> {
         ),
         content: SizedBox(
           width: design.dialogWidth,
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                TextFormField(
-                  controller: _titleController,
-                  maxLines: 1,
-                  maxLength: 75,
-                  minLines: 1,
-                  keyboardType: TextInputType.text,
-                  decoration: const InputDecoration(labelText: "Title..."),
-                  validator: (value) => validateGeneric(value),
-                ),
-                design.verticalGap(design.spacing),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    kindWidget(design.dialogWidth, kinds, (value) {
-                      if (mounted && value != null) {
-                        setState(() {
-                          data.kindId = value.id!;
-                        });
-                      }
-                    }),
-                  ],
-                ),
-                design.verticalGap(design.spacing),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: [
-                    Checkbox(
-                      value: data.scale != null,
-                      onChanged: (value) {
-                        if (value == null) return;
-                        setState(() {
-                          data.scale = value ? AnimalScale.values.first : null;
-                        });
-                      },
-                    ),
-                    design.fittedText('Scale specific'),
-                  ],
-                ),
-                if (data.scale != null) ...[
-                  design.verticalGap(design.spacing),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      scaleWidget(
-                        design.dialogWidth,
-                        data.scale ?? AnimalScale.medium,
-                        (value) {
-                          setState(() {
-                            data.scale = value;
-                          });
-                        },
-                      ),
-                    ],
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              TextFormField(
+                controller: _titleController,
+                maxLines: 1,
+                maxLength: 75,
+                minLines: 1,
+                keyboardType: TextInputType.text,
+                decoration: const InputDecoration(labelText: "Title..."),
+                validator: (value) => validateGeneric(value),
+              ),
+              design.verticalGap(design.spacing),
+              kindWidget(design.dialogWidth, kinds, (value) {
+                if (mounted && value != null) {
+                  setState(() {
+                    data.kindId = value.id!;
+                  });
+                }
+              }),
+              design.verticalGap(design.spacing),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  Checkbox(
+                    value: data.scale != null,
+                    onChanged: (value) {
+                      if (value == null) return;
+                      setState(() {
+                        data.scale = value ? AnimalScale.values.first : null;
+                      });
+                    },
                   ),
+                  Flexible(child: design.fittedText('Scale specific')),
                 ],
+              ),
+              if (data.scale != null) ...[
                 design.verticalGap(design.spacing),
-                TextFormField(
-                  controller: _massController,
-                  maxLines: 1,
-                  minLines: 1,
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(labelText: "Mass (g)..."),
-                  validator: (value) =>
-                      validateNumericInRange(value, 1, 100000),
+                scaleWidget(
+                  design.dialogWidth,
+                  data.scale ?? AnimalScale.medium,
+                  (value) {
+                    setState(() {
+                      data.scale = value;
+                    });
+                  },
                 ),
               ],
-            ),
+              design.verticalGap(design.spacing),
+              TextFormField(
+                controller: _massController,
+                maxLines: 1,
+                minLines: 1,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(labelText: "Mass (g)..."),
+                validator: (value) => validateNumericInRange(value, 1, 100000),
+              ),
+            ],
           ),
         ),
         actions: [

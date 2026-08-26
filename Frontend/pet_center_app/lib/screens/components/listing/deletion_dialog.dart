@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pet_center_app/screens/components/app_dialog.dart';
 import 'package:pet_center_app/models/enums.dart';
 import 'package:pet_center_app/utils/app_style.dart';
 import 'package:pet_center_app/utils/jwt_utils.dart';
@@ -27,7 +28,8 @@ class _DeletionDialogState extends State<DeletionDialog> {
       context,
     ).extension<ReactiveDesignSystem>()!;
 
-    return AlertDialog(
+    return ScrollableAlertDialog(
+      scrollable: true,
       title: Row(
         children: [
           Expanded(

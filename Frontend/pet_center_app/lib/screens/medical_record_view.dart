@@ -188,7 +188,12 @@ class _MedicalRecordViewScreenState extends State<MedicalRecordViewScreen> {
                 showDialog(
                   context: context,
                   builder: (_) => ConfirmationDialog(
-                    title: "Remove medical record entry.",
+                    title: "Remove this entry?",
+                    body:
+                        "The procedure will be removed from this animal's medical record.",
+                    consequence: "This cannot be undone.",
+                    confirmLabel: "Remove entry",
+                    destructive: true,
                     confirmAction: () {
                       deleteEntry(e.procedureId);
                     },

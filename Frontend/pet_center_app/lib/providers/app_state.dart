@@ -79,6 +79,7 @@ class AppState extends ChangeNotifier {
       context: context,
       barrierDismissible: false,
       builder: (context) => AlertDialog(
+        scrollable: true,
         title: const Text("Session expired."),
         actions: [
           TextButton(

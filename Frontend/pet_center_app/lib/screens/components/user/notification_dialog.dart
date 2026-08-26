@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pet_center_app/screens/components/app_dialog.dart';
 import 'package:pet_center_app/models/data_transfer/user/user_response_dto.dart';
 import 'package:pet_center_app/services/user_service.dart';
 
@@ -72,7 +73,8 @@ class _NotificationDialogState extends State<NotificationDialog> {
 
     return Form(
       key: _formKey,
-      child: AlertDialog(
+      child: ScrollableAlertDialog(
+        scrollable: true,
         title: Row(
           children: [
             Expanded(child: design.textMarquee("Add notification")),
@@ -85,42 +87,40 @@ class _NotificationDialogState extends State<NotificationDialog> {
         ),
         content: SizedBox(
           width: design.dialogWidth,
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                TextFormField(
-                  controller: _titleController,
-                  maxLines: 1,
-                  maxLength: 75,
-                  minLines: 1,
-                  keyboardType: TextInputType.text,
-                  decoration: InputDecoration(labelText: "Title..."),
-                  validator: (value) => validateGeneric(value),
-                ),
-                design.verticalGap(design.spacing / 2),
-                TextFormField(
-                  controller: _bodyController,
-                  maxLines: 1,
-                  maxLength: 255,
-                  minLines: 1,
-                  keyboardType: TextInputType.text,
-                  decoration: InputDecoration(labelText: "Body..."),
-                  validator: (value) => validateGeneric(value),
-                ),
-                design.verticalGap(design.spacing / 2),
-                TextFormField(
-                  controller: _daysController,
-                  maxLines: 1,
-                  maxLength: 1,
-                  minLines: 1,
-                  keyboardType: TextInputType.number,
-                  decoration: InputDecoration(labelText: "Valid for (days)..."),
-                  validator: (value) => validateNumericInRange(value, 1, 7),
-                ),
-              ],
-            ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              TextFormField(
+                controller: _titleController,
+                maxLines: 1,
+                maxLength: 75,
+                minLines: 1,
+                keyboardType: TextInputType.text,
+                decoration: InputDecoration(labelText: "Title..."),
+                validator: (value) => validateGeneric(value),
+              ),
+              design.verticalGap(design.spacing / 2),
+              TextFormField(
+                controller: _bodyController,
+                maxLines: 1,
+                maxLength: 255,
+                minLines: 1,
+                keyboardType: TextInputType.text,
+                decoration: InputDecoration(labelText: "Body..."),
+                validator: (value) => validateGeneric(value),
+              ),
+              design.verticalGap(design.spacing / 2),
+              TextFormField(
+                controller: _daysController,
+                maxLines: 1,
+                maxLength: 1,
+                minLines: 1,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(labelText: "Valid for (days)..."),
+                validator: (value) => validateNumericInRange(value, 1, 7),
+              ),
+            ],
           ),
         ),
         actions: [

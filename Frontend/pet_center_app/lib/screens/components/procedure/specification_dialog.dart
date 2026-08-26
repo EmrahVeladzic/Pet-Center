@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pet_center_app/screens/components/app_dialog.dart';
 import 'package:pet_center_app/models/data_transfer/procedure_dto.dart';
 import 'package:pet_center_app/screens/components/dropdown_menus.dart';
 import 'package:pet_center_app/services/procedure_service.dart';
@@ -77,7 +78,8 @@ class _SpecificationCreationDialogState
 
     return Form(
       key: _formKey,
-      child: AlertDialog(
+      child: ScrollableAlertDialog(
+        scrollable: true,
         title: Row(
           children: [
             Expanded(child: design.textMarquee('Procedure specification:')),
@@ -90,193 +92,179 @@ class _SpecificationCreationDialogState
         ),
         content: SizedBox(
           width: design.dialogWidth,
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              kindWidget(design.dialogWidth, kinds, (value) {
+                if (mounted && value != null) {
+                  setState(() {
+                    data.kindId = value.id!;
+                    data.breedId = null;
+                  });
+                }
+              }),
+              design.verticalGap(design.spacing / 4),
+
+              if (kinds
+                  .where((k) => k.id == data.kindId)
+                  .expand((k) => k.breeds)
+                  .isNotEmpty) ...[
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.start,
                   children: [
-                    kindWidget(design.dialogWidth, kinds, (value) {
-                      if (mounted && value != null) {
+                    Checkbox(
+                      value: data.breedId != null,
+                      onChanged: (value) {
+                        if (value == null) return;
+
                         setState(() {
-                          data.kindId = value.id!;
-                          data.breedId = null;
-                        });
-                      }
-                    }),
-                  ],
-                ),
-                design.verticalGap(design.spacing / 4),
+                          data.breedId = value
+                              ? kinds
+                                    .where((k) => k.id == data.kindId)
+                                    .expand((k) => k.breeds)
+                                    .first
+                                    .id
+                              : null;
 
-                if (kinds
-                    .where((k) => k.id == data.kindId)
-                    .expand((k) => k.breeds)
-                    .isNotEmpty) ...[
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      Checkbox(
-                        value: data.breedId != null,
-                        onChanged: (value) {
-                          if (value == null) return;
-
-                          setState(() {
-                            data.breedId = value
-                                ? kinds
-                                      .where((k) => k.id == data.kindId)
-                                      .expand((k) => k.breeds)
-                                      .first
-                                      .id
-                                : null;
-
-                            if (!value) {
-                              _ageExempt = false;
-                            }
-                          });
-                        },
-                      ),
-                      design.fittedText('Breed specific'),
-                    ],
-                  ),
-                ],
-                if (data.breedId != null) ...[
-                  design.verticalGap(design.spacing / 4),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      breedWidget(
-                        design.dialogWidth,
-                        kinds
-                            .where((k) => k.id == data.kindId)
-                            .expand((k) => k.breeds)
-                            .toList(),
-                        (value) {
-                          if (mounted && value != null) {
-                            setState(() {
-                              data.breedId = value.id;
-                            });
+                          if (!value) {
+                            _ageExempt = false;
                           }
-                        },
-                      ),
-                    ],
-                  ),
-                ],
-                if (data.breedId != null) ...[
-                  design.verticalGap(design.spacing / 4),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      Checkbox(
-                        value: _ageExempt,
-                        onChanged: (value) {
-                          if (value == null) return;
-                          setState(() {
-                            _ageExempt = value;
-                          });
-                        },
-                      ),
-                      design.fittedText('Age exempt'),
-                    ],
-                  ),
-                ],
-                if (!_ageExempt) ...[
-                  design.verticalGap(design.spacing / 4),
-                  TextFormField(
-                    controller: _ageController,
-                    maxLines: 1,
-                    minLines: 1,
-                    keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(
-                      labelText: "Approximate age (days)...",
-                    ),
-                    validator: (value) =>
-                        validateNumericInRange(value, 0, 3650),
-                  ),
-                ],
-                design.verticalGap(design.spacing / 4),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: [
-                    Checkbox(
-                      value: data.optional,
-                      onChanged: (value) {
-                        if (value == null) return;
-                        setState(() {
-                          data.optional = value;
                         });
                       },
                     ),
-                    design.fittedText('Optional'),
+                    Flexible(child: design.fittedText('Breed specific')),
                   ],
                 ),
-                design.verticalGap(design.spacing / 4),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: [
-                    Checkbox(
-                      value: data.sexSpecific != null,
-                      onChanged: (value) {
-                        if (value == null) return;
-                        setState(() {
-                          data.sexSpecific = value ? false : null;
-                        });
-                      },
-                    ),
-                    design.fittedText('Sex specific'),
-                  ],
-                ),
-                if (data.sexSpecific != null) ...[
-                  design.verticalGap(design.spacing / 4),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      Checkbox(
-                        value: data.sexSpecific,
-                        onChanged: (value) {
-                          if (value == null) return;
-                          setState(() {
-                            data.sexSpecific = value;
-                          });
-                        },
-                      ),
-                      design.fittedText('Male/Female'),
-                    ],
-                  ),
-                ],
-                design.verticalGap(design.spacing / 4),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: [
-                    Checkbox(
-                      value: data.interval != null,
-                      onChanged: (value) {
-                        if (value == null) return;
-                        setState(() {
-                          data.interval = value ? 0 : null;
-                        });
-                      },
-                    ),
-                    design.fittedText('Recurring'),
-                  ],
-                ),
-                if (data.interval != null) ...[
-                  design.verticalGap(design.spacing / 4),
-                  TextFormField(
-                    controller: _intervalController,
-                    maxLines: 1,
-                    minLines: 1,
-                    keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(
-                      labelText: "Interval (days)...",
-                    ),
-                    validator: (value) =>
-                        validateNumericInRange(value, 1, 3650),
-                  ),
-                ],
               ],
-            ),
+              if (data.breedId != null) ...[
+                design.verticalGap(design.spacing / 4),
+                breedWidget(
+                  design.dialogWidth,
+                  kinds
+                      .where((k) => k.id == data.kindId)
+                      .expand((k) => k.breeds)
+                      .toList(),
+                  (value) {
+                    if (mounted && value != null) {
+                      setState(() {
+                        data.breedId = value.id;
+                      });
+                    }
+                  },
+                ),
+              ],
+              if (data.breedId != null) ...[
+                design.verticalGap(design.spacing / 4),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    Checkbox(
+                      value: _ageExempt,
+                      onChanged: (value) {
+                        if (value == null) return;
+                        setState(() {
+                          _ageExempt = value;
+                        });
+                      },
+                    ),
+                    Flexible(child: design.fittedText('Age exempt')),
+                  ],
+                ),
+              ],
+              if (!_ageExempt) ...[
+                design.verticalGap(design.spacing / 4),
+                TextFormField(
+                  controller: _ageController,
+                  maxLines: 1,
+                  minLines: 1,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(
+                    labelText: "Approximate age (days)...",
+                  ),
+                  validator: (value) => validateNumericInRange(value, 0, 3650),
+                ),
+              ],
+              design.verticalGap(design.spacing / 4),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  Checkbox(
+                    value: data.optional,
+                    onChanged: (value) {
+                      if (value == null) return;
+                      setState(() {
+                        data.optional = value;
+                      });
+                    },
+                  ),
+                  Flexible(child: design.fittedText('Optional')),
+                ],
+              ),
+              design.verticalGap(design.spacing / 4),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  Checkbox(
+                    value: data.sexSpecific != null,
+                    onChanged: (value) {
+                      if (value == null) return;
+                      setState(() {
+                        data.sexSpecific = value ? false : null;
+                      });
+                    },
+                  ),
+                  Flexible(child: design.fittedText('Sex specific')),
+                ],
+              ),
+              if (data.sexSpecific != null) ...[
+                design.verticalGap(design.spacing / 4),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    Checkbox(
+                      value: data.sexSpecific,
+                      onChanged: (value) {
+                        if (value == null) return;
+                        setState(() {
+                          data.sexSpecific = value;
+                        });
+                      },
+                    ),
+                    Flexible(child: design.fittedText('Male/Female')),
+                  ],
+                ),
+              ],
+              design.verticalGap(design.spacing / 4),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  Checkbox(
+                    value: data.interval != null,
+                    onChanged: (value) {
+                      if (value == null) return;
+                      setState(() {
+                        data.interval = value ? 0 : null;
+                      });
+                    },
+                  ),
+                  Flexible(child: design.fittedText('Recurring')),
+                ],
+              ),
+              if (data.interval != null) ...[
+                design.verticalGap(design.spacing / 4),
+                TextFormField(
+                  controller: _intervalController,
+                  maxLines: 1,
+                  minLines: 1,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(
+                    labelText: "Interval (days)...",
+                  ),
+                  validator: (value) => validateNumericInRange(value, 1, 3650),
+                ),
+              ],
+            ],
           ),
         ),
         actions: [

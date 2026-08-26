@@ -4,8 +4,13 @@ import 'package:pet_center_app/utils/tokens.dart';
 
 class FilterBar extends StatelessWidget {
   final List<Widget> children;
+  final double targetColumnWidth;
 
-  const FilterBar({super.key, required this.children});
+  const FilterBar({
+    super.key,
+    required this.children,
+    this.targetColumnWidth = 220,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -16,11 +21,31 @@ class FilterBar extends StatelessWidget {
         horizontal: design.spacing,
         vertical: Spacing.sm,
       ),
-      child: Wrap(
-        spacing: Spacing.sm,
-        runSpacing: Spacing.sm,
-        crossAxisAlignment: WrapCrossAlignment.center,
-        children: children,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final available = constraints.hasBoundedWidth
+              ? constraints.maxWidth
+              : MediaQuery.sizeOf(context).width;
+
+          const spacing = Spacing.sm;
+
+          int columns = ((available + spacing) / (targetColumnWidth + spacing))
+              .floor();
+          if (columns < 1) columns = 1;
+          if (columns > children.length) columns = children.length;
+
+          final itemWidth = (available - (spacing * (columns - 1))) / columns;
+
+          return Wrap(
+            spacing: spacing,
+            runSpacing: spacing,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              for (final child in children)
+                SizedBox(width: itemWidth, child: child),
+            ],
+          );
+        },
       ),
     );
   }
@@ -41,21 +66,7 @@ class FilterField extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final available = constraints.hasBoundedWidth
-            ? constraints.maxWidth
-            : MediaQuery.sizeOf(context).width;
-
-        final width = available < minWidth
-            ? available
-            : (expand ? maxWidth : minWidth);
-
-        return SizedBox(width: width, child: child);
-      },
-    );
-  }
+  Widget build(BuildContext context) => child;
 }
 
 class FilterToggle extends StatelessWidget {
@@ -91,7 +102,15 @@ class FilterToggle extends StatelessWidget {
               materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
             ),
             const SizedBox(width: Spacing.xs),
-            Text(label, style: theme.textTheme.bodyMedium),
+            Flexible(
+              child: Text(
+                label,
+                softWrap: true,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: theme.textTheme.bodyMedium,
+              ),
+            ),
           ],
         ),
       ),

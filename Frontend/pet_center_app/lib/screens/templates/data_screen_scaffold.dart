@@ -57,6 +57,24 @@ class DataScreenScaffold<F extends FilterTemplate, T> extends StatefulWidget {
 
 class _DataScreenScaffoldState<F extends FilterTemplate, T>
     extends State<DataScreenScaffold<F, T>> {
+  bool? _filtersOpen;
+
+  bool filtersVisible(ReactiveDesignSystem design) =>
+      _filtersOpen ?? !design.isCompact;
+
+  Widget _filterToggle(BuildContext context, ReactiveDesignSystem design) {
+    final open = filtersVisible(design);
+
+    return OutlinedButton.icon(
+      onPressed: () => setState(() => _filtersOpen = !open),
+      icon: Icon(
+        open ? Icons.filter_list_off : Icons.filter_list,
+        size: IconSizes.md,
+      ),
+      label: Text(open ? 'Hide filters' : 'Filters'),
+    );
+  }
+
   Widget _filterBar(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
 
@@ -148,12 +166,14 @@ class _DataScreenScaffoldState<F extends FilterTemplate, T>
                         title: widget.appTitle,
                         description: widget.description,
                         actions: [
+                          if (widget.filterPrereq)
+                            _filterToggle(context, design),
                           if (widget.primaryAction != null)
                             widget.primaryAction!,
                         ],
                       ),
                       SizedBox(height: gutter),
-                      if (widget.filterPrereq) ...[
+                      if (widget.filterPrereq && filtersVisible(design)) ...[
                         _filterBar(context),
                         const SizedBox(height: Spacing.sm),
                       ],

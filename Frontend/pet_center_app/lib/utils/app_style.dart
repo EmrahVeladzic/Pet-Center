@@ -158,7 +158,8 @@ class ReactiveDesignSystem extends ThemeExtension<ReactiveDesignSystem> {
   ]) {
     return Text(
       text,
-      maxLines: 2,
+      softWrap: true,
+      maxLines: isCompact ? 6 : 4,
       overflow: TextOverflow.ellipsis,
       style: TextStyle(
         fontSize: fontSize * mult,
@@ -178,9 +179,9 @@ class ReactiveDesignSystem extends ThemeExtension<ReactiveDesignSystem> {
       message: text,
       child: Text(
         text,
-        maxLines: 1,
+        softWrap: true,
+        maxLines: isCompact ? 3 : 2,
         overflow: TextOverflow.ellipsis,
-        softWrap: false,
         style: TextStyle(
           fontSize: fontSize * fontMult,
           fontWeight: fontMult >= 1.35 ? FontWeight.w600 : FontWeight.w500,

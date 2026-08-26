@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pet_center_app/screens/components/app_dialog.dart';
 import 'package:pet_center_app/models/data_transfer/form_template_dto.dart';
 import 'package:pet_center_app/services/form_template_service.dart';
 import 'package:pet_center_app/utils/app_style.dart';
@@ -58,7 +59,8 @@ class _FormTemplateFieldDialogState extends State<FormTemplateFieldDialog> {
 
     return Form(
       key: _formKey,
-      child: AlertDialog(
+      child: ScrollableAlertDialog(
+        scrollable: true,
         title: Row(
           children: [
             Expanded(child: design.textMarquee('Set template field:')),
@@ -71,40 +73,36 @@ class _FormTemplateFieldDialogState extends State<FormTemplateFieldDialog> {
         ),
         content: SizedBox(
           width: design.dialogWidth,
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                TextFormField(
-                  controller: _descriptionController,
-                  maxLines: 1,
-                  maxLength: 75,
-                  minLines: 1,
-                  keyboardType: TextInputType.text,
-                  decoration: const InputDecoration(
-                    labelText: "Description...",
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              TextFormField(
+                controller: _descriptionController,
+                maxLines: 1,
+                maxLength: 75,
+                minLines: 1,
+                keyboardType: TextInputType.text,
+                decoration: const InputDecoration(labelText: "Description..."),
+                validator: (value) => validateGeneric(value),
+              ),
+              SizedBox(height: design.spacing),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  Checkbox(
+                    value: data.optional,
+                    onChanged: (value) {
+                      if (value == null) return;
+                      setState(() {
+                        data.optional = value;
+                      });
+                    },
                   ),
-                  validator: (value) => validateGeneric(value),
-                ),
-                SizedBox(height: design.spacing),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: [
-                    Checkbox(
-                      value: data.optional,
-                      onChanged: (value) {
-                        if (value == null) return;
-                        setState(() {
-                          data.optional = value;
-                        });
-                      },
-                    ),
-                    design.fittedText('Optional'),
-                  ],
-                ),
-              ],
-            ),
+                  Flexible(child: design.fittedText('Optional')),
+                ],
+              ),
+            ],
           ),
         ),
         actions: [

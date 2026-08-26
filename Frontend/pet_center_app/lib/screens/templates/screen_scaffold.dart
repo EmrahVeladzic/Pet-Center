@@ -86,32 +86,52 @@ class BasicScreenScaffold extends StatelessWidget {
               ),
               child: Form(
                 key: formKey,
-                child: CustomScrollView(
-                  slivers: [
-                    if (showHeader)
-                      SliverToBoxAdapter(
-                        child: Padding(
-                          padding: EdgeInsets.only(bottom: gutter),
-                          child: PageHeader(
-                            title: title!,
-                            description: description,
-                            actions: actions,
-                          ),
-                        ),
-                      ),
-                    if (center)
-                      SliverFillRemaining(
-                        hasScrollBody: false,
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: body,
-                        ),
+                child: center
+                    ? LayoutBuilder(
+                        builder: (context, constraints) {
+                          final minHeight = constraints.hasBoundedHeight
+                              ? constraints.maxHeight
+                              : 0.0;
+
+                          return SingleChildScrollView(
+                            child: ConstrainedBox(
+                              constraints: BoxConstraints(minHeight: minHeight),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  if (showHeader)
+                                    Padding(
+                                      padding: EdgeInsets.only(bottom: gutter),
+                                      child: PageHeader(
+                                        title: title!,
+                                        description: description,
+                                        actions: actions,
+                                      ),
+                                    ),
+                                  ...body,
+                                ],
+                              ),
+                            ),
+                          );
+                        },
                       )
-                    else
-                      SliverList(delegate: SliverChildListDelegate(body)),
-                  ],
-                ),
+                    : CustomScrollView(
+                        slivers: [
+                          if (showHeader)
+                            SliverToBoxAdapter(
+                              child: Padding(
+                                padding: EdgeInsets.only(bottom: gutter),
+                                child: PageHeader(
+                                  title: title!,
+                                  description: description,
+                                  actions: actions,
+                                ),
+                              ),
+                            ),
+                          SliverList(delegate: SliverChildListDelegate(body)),
+                        ],
+                      ),
               ),
             ),
           ),

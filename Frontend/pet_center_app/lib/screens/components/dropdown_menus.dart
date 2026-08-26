@@ -16,9 +16,9 @@ Widget accessWidget(
   bool enable = true,
   Key? key,
 }) {
-  return SizedBox(
+  return ConstrainedBox(
     key: key,
-    width: w,
+    constraints: BoxConstraints(maxWidth: w),
     child: DropdownMenu<Access>(
       enabled: enable,
       expandedInsets: EdgeInsets.zero,
@@ -45,9 +45,9 @@ Widget orderingWidget(
   bool enable = true,
   Key? key,
 }) {
-  return SizedBox(
+  return ConstrainedBox(
     key: key,
-    width: w,
+    constraints: BoxConstraints(maxWidth: w),
     child: DropdownMenu<OrderingMethod>(
       enabled: enable,
       expandedInsets: EdgeInsets.zero,
@@ -74,9 +74,9 @@ Widget scaleWidget(
   bool enable = true,
   Key? key,
 }) {
-  return SizedBox(
+  return ConstrainedBox(
     key: key,
-    width: w,
+    constraints: BoxConstraints(maxWidth: w),
     child: DropdownMenu<AnimalScale>(
       enabled: enable,
       expandedInsets: EdgeInsets.zero,
@@ -103,9 +103,9 @@ Widget listingTypeWidget(
   bool enable = true,
   Key? key,
 }) {
-  return SizedBox(
+  return ConstrainedBox(
     key: key,
-    width: w,
+    constraints: BoxConstraints(maxWidth: w),
     child: DropdownMenu<ListingType>(
       enabled: enable,
       expandedInsets: EdgeInsets.zero,
@@ -132,9 +132,9 @@ Widget procedureWidget(
   bool enable = true,
   Key? key,
 }) {
-  return SizedBox(
+  return ConstrainedBox(
     key: key,
-    width: w,
+    constraints: BoxConstraints(maxWidth: w),
     child: DropdownMenu<ProcedureDTO>(
       enabled: enable,
       expandedInsets: EdgeInsets.zero,
@@ -161,9 +161,9 @@ Widget itemWidget(
   bool enable = true,
   Key? key,
 }) {
-  return SizedBox(
+  return ConstrainedBox(
     key: key,
-    width: w,
+    constraints: BoxConstraints(maxWidth: w),
     child: DropdownMenu<ItemDTO>(
       enabled: enable,
       expandedInsets: EdgeInsets.zero,
@@ -204,9 +204,9 @@ Widget templateWidget(
   bool enable = true,
   Key? key,
 }) {
-  return SizedBox(
+  return ConstrainedBox(
     key: key,
-    width: w,
+    constraints: BoxConstraints(maxWidth: w),
     child: DropdownMenu<FormTemplateDTO>(
       enabled: enable,
       expandedInsets: EdgeInsets.zero,
@@ -233,9 +233,9 @@ Widget categoryWidget(
   bool enable = true,
   Key? key,
 }) {
-  return SizedBox(
+  return ConstrainedBox(
     key: key,
-    width: w,
+    constraints: BoxConstraints(maxWidth: w),
     child: DropdownMenu<CategoryDTO>(
       enabled: enable,
       expandedInsets: EdgeInsets.zero,
@@ -260,9 +260,9 @@ Widget animalWidget(
   bool enable = true,
   Key? key,
 }) {
-  return SizedBox(
+  return ConstrainedBox(
     key: key,
-    width: w,
+    constraints: BoxConstraints(maxWidth: w),
     child: DropdownMenu<IndividualResponseDTO>(
       enabled: enable,
       expandedInsets: EdgeInsets.zero,
@@ -295,9 +295,9 @@ Widget breedWidget(
   bool enable = true,
   Key? key,
 }) {
-  return SizedBox(
+  return ConstrainedBox(
     key: key,
-    width: w,
+    constraints: BoxConstraints(maxWidth: w),
     child: DropdownMenu<BreedDTO>(
       enabled: enable,
       expandedInsets: EdgeInsets.zero,
@@ -327,9 +327,9 @@ Widget kindWidget(
   bool enable = true,
   Key? key,
 }) {
-  return SizedBox(
+  return ConstrainedBox(
     key: key,
-    width: w,
+    constraints: BoxConstraints(maxWidth: w),
     child: DropdownMenu<KindDTO>(
       enabled: enable,
       expandedInsets: EdgeInsets.zero,

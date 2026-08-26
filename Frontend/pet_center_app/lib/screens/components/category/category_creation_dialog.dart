@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pet_center_app/screens/components/app_dialog.dart';
 import 'package:pet_center_app/models/data_transfer/category_dto.dart';
 
 import 'package:pet_center_app/utils/app_style.dart';
@@ -50,7 +51,8 @@ class _CategoryCreationDialogState extends State<CategoryCreationDialog> {
 
     return Form(
       key: _formKey,
-      child: AlertDialog(
+      child: ScrollableAlertDialog(
+        scrollable: true,
         title: Row(
           children: [
             Expanded(child: design.textMarquee('Define category:')),
@@ -63,42 +65,40 @@ class _CategoryCreationDialogState extends State<CategoryCreationDialog> {
         ),
         content: SizedBox(
           width: design.dialogWidth,
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                TextFormField(
-                  controller: _controller,
-                  maxLines: 1,
-                  maxLength: 75,
-                  minLines: 1,
-                  keyboardType: TextInputType.text,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              TextFormField(
+                controller: _controller,
+                maxLines: 1,
+                maxLength: 75,
+                minLines: 1,
+                keyboardType: TextInputType.text,
 
-                  decoration: InputDecoration(labelText: "Title..."),
-                  validator: (value) {
-                    return validateGeneric(value);
-                  },
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: [
-                    Checkbox(
-                      value: data.consumable,
-                      onChanged: (value) {
-                        if (value == null) {
-                          return;
-                        }
-                        setState(() {
-                          data.consumable = value;
-                        });
-                      },
-                    ),
-                    design.fittedText('Consumable'),
-                  ],
-                ),
-              ],
-            ),
+                decoration: InputDecoration(labelText: "Title..."),
+                validator: (value) {
+                  return validateGeneric(value);
+                },
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  Checkbox(
+                    value: data.consumable,
+                    onChanged: (value) {
+                      if (value == null) {
+                        return;
+                      }
+                      setState(() {
+                        data.consumable = value;
+                      });
+                    },
+                  ),
+                  Flexible(child: design.fittedText('Consumable')),
+                ],
+              ),
+            ],
           ),
         ),
         actions: [

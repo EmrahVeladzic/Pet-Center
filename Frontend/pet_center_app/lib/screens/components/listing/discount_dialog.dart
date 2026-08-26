@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pet_center_app/screens/components/app_dialog.dart';
 import 'package:pet_center_app/models/data_transfer/listing/sub_dtos.dart';
 import 'package:pet_center_app/services/listing_service.dart';
 
@@ -53,7 +54,8 @@ class _DiscountDialogState extends State<DiscountDialog> {
 
     return Form(
       key: _formKey,
-      child: AlertDialog(
+      child: ScrollableAlertDialog(
+        scrollable: true,
         title: Row(
           children: [
             Expanded(child: design.textMarquee('Set discount:')),
@@ -66,38 +68,36 @@ class _DiscountDialogState extends State<DiscountDialog> {
         ),
         content: SizedBox(
           width: design.dialogWidth,
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                TextFormField(
-                  controller: _firstController,
-                  maxLines: 1,
-                  maxLength: 3,
-                  minLines: 1,
-                  keyboardType: TextInputType.number,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              TextFormField(
+                controller: _firstController,
+                maxLines: 1,
+                maxLength: 3,
+                minLines: 1,
+                keyboardType: TextInputType.number,
 
-                  decoration: InputDecoration(labelText: "Percent..."),
-                  validator: (value) {
-                    return validateNumericInRange(value, 15, 100);
-                  },
-                ),
-                design.verticalGap(design.spacing / 2),
-                TextFormField(
-                  controller: _secondController,
-                  maxLines: 1,
-                  maxLength: 2,
-                  minLines: 1,
-                  keyboardType: TextInputType.number,
+                decoration: InputDecoration(labelText: "Percent..."),
+                validator: (value) {
+                  return validateNumericInRange(value, 15, 100);
+                },
+              ),
+              design.verticalGap(design.spacing / 2),
+              TextFormField(
+                controller: _secondController,
+                maxLines: 1,
+                maxLength: 2,
+                minLines: 1,
+                keyboardType: TextInputType.number,
 
-                  decoration: InputDecoration(labelText: 'Days valid...'),
-                  validator: (value) {
-                    return validateNumericInRange(value, 3, 45);
-                  },
-                ),
-              ],
-            ),
+                decoration: InputDecoration(labelText: 'Days valid...'),
+                validator: (value) {
+                  return validateNumericInRange(value, 3, 45);
+                },
+              ),
+            ],
           ),
         ),
         actions: [

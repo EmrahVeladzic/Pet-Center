@@ -99,46 +99,56 @@ class PageSelectorState extends State<PageSelector> {
     final design = context.design;
     final total = maxPage < 1 ? 1 : maxPage;
 
-    final label = widget.resultCount == null
-        ? 'Page $currentPage of $total'
-        : 'Showing ${widget.resultCount} on page $currentPage of $total';
+    final previous = IconButton(
+      tooltip: 'Previous page',
+      onPressed: currentPage > 1 ? () => changePage(currentPage - 1) : null,
+      icon: const Icon(Icons.chevron_left),
+    );
 
-    final controls = Wrap(
-      spacing: Spacing.xxs,
-      runSpacing: Spacing.xxs,
-      crossAxisAlignment: WrapCrossAlignment.center,
-      children: [
-        IconButton(
-          tooltip: 'Previous page',
-          onPressed: currentPage > 1 ? () => changePage(currentPage - 1) : null,
-          icon: const Icon(Icons.chevron_left),
+    final next = IconButton(
+      tooltip: 'Next page',
+      onPressed: currentPage < total ? () => changePage(currentPage + 1) : null,
+      icon: const Icon(Icons.chevron_right),
+    );
+
+    if (design.isCompact) {
+      final label = widget.resultCount == null
+          ? 'Page $currentPage of $total'
+          : '$currentPage of $total · ${widget.resultCount} shown';
+
+      return Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: Spacing.xs,
+          vertical: Spacing.xxs,
         ),
-        for (final page in _visiblePages())
-          if (page == null)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: Spacing.xxs),
+        decoration: BoxDecoration(
+          color: scheme.surface,
+          borderRadius: Radii.mdAll,
+          border: Border.all(color: scheme.outlineVariant),
+        ),
+        child: Row(
+          children: [
+            previous,
+            Expanded(
               child: Text(
-                '...',
+                label,
+                textAlign: TextAlign.center,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: scheme.onSurfaceVariant,
                 ),
               ),
-            )
-          else
-            _PageButton(
-              page: page,
-              selected: page == currentPage,
-              onTap: () => changePage(page),
             ),
-        IconButton(
-          tooltip: 'Next page',
-          onPressed: currentPage < total
-              ? () => changePage(currentPage + 1)
-              : null,
-          icon: const Icon(Icons.chevron_right),
+            next,
+          ],
         ),
-      ],
-    );
+      );
+    }
+
+    final label = widget.resultCount == null
+        ? 'Page $currentPage of $total'
+        : 'Showing ${widget.resultCount} on page $currentPage of $total';
 
     return Container(
       padding: const EdgeInsets.symmetric(
@@ -150,36 +160,44 @@ class PageSelectorState extends State<PageSelector> {
         borderRadius: Radii.mdAll,
         border: Border.all(color: scheme.outlineVariant),
       ),
-      child: design.isCompact
-          ? Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  label,
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: scheme.onSurfaceVariant,
+              ),
+            ),
+          ),
+          const SizedBox(width: Spacing.sm),
+          previous,
+          for (final page in _visiblePages())
+            if (page == null)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: Spacing.xxs),
+                child: Text(
+                  '...',
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: scheme.onSurfaceVariant,
                   ),
                 ),
-                const SizedBox(height: Spacing.xxs),
-                controls,
-              ],
-            )
-          : Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    label,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: scheme.onSurfaceVariant,
-                    ),
-                  ),
+              )
+            else
+              Padding(
+                padding: const EdgeInsets.only(left: Spacing.xxs),
+                child: _PageButton(
+                  page: page,
+                  selected: page == currentPage,
+                  onTap: () => changePage(page),
                 ),
-                const SizedBox(width: Spacing.sm),
-                controls,
-              ],
-            ),
+              ),
+          const SizedBox(width: Spacing.xxs),
+          next,
+        ],
+      ),
     );
   }
 }
